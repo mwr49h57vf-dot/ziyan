@@ -121,13 +121,7 @@ ensure_framecap() {
   fi
   echo "$now" >"$lastf" 2>/dev/null
   rm -f "$VAR/.ziyan_watchdog_framecap_need" 2>/dev/null
-  # 182：kickstart 可能 pending/6MB 杀；短等后仍无进程 → 手搓 orphan serve
-  # （framecap 入口 memorystatus 自抬 jetsam；禁 kickstart -k 挂死）
-  if [ "$ROOTLESS" = "1" ]; then
-    FCBIN=/var/jb/usr/lib/ziyan/bin/ziyan_framecap
-  else
-    FCBIN=/usr/lib/ziyan/bin/ziyan_framecap
-  fi
+  # 202：仅普通 kickstart（禁 -k）；fc_n>=1 已在上方 return，禁止 orphan nohup 与 launchd 竞态
   if [ -f "$FRAMECAP_PLIST" ]; then
     $LAUNCHCTL kickstart system/com.ziyan.framecap 2>/dev/null \
       || $LAUNCHCTL kickstart com.ziyan.framecap 2>/dev/null \
@@ -137,10 +131,10 @@ ensure_framecap() {
   fi
   fc_n2=$($PS -A -o command= 2>/dev/null | grep -F "ziyan_framecap serve" | grep -vc grep | tr -dc '0-9')
   [ -n "$fc_n2" ] || fc_n2=0
-  if [ "$fc_n2" -lt 1 ] 2>/dev/null && [ -x "$FCBIN" ]; then
-    rm -f "$VAR/.ziyan_framecap_serve.lock" "$VAR/.ziyan_framecap_wrap.pid" 2>/dev/null
-    nohup "$FCBIN" serve >/dev/null 2>&1 </dev/null &
-    log "framecap_spawn_orphan pid=$! need=$need"
+  if [ "$fc_n2" -lt 1 ] 2>/dev/null; then
+    # 不删 lock、不 orphan spawn；写 need 等下一轮 / wrap 自愈
+    echo 1 >"$VAR/.ziyan_watchdog_framecap_need" 2>/dev/null
+    log "framecap_kick_pending still_dead need_rewritten=1"
   fi
 }
 

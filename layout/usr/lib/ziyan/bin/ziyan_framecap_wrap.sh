@@ -36,9 +36,12 @@ for pid in $($PS -A -o pid=,command= 2>/dev/null | grep -F "ziyan_framecap serve
       ;;
   esac
 done
+# 202：已有任一 serve → 同步 PIDF/owner 后立即退出（禁双开）
 if [ -n "$live_pid" ]; then
   echo "$live_pid" >"$PIDF" 2>/dev/null || true
   chmod 666 "$PIDF" 2>/dev/null || true
+  echo "pid=$live_pid ts=$(date +%s) lock_generation=wrap_skip" >"$VAR/.ziyan_framecap_owner" 2>/dev/null || true
+  chmod 666 "$VAR/.ziyan_framecap_owner" 2>/dev/null || true
   echo "$(date '+%Y-%m-%d %H:%M:%S') wrap_skip already_running pid=$live_pid" >>"$VAR/.ziyan_framecap_log" 2>/dev/null || true
   exit 0
 fi

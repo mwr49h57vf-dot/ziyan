@@ -23,18 +23,24 @@ scp_r() { sshpass -p "$PASS" scp "${SSH_OPTS[@]}" "$1" "root@$2:$3"; }
 [[ -f "$DESKTOP_IOS7" && -f "$DESKTOP_IOS8P" ]] || {
   echo "FATAL missing Desktop ios7/ios8p"; exit 2
 }
+SHA7=$(shasum -a 256 "$DESKTOP_IOS7" | awk '{print $1}')
+SHA8=$(shasum -a 256 "$DESKTOP_IOS8P" | awk '{print $1}')
 echo "OUT=$OUT" | tee "$OUT/OUT_PATH.txt"
 echo "WANT=$WANT" | tee -a "$OUT/OUT_PATH.txt"
+echo "SHA256_ios7=$SHA7" | tee -a "$OUT/OUT_PATH.txt"
+echo "SHA256_ios8p=$SHA8" | tee -a "$OUT/OUT_PATH.txt"
 
 # ios7 色点A（与 Desktop 同步，仅用于 FAIL 取证）
-IOS7_A_PTS='[{"c":9250329,"dx":0,"dy":0,"b":0},{"c":9121568,"dx":0,"dy":2,"b":0},{"c":8070423,"dx":0,"dy":4,"b":0},{"c":8070938,"dx":0,"dy":6,"b":0}]'
-IOS7_A_ROI="1010 294 1010 300 90"
+IOS7_A_PTS='[{"c":10304105,"dx":0,"dy":0,"b":0},{"c":9253480,"dx":0,"dy":4,"b":0}]'
+IOS7_A_ROI="390 195 410 210 90"
 # ios8p 色点A
 IOS8_A_PTS='[{"c":16645615,"dx":0,"dy":0,"b":0},{"c":16711423,"dx":1,"dy":2,"b":0},{"c":16777200,"dx":2,"dy":3,"b":0},{"c":16645601,"dx":2,"dy":7,"b":0}]'
 IOS8_A_ROI="2011 283 2013 290 90"
 
 run_one() {
   local tag="$1" ip="$2" scheme="$3" script="$4"
+  local sha="$SHA7"
+  [[ "$script" == "ios8p.lua" ]] && sha="$SHA8"
   echo "[run1] .$tag $script (script logic: 找到目标+tap)"
   if [[ "$script" == "ios8p.lua" ]]; then
     scp_r "$DESKTOP_IOS8P" "$ip" /private/var/mobile/Media/ZiYan/ios8p.lua
@@ -43,7 +49,7 @@ run_one() {
   fi
   bash "$ROOT/tools/zy_miss_fuse_emergency.sh" "$tag" 2>&1 | tee -a "$OUT/fuse_${tag}.txt" | tail -2
 
-  ssh_r "$ip" "TAG=$tag SCHEME=$scheme SCRIPT=$script bash -s" <<'EOS' | tee "$OUT/gate_${tag}.txt"
+  ssh_r "$ip" "TAG=$tag SCHEME=$scheme SCRIPT=$script SHA=$sha bash -s" <<'EOS' | tee "$OUT/gate_${tag}.txt"
 set +e
 if [ "$SCHEME" = rootless ]; then
   VAR=/var/jb/usr/lib/ziyan/var
@@ -81,11 +87,21 @@ go_home() {
   return 1
 }
 
-echo "META VER=$VER SCRIPT=$SCRIPT RUN1=1 RULE=find_tap_not_login_toast"
+echo "META VER=$VER SCRIPT=$SCRIPT RUN1=1 RULE=find_tap_typed_verdict"
 mkdir -p "$VAR" "$MEDIA"
+REMOTE_SHA=""
+if command -v sha256sum >/dev/null 2>&1; then
+  REMOTE_SHA=$(sha256sum "$MEDIA/$SCRIPT" 2>/dev/null | cut -d' ' -f1)
+elif command -v shasum >/dev/null 2>&1; then
+  REMOTE_SHA=$(shasum -a 256 "$MEDIA/$SCRIPT" 2>/dev/null | cut -d' ' -f1)
+fi
+echo "REMOTE_SHA=$REMOTE_SHA EXPECT=$SHA"
+[ -n "$REMOTE_SHA" ] && [ "$REMOTE_SHA" = "$SHA" ] && echo "SHA_OK=1" || echo "SHA_OK=0"
 echo 1 >"$VAR/.ziyan_no_auto_keep"; chmod 666 "$VAR/.ziyan_no_auto_keep" 2>/dev/null || true
 rm -f "$VAR/.ziyan_open_app" "$VAR/.ziyan_embed_off" "$VAR/.ziyan_user_stopped" \
-  "$VAR/.ziyan_keep_daemon" "$VAR/.ziyan_session_keep" "$VAR/.ziyan_active"
+  "$VAR/.ziyan_keep_daemon" "$VAR/.ziyan_session_keep" "$VAR/.ziyan_active" \
+  "$VAR/.ziyan_find_sb_banned" "$VAR/.ziyan_light" "$VAR/.ziyan_force_front_mismatch" \
+  "$VAR/.ziyan_app_alive" "$VAR/.ziyan_prefer_app_touch"
 rm -f "$VAR/.ziyan_toast_dump" "$VAR/.ziyan_toast_hist" \
   "$VAR/.ziyan_verify_log" "$VAR/.ziyan_biz_tapped"
 : >"$VAR/.ziyan_toast_dump"
@@ -94,15 +110,23 @@ rm -f "$VAR/.ziyan_toast_dump" "$VAR/.ziyan_toast_hist" \
 chmod 666 "$VAR/.ziyan_toast_dump" "$VAR/.ziyan_toast_hist" \
   "$VAR/.ziyan_verify_log" 2>/dev/null
 
-launchctl kickstart -k system/com.ziyan.framecap 2>/dev/null || \
-  launchctl kickstart -k com.ziyan.framecap 2>/dev/null || true
-sleep 1.2
+# 202：仅 FC_N=0 时普通 kickstart（禁 -k）
+FC0=$(ps -A -o command= 2>/dev/null | grep -F 'ziyan_framecap serve' | grep -vc grep | tr -dc '0-9')
+[ -n "$FC0" ] || FC0=0
+if [ "$FC0" -eq 0 ]; then
+  launchctl kickstart system/com.ziyan.framecap 2>/dev/null || \
+    launchctl kickstart com.ziyan.framecap 2>/dev/null || true
+  sleep 1.2
+fi
 
-# A0 Home — 禁止 open_app
+# A0 Home — 禁止 open_app；不绑定固定游戏 BID
 go_home 10
 FRONT0=$(tr -d '\r\n' <"$VAR/.ziyan_front_bid" 2>/dev/null)
 echo "A0 FRONT=$FRONT0"
 echo "$FRONT0" | grep -qi springboard && pass A0_home || fail A0_not_home
+SEQ0=$(sed -n 's/.*seq=\([0-9][0-9]*\).*/\1/p' "$VAR/.ziyan_resident_bytes" 2>/dev/null | head -1)
+SEQ0=${SEQ0:-0}
+echo "A0_SEQ=$SEQ0"
 
 for t in $(seq 1 20); do
   echo 1 >"$VAR/.ziyan_force_recap"; chmod 666 "$VAR/.ziyan_force_recap" 2>/dev/null
@@ -155,7 +179,10 @@ else
   echo "NOTE=script_ran_but_colorA_miss_on_home (not waiting_login)"
 fi
 
-# A3 点击后应离开 SpringBoard（脚本 tap，门禁不代 open_app）
+# A3：触控证据（离桌 / touch_rep=ok / 同前台新帧）；不认裸 Verify.request
+TOUCH_REP_OK=0
+TAP_GATE=$(tr '\n' ' ' <"$VAR/.ziyan_tap_gate" 2>/dev/null)
+echo "TAP_GATE=$TAP_GATE"
 if [ "$FIND_TAP" = 1 ]; then
   d1=$(( $(date +%s) + 45 ))
   while [ "$(date +%s)" -lt "$d1" ]; do
@@ -165,8 +192,16 @@ if [ "$FIND_TAP" = 1 ]; then
       CLICK=1
       break
     fi
-    # Verify 已写也算点击意图达成
-    grep -qE 'tap success' "$VAR/.ziyan_verify_log" 2>/dev/null && CLICK=1 && break
+    if grep -qE '^ok$|ok=1|status=ok' "$VAR/.ziyan_touch_rep" 2>/dev/null \
+      || grep -qiE 'ok' "$VAR/.ziyan_touch_rep" 2>/dev/null; then
+      TOUCH_REP_OK=1
+    fi
+    SEQ1=$(sed -n 's/.*seq=\([0-9][0-9]*\).*/\1/p' "$VAR/.ziyan_resident_bytes" 2>/dev/null | head -1)
+    SEQ1=${SEQ1:-0}
+    # 同前台仍在 SB：若 touch_rep 已 ok 且帧前进，记 TOUCH_SENT；仍要求离桌才 BUSINESS_PASS
+    if [ "$TOUCH_REP_OK" = 1 ] && [ "$SEQ1" -gt "$SEQ0" ] 2>/dev/null; then
+      echo "OBS_TOUCH_REP_OK seq0=$SEQ0 seq1=$SEQ1"
+    fi
     sleep 1
   done
   [ "$CLICK" = 1 ] && pass A3_CLICK || fail A3_still_home
@@ -174,20 +209,41 @@ else
   echo "SKIP A3 (no find/tap)"
 fi
 
-# 登录仅观察
 [ "$LOGIN_SEEN" = 1 ] && echo "OBS_LOGIN=1" || echo "OBS_LOGIN=0"
+LAST_CLASS=$(sed -n 's/.*class=\([^ ]*\).*/\1/p' "$VAR/.ziyan_last_find" 2>/dev/null | head -1)
+echo "LAST_FIND_CLASS=$LAST_CLASS TOUCH_REP_OK=$TOUCH_REP_OK"
 
 printf 'ts=1\n' >"$VAR/.ziyan_kill_scripts"; chmod 666 "$VAR/.ziyan_kill_scripts" 2>/dev/null || true
 sleep 2
 rm -f "$VAR/.ziyan_active" "$VAR/.ziyan_keep_daemon" 2>/dev/null
 
-echo "FIND_TAP=$FIND_TAP CLICK=$CLICK FAIL=$FAIL"
+FRONT_END=$(tr -d '\r\n' <"$VAR/.ziyan_front_bid" 2>/dev/null)
+echo "FIND_TAP=$FIND_TAP CLICK=$CLICK FAIL=$FAIL FRONT_END=$FRONT_END"
+# 202 typed verdict：视觉 / 触控分离；不绑固定 GAME_BID
 if [ "$FIND_TAP" = 1 ] && [ "$CLICK" = 1 ] && [ "$FAIL" = 0 ]; then
   echo "VERDICT=PASS"
+  echo "TYPED=BUSINESS_PASS"
+elif [ "$FIND_TAP" = 1 ] && [ "$CLICK" = 0 ]; then
+  echo "VERDICT=FAIL_FIND_HIT_TOUCH"
+  if [ "$TOUCH_REP_OK" = 1 ]; then
+    echo "TYPED=TOUCH_SENT_NO_UI_CHANGE"
+  else
+    echo "TYPED=TOUCH_SENT_NO_UI_CHANGE"
+  fi
+  echo "NOTE=vision_hit_but_still_home; open touch/HID/icon only — do_not_change_find"
 elif [ "$FIND_TAP" = 0 ]; then
-  echo "VERDICT=FAIL_NO_FIND"
+  if echo "$LAST_CLASS" | grep -qiE 'front_mismatch|stale'; then
+    echo "VERDICT=FAIL_NO_FIND"
+    echo "TYPED=VISION_STALE"
+  else
+    echo "VERDICT=FAIL_NO_FIND"
+    echo "TYPED=VISION_MISS"
+  fi
+  echo "LAST_FIND=$(tr '\n' ' ' <"$VAR/.ziyan_last_find" 2>/dev/null | tail -c 240)"
+  echo "CONTRACT=$(tr '\n' ' ' <"$VAR/.ziyan_find_contract" 2>/dev/null | tail -c 240)"
 else
   echo "VERDICT=FAIL"
+  echo "TYPED=FAIL"
 fi
 echo "META end=$(date +%s)"
 EOS

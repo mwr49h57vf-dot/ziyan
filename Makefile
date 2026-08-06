@@ -161,6 +161,7 @@ ziyan_framecap_FILES = \
 	objc/shared/ZiYanFrameTrace.m \
 	objc/shared/ZiYanControlShm.m \
 	objc/shared/ZiYanColorMatch.m \
+	objc/shared/ZiYanHIDOptimizer.m \
 	tools/ziyan_ncnn_findcolor/ZiYanNcnnInference.m \
 	tools/ziyan_ncnn_findcolor/ZiYanNcnnMatch.m \
 	tools/ziyan_ncnn_findcolor/ziyan_ncnn_bridge.cpp \

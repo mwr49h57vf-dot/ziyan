@@ -182,14 +182,20 @@ launchctl bootout system "\$LD/com.ziyan.framecap.plist" >/dev/null 2>&1 || true
 launchctl unload "\$LD/com.ziyan.framecap.plist" >/dev/null 2>&1 || true
 launchctl bootstrap system "\$LD/com.ziyan.framecap.plist" >/dev/null 2>&1 \
   || launchctl load -w "\$LD/com.ziyan.framecap.plist" >/dev/null 2>&1 || true
-# 182：禁 kickstart -k（真机可挂死 SSH）；先普通 kick，再短等，仍无则 orphan serve
-# （framecap 入口 memorystatus 自抬 jetsam，launchd 6MB 不再必杀）
+# 204：禁 kickstart -k；仅由 launchd 拉起，禁止 orphan serve 与 launchd 竞态双开。
 launchctl kickstart system/com.ziyan.framecap 2>/dev/null \
   || launchctl kickstart com.ziyan.framecap 2>/dev/null || true
 sleep 2
 if ! ps -A -o command= 2>/dev/null | grep -q '[z]iyan_framecap serve'; then
-  rm -f "\$VAR/.ziyan_framecap_serve.lock" "\$VAR/.ziyan_framecap_wrap.pid" 2>/dev/null
-  "\$BIN/ziyan_framecap" serve >/dev/null 2>&1 &
+  echo 1 >"\$VAR/.ziyan_watchdog_framecap_need"
+  chmod 666 "\$VAR/.ziyan_watchdog_framecap_need" 2>/dev/null || true
+  sleep 2
+fi
+FC_N=\$(ps -A -o command= 2>/dev/null | grep -F 'ziyan_framecap serve' | grep -vc grep | tr -dc '0-9')
+[ -n "\$FC_N" ] || FC_N=0
+if [ "\$FC_N" -ne 1 ]; then
+  echo "DEPLOY_FAIL framecap_count=\$FC_N"
+  exit 3
 fi
 rm -f "\$VAR/.ziyan_force_recap" 2>/dev/null || true
 echo com.ziyan.ziyan > "\$VAR/.ziyan_open_app" 2>/dev/null || true

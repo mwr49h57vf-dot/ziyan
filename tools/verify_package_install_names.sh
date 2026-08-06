@@ -11,6 +11,7 @@ if [[ -z "$DEB" || ! -f "$DEB" ]]; then
   echo "FAIL: no arm64 deb given/found" >&2
   exit 2
 fi
+DEB="$(cd "$(dirname "$DEB")" && pwd)/$(basename "$DEB")"
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
 cd "$TMP"

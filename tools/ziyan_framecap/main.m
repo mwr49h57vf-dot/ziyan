@@ -3169,9 +3169,12 @@ if ((hotFrameAged || sRetainCompositeDirty) &&
           req = rem;
         }
       }
-      // 每 ~30s 催一次堆回收（无色时）
+      // 催堆回收。hasColor 在 embed 运行期恒为真，旧的 !hasColor 守卫会让
+      // 整段业务长跑期间一次都不回收，堆只涨不还（Z1-MEM 刀A）。
+      // 热路径拉长间隔以压 CPU，但不得为零。
       static NSTimeInterval sLastRelief = 0;
-      if (!hasColor && (nowR - sLastRelief) > 30.0) {
+      NSTimeInterval reliefGap = hasColor ? 60.0 : 30.0;
+      if ((nowR - sLastRelief) > reliefGap) {
         sLastRelief = nowR;
         malloc_zone_pressure_relief(NULL, 0);
       }

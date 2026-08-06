@@ -1,6 +1,6 @@
 Package: com.ziyan.ziyan
 Name: ZiYan
-Version: 0.0.92-8-161-204-3
+Version: 0.0.92-8-161-205-A
 Architecture: iphoneos-arm
 Description: ZiYan automation (rootful arm / rootless arm64 via THEOS_PACKAGE_SCHEME).
 Maintainer: ZiYan

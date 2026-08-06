@@ -1,13 +1,31 @@
 #!/usr/bin/env bash
-# 刀 E4 晋级（202）：只用 Desktop ios7.lua / ios8p.lua 长跑旁路采样
-# 禁生成 _e4_promo.lua；暖机 60s 后 5 点中位数作基线，末段斜率判定
+# Z1-MEM 资源门禁：只用 Desktop ios7.lua / ios8p.lua 长跑旁路采样
+# 禁生成 _e4_promo.lua；暖机 60s 后 5 点中位数作基线，末段中位数判定
 # 用法: ZY_E4_MIN=30 bash tools/zy_e4_promo_gate.sh
 # 可选: ZY_E4_MIN=5 短测；HOSTS 默认 101 112 166 53
+#
+# ── 斜率口径（Z0-METRIC 修正）────────────────────────────────────────
+# 旧版把「整窗差值 END-BASE」直接与「Δ/100s 预算」比较，导致 ZY_E4_MIN=5
+# 与 =30 套同一阈值时严格程度相差 6 倍。现统一归一化为 KB/100s：
+#   PER100 = (END - BASE) * 100 / SEC
+# 阈值必须有实测出处，不得发明；来源见 tmp_shots/TS_OBS/*/TS_RSS_SLOPE.md
+# （触动 .171 TSDaemon 同协议同口径实测），预算 = 触动实测 × 容差。
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PASS="${ZY_SSH_PASS:-alpine}"
 MIN="${ZY_E4_MIN:-30}"
 SEC=$((MIN * 60))
+
+# 斜率预算（KB/100s）。
+# 出处：tmp_shots/TS_OBS/20260807_022020/TS_RSS_SLOPE.md
+#   触动 .171（iPhone7 找色长跑参考机）5min 同口径实测 = 58 KB/100s
+#   触动 .149 同期 = 122 KB/100s（非找色脚本，仅作旁证）
+# 结论：触动自身斜率并非 0，「趋近于零」是伪目标，按「不劣于触动」定预算。
+#   rootful = 58 × 2 ≈ 120（容差覆盖测量噪声与机型差异）
+#   rootless .53 = @3x 像素量更大，再放宽一倍 = 240
+# 旧的 512/1024「整窗差值」预算无实测出处，已作废。
+RMAX100_RF="${ZY_E4_RMAX100_RF:-120}"
+RMAX100_R53="${ZY_E4_RMAX100_R53:-240}"
 if [ "$#" -eq 0 ]; then HOSTS=(101 112 166 53); else HOSTS=("$@"); fi
 STAMP="$(date '+%Y%m%d_%H%M%S')"
 OUT="${ROOT}/tmp_shots/E4_PROMO_${STAMP}"
@@ -39,10 +57,11 @@ run_remote() {
   local SCRIPT=ios7.lua
   local LOCAL="$DESKTOP_IOS7"
   local SHA="$SHA7"
-  [ "$H" = "53" ] && SCHEME=rootless && SCRIPT=ios8p.lua && LOCAL="$DESKTOP_IOS8P" && SHA="$SHA8"
+  local RMAX100="$RMAX100_RF"
+  [ "$H" = "53" ] && SCHEME=rootless && SCRIPT=ios8p.lua && LOCAL="$DESKTOP_IOS8P" && SHA="$SHA8" && RMAX100="$RMAX100_R53"
   echo "==== start .$H script=$SCRIPT (${MIN}min) ===="
   scp_r "$LOCAL" "$IP" "/private/var/mobile/Media/ZiYan/$SCRIPT"
-  ssh_r "$IP" "SCHEME=$SCHEME SEC=$SEC H=$H SCRIPT=$SCRIPT SHA=$SHA bash -s" <<'R' >"$OUT/gate_${H}.txt" 2>&1 &
+  ssh_r "$IP" "SCHEME=$SCHEME SEC=$SEC H=$H SCRIPT=$SCRIPT SHA=$SHA RMAX100=$RMAX100 bash -s" <<'R' >"$OUT/gate_${H}.txt" 2>&1 &
 set +e
 if [ "$SCHEME" = rootless ]; then
   V=/var/jb/usr/lib/ziyan/var; B=/var/jb/usr/lib/ziyan/bin
@@ -163,6 +182,9 @@ RSS_END=${RSS_END:-0}
 FC_DELTA=$(( RSS_END - RSS_BASE ))
 FC_PEAK_DELTA=$(( FC_RSS_MAX - RSS_BASE ))
 [ "$FC_DELTA" -lt 0 ] 2>/dev/null && FC_SLOPE_ABS=$(( 0 - FC_DELTA )) || FC_SLOPE_ABS=$FC_DELTA
+# 归一化到 KB/100s，使 5min 与 30min 窗口可直接对照，也可与触动实测同轴比较
+FC_PER100=$(( FC_DELTA * 100 / SEC ))
+[ "$FC_PER100" -lt 0 ] 2>/dev/null && FC_PER100_ABS=$(( 0 - FC_PER100 )) || FC_PER100_ABS=$FC_PER100
 
 printf 'ts=1\n' >"$V/.ziyan_kill_scripts"; chmod 666 "$V/.ziyan_kill_scripts" 2>/dev/null || true
 sleep 2
@@ -183,6 +205,7 @@ echo "STATS=$STATS"
 echo "SB_CHG=$SB_CHG FORCE_HITS=$FORCE TOAST_BUMP=$TOAST KEEP_PEAK=$KEEP_PEAK RELAY_HITS=$RELAY"
 echo "FC_N_MAX=$FC_N_MAX RSS_BASE=$RSS_BASE RSS_END=$RSS_END FC_RSS_MAX=$FC_RSS_MAX"
 echo "FC_SLOPE_KB=$FC_DELTA FC_PEAK_DELTA_KB=$FC_PEAK_DELTA"
+echo "FC_SLOPE_PER100_KB=$FC_PER100 window_sec=$SEC budget_per100=$RMAX100"
 echo "OWNER=$OWNER WORKSET=$WS"
 echo "KEEP_AFTER_STOP=$KEEP_AFTER ACTIVE=$ACTIVE KEEP=$KEEP"
 echo "via_embed_find=$EM via_color_req_find=$CR"
@@ -204,10 +227,9 @@ fi
 [ "$CR" = "0" ] || [ "$CR" = "-1" ] || { echo "FAIL color_req=$CR"; OK=0; }
 [ "$EM" -gt 10 ] 2>/dev/null || { echo "FAIL embed_find_low=$EM"; OK=0; }
 [ "$FC_N_MAX" -le 1 ] 2>/dev/null || { echo "FAIL fc_n=$FC_N_MAX"; OK=0; }
-# 斜率：rootful ≤512KB；.53 ≤1024KB（相对暖机基线）
-RMAX=512
-[ "$H" = "53" ] && RMAX=1024
-[ "$FC_SLOPE_ABS" -le "$RMAX" ] 2>/dev/null || { echo "FAIL fc_rss_slope=$FC_DELTA max=$RMAX"; OK=0; }
+# 斜率：按 KB/100s 判定，预算由 Z0-TS 触动实测派生（见脚本顶部）
+[ "$FC_PER100_ABS" -le "$RMAX100" ] 2>/dev/null || {
+  echo "FAIL fc_rss_slope_per100=$FC_PER100 max=$RMAX100 (raw_delta=$FC_DELTA over ${SEC}s)"; OK=0; }
 FMAX=$(( MIN * 2 + 5 ))
 [ "$FORCE" -le "$FMAX" ] 2>/dev/null || { echo "FAIL force_storm=$FORCE max=$FMAX"; OK=0; }
 [ "$TOAST" = "0" ] || { echo "FAIL toast_bump=$TOAST"; OK=0; }
@@ -240,8 +262,10 @@ for H in "${HOSTS[@]}"; do
 done
 
 {
-  echo "# E4 promo gate (Desktop ios7/ios8p only)"
+  echo "# Z1-MEM resource gate (Desktop ios7/ios8p only)"
   echo "stamp=$STAMP min=$MIN hosts=${HOSTS[*]}"
+  echo "slope_budget_per100_kb: rootful=$RMAX100_RF rootless53=$RMAX100_R53"
+  echo "budget_source: tmp_shots/TS_OBS/*/TS_RSS_SLOPE.md (触动 .171 同口径实测 × 容差)"
   echo "SHA256_ios7=$SHA7"
   echo "SHA256_ios8p=$SHA8"
   echo "PASS_N=$PASS_N FAIL_N=$FAIL_N"

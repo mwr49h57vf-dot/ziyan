@@ -808,48 +808,65 @@ static int l_find_multi(lua_State *L) {
     lua_pushinteger(L, vy);
   }
   sFindCalls++;
-  // 204：业务脚本常驻同一 Lua VM。每次小步 GC，低频完整回收并归还空闲堆页；
+  // 业务脚本常驻同一 Lua VM。每次小步 GC，低频完整回收并归还空闲堆页；
   // 禁等脚本结束才释放热循环产生的短命表/字符串。
   lua_gc(L, LUA_GCSTEP, 32);
-  if ((sFindCalls % 64ull) == 0ull) {
-    lua_gc(L, LUA_GCCOLLECT, 0);
-    malloc_zone_pressure_relief(NULL, 0);
+  // 完整回收按墙钟触发，不按 find 计数：计数触发下慢脚本会被 GC 饿死。
+  // 实测 .53 每 300s 仅 390 次 find（每 64 次 ≈ 49s 才回收一次）而 .101 有
+  // 1180 次（≈16s 一次），同一版本 .53 斜率反而是 .101 的 6 倍。
+  {
+    static NSTimeInterval sLastFullGc = 0;
+    NSTimeInterval nowGc = NSDate.date.timeIntervalSince1970;
+    if (sLastFullGc < 1.0 || (nowGc - sLastFullGc) >= 10.0) {
+      sLastFullGc = nowGc;
+      lua_gc(L, LUA_GCCOLLECT, 0);
+      malloc_zone_pressure_relief(NULL, 0);
+    }
   }
   return 2;
 }
 
+// 业务脚本整场只跑一次 lua_pcall，EmbedThreadMain 的会话级 @autoreleasepool
+// 要到脚本结束才排空。任何原生入口若无内层池，其 autorelease 对象会累积整场
+// 会话（长跑数小时），因此所有会分配 ObjC 对象的入口都必须自带池。
 static int l_get_color(lua_State *L) {
   int x = (int)luaL_checkinteger(L, 1);
   int y = (int)luaL_checkinteger(L, 2);
-  lua_pushinteger(L, EmbedGetColorAt(x, y));
+  int c;
+  @autoreleasepool {
+    c = EmbedGetColorAt(x, y);
+  }
+  lua_pushinteger(L, c);
   return 1;
 }
 
 static int l_keep_screen(lua_State *L) {
   int on = lua_toboolean(L, 1);
-  if (on) {
-    // 阶段4：锁当前 valid+前台匹配帧；失败则异步催帧并返回 false
-    BOOL ok = ZiYanFrameKeepEnable();
-    if (!ok) {
-      // 短等 ServeLoop 合帧后再试一次（≤300ms，禁同步 Capture）
-      for (int i = 0; i < 15 && !ok; i++) {
-        usleep(20000);
-        ok = ZiYanFrameKeepEnable();
+  BOOL ok = YES;
+  @autoreleasepool {
+    if (on) {
+      // 阶段4：锁当前 valid+前台匹配帧；失败则异步催帧并返回 false
+      ok = ZiYanFrameKeepEnable();
+      if (!ok) {
+        // 短等 ServeLoop 合帧后再试一次（≤300ms，禁同步 Capture）
+        for (int i = 0; i < 15 && !ok; i++) {
+          usleep(20000);
+          ok = ZiYanFrameKeepEnable();
+        }
       }
+      if (ok) {
+        EmbedStickyDrop(); // 下一找强制按 locked_seq 映射
+        EmbedWriteLifecycle(@"hot", @"keep_enable");
+      }
+    } else {
+      EmbedWriteLifecycle(@"cooldown", @"keep_disable");
+      ZiYanFrameKeepDisable();
+      sResFreeze = nil;
+      EmbedStickyDrop();
+      EmbedWriteLifecycle(@"release", @"keep_disable_done");
     }
-    if (ok) {
-      EmbedStickyDrop(); // 下一找强制按 locked_seq 映射
-      EmbedWriteLifecycle(@"hot", @"keep_enable");
-    }
-    lua_pushboolean(L, ok ? 1 : 0);
-  } else {
-    EmbedWriteLifecycle(@"cooldown", @"keep_disable");
-    ZiYanFrameKeepDisable();
-    sResFreeze = nil;
-    EmbedStickyDrop();
-    EmbedWriteLifecycle(@"release", @"keep_disable_done");
-    lua_pushboolean(L, 1);
   }
+  lua_pushboolean(L, ok ? 1 : 0);
   return 1;
 }
 
@@ -895,18 +912,20 @@ static int l_touch_phase(lua_State *L) {
   if (finger > 9) {
     finger = 9;
   }
-  double nx = 0, ny = 0;
-  ZiYanMapLogicToNorm(sx, sy, &nx, &ny);
-  BOOL skipHand = !EmbedFrontIsHome();
-  NSString *phaseString =
-      [NSString stringWithUTF8String:phase ?: "down"] ?: @"down";
-  BOOL ok = [[ZiYanHIDOptimizer shared]
-      injectNormPhase:phaseString
-               finger:finger
-                   nx:nx
-                   ny:ny
-             skipHand:skipHand];
-  EmbedWriteNativeTouch(phaseString, finger, sx, sy, nx, ny, ok, skipHand);
+  BOOL ok;
+  @autoreleasepool {
+    double nx = 0, ny = 0;
+    ZiYanMapLogicToNorm(sx, sy, &nx, &ny);
+    BOOL skipHand = !EmbedFrontIsHome();
+    NSString *phaseString =
+        [NSString stringWithUTF8String:phase ?: "down"] ?: @"down";
+    ok = [[ZiYanHIDOptimizer shared] injectNormPhase:phaseString
+                                              finger:finger
+                                                  nx:nx
+                                                  ny:ny
+                                            skipHand:skipHand];
+    EmbedWriteNativeTouch(phaseString, finger, sx, sy, nx, ny, ok, skipHand);
+  }
   lua_pushboolean(L, ok ? 1 : 0);
   return 1;
 }
@@ -922,15 +941,18 @@ static int l_touch_tap(lua_State *L) {
   if (finger > 9) {
     finger = 9;
   }
-  double nx = 0, ny = 0;
-  ZiYanMapLogicToNorm(sx, sy, &nx, &ny);
-  BOOL skipHand = !EmbedFrontIsHome();
-  BOOL ok = [[ZiYanHIDOptimizer shared] injectTapNormX:nx
-                                                    y:ny
-                                               finger:finger
-                                               holdMs:holdMs
-                                             skipHand:skipHand];
-  EmbedWriteNativeTouch(@"tap", finger, sx, sy, nx, ny, ok, skipHand);
+  BOOL ok;
+  @autoreleasepool {
+    double nx = 0, ny = 0;
+    ZiYanMapLogicToNorm(sx, sy, &nx, &ny);
+    BOOL skipHand = !EmbedFrontIsHome();
+    ok = [[ZiYanHIDOptimizer shared] injectTapNormX:nx
+                                                  y:ny
+                                             finger:finger
+                                             holdMs:holdMs
+                                           skipHand:skipHand];
+    EmbedWriteNativeTouch(@"tap", finger, sx, sy, nx, ny, ok, skipHand);
+  }
   lua_pushboolean(L, ok ? 1 : 0);
   return 1;
 }

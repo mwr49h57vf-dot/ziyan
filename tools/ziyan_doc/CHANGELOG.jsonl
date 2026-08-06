@@ -1,0 +1,153 @@
+{"action": "add", "id": "Zy.App.id", "reason": "auto-scan new function", "after": "App.id", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.App.set", "reason": "auto-scan new function", "after": "App.set", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.App.launch", "reason": "auto-scan new function", "after": "启动应用", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.App.close", "reason": "auto-scan new function", "after": "关闭应用", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.App.front", "reason": "auto-scan new function", "after": "当前前台 Bundle", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.App.isForeground", "reason": "auto-scan new function", "after": "是否在前台", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.App.isRunning", "reason": "auto-scan new function", "after": "是否在运行（前台或进程）", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.App.windowState", "reason": "auto-scan new function", "after": "窗口/前台状态快照", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.App.activate", "reason": "auto-scan new function", "after": "切回应用（再 launch / 等前台）", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.App.monitor", "reason": "auto-scan new function", "after": "运行状态监控：采样 N 次", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.App.recognize", "reason": "auto-scan new function", "after": "识别：仅记录 Bundle，不做游戏特判", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Case.record", "reason": "auto-scan new function", "after": "Case.record", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Case.path", "reason": "auto-scan new function", "after": "Case.path", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Case.registerApp", "reason": "auto-scan new function", "after": "登记测试应用（仅元数据，不含专用流程）", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Coordinate.setDesign", "reason": "auto-scan new function", "after": "设定设计分辨率（脚本必调）", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Coordinate.design", "reason": "auto-scan new function", "after": "Coordinate.design", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Coordinate.point", "reason": "auto-scan new function", "after": "设计坐标 → 逻辑坐标", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Coordinate.ratio", "reason": "auto-scan new function", "after": "比例坐标 (0~1) → 逻辑坐标", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Coordinate.region", "reason": "auto-scan new function", "after": "Coordinate.region", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Device.refresh", "reason": "auto-scan new function", "after": "Device.refresh", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Device.profile", "reason": "auto-scan new function", "after": "Device.profile", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Device.save", "reason": "auto-scan new function", "after": "Device.save", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Device.gameRect", "reason": "auto-scan new function", "after": "Device.gameRect", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Device.unlock", "reason": "auto-scan new function", "after": "Device.unlock", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Diagnose.onStuck", "reason": "auto-scan new function", "after": "[[ Zy.Diagnose — 卡住时自动分析应优化哪一模块 ]]", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Engine.pipeline", "reason": "auto-scan new function", "after": "Engine.pipeline", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Engine.validate", "reason": "auto-scan new function", "after": "对任意 Bundle 跑一轮能力验证（非游戏专用脚本） opts: bid, design_w, design_h, orient, target_state, max_steps", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.File.read", "reason": "auto-scan new function", "after": "[[ Zy.File — 文件模块 ]]", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.File.write", "reason": "auto-scan new function", "after": "File.write", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.File.remove", "reason": "auto-scan new function", "after": "File.remove", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.File.exists", "reason": "auto-scan new function", "after": "File.exists", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.File.scriptsDir", "reason": "auto-scan new function", "after": "File.scriptsDir", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.File.varDir", "reason": "auto-scan new function", "after": "File.varDir", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Game.classify", "reason": "auto-scan new function", "after": "通用界面分类：OCR 词表优先，辅以亮金按钮启发式（不绑定 Bundle）", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Game.phase", "reason": "auto-scan new function", "after": "当前状态（通用）", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Game.analyze", "reason": "auto-scan new function", "after": "Game.analyze", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Game.suggest", "reason": "auto-scan new function", "after": "建议动作（通用策略标签，非某游戏流程）", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Game.open", "reason": "auto-scan new function", "after": "启动/关闭委托 App 抽象层（保留旧名兼容）", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Game.close", "reason": "auto-scan new function", "after": "Game.close", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Game.enterRole", "reason": "auto-scan new function", "after": "已废弃：专用进角。保留桩以免旧脚本崩，统一走通用步进", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Game.stepTo", "reason": "auto-scan new function", "after": "通用步进：向目标状态推进（有限步 + 验证 + 禁同动作连点）", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Game.stateSuggest", "reason": "auto-scan new function", "after": "Game.stateSuggest", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Image.findColor", "reason": "auto-scan new function", "after": "[[ Zy.Image — 图像/找色模块（经 Coordinate）]] 设计区域找色", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Image.find", "reason": "auto-scan new function", "after": "设计区域找图", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Image.colorAtLogic", "reason": "auto-scan new function", "after": "逻辑点取色（须已 sync；点须来自 Coordinate）", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Image.colorAtDesign", "reason": "auto-scan new function", "after": "Image.colorAtDesign", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Log.write", "reason": "auto-scan new function", "after": "[[ Zy.Log — 日志输出（文档示例统一入口）]]", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Network.pyCall", "reason": "auto-scan new function", "after": "[[ Zy.Network — 网络模块（子砚 IPC / HTTP 门面，非 TS）]] Lua↔Python：pyCall(module, func, args)", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Network.httpGet", "reason": "auto-scan new function", "after": "简易 HTTP GET（经 py 或 curl 兜底）", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.OCR.region", "reason": "auto-scan new function", "after": "[[ Zy.OCR — 文字识别模块（经 Coordinate）]] 设计区域 OCR", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.OCR.find", "reason": "auto-scan new function", "after": "设计区域内找字", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.OCR.analyze", "reason": "auto-scan new function", "after": "词表分析（OCR→色）", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Screen.sync", "reason": "auto-scan new function", "after": "Screen.sync", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Screen.info", "reason": "auto-scan new function", "after": "Screen.info", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Screen.size", "reason": "auto-scan new function", "after": "Screen.size", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Screen.snapshot", "reason": "auto-scan new function", "after": "Screen.snapshot", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Screen.keep", "reason": "auto-scan new function", "after": "Screen.keep", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Script.assertPlatform", "reason": "auto-scan new function", "after": "Script.assertPlatform", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Script.begin", "reason": "auto-scan new function", "after": "开始脚本会话：Device → Screen → setDesign", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Script.act", "reason": "auto-scan new function", "after": "标准动作管道：Vision/Touch 包在 Verify 内 fn(ctx) 内可用 ctx.tapDesign / ctx.findText / ...", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Script.load", "reason": "auto-scan new function", "after": "Script.load", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.StateMachine.current", "reason": "auto-scan new function", "after": "StateMachine.current", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.StateMachine.suggest", "reason": "auto-scan new function", "after": "StateMachine.suggest", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.StateMachine.step", "reason": "auto-scan new function", "after": "StateMachine.step", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.StateMachine.canTransit", "reason": "auto-scan new function", "after": "StateMachine.canTransit", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Touch.tapDesign", "reason": "auto-scan new function", "after": "设计坐标点击（推荐）", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Touch.tapRatio", "reason": "auto-scan new function", "after": "比例点击 0~1", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Touch.tapHit", "reason": "auto-scan new function", "after": "视觉命中点点击（逻辑点来自 Image/OCR，非手写死坐标）", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Touch.tap", "reason": "auto-scan new function", "after": "明确拒绝：物理/逻辑裸坐标（防止脚本绕过）", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Verify.fingerprint", "reason": "auto-scan new function", "after": "[[ Zy.Verify — 结果验证模块 ]]", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Verify.act", "reason": "auto-scan new function", "after": "Verify.act", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Verify.failReport", "reason": "auto-scan new function", "after": "Verify.failReport", "ts": "2026-07-22 16:54:25"}
+{"action": "add", "id": "Zy.Script.set", "reason": "auto-scan new function", "after": " 变量管理 ", "ts": "2026-07-22 17:01:12"}
+{"action": "add", "id": "Zy.Script.get", "reason": "auto-scan new function", "after": "Script.get", "ts": "2026-07-22 17:01:12"}
+{"action": "add", "id": "Zy.Script.has", "reason": "auto-scan new function", "after": "Script.has", "ts": "2026-07-22 17:01:12"}
+{"action": "add", "id": "Zy.Script.clearVars", "reason": "auto-scan new function", "after": "Script.clearVars", "ts": "2026-07-22 17:01:12"}
+{"action": "add", "id": "Zy.Script.vars", "reason": "auto-scan new function", "after": "Script.vars", "ts": "2026-07-22 17:01:12"}
+{"action": "add", "id": "Zy.Script.when", "reason": "auto-scan new function", "after": " 条件判断 / 循环 / 状态切换  若 pred() 为真则执行 fn（可包 Verify）", "ts": "2026-07-22 17:01:12"}
+{"action": "add", "id": "Zy.Script.loop", "reason": "auto-scan new function", "after": "循环：最多 max_times；body 返回 false 可提前停", "ts": "2026-07-22 17:01:12"}
+{"action": "add", "id": "Zy.Script.untilPhase", "reason": "auto-scan new function", "after": "直到状态命中或超时", "ts": "2026-07-22 17:01:12"}
+{"action": "add", "id": "Zy.Script.stepState", "reason": "auto-scan new function", "after": "状态切换建议并可选执行一步", "ts": "2026-07-22 17:01:12"}
+{"action": "add", "id": "Zy.Script.defineTask", "reason": "auto-scan new function", "after": " 任务流程管理 ", "ts": "2026-07-22 17:01:12"}
+{"action": "add", "id": "Zy.Script.runTask", "reason": "auto-scan new function", "after": "Script.runTask", "ts": "2026-07-22 17:01:12"}
+{"action": "add", "id": "Zy.Script.runTasks", "reason": "auto-scan new function", "after": "Script.runTasks", "ts": "2026-07-22 17:01:12"}
+{"action": "add", "id": "Zy.Script.tick", "reason": "auto-scan new function", "after": " 标准执行流 + 异常恢复  完整一轮：识别状态→建议→动作→验证→记录", "ts": "2026-07-22 17:01:12"}
+{"action": "add", "id": "Zy.Script.recover", "reason": "auto-scan new function", "after": "异常恢复：诊断 + 可选重开 App + 再同步", "ts": "2026-07-22 17:01:12"}
+{"action": "add", "id": "Zy.Script.lastError", "reason": "auto-scan new function", "after": "Script.lastError", "ts": "2026-07-22 17:01:12"}
+{"action": "add", "id": "Zy.Script.scriptsDir", "reason": "auto-scan new function", "after": " 加载 / 路径 ", "ts": "2026-07-22 17:01:12"}
+{"action": "add", "id": "Zy.Script.run", "reason": "auto-scan new function", "after": "运行 scripts/ 下相对路径", "ts": "2026-07-22 17:01:12"}
+{"action": "add", "id": "Zy.AI.record", "reason": "auto-scan new function", "after": "AI.record", "ts": "2026-07-22 17:07:11"}
+{"action": "add", "id": "Zy.AI.collect", "reason": "auto-scan new function", "after": "采集生成输入上下文", "ts": "2026-07-22 17:07:11"}
+{"action": "add", "id": "Zy.AI.plan", "reason": "auto-scan new function", "after": "建立状态模型 + 选择函数清单", "ts": "2026-07-22 17:07:11"}
+{"action": "add", "id": "Zy.AI.generate", "reason": "auto-scan new function", "after": "生成 Lua 源码（只含 Zy.*）", "ts": "2026-07-22 17:07:11"}
+{"action": "add", "id": "Zy.AI.save", "reason": "auto-scan new function", "after": "AI.save", "ts": "2026-07-22 17:07:11"}
+{"action": "add", "id": "Zy.AI.test", "reason": "auto-scan new function", "after": "真机执行生成脚本（dofile + main）", "ts": "2026-07-22 17:07:11"}
+{"action": "add", "id": "Zy.AI.optimize", "reason": "auto-scan new function", "after": "根据失败原因调整计划", "ts": "2026-07-22 17:07:11"}
+{"action": "add", "id": "Zy.AI.loop", "reason": "auto-scan new function", "after": "闭环：采集→计划→生成→测试→优化→再生成", "ts": "2026-07-22 17:07:11"}
+{"action": "add", "id": "Zy.AI.pathDB", "reason": "auto-scan new function", "after": "AI.pathDB", "ts": "2026-07-22 17:07:11"}
+{"action": "add", "id": "Zy.App.list", "reason": "auto-scan new function", "after": "已安装应用列表（对齐 getInstalledApps 思想）", "ts": "2026-07-22 18:07:02"}
+{"action": "add", "id": "Zy.Image.findUntil", "reason": "auto-scan new function", "after": "超时内轮询找色（Until 思想；设计区域）", "ts": "2026-07-22 18:07:02"}
+{"action": "add", "id": "Zy.Log.dialog", "reason": "auto-scan new function", "after": "对话框（对齐 dialog 思想；有 dialog 则调用，否则 toast）", "ts": "2026-07-22 18:07:02"}
+{"action": "add", "id": "Zy.Network.httpPost", "reason": "auto-scan new function", "after": "简易 HTTP POST（body 为字符串；经 curl 兜底）", "ts": "2026-07-22 18:07:02"}
+{"action": "add", "id": "Zy.OCR.findUntil", "reason": "auto-scan new function", "after": "超时内轮询找字（Until 思想）", "ts": "2026-07-22 18:07:02"}
+{"action": "add", "id": "Zy.Script.exit", "reason": "auto-scan new function", "after": "结束脚本会话（兼容 TS luaExit 思想；不杀进程）", "ts": "2026-07-22 18:07:02"}
+{"action": "add", "id": "Zy.Script.restart", "reason": "auto-scan new function", "after": "请求重启当前入口脚本（由调度层读取标志）", "ts": "2026-07-22 18:07:02"}
+{"action": "add", "id": "Zy.Touch.swipeRatio", "reason": "auto-scan new function", "after": "比例滑动 0~1（推荐；禁止固定物理坐标）", "ts": "2026-07-22 18:07:02"}
+{"action": "add", "id": "Zy.Touch.gesture", "reason": "auto-scan new function", "after": "手势链：比例点序列 { {rx,ry}, ... }", "ts": "2026-07-22 18:07:02"}
+{"action": "add", "id": "Zy.Config.path", "reason": "auto-scan new function", "after": "配置文件路径", "ts": "2026-07-22 18:30:54"}
+{"action": "add", "id": "Zy.Config.load", "reason": "auto-scan new function", "after": "读取 JSON 配置；失败返回 default 或 {}", "ts": "2026-07-22 18:30:54"}
+{"action": "add", "id": "Zy.Config.save", "reason": "auto-scan new function", "after": "保存配置表为 JSON", "ts": "2026-07-22 18:30:54"}
+{"action": "add", "id": "Zy.Config.get", "reason": "auto-scan new function", "after": "读单个键", "ts": "2026-07-22 18:30:54"}
+{"action": "add", "id": "Zy.Config.set", "reason": "auto-scan new function", "after": "写单个键并保存", "ts": "2026-07-22 18:30:54"}
+{"action": "add", "id": "Zy.Input.text", "reason": "auto-scan new function", "after": "[[ Zy.Input — 文本输入通道（经子砚 SDK，不调用 TouchSprite）]] 输入字符串到当前焦点（优先引擎 inputText / inputStr）", "ts": "2026-07-22 18:30:54"}
+{"action": "add", "id": "Zy.Input.clear", "reason": "auto-scan new function", "after": "清空：连按删除（次数可控；无系统 clear 时的兜底）", "ts": "2026-07-22 18:30:54"}
+{"action": "add", "id": "Zy.Input.typeAtRatio", "reason": "auto-scan new function", "after": "先点比例焦点再输入（常用登录框）", "ts": "2026-07-22 18:30:54"}
+{"action": "add", "id": "Zy.Script.generate", "reason": "auto-scan new function", "after": "根据自然语言生成 Lua 脚本（规则模板，非云端 LLM） @param need string 需求描述，如「每天自动领取奖励」 @param opts table|nil { bid=, design_w=, design_h=, out= } @return boolean, string|table  ok, path_or_body / err", "ts": "2026-07-22 19:01:02"}
+{"action": "add", "id": "Zy.Script.debug", "reason": "auto-scan new function", "after": "调试快照：当前函数/坐标/截图/错误 @param opts table|nil { snapshot=true, path= } @return table", "ts": "2026-07-22 19:01:02"}
+{"action": "add", "id": "Zy.Script.validate", "reason": "auto-scan new function", "after": "校验模块/函数/参数依赖 @param opts table|nil { code=string, require_begin=true } @return boolean, table  ok, report", "ts": "2026-07-22 19:01:02"}
+{"action": "add", "id": "Zy.Script.sdkRoot", "reason": "auto-scan new function", "after": "SDK 根路径（模板所在）", "ts": "2026-07-22 19:01:02"}
+{"action": "add", "id": "Zy.AI.analyzeNeed", "reason": "auto-scan new function", "after": "需求分析（自然语言 → 结构化任务）", "ts": "2026-07-22 20:19:14"}
+{"action": "add", "id": "Zy.AI.pipeline", "reason": "auto-scan new function", "after": "完整 AI 脚本开发流程（7.5.2） 需求分析→规划→状态机→函数选择→生成→静态检查→模拟→真机测→验证→修复→存优", "ts": "2026-07-22 20:19:14"}
+{"action": "add", "id": "Zy.IssueClassifier.classifyMany", "reason": "auto-scan new function", "after": "IssueClassifier.classifyMany", "ts": "2026-07-22 20:19:14"}
+{"action": "add", "id": "Zy.IssueClassifier.categories", "reason": "auto-scan new function", "after": "IssueClassifier.categories", "ts": "2026-07-22 20:19:14"}
+{"action": "add", "id": "Zy.Knowledge.save", "reason": "auto-scan new function", "after": "写入一条经验 entry: task, game, bid, shot, ocr, rules, flow, fail_reason, optimize, ok, phase, path, issue_type, patch, version, metrics, extra", "ts": "2026-07-22 20:19:14"}
+{"action": "add", "id": "Zy.Knowledge.path", "reason": "auto-scan new function", "after": "Knowledge.path", "ts": "2026-07-22 20:19:14"}
+{"action": "add", "id": "Zy.Knowledge.query", "reason": "auto-scan new function", "after": "按任务名关键词检索最近匹配行（简单文本扫）", "ts": "2026-07-22 20:19:14"}
+{"action": "add", "id": "Zy.Knowledge.recordSuccess", "reason": "auto-scan new function", "after": "Knowledge.recordSuccess", "ts": "2026-07-22 20:19:14"}
+{"action": "add", "id": "Zy.Knowledge.recordFailure", "reason": "auto-scan new function", "after": "Knowledge.recordFailure", "ts": "2026-07-22 20:19:14"}
+{"action": "add", "id": "Zy.Optimization.collect", "reason": "auto-scan new function", "after": " collect ", "ts": "2026-07-22 20:19:14"}
+{"action": "add", "id": "Zy.Optimization.detect", "reason": "auto-scan new function", "after": " detect ", "ts": "2026-07-22 20:19:14"}
+{"action": "add", "id": "Zy.Optimization.analyze", "reason": "auto-scan new function", "after": " analyze ", "ts": "2026-07-22 20:19:14"}
+{"action": "add", "id": "Zy.Optimization.propose", "reason": "auto-scan new function", "after": " propose ", "ts": "2026-07-22 20:19:14"}
+{"action": "add", "id": "Zy.Optimization.apply", "reason": "auto-scan new function", "after": " apply ", "ts": "2026-07-22 20:19:14"}
+{"action": "add", "id": "Zy.Optimization.verify", "reason": "auto-scan new function", "after": " verify ", "ts": "2026-07-22 20:19:14"}
+{"action": "add", "id": "Zy.Optimization.commit", "reason": "auto-scan new function", "after": " commit ", "ts": "2026-07-22 20:19:14"}
+{"action": "add", "id": "Zy.Optimization.historyPath", "reason": "auto-scan new function", "after": " history — optimization_history.jsonl ", "ts": "2026-07-22 20:19:14"}
+{"action": "add", "id": "Zy.Optimization._write_cycle_summary", "reason": "auto-scan new function", "after": "Optimization._write_cycle_summary", "ts": "2026-07-22 20:19:14"}
+{"action": "add", "id": "Zy.Optimization.reportIssue", "reason": "auto-scan new function", "after": " hooks / status ", "ts": "2026-07-22 20:19:14"}
+{"action": "add", "id": "Zy.Optimization.status", "reason": "auto-scan new function", "after": "Optimization.status", "ts": "2026-07-22 20:19:14"}
+{"action": "add", "id": "Zy.Optimization.schedule", "reason": "auto-scan new function", "after": "Optimization.schedule", "ts": "2026-07-22 20:19:14"}
+{"action": "add", "id": "Zy.OptimizationAdvisor.reject", "reason": "auto-scan new function", "after": "OptimizationAdvisor.reject", "ts": "2026-07-22 20:19:14"}
+{"action": "add", "id": "Zy.OptimizationAdvisor.get", "reason": "auto-scan new function", "after": "OptimizationAdvisor.get", "ts": "2026-07-22 20:19:14"}
+{"action": "add", "id": "Zy.OptimizationAdvisor.pending", "reason": "auto-scan new function", "after": "OptimizationAdvisor.pending", "ts": "2026-07-22 20:19:14"}
+{"action": "add", "id": "Zy.OptimizationAdvisor.canApply", "reason": "auto-scan new function", "after": "OptimizationAdvisor.canApply", "ts": "2026-07-22 20:19:14"}
+{"action": "add", "id": "Zy.OptimizationRollback.auto_restore_on_fail", "reason": "auto-scan new function", "after": "verify 失败时自动回滚", "ts": "2026-07-22 20:19:14"}
+{"action": "add", "id": "Zy.OptimizationRollback.list", "reason": "auto-scan new function", "after": "OptimizationRollback.list", "ts": "2026-07-22 20:19:14"}
+{"action": "add", "id": "Zy.OptimizationRollback.last", "reason": "auto-scan new function", "after": "OptimizationRollback.last", "ts": "2026-07-22 20:19:14"}
+{"action": "add", "id": "Zy.Script.generateTemplate", "reason": "auto-scan new function", "after": "仅模板路径（旧 7.35）", "ts": "2026-07-22 20:19:14"}
+{"action": "add", "id": "Zy.Script.generateFromTask", "reason": "auto-scan new function", "after": "根据任务描述生成完整自动化流程（打通 Zy.AI）", "ts": "2026-07-22 20:19:14"}
+{"action": "add", "id": "Zy.Script.generateFromState", "reason": "auto-scan new function", "after": "根据 Game 状态生成下一步动作脚本片段/完整脚本", "ts": "2026-07-22 20:19:14"}
+{"action": "add", "id": "Zy.Script.optimizeScript", "reason": "auto-scan new function", "after": "根据运行日志优化已有脚本", "ts": "2026-07-22 20:19:14"}
+{"action": "add", "id": "Zy.Script.repairScript", "reason": "auto-scan new function", "after": "根据错误自动修复脚本", "ts": "2026-07-22 20:19:14"}
+{"action": "add", "id": "Zy.Verify.lastFail", "reason": "auto-scan new function", "after": "Verify.lastFail", "ts": "2026-07-22 20:19:14"}

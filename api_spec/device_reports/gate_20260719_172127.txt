@@ -1,0 +1,25 @@
+=== T3 SMOKE ===
+T3_PASS
+=== T5 SCREEN ===
+sz	1050529	c100	5016044	find	18	32
+T5_PASS
+=== T6 TOUCH ===
+anchor	40	40	15017472
+find	75	0
+tap_ret	true
+T6_LUA_DONE	75	0
+touch_log:
+2026-07-19 09:21:15 +0000 down f=1 logic=75,0 hid=1.000,0.066
+2026-07-19 09:21:15 +0000 move f=1 logic=76,1 hid=0.998,0.067
+2026-07-19 09:21:15 +0000 up f=1 logic=75,0 hid=1.000,0.066
+2026-07-19 09:21:15 +0000 down f=1 logic=1042,270 hid=0.578,0.917
+2026-07-19 09:21:15 +0000 move f=1 logic=1044,271 hid=0.577,0.919
+2026-07-19 09:21:16 +0000 up f=1 logic=1042,270 hid=0.578,0.917
+T6_PASS event_path
+after_tap_dump_sz=1052640
+T6_SCREEN_OK
+=== LOGIN SCRIPT LOAD ===
+login_out_head:
+
+LOGIN_PASS truncated_loop
+=== SUMMARY pass=4 fail=0 block=0 ===

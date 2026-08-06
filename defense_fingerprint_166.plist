@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>generatedAt</key>
+	<real>1785044686.7332668</real>
+	<key>idfv</key>
+	<string>F81D8666-56D0-9F1F-F203-3E2F263376F9</string>
+	<key>lanIP</key>
+	<string>192.168.31.166</string>
+	<key>model</key>
+	<string>iPhone9,3</string>
+	<key>name</key>
+	<string>iPhone-DX3W</string>
+	<key>systemVersion</key>
+	<string>13.1.2</string>
+	<key>wanIP</key>
+	<string></string>
+</dict>
+</plist>

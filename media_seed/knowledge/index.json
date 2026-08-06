@@ -1,0 +1,43 @@
+{
+  "phase": "7.6.3-R8.4.2",
+  "ts": 1785160075191,
+  "games": {
+    "cslc": {
+      "game": "赤沙龙城",
+      "status": "已导入",
+      "color_count": 64,
+      "path": "families/cslc.json"
+    },
+    "xztl": {
+      "game": "血战屠龙",
+      "status": "已导入",
+      "color_count": 64,
+      "path": "families/xztl.json"
+    },
+    "xbxz": {
+      "game": "新版血战",
+      "status": "已导入",
+      "color_count": 64,
+      "path": "families/xbxz.json"
+    },
+    "sjxt": {
+      "game": "圣戒信条",
+      "status": "已导入",
+      "color_count": 64,
+      "path": "families/sjxt.json"
+    },
+    "njcq": {
+      "game": "怒剑传奇",
+      "status": "已导入",
+      "color_count": 22,
+      "path": "families/njcq.json"
+    },
+    "ljzb": {
+      "game": "龙界争霸",
+      "status": "已导入",
+      "color_count": 63,
+      "path": "families/ljzb.json"
+    }
+  },
+  "note": "imported from Ai代码训练; no TSLib/ts.so"
+}

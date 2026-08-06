@@ -1,0 +1,7 @@
+{
+  "module": "learning",
+  "version": "1.0.0",
+  "status": "done",
+  "globals": ["learnRecord", "learnError", "learnPaths"],
+  "notes": "Append-only knowledge/error jsonl under ZIYAN_VAR."
+}

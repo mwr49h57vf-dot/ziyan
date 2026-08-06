@@ -1,0 +1,9 @@
+Package: com.ziyan.ziyan
+Name: ZiYan
+Version: 0.0.92-8-161-200-1
+Architecture: iphoneos-arm
+Description: ZiYan automation (rootful arm / rootless arm64 via THEOS_PACKAGE_SCHEME).
+Maintainer: ZiYan
+Author: ZiYan
+Section: Utilities
+Depends: firmware (>= 13.0), ellekit | mobilesubstrate

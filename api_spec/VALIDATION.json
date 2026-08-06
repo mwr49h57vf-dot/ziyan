@@ -1,0 +1,13 @@
+{
+  "awaiting_user": true,
+  "do_not_install_until_approved": true,
+  "checklist": [
+    "核对 catalog.json 模块划分是否符合预期",
+    "核对 compat/* 命名映射是否要增删",
+    "核对 layout/device_tree.json 装机路径",
+    "确认未包含任何破解包二进制/telib/wifi_native",
+    "确认 bid 类 API 均为参数、无写死游戏 ID",
+    "通过后指示：同步 api_spec → 手机 或 merge 进 layout/"
+  ],
+  "repo_path": "ZiYan_副本/api_spec/"
+}

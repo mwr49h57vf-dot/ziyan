@@ -1,0 +1,105 @@
+{
+  "module": "touch",
+  "title": "触控 / 按键",
+  "backend": "lua/ziyan_engine/touch.lua + AppTouch / ScreenBridge HID",
+  "apis": [
+    {
+      "name": "touchDown",
+      "args": [
+        "finger?:number",
+        "x:number",
+        "y:number"
+      ],
+      "returns": "bool",
+      "note": "按下；支持 touchDown(x,y)",
+      "status": "done",
+      "aliases": []
+    },
+    {
+      "name": "touchMove",
+      "args": [
+        "finger?:number",
+        "x:number",
+        "y:number"
+      ],
+      "returns": "bool",
+      "note": "移动",
+      "status": "done",
+      "aliases": []
+    },
+    {
+      "name": "touchUp",
+      "args": [
+        "finger?:number",
+        "x?:number",
+        "y?:number"
+      ],
+      "returns": "bool",
+      "note": "抬起",
+      "status": "done",
+      "aliases": []
+    },
+    {
+      "name": "tap",
+      "args": [
+        "finger?:number",
+        "x:number",
+        "y:number",
+        "holdMs?:number"
+      ],
+      "returns": "bool",
+      "note": "tap(x,y[,holdMs]) 默认随机手指1..9；或 tap(finger,x,y[,holdMs])；真人按下→微移→抬起",
+      "status": "done",
+      "aliases": [
+        "pyTap"
+      ]
+    },
+    {
+      "name": "swipe",
+      "args": [
+        "x1",
+        "y1",
+        "x2",
+        "y2",
+        "ms?:number"
+      ],
+      "returns": "bool",
+      "note": "滑动",
+      "status": "done",
+      "aliases": [
+        "pySwipe",
+        "moveTo"
+      ]
+    },
+    {
+      "name": "keyDown",
+      "args": [
+        "code:number|string"
+      ],
+      "returns": "bool",
+      "note": "按键按下",
+      "status": "planned",
+      "aliases": []
+    },
+    {
+      "name": "keyUp",
+      "args": [
+        "code:number|string"
+      ],
+      "returns": "bool",
+      "note": "按键抬起",
+      "status": "planned",
+      "aliases": []
+    },
+    {
+      "name": "pressHomeKey",
+      "args": [
+        "times?:number"
+      ],
+      "returns": "bool",
+      "note": "Home",
+      "status": "partial",
+      "aliases": []
+    }
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "module": "codec",
+  "title": "编解码",
+  "backend": "lua/json.lua + 自研封装",
+  "apis": [
+    {
+      "name": "jsonEncode",
+      "args": [
+        "t"
+      ],
+      "returns": "string",
+      "note": "安全编码",
+      "status": "done",
+      "aliases": []
+    },
+    {
+      "name": "jsonDecode",
+      "args": [
+        "s"
+      ],
+      "returns": "any|nil",
+      "note": "空串不抛错",
+      "status": "done",
+      "aliases": []
+    },
+    {
+      "name": "aesEncrypt",
+      "args": [
+        "s",
+        "key"
+      ],
+      "returns": "string",
+      "note": "",
+      "status": "planned",
+      "aliases": []
+    },
+    {
+      "name": "aesDecrypt",
+      "args": [
+        "s",
+        "key"
+      ],
+      "returns": "string",
+      "note": "",
+      "status": "planned",
+      "aliases": []
+    },
+    {
+      "name": "md5String",
+      "args": [
+        "s"
+      ],
+      "returns": "string",
+      "note": "",
+      "status": "planned",
+      "aliases": []
+    },
+    {
+      "name": "md5File",
+      "args": [
+        "path"
+      ],
+      "returns": "string",
+      "note": "",
+      "status": "planned",
+      "aliases": []
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+GATE_TAP_PASS 2026-07-19 18:35
+pkg=0.0.81-13+debug
+find=1042,270 color=0x00aeee
+tap=iconOk=1 hit=SBIconView (TS PRO dock)
+post=TouchSprite+TSDaemon running; find=-1 color=0x6e6e6e
+login_xztl.lua: toast OCR无结果 after leave home (expected region)
+note: killall -9 SpringBoard can blacken capture; reboot restores ~1MB dump

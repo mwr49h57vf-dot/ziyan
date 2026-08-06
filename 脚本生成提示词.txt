@@ -1,0 +1,413 @@
+# 子砚 · 脚本生成提示词框架（唯一执行约定）
+
+> **本文件 = 唯一提示词真源**（合并进阶侧车 + 工程对照 + **冲突禁区** + **备份/回归闭环**）。  
+> 工程根：`/Users/mac/Desktop/ZiYan_副本`  
+> 用途：实现/验收「我的脚本」底栏 —— **录制脚本（音量+）**、**自动脱壳（含自动分析）**。  
+> 硬性：脱壳链路必须走项目内三大模型（Mac 侧车）；录制链路为真机触控事件→Lua，禁止 TSLib。  
+> 硬性：**增功能前备份；自测失败必须自动读取回归文档并按文档重做，禁止盲改硬锁区。**  
+> 矩阵：越狱 iPhone 7 / 7P / 8 / 8P · iOS 13～16.7.16（rootful + rootless；后续扩展待告知）。  
+> 包锚点参考：`control` 现版（实现时以真机 `dpkg` 为准）。
+
+---
+
+## 0. 总则
+
+| 项 | 约定 |
+|----|------|
+| 产品入口 | ZiYan.app → **我的脚本**（`objc/app/ceshiRootViewController.m`） |
+| 左钮 | **录制脚本**（黑加粗）→ 选 App → 武装 → **音量「+」起停录制** → 落盘 Lua |
+| 右钮 | **自动脱壳**（红加粗）→ Dump + 三大模型自动分析 → 报告 |
+| 音量「−」 | **硬锁** `LOCK_VOLUME_OVERLAY`：运行/暂停/停止菜单，**禁止为录制改文案/链路** |
+| 音量「+」 | 仅在「已武装 / 录制中」时抢占：开始↔结束；未武装时不抢系统音量 |
+| 执行位置 | 录制/回放在**真机**；脱壳分析 Transformer 在 **Mac/PC 侧车** |
+| 学习边界 | 学触动「音量+录制」**公开教程思路**；禁止复用触动私有 so / Daemon / `TSLib`/`ts` |
+| 工程纪律 | 不重新初始化；不删既有模块；不碰硬锁；不改顶栏「+ / 导入 / 播放」 |
+| 内存纪律 | 禁止在 SB / App 内默认加载 GB 级权重 |
+| **回归纪律** | 见 §14：备份 → 改动 → 自测 → **失败则读回归文档重做** |
+
+打开 App 期望：`Media/ZiYan/ZYCV/res/models/models_status.txt`（旧路径 `Media/ZiYan/models/` 自动迁入）→ `ready_count=3/3`（脱壳/侧车用）。
+
+---
+
+## 1. 工程对照
+
+```
+ZiYan_副本/
+├── 脚本生成提示词.txt              ← 本文件
+├── 已正常功能参考.txt              ← 硬锁 LOCK_*（回归第一真源）
+├── 历史问题全归档.txt              ← 缺陷/指令持久归档（必读）
+├── DOCS/_superseded_plans/         ← 过时计划/回归快照（勿作排期依据）
+├── GPT.txt / DEVICE_RULES.md / STRUCTURE.md / FIVE_PHONE_SURPASS_PLAN.md
+├── control / Makefile
+├── Ai代码训练/
+├── 大模型/（三大模型.txt + 三套权重软链）
+├── tools/ziyan_defense/
+├── lua/ziyan_engine/ · lua/modules/
+├── objc/app/ · objc/shared/ · objc/tweak/
+└── tmp_shots/PHASE763R8/           ← 现场证据 / REGRESS_* / VERDICT_*
+```
+
+### 1.1 路径契约（`ZiYanPaths.h` / `ziyan_engine/init.lua`）
+
+| 角色 | rootful | rootless |
+|------|---------|----------|
+| 运行时 | `/usr/lib/ziyan` | `/var/jb/usr/lib/ziyan` |
+| 用户脚本 | `/private/var/mobile/Media/ZiYan/`（兼扫 `lua/`） | 同左 |
+| ZYCV | `…/ZYCV/`（config / log / tmp / **res**） | 同左 |
+| 脱壳 | `…/ZYCV/<AppName>/{Mach-O,Framework,Resource}/` | 同左 |
+| 模型 | `…/ZYCV/res/models/`（旧 `…/models/` 迁入） | 同左 |
+| 知识库 | `…/ZYCV/res/knowledge/` | 同左 |
+
+JB 前缀运行时探测，禁止写死单形态。
+
+### 1.2 允许新建（挂现有骨架）
+
+`ceshiRootViewController` 底栏 · `AppSelector` · `ScriptGenerator` · `DumpManager` · `DumpAnalyzer` · `TaskProgressUI` · `LLMSidecarClient`。  
+可选对接 `lua/ziyan_engine/game.lua`（勿破坏既有 API；见 §2.1 冲突表）。
+
+---
+
+## 2. 硬锁（禁止改实现）
+
+见 `已正常功能参考.txt`：
+
+| 标记 | 要点 |
+|------|------|
+| `LOCK_VOLUME_OVERLAY` | 音量菜单链路；Toast **`preferScreenLand=NO`** |
+| `LOCK_FINDCOLOR` | 匹配核 / 坐标语义；仅 TTL/脉冲层可申请 |
+| `LOCK_TOUCH_BASE` | 比例归一化点击；禁止旁路 HID |
+| `LOCK_ICON_HIDE` | 图标隐藏 |
+
+坐标走 OrientMap / ScreenTransform / AppTouch；截图控频防 SB jetsam。
+
+### 2.1 与现有功能冲突表（实现前必对）
+
+| 冲突面 | 现有行为 | 本框架要求 | 禁止 |
+|--------|----------|------------|------|
+| 顶栏 + / 导入 / 播放 | 已验收入口 | 底栏双钮**另挂** Safe Area | 改语义、挤占顶栏 |
+| Toast / Volume | 硬锁 + REGRESS_VOL_MIN | 进度用 Toast 须 `preferScreenLand=NO` | 再开 preferScreenLand=YES |
+| 找色 / ScreenBridge | LOCK_FINDCOLOR + 8-94 持锁读 | 生成脚本用引擎 API；控 `mSleep`/keep | 改匹配核；永不过期假命中 |
+| 点击 | LOCK_TOUCH_BASE | `tap` 走引擎 | 生成脚本旁路 HID |
+| 图标隐藏 / Defense | LOCK_ICON_HIDE · DefenseAI | 侧车独立 req/result | 占用 `defense_bypass_trig.txt` |
+| `game.lua` 旧 codegen | `_zy_auto_gen_game.lua` | App 生成用**业务名**另落盘 | 静默覆盖 `_zy_auto_*` / 作者脚本 |
+| Desktop `ios7.lua`/`ios8p.lua` | 作者锚点脚本 | 仅 scp；内容禁改 | 生成器用同名覆盖 |
+| ZYCV/res · config | 互通库 / select.lua / run.cfg | 脱壳写入 `ZYCV/<AppName>/` | 覆盖 `ZYCV/res/`、`config/` |
+| Media 用户脚本 | App 列表源 | **装包前备份**（§14） | dpkg 误清后不恢复就宣称完成 |
+| 三大模型目录 | 防御权重在位探测 | 生成/分析复用权重，结论文件隔离 | 真机 `from_pretrained` / 自动拉网 |
+| 门禁 / gate | `.166`/`.53` 长稳 | 新功能回归抽检硬锁 | 为脚本生成杀 SB / 关门禁掩盖 |
+
+**判定**：若改动触及上表「禁止」列 → **冲突成立** → 停改 → 走 §14 回归闭环，不得强推脚本生成功能。
+
+---
+
+## 3. 三大模型（生成 + 脱壳分析）
+
+原文：`大模型/三大模型.txt`。完整推理仅 Mac 侧车；真机只探测在位。  
+`local_files_only`；禁止运行期自动联网。
+
+| ID | 目录 | 生成 | 脱壳分析 |
+|----|------|------|----------|
+| A | `ynyg__Unified_Prompt_Guard` | 净化提示 | 净化分析提示 |
+| B | `vincentoh__jailbreak-detector-v5` | 草案快筛 | 符号/串快筛 |
+| C | `llm-semantic-router__mmbert-jailbreak-detector-merged` | 长草案门禁 | 报告门禁 |
+
+禁止跳过 A/B/C。
+
+---
+
+## 4. Ai代码训练
+
+路径：`Ai代码训练/`（血战屠龙 / 新版血战 / 赤沙龙城 / 圣戒信条 / 怒剑传奇 / 龙界争霸 · UI/HS/JH/QS）。  
+映射：单入口 `main` · 状态机 · `findMultiColorInRegionFuzzy` · 无 TSLib · 有 `res_profile` · 有 deadline。  
+摘要：`tmp_shots/PHASE763R8/scriptgen/TRAINING_DIGEST.md`。
+
+---
+
+## 5. 分辨率矩阵
+
+| profile | 锚点 |
+|---------|------|
+| `iphone7_13` | `.166` 必测 |
+| `iphone7p_13` / `iphone8_16` | 有机必测 |
+| `iphone8p_16` | `.53` 必测 |
+
+学习机 `.149`/`.171` 只读。SSH `root`/`alpine`。  
+打包：`make package` · `THEOS_PACKAGE_SCHEME=rootless make package FINALPACKAGE=1`。
+
+---
+
+## 6. App UI 契约
+
+| 区域 | 约定 |
+|------|------|
+| 顶栏 | 「+」·「我的脚本」· 导入 + 播放（语义锁定） |
+| 列表 | `*.lua` +「Lua · 可执行」 |
+| 底栏左 | `录制脚本` 黑加粗白底 |
+| 底栏右 | `自动脱壳` 红加粗白底 |
+
+贴底全宽等分；不挡列表；不拖死 SB。
+
+---
+
+## 7. 侧车协议
+
+### 7.1 `POST /v1/scriptgen/run` — A→Codegen→B→C
+
+落盘：`Media/ZiYan/<业务名>.lua` · 审计 `大模型/codegen_out/<audit_id>/`
+
+### 7.2 `POST /v1/dump_analyze/run` — dump 后 A→B→C→报告
+
+落盘：`ZYCV/<AppName>/ANALYSIS.md` + `analysis.json` · 审计 `大模型/dump_analyze_out/`
+
+### 7.3 文件降级
+
+`scriptgen_req/result.json` · `dump_analyze_req/result.json`（根：`Media/ZiYan/`）  
+与 `defense_bypass_trig.txt` 隔离。
+
+---
+
+## 8. 流水线 · 录制脚本（用户验收真源 · R8.4.12）
+
+> **产品入口**：底栏左钮「录制脚本」→ `recordScriptTapped` → 武装 → **音量「+」** 起停。  
+> **学触动公开教程**：音量+ 录制/停止；音量− 仍为运行菜单（本工程硬锁，不照搬触动菜单）。  
+> **禁止**：改 `LOCK_VOLUME_OVERLAY` 的 PresentMenu/Pause/Continue/Stop；禁止 TSLib。
+
+### 8.0 用户可见步骤
+
+```
+点击「录制脚本」
+    ↓
+① 选择指定 App（AppSelector）
+    ↓
+② 武装录制：写 .ziyan_rec_armed；开游；Toast「按音量+开始」
+    ↓
+③ 按音量「+」→ 开始录制（.ziyan_recording）；Toast「开始录制」
+    ↓
+④ 用户在游戏内点击 → AppTouch 钩 sendEvent → 逻辑坐标写入 .ziyan_rec_events.jsonl
+    ↓
+⑤ 再按音量「+」→ 停止 → 生成 Media/ZiYan/rec_yyyyMMdd_HHmmss.lua
+    ↓
+⑥ 列表刷新 / Toast「录制已保存」→ 可用顶栏播放或音量−菜单运行
+```
+
+### 8.1 状态文件
+
+| 文件 | 含义 |
+|------|------|
+| `.ziyan_rec_armed` | 已选 App，等待音量+ 开始 |
+| `.ziyan_recording` | 正在录制（含 bid/started） |
+| `.ziyan_rec_events.jsonl` | tap 事件流（逻辑坐标 + gap_ms） |
+| `.ziyan_rec_last.json` | 最近产物路径 / taps 数 |
+
+### 8.2 产物契约
+
+```lua
+function main()
+  init(1)
+  tap(x, y)   -- 逻辑坐标；回放走 LOCK_TOUCH_BASE
+  mSleep(gap)
+  ...
+end
+main()
+```
+
+- 无 `TSLib` / `require("ts")`  
+- 坐标经 OrientMap 窗口→逻辑；回放 `tap` 经引擎 HID  
+- 控截图：录制本身不跑 find 循环；回放脚本勿空转狂截  
+
+### 8.3 可选 · Agent 自动生成（CLI / 侧车，非底栏主入口）
+
+底栏主入口已改为录制。`ziyan_scriptgen_smoke` / `generateForApp` 的 P→V→K→G→T 仍保留作进阶生成，见历史 §8.2 Fable 封装；**勿与录制按钮抢入口**。
+
+### 8.2（历史）Fable 工作法 · 本地 Agent 封装（R8.4.11 · 不接任何收费 API）
+
+> **只借思路，不借 Anthropic / Claude Fable 云 API。**  
+> 编排：`generateForApp`（本地 P→V→K→G→T）；**非**底栏「录制脚本」主路径。
+
+| Agent | 职责 | 实现锚点 |
+|-------|------|----------|
+| **[P] Planner** | 定 family、四阶段目标、成功标准；写 `plan` | `ZiYanScriptGenerator` |
+| **[V] Vision** | 开游 LiveLearn；空桶则等屏再采（有限轮） | `ZiYanLiveVisionLearn` |
+| **[K] Knowledge** | 训练库骨架 + Live 色覆盖同 phase | `loadFamilyDoc` + merge |
+| **[G] Codegen** | 本地侧车 A→Codegen→B→C（失败则 knowledge 完整稿） | `ZiYanLLMSidecarClient` |
+| **[T] Self-Test** | `ziyan_run` + 读 `.ziyan_script_phase` | `runGenerateForPick` |
+| **Critic** | 空 phase 几何补桶；T 未达标 → 回炉 V 或 G（有上限） | `critic*` / UI 回炉 |
+
+硬锁 / 禁触动 API / 仅本地免费权重：不变。
+
+---
+
+## 9. 流水线 · 自动脱壳 + 分析
+
+选 App → Dump → 限长摘要 → A→B→C → ANALYSIS → Toast。  
+仅 dump 无报告 = 未完成。
+
+---
+
+## 10. 生成脚本运行时契约
+
+```lua
+function main()
+  init(1)
+  keepScreen(true)
+  local deadline = os.time() + 3600
+  while os.time() < deadline do
+    local x, y = findMultiColorInRegionFuzzy(0xRRGGBB, "…", 90, x1,y1,x2,y2)
+    if x ~= -1 then tap(x, y) else -- recover end
+    mSleep(500)
+  end
+  keepScreen(false)  -- 使用后清理（对齐手册）
+end
+```
+
+色参来源优先级：LiveLearn 自动取色 > 训练库导入 > 运行时 OCR。  
+性能看 `.ziyan_sb_find_perf`（`sb_avg_ms`）。作者脚本另名，禁止覆盖。
+
+---
+
+## 11. 「跑通」门禁
+
+### 11.A 录制脚本（底栏主入口 · .101/.112）
+
+1. 包装入；底栏左钮文案为「录制脚本」  
+2. 武装后存在 `.ziyan_rec_armed`；音量+ 后存在 `.ziyan_recording`  
+3. 游戏内点击写入 `.ziyan_rec_events.jsonl`（≥1 条 tap）  
+4. 再按音量+ 落盘 `rec_*.lua`，含 `tap`/`mSleep`/`init`，无 TSLib  
+5. 音量− 菜单文案/启停仍符合 `LOCK_VOLUME_OVERLAY`（抽检）  
+6. Toast preferScreenLand=NO  
+
+### 11.B 脱壳 / Agent 进阶（可选）
+
+1. models 3/3（或文档降级）  
+2. LiveLearn / A→B→C / 相位门禁见历史要求  
+3. `.166` + `.53` 硬锁抽检；功能验收以 `.101` 为准  
+
+无真机标「待测」，禁止写全矩阵跑通。
+
+---
+
+## 12. 阶段交付与开工勾选
+
+交付：改动列表 · UI 图 · codegen/dump 样例 · TRAINING_DIGEST · 矩阵表 · **本轮备份路径** · **回归清单结果** · 问题与下一步。  
+未确认不进入下一阶段。
+
+开工前：
+
+- [ ] 已读本文件 + `三大模型.txt` + **`已正常功能参考.txt`** + **`历史问题全归档.txt`** 相关段  
+- [ ] 已读 `FIVE_PHONE_SURPASS_PLAN.md`；需要时查 `DOCS/_superseded_plans/SYSTEM_REGRESSION_REPORT.md`  
+- [ ] §14 备份已建立（本轮 tag 目录存在）  
+- [ ] §2.1 冲突表已勾选无「禁止」触碰（或已书面申请）  
+- [ ] 底栏 UI / A→B→C / dump+分析 / 侧车隔离  
+- [ ] `.166` / `.53` 在计划内  
+
+---
+
+## 14. 备份与回归文档闭环（框架强制）
+
+> 现状说明：工程**已有**回归材料，但旧提示词未强制「失败→读文档→重做」。自本版起为**硬性流程**。
+
+### 14.1 已有回归/备份真源（必须维护，禁止另起炉灶替代）
+
+| 文档/目录 | 角色 |
+|-----------|------|
+| `已正常功能参考.txt` | 硬锁范围与禁止项 |
+| `历史问题全归档.txt` | 用户缺陷/指令/回归标准持久录 |
+| `DOCS/_superseded_plans/SYSTEM_REGRESSION_REPORT.md` | 历史污染/回滚（归档） |
+| `GPT.txt` / `FIVE_PHONE_SURPASS_PLAN.md` | 阶段状态与当前排期 |
+| `DEVICE_RULES.md` | 设备分类与双机规则 |
+| `tmp_shots/PHASE763R8/REGRESS_*` | 音量/脚本等现场回归证据 |
+| `tmp_shots/PHASE763R8/**/VERDICT_*.md` | 单次事故结论（如 SafeMode 8-94） |
+
+**若上表缺失或过期**：先补文档再开发脚本生成；不得空口「已回归」。
+
+### 14.2 改前备份（每次增功能强制）
+
+在改代码 / 装包 / 清 Media **之前**创建：
+
+```
+tmp_shots/PHASE763R8/BACKUP_<YYYYMMDD_HHMM>_<topic>/
+  MANIFEST.txt          # 包版本、双机 dpkg、改动意图、关联 LOCK_*
+  files/                # 将改源文件副本（至少：将碰的 .m/.lua/.h）
+  media_scripts_166/    # 可选：真机 Media/ZiYan/*.lua 拉取备份
+  media_scripts_53/
+  pre_dpkg_note.txt     # 若将 dpkg：提醒「装包可能清用户脚本」
+```
+
+规则：
+
+1. 无 `BACKUP_*` → **禁止** `make package` / 真机 dpkg / 大范围改 OC。  
+2. Desktop `ios7.lua`/`ios8p.lua` 以 Mac 桌面为源备份；真机仅 scp。  
+3. 备份不进 deb；路径写进本轮交付清单。
+
+### 14.3 增功能后自测清单（最低）
+
+| # | 项 | 失败即触发 §14.4 |
+|---|-----|------------------|
+| R1 | SafeMode / `eksafemode` | ✓ |
+| R2 | SB 存活 + hooks（音量键相关） | ✓ |
+| R3 | 音量菜单：空闲/运行/暂停文案与启停 | ✓ |
+| R4 | Toast 可见且非 preferScreenLand 回归 | ✓ |
+| R5 | 找色：`sb_find_perf` 有增长；非永假命中 | ✓ |
+| R6 | 点击：脚本 tap 无整体镜像错乱 | ✓ |
+| R7 | 图标隐藏策略未破坏（有会话时） | ✓ |
+| R8 | 顶栏 + / 导入 / 播放仍可用 | ✓ |
+| R9 | 新功能本身（生成或脱壳+分析） | ✓ |
+| R10 | Media 用户脚本未被装包清空（或已从 BACKUP 恢复） | ✓ |
+
+双锚点：`.166` + `.53` 能测尽测。
+
+### 14.4 自测失败 → 自动读文档重做（禁止凭记忆瞎改）
+
+```
+自测 FAIL（任一 R1–R10）
+    ↓
+【强制读取 · 按序】
+  1) 已正常功能参考.txt          → 是否误碰 LOCK_*
+  2) 历史问题全归档.txt          → 是否旧坑复发（对照关键字）
+  3) DOCS/_superseded_plans/SYSTEM_REGRESSION_REPORT.md → 历史污染面（归档）
+  4) 本轮 BACKUP_* + 相关 VERDICT_/REGRESS_*
+  5) DEVICE_RULES.md（若涉设备/路径特判）
+    ↓
+【处置】
+  A. 触及硬锁 → 从 BACKUP 回滚硬锁相关文件；仅保留未冲突的新功能改动
+  B. 未触硬锁 → 按归档/REGRESS 的验收标准重做；不得发明第三套坐标/Toast 策略
+  C. Media 被清 → 从 BACKUP media_scripts_* 或 Desktop 作者脚本恢复后再测
+    ↓
+写 VERDICT 到 tmp_shots/PHASE763R8/<topic>/VERDICT_<ver>.md
+追加一行到 历史问题全归档.txt
+    ↓
+重新自测 §14.3 → 全绿才可声称阶段完成
+```
+
+**禁止**：失败后不读文档继续堆补丁；失败后改硬锁「顺便优化」；失败后只测新功能不测 R1–R8。
+
+### 14.5 脚本生成功能专属回归注意
+
+- 生成脚本默认 `mSleep≥300`、有 deadline，避免拖垮 ScreenBridge。  
+- 侧车失败须 Toast 明确原因，不得卡死 App 主线程。  
+- 脱壳分片/限长，禁止在 SB 内解析整包 Mach-O。  
+- 与防御模型共享磁盘权重时，**结论文件必须隔离**（§7.3）。
+
+---
+
+## 13. 文档关系
+
+| 文档 | 关系 |
+|------|------|
+| **本文件** | 脚本生成框架真源（含冲突 + 备份回归闭环） |
+| `已正常功能参考.txt` | 硬锁；与 §2 / §14 联动 |
+| `历史问题全归档.txt` | 失败重做时必读；成功后必追加 |
+| `DOCS/_superseded_plans/SYSTEM_REGRESSION_REPORT.md` | 历史系统回归（归档） |
+| `大模型/三大模型.txt` | 权重边界 |
+| `大模型/脚本生成_进阶提示词.txt` | 已并入 §7；以本文件为准 |
+| `Ai代码训练/` | 业务结构老师 |
+| `tmp_shots/.../BACKUP_*` · `REGRESS_*` · `VERDICT_*` | 备份与证据 |
+
+用途：学习研究、自动化测试、自身防御与脚本研究。
+
+---
+
+END · 子砚脚本生成提示词框架  
+更新：2026-07-28 · R8.4.10 底栏全链路（选App→开游识屏→训练逻辑→自动填色→LLM→自动跑→请人工审阅）  
+矩阵：iPhone 7 / 7P / 8 / 8P · iOS 13～16.7.16 · 三大模型强制 + Vision OCR（后续扩展待告知）  
+验收机：**.101 / .112**（脚本生成）；门禁仍 .166/.53

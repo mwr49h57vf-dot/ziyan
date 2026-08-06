@@ -1,0 +1,47 @@
+---
+description: 盲改失败即连 .171/.149 观察触动；先抄袭模仿再谈超越
+alwaysApply: true
+---
+
+# 触动观察优先（禁止盲改）
+
+## 死记一条
+
+**自己优化修改几次仍不成功 → 立刻停止拧刀，主动连接 `.171` / `.149` 只读观察触动精灵**（Daemon、内存/IOSurface、CPU、找色/keepScreen、min 后缓冲、二进制符号等），按证据再改 ZiYan。  
+**首要：抄袭 / 模仿触动机制（自有 API 重实现）。对齐稳之前禁止宣称超越，禁止连日盲拧节流/旗位。**
+
+## 硬约束
+
+1. **`.171` / `.149`：只读观察**，禁止部署 ZiYan、禁止改触动脚本色参当「修子砚」。
+2. **禁止**把 `TSDaemon` / TS dylib 链进发行包或运行依赖；只学行为与架构，用 ZiYan 自有 Lua/OC 重封装。
+3. 找色 / min / 帧生命周期类问题：同一症状 **自改 ≥2 轮仍 FAIL** → 下一动作必须是 `.171`（必要时空 `.149`）对照采集，不得再开第三轮纯猜改。
+4. 动手改代码前，应用触动证据回答至少三项：  
+   - Daemon/宿主怎么常驻？  
+   - 帧在哪（IOSurface/进程内 vs 文件 shm/relay）？  
+   - **找色/找字/找图是否永远跟当前前台**（`init("0", rotate)`；禁钉旧 App 冻帧）？  
+5. 另见强制规则：`.cursor/rules/fg-always-vision.mdc`
+6. 已有对照文档优先复用并**补今日实拍**，例如：  
+   `tmp_shots/TS_FG_FIND_*/MAIN_LUA_FG_MODEL.md`、  
+   `tmp_shots/TS171_FIND_MODEL_*/TS_FIND_EFFICIENCY_MODEL.md`、  
+   `tmp_shots/TS171_DENSE_*/STEP_BY_STEP_COMPARE.md`、  
+   `tmp_shots/TS171_FULL_ARCH_*/ARCH_COMPARE_COPY_PLAN.md`。
+
+## 正确顺序
+
+```
+复现 FAIL →（≤2 刀自研）→ 仍 FAIL → 连 .171/.149 观察触动
+→ 写清「触动怎么做 / 子砚差在哪」→ 按 keep/screenRenew 等机制对齐
+→ 四机门禁 → 连 .149/.171 对照「是否与触动运行一致」→ 人工审核 → 下一刀
+```
+
+## 每刀必验（写死）
+
+**每一次优化/部署做完，必须立刻 SSH 连接 `.149` 与 `.171` 只读观察触动**（TSDaemon、IOSurface/RSS、脚本是否在圈、min→找色→回前台行为），核对子砚行为是否与触动运行模型一致。  
+未完成 `.149`+`.171` 对照前，不得声称本刀通过，不得开下一刀。
+
+## 反模式（禁止）
+
+- 不连触动机，连改 `force_recap` / retain / throttle / bid 门多日
+- 用 HTTP snapshot 像素否定触动内部 find 命中
+- **Home 上扫旧 App 冻帧**却自称对齐触动（违 `fg-always-vision`）
+- 只跑四机门禁、不回看 `.171`/`.149` 就收工

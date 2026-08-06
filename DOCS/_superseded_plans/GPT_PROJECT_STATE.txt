@@ -1,0 +1,172 @@
+【★ 当前交接 2026-07-30 · 8-161 · 自我迭代闭环】
+- 驱动：`tools/ziyan_self_iterate.sh` · `DEVICES.txt` · `Cursor自我迭代工作流.md`
+- 包 **0.0.92-8-161**：CARender 多属性重试 + `.ziyan_no_relay`；F4 HttpCtl / F8 PerfGate
+- 绝对零 SB：**仍 BLOCKED**（.53 禁 relay 探测 FAIL）
+- 四机门禁基线仍见 `8160_gate/VERDICT_8160.md`；本轮 ITERLOG：`tmp_shots/SELF_ITERATE/manual_8161/`
+- 24h/超越触动：跳过·人工审核
+
+【8-160.2 · 收口/触动对照/四机门禁】
+- 已被 8-161 覆盖；旧裁决 `8160_gate/VERDICT_8160.md`
+
+
+
+【8-158 · T6 学习续作】
+- Step7 DONE；整包删 Vol 当时仍 BLOCKED — 已被 8-159 覆盖
+- 旧裁决 `tmp_shots/SURPASS_TS/8158_t6/VERDICT_8158_T6.md`
+
+【8-153 · T5/T6/T4/control 补完】
+- 已被 8-154 覆盖；旧裁决 `8153_t5t6t4_full/VERDICT_8153.md`
+
+
+【8-152 · T5/T6/T4/control 骨架】
+- 已被 8-153 覆盖；旧裁决留存 `8152_t5t6t4_shm/VERDICT_8152.md`
+
+【8-151 · Toast 黑底白字】
+- 半透明黑底白字；已被 8-152 覆盖
+
+【8-150 · P0P2补完】
+- Dispatcher/ControlShm/HID；裁决留存 `8150_p0p2/VERDICT_8150.md`
+
+【8-148 · P2 收尾】
+- 真链 NCNN；裁决留存 `8148_p2_wrap/VERDICT_8148.md`
+
+【8-147 · P2 续全量】
+- 裁决留存 `8147_p2_full/VERDICT_8147.md`
+
+【8-146 · 刀D+P2首刀】
+- 故障注入 PASS；Watchdog 只踢 daemon；已被 8-147 覆盖
+
+【8-137 SURPASS_TS P1 · 触动式 keep · 四机】
+- 计划：SURPASS_TS_PLAN.md；显式 keep 真冻帧；自动 keep ≤350ms 批再截
+- 四机 **0.0.92-8-137**：.166 find 0.8～6.5ms PASS；.53 部分慢/miss；.101/.112 显式 keep ~1ms
+- 对照：仍未超越触动（G6 未达）；证据 VERDICT_SURPASS_TS_P1.md
+- 下一刀：P2 匹配迁 framecap + .53 换帧 + 8h gate
+
+【8-136 方向错+停止+换屏找色 · .53/.166】
+- 方向：SB/framecap 写 `.ziyan_orient` 成 root:644 → mobile `init(1)` 写失败 → toast/找色跟竖屏。修：禁截帧写 orient；framecap 放权+`.ziyan_orient_req`
+- 停止：粘性 `.ziyan_user_stopped` + intent `stop=1` + framecap kill（防 zydaemon revive）
+- 找色：禁 keep 下 pixelData 旧堆冒充；合帧半续命
+- 包 **0.0.92-8-136**；ios7@.166 / ios8p@.53 已 scp；自测 orient=1 + NO_LUA
+
+【8-135 换屏找色慢 + 音量−停止失效 · .53/.166】
+- 找色：8-133 keep 软 TTL 8～10s + full_credit → 换屏反应极慢；改回 ~1.2～1.8s + half_credit(0.55<TTL)，keep 仍禁 SB UICreate；合帧间隔 1.5～2.5s
+- 停止：stopCurrentRun/菜单立刻 ClearStopFlag → Lua 看不到停；SB(mobile) 杀不掉 root lua。修：保留 .ziyan_stop；framecap(root) 消费 .ziyan_kill_scripts；control.lua os.exit(0)
+- 自测：.166/.53 kill_scripts 后 NO_LUA；软停 SOFT_EXIT_OK；keep find .166≈2～6ms / .53≈20～50ms
+- 包 **0.0.92-8-135**（.166 arm / .53 arm64）；备份 BACKUP_20260728_2105_find_stop
+- **已被 8-136 覆盖（方向/停洁/换帧）**
+
+【8-134 录制脚本 · 音量+ · .101/.112】
+- 底栏「自动生成」→「录制脚本」；学触动公开「音量+录制」思路，自研 ZiYanScriptRecorder
+- 音量+：武装/录制中起停；音量− 菜单硬锁未改；AppTouch sendEvent 录逻辑 tap
+- 提示词 §8 重写；Agent 生成降为 §8.3 CLI 可选
+- 双机自测：arm→rec_volup_trig→3tap→stop → rec_*.lua taps=3 pipeline=Record[Vol+→Touch→Lua]
+- 包 **0.0.92-8-134**；备份 BACKUP_20260728_2040_record_volup
+- 证据：tmp_shots/FUNCTION_TEST/r849_112/results/record_volup_8134/
+
+【8-133 SB keep 抖刷修复 · .53/.166】
+- 根因：half_ttl(now-1.25)+keep TTL1.2s → ui_create 死循环（.53 11MP SIGSEGV）
+- 修：keep TTL 8～10s、stale 完整续命、keep 禁 SB UICreate、脉冲死 keep 不解截
+- 包 **0.0.92-8-133**（.166 arm / .53 arm64）；备份 BACKUP_20260728_2015_sb_keep_ttl
+- 修后：ui_create 间隔 ~35～40s；sb_avg 73→45(.53) 67→39(.166)；90s SB 未重启
+- 对比触动（公开 keepScreen）：架构长稳触动仍优；本 bug/抖刷子砚已收敛；缓存命中 last≈3.5ms 可竞争
+- 证据：tmp_shots/PHASE763R8/sb_incidents/SB_PULL_20260728_2010_53166/VERDICT_SB_FIX_8133_VS_TS.md
+- **注意：8-135 已把 keep 软 TTL 从 8～10s 收短，保留禁 UICreate / 半续命防死循环**
+
+【8-132 Fable 工作法本地 Agent · 自动生成脚本】
+- 只借思路、不接任何收费 API（paid_api=false）
+- 提示词新增 §8.2：P→V→K→G→T + Critic 回炉
+- ScriptGenerator：规划 / LiveLearn 多轮 / 几何补桶 / knowledge / 侧车 codegen
+- UI runGenerateForPick：[T] 相位门禁失败回炉 1 次；报告 agent/vision/分桶
+- Critic geo_fill：login/role/enter 各≥1（乱码 OCR 按 y 补桶）
+- 包 **0.0.92-8-132** 已装 .101/.112；备份 BACKUP_20260728_2000_fable_agent
+- 证据：tmp_shots/FUNCTION_TEST/r849_112/results/scriptgen_agent_8132/
+
+【8-131 自动生成脚本全链路 · .101/.112】
+- 提示词 §8：选App→开游识屏→训练逻辑→自动填色→LLM→自动跑→请人工审阅
+- 底栏按钮改接 runGenerateForPick（禁旧「只落盘」短路径）
+- ScriptGenerator：LiveLearn 色参覆盖训练库同 phase
+- 包 **0.0.92-8-131** 已装 .101/.112
+- 备份：BACKUP_20260728_1930_scriptgen_btn
+
+【8-130 .112 全模块函数自测】
+- 装包 0.0.92-8-130；自测 pass=195 fail=0 skip=43 total=238
+- 手册示例按《函数测试优化建议》同步；PASS 回写 .112
+- 热修：Network.jsonEncode/Decode、File.size 防递归、Zy.Layers 挂载
+- 结果：tmp_shots/FUNCTION_TEST/r849_112/results/
+
+【8-130 Media 根仅业务脚本】
+- Media/ZiYan 只保留 *.lua + lua/ + ZYCV/
+- knowledge/models/.ziyan_* 会话探针 → ZYCV/res（EnsureScriptsDirectory 自动迁移）
+- 真机 .101/.166 已整理；包 0.0.92-8-130
+
+【8-128 LiveLearn 开游识字自动取色 · .101】
+- 提示词 §8：开游→OCR→周边 getColor→侧车 vision→codegen→自动跑→请人工审阅
+- 实现：ZiYanLiveVisionLearn（会话武装解锁防黑场；dump+App Vision；禁人工 COLOR）
+- .101 包 **0.0.92-8-128**：live_color_count=16；自动跑 phase login→role→battle
+- 待人工审阅：com_ychj_hlhjlygr.lua / knowledge/families/cslc.json
+
+【8-123 找色软 TTL 冻帧 · 手册 keepScreen 清理对齐】
+- 手册：锁帧复用 + 示例使用后 keepScreen(false)；停脚本自动释放
+- 根因：8-119 ≤120s shm 假续命 lastRefreshAt → 识别要等很久
+- 修：软 TTL 1.2～2.5s；过期短催 daemon；tap 后释放锁帧
+- 真机：**0.0.92-8-123** 双机
+
+【8-122 LOCK_ICON_HIDE hide-once · 找色解卡】
+- 用户诊断：隐藏越狱图标只需 App 运行后一次；回 SB 持续检查 → 找色卡
+- 根因：心跳刷 hide_req + IconShield 主队列轮询 + fscloakd 1Hz ps/desk_hide
+- 修：ceshiAppDelegate / ZiYanIconShield / ziyan_fscloakd.sh（v8122）
+- 真机：**0.0.92-8-122** 双机；.166 find avg≈1.5ms sb≈8ms；.53 sb≈19ms
+- 语义不变：开 App hide 一次 · Home 保持 · 关程序 restore；禁 afc2d
+
+====================
+GPT_PROJECT_STATE.txt · 锁定上下文（权威快照）
+更新日期：2026-07-28 18:10
+====================
+
+当前阶段：7.6.3-R8.4.9 · LiveLearn 开游识字自动取色
+真机现装：**0.0.92-8-128**（.101 脚本生成验收）· 门禁机仍以 8-123 为找色锚
+Engine **2.24.0** / Modules **1.13.0**
+
+设备：
+  .101 脚本生成验收（8-128 LiveLearn 自测过 login→role→battle，待人工审阅）
+  .166/.53 门禁（8-123）
+  Desktop ios7/ios8p 禁止改内容
+
+====================
+【硬锁 · 禁止擅自改动】
+====================
+  LOCK_VOLUME_OVERLAY / LOCK_FINDCOLOR / LOCK_TOUCH_BASE / LOCK_ICON_HIDE
+  Toast preferScreenLand=NO
+  LOCK_ICON_HIDE：8-122 用户授权 hide-once（禁止回退每秒 hide 轮询）
+  LOCK_FINDCOLOR：8-123 用户授权 TTL/脉冲层（禁止回退 120s 假续命）
+
+====================
+【R8.4.3 Toast 横屏会话防覆盖】
+- 根因：旁路 require/toast 把 .ziyan_orient 写成 init(0) → followScreen 错边
+- 修复：orient.lua/toast.lua 禁止未 init 进程降级横屏会话；.166 热更验证 portraitHost_rotate
+- 硬锁未动（preferScreenLand=NO）
+
+【R8.4.2 完成状态】
+====================
+✓ 6 游戏 Ai代码训练导入 → Media/ZiYan/knowledge/{index,KB,families/*}
+✓ 生成完整流程：runApp→sleep(5000)→sync→phase_login→role→enter→battle
+✓ 优先使用导入 COLOR_PARAMS；无导入则 OCR+学习骨架
+✓ 禁止 TSLib；OCR≥350ms / find≥200ms / mSleep≥300ms
+✓ .101：血战屠龙 from_knowledge=true · has_phase_login/battle
+✓ Toast「自测完成，请人工验收」· test_report.json
+✓ 导入工具：tools/ziyan_training_import/import_training.py
+  输出：media_seed/knowledge/
+
+备份：media_seed/knowledge + packages 8-107
+交付：tmp_shots/PHASE763R8/scriptgen_fullbiz_r842_20260727/
+
+下一动作：人工验收完整脚本；等 30min 双机 SB 观察结果
+
+【R8.4.8 自动生成脚本 · .101 · 2026-07-28】
+- 修复：keepScreen 热路径（frame_on/off 替代 thaw/snap）；主循环 OCR 稀触发；login 借 enter 色参
+- 包 8-121-3 已装 .101；已重生 com_ychj_hlhjlygr.lua（R8.4.8 头）
+- 自测：45s phase→role；无 SafeMode；待人工 App 内点「自动生成脚本」验收
+
+====================
+END
+====================

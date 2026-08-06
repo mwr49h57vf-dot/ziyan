@@ -1,0 +1,122 @@
+{
+  "module": "file",
+  "title": "文件 / PLIST",
+  "backend": "lua/ziyan_engine/{io_fs,py_cv}.lua",
+  "apis": [
+    {
+      "name": "FileExists",
+      "args": [
+        "path"
+      ],
+      "returns": "bool",
+      "note": "",
+      "status": "done",
+      "aliases": [
+        "file_exists"
+      ]
+    },
+    {
+      "name": "FileCreate",
+      "args": [
+        "path",
+        "content?",
+        "is_dir?"
+      ],
+      "returns": "bool",
+      "note": "",
+      "status": "done",
+      "aliases": []
+    },
+    {
+      "name": "FileCopy",
+      "args": [
+        "src",
+        "dst"
+      ],
+      "returns": "bool",
+      "note": "",
+      "status": "done",
+      "aliases": [
+        "fileCopy"
+      ]
+    },
+    {
+      "name": "FileDelete",
+      "args": [
+        "path"
+      ],
+      "returns": "bool",
+      "note": "",
+      "status": "done",
+      "aliases": []
+    },
+    {
+      "name": "FileMove",
+      "args": [
+        "src",
+        "dst"
+      ],
+      "returns": "bool",
+      "note": "",
+      "status": "done",
+      "aliases": []
+    },
+    {
+      "name": "FileList",
+      "args": [
+        "path",
+        "recursive?"
+      ],
+      "returns": "table",
+      "note": "",
+      "status": "done",
+      "aliases": []
+    },
+    {
+      "name": "readFileString",
+      "args": [
+        "path"
+      ],
+      "returns": "string",
+      "note": "",
+      "status": "done",
+      "aliases": []
+    },
+    {
+      "name": "writeFileString",
+      "args": [
+        "path",
+        "content"
+      ],
+      "returns": "bool",
+      "note": "",
+      "status": "done",
+      "aliases": []
+    },
+    {
+      "name": "PlistRead",
+      "args": [
+        "path"
+      ],
+      "returns": "table|nil",
+      "note": "",
+      "status": "done",
+      "aliases": [
+        "plistRead"
+      ]
+    },
+    {
+      "name": "PlistWrite",
+      "args": [
+        "path",
+        "data"
+      ],
+      "returns": "bool",
+      "note": "",
+      "status": "done",
+      "aliases": [
+        "plistWrite"
+      ]
+    }
+  ]
+}

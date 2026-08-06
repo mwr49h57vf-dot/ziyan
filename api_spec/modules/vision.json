@@ -1,0 +1,7 @@
+{
+  "module": "vision",
+  "version": "1.0.0",
+  "status": "done",
+  "globals": ["visionOcr", "visionFindText", "visionFindColor", "visionAnalyze"],
+  "notes": "Facade over Image/OCR via Coordinate. No TouchSprite APIs."
+}

@@ -1,0 +1,1816 @@
+================================================================================
+子砚函数测试优化建议 - 完整版
+================================================================================
+生成时间: 2026-07-29
+函数总数: 245
+来源: 子砚触控函数说明.html R8.4
+================================================================================
+
+================================================================================
+一、全局函数（9个）
+================================================================================
+
+1. tap(x, y) 【点击】
+   功能: 在逻辑坐标 (x,y) 单击。横屏 init(1/2) 时坐标为逻辑横屏画布
+   参数: x(number) - 逻辑X, y(number) - 逻辑Y
+   返回: 无返回值
+   实例: init(1)
+         local x, y = 100, 200
+         if x > 0 then
+           tap(x, y)
+           mSleep(300)
+         end
+
+2. swipe(x1, y1, x2, y2, ms) 【滑动】
+   功能: 逻辑坐标滑动，时长毫秒
+   参数: x1,y1(number) - 起点, x2,y2(number) - 终点, ms(number) - 时长毫秒
+   返回: 无返回值
+   实例: local x1, y1, x2, y2 = 80, 120, 200, 120
+         local dur = 250
+         if dur > 0 then swipe(x1, y1, x2, y2, dur) end
+
+3. keepScreen(on) 【锁帧缓存】
+   功能: 开启后找色优先复用缓存帧，停脚本自动释放
+   参数: on(boolean) - true开启/false关闭
+   返回: boolean - 是否成功
+   实例: keepScreen(true)
+         for i = 1, 5 do
+           local c = getColor(10, 10)
+           if c >= 0 then break end
+           mSleep(200)
+         end
+         keepScreen(false)
+
+4. getColor(x, y) 【取色】
+   功能: 读取逻辑坐标颜色，返回 0xRRGGBB 整数；失败可能为 -1
+   参数: x,y(number) - 逻辑坐标
+   返回: number - 0xRRGGBB 或 -1
+   实例: local cx, cy = 10, 10
+         local c = getColor(cx, cy)
+         if type(c) == "number" and c >= 0 then
+           toast(string.format("c=0x%06x", c % 0x1000000), 800)
+         end
+
+5. findMultiColorInRegionFuzzy(main, offsetStr, degree, x1, y1, x2, y2) 【多点模糊找色】
+   功能: 多点组合模糊找色，degree∈[1,100]，建议局部区域+keepScreen
+   参数: main(number) - 主色0xRRGGBB, offsetStr(string) - dx|dy|0xRGB,..., degree(number) - 相似度1-100, x1,y1,x2,y2(number) - 区域
+   返回: number,number - 命中逻辑坐标；未命中 -1,-1
+   实例: keepScreen(true)
+         local main = 0xfdfeeb
+         local off = "0|1|0xfdfef8,0|2|0xfffff7"
+         local x, y = findMultiColorInRegionFuzzy(main, off, 90, 2012, 281, 2012, 284)
+         if x ~= -1 then
+           tap(x, y)
+         else
+           toast("searching", 500)
+         end
+         keepScreen(false)
+
+6. toast(text, ms) 【底部提示】
+   功能: HUD提示，横竖屏统一逻辑底边居中
+   参数: text(string) - 文本, ms(number) - 显示毫秒(可选)
+   返回: 无返回值
+   实例: local msg = "子砚Toast"
+         local ms = 1200
+         if #msg > 0 then toast(msg, ms) end
+
+7. mSleep(ms) 【延时】
+   功能: 毫秒延时；内含暂停/停止检查点
+   参数: ms(number) - 毫秒
+   返回: 无返回值
+   实例: for i = 1, 3 do
+           mSleep(200)
+         end
+
+8. init(orient) 【初始化方向】
+   功能: 0竖屏跟随/1横屏CCW/2横屏CW，影响逻辑坐标与Toast/找色
+   参数: orient(number) - 0/1/2
+   返回: 无返回值
+   实例: local orient = 1
+         init(orient)
+         if orient == 1 or orient == 2 then
+           toast("landscape", 800)
+         end
+
+9. snapshot(path) 【截屏存盘】
+   功能: 将当前逻辑屏截图保存到path（png）
+   参数: path(string) - 输出路径
+   返回: 无/依赖实现
+   实例: local p = Zy.File.varDir() .. "/_snap.png"
+         snapshot(p)
+         if Zy.File.exists(p) then toast("saved", 600) end
+
+================================================================================
+二、屏幕图像/找色（16个）
+================================================================================
+
+10. Zy.Screen.info 【信息】
+    功能: 返回屏幕信息表（逻辑宽高等）
+    参数: 无
+    返回: table - 含logic_w/logic_h等字段
+    实例: local si = Zy.Screen.info()
+          local w = si.logic_w or si.w
+          Zy.Log.write("screen=" .. tostring(w))
+
+11. Zy.Screen.keep 【锁帧】
+    功能: 开启/关闭屏幕锁定缓存
+    参数: on(boolean) - true开启/false关闭
+    返回: boolean - 是否调用成功
+    实例: local ok = Zy.Screen.keep(true)
+          if ok then
+            toast("keepScreen ON", 500)
+          end
+
+12. Zy.Screen.size 【尺寸】
+    功能: 获取屏幕逻辑尺寸
+    参数: 无
+    返回: number,number - logic_w, logic_h
+    实例: local w, h = Zy.Screen.size()
+          toast(string.format("size=%dx%d", w, h), 800)
+
+13. Zy.Screen.snapshot 【截图】
+    功能: 截图保存为PNG
+    参数: name(string) - 文件名或路径
+    返回: string|nil - PNG路径
+    实例: local path = Zy.Screen.snapshot("login")
+          if path then
+            toast("截图已保存: " .. path, 800)
+          end
+
+14. Zy.Screen.sync 【同步】
+    功能: 同步屏幕状态
+    参数: orient(number), bid(string)
+    返回: boolean - 是否同步成功
+    实例: local ok = Zy.Screen.sync(1, "com.example.game")
+          if not ok then
+            toast("同步失败", 500)
+          end
+
+15. Zy.Image.colorAtDesign 【取色(设计坐标)】
+    功能: 在设计坐标取色
+    参数: x,y(number) - 设计坐标
+    返回: number,number,number - color, lx, ly
+    实例: local color, lx, ly = Zy.Image.colorAtDesign(900, 460)
+          if color >= 0 then
+            toast(string.format("color=0x%06x", color % 0x1000000), 500)
+          end
+
+16. Zy.Image.colorAtLogic 【取色(逻辑点)】
+    功能: 在逻辑坐标取色
+    参数: x,y(number) - 逻辑坐标
+    返回: number - 颜色值
+    实例: local c = Zy.Image.colorAtLogic(100, 200)
+          if c >= 0 then
+            toast(string.format("color=0x%06x", c % 0x1000000), 500)
+          end
+
+17. Zy.Image.find 【找图】
+    功能: 模板找图
+    参数: path(string), sim(number) - 相似度
+    返回: number,number - 左上角坐标
+    实例: local x, y = Zy.Image.find("/tmp/button.png", 0.9)
+          if x ~= -1 then
+            tap(x, y)
+          end
+
+18. Zy.Image.findColor 【找色】
+    功能: 在区域内找指定颜色
+    参数: main(number), offsetStr(string), degree(number), x1,y1,x2,y2(number)
+    返回: number,number - 命中x,y；失败-1,-1
+    实例: local x, y = Zy.Image.findColor(0xE8C070, "", 88, 600, 400, 1100, 620)
+          if x ~= -1 then
+            tap(x, y)
+          end
+
+19. Zy.Image.findUntil 【等到找色】
+    功能: 等到找到指定颜色或超时
+    参数: main(number), offsetStr(string), degree(number), x1,y1,x2,y2(number), timeout_ms, interval_ms
+    返回: boolean,number,number - 是否命中, x, y
+    实例: local hit, x, y = Zy.Image.findUntil(0xE8C070, "", 88, 600, 400, 1100, 620, 8000, 400)
+          if hit then
+            tap(x, y)
+          else
+            toast("超时未找到", 500)
+          end
+
+20. Zy.Vision.analyze 【视觉分析】
+    功能: 视觉分析，支持OCR找字
+    参数: config(table) - 配置表{words, design_w, design_h}
+    返回: boolean,string,number,number,number,table - hit, kind, x, y, color, detail
+    实例: local hit, kind, x, y = Zy.Vision.analyze({words={"登录"}, design_w=1136, design_h=640})
+          if hit then
+            tap(x, y)
+          end
+
+21. Zy.Vision.colorAt 【取色】
+    功能: 在指定位置取色
+    参数: x,y(number) - 逻辑坐标
+    返回: number,number,number - color, lx, ly
+    实例: local c, lx, ly = Zy.Vision.colorAt(900, 460)
+          if c >= 0 then
+            toast(string.format("color=0x%06x", c % 0x1000000), 500)
+          end
+
+22. Zy.Vision.findColor 【找色】
+    功能: 视觉模块找色
+    参数: main(number), offsetStr(string), degree(number), x1,y1,x2,y2(number)
+    返回: number,number - x,y 或 -1,-1
+    实例: local x, y = Zy.Vision.findColor(0xE8C070, "", 90, 0, 0, 1136, 640)
+          if x ~= -1 then
+            tap(x, y)
+          end
+
+23. Zy.Vision.findImage 【找图】
+    功能: 视觉模块找图
+    参数: path(string), sim(number) - 相似度
+    返回: number,number - 左上角或 -1,-1
+    实例: local x, y = Zy.Vision.findImage("btn.png", 0.9)
+          if x ~= -1 then
+            tap(x, y)
+          end
+
+24. Zy.Vision.findText 【找字】
+    功能: 在屏幕查找文字
+    参数: text(string) - 目标文字
+    返回: number,number,string - x,y,via
+    实例: local x, y = Zy.Vision.findText("同意")
+          if x ~= -1 then
+            tap(x, y)
+          end
+
+25. Zy.Vision.ocr 【识字】
+    功能: 对区域进行OCR识别
+    参数: x1,y1,x2,y2(number) - 区域
+    返回: boolean,string,string - ok, text, via
+    实例: local ok, text = Zy.Vision.ocr(0, 0, 1136, 200)
+          if ok then
+            toast("识别结果: " .. text, 1000)
+          end
+
+================================================================================
+三、触控模拟（13个）
+================================================================================
+
+26. Zy.Touch.gesture 【手势】
+    功能: 执行指定手势
+    参数: type(string), ... - 手势类型及参数
+    返回: 无
+    实例: Zy.Touch.gesture("tap", 100, 200)
+
+27. Zy.Touch.longPress 【长按】
+    功能: 长按指定位置
+    参数: x,y(number), duration_ms(number)
+    返回: 无
+    实例: Zy.Touch.longPress(100, 200, 1000)
+
+28. Zy.Touch.swipe 【滑动】
+    功能: 执行滑动手势
+    参数: x1,y1,x2,y2(number), ms(number)
+    返回: 无
+    实例: Zy.Touch.swipe(100, 300, 100, 100, 300)
+
+29. Zy.Touch.swipeRatio 【滑比例】
+    功能: 按比例滑动
+    参数: x1Ratio,y1Ratio,x2Ratio,y2Ratio(number), ms(number)
+    返回: 无
+    实例: Zy.Touch.swipeRatio(0.1, 0.3, 0.1, 0.1, 300)
+
+30. Zy.Touch.tap 【点击(禁止裸点)】
+    功能: 点击坐标（禁止裸点，需通过atRatio/atDesign）
+    参数: x,y(number) - 逻辑坐标
+    返回: 无
+    实例: Zy.Touch.tap(100, 200)
+
+31. Zy.Touch.tapDesign 【点设计坐标】
+    功能: 按设计坐标点击
+    参数: x,y(number) - 设计坐标
+    返回: 无
+    实例: Zy.Touch.tapDesign(100, 200)
+
+32. Zy.Touch.tapHit 【点命中】
+    功能: 点击命中点
+    参数: x,y(number) - 命中坐标
+    返回: 无
+    实例: Zy.Touch.tapHit(100, 200)
+
+33. Zy.Touch.tapRatio 【点比例】
+    功能: 按屏幕比例点击
+    参数: xRatio,yRatio(number) - 比例(0-1)
+    返回: 无
+    实例: Zy.Touch.tapRatio(0.5, 0.5)
+
+34. Zy.Coordinate.design 【设计分辨率】
+    功能: 获取设计分辨率
+    参数: 无
+    返回: number,number - design_w, design_h
+    实例: local dw, dh = Zy.Coordinate.design()
+          toast(string.format("设计分辨率: %dx%d", dw, dh), 800)
+
+35. Zy.Coordinate.point 【点坐标】
+    功能: 创建坐标点
+    参数: x,y(number)
+    返回: table - 坐标点信息
+    实例: local pt = Zy.Coordinate.point(100, 200)
+
+36. Zy.Coordinate.ratio 【比例点】
+    功能: 将比例转换为坐标
+    参数: xRatio,yRatio(number)
+    返回: table - 转换后的坐标
+    实例: local pt = Zy.Coordinate.ratio(0.5, 0.5)
+
+37. Zy.Coordinate.region 【区域】
+    功能: 创建区域对象
+    参数: x1,y1,x2,y2(number)
+    返回: table - 区域对象
+    实例: local region = Zy.Coordinate.region(0, 0, 300, 300)
+
+38. Zy.Coordinate.setDesign 【设设计分辨率】
+    功能: 设置设计分辨率
+    参数: w,h(number)
+    返回: 无
+    实例: Zy.Coordinate.setDesign(1136, 640)
+
+================================================================================
+四、Toast/日志（3个）
+================================================================================
+
+39. Zy.Log 【日志(可调用)】
+    功能: 输出日志
+    参数: msg(string) - 日志内容
+    返回: 无
+    实例: Zy.Log("测试日志")
+
+40. Zy.Log.dialog 【对话框】
+    功能: 显示日志对话框
+    参数: msg(string) - 对话框内容
+    返回: 无
+    实例: Zy.Log.dialog("测试对话框")
+
+41. Zy.Log.write 【写日志】
+    功能: 写入日志文件
+    参数: msg(string) - 日志内容
+    返回: 无
+    实例: Zy.Log.write("测试写入内容")
+
+================================================================================
+五、OCR识别（4个）
+================================================================================
+
+42. Zy.OCR.analyze 【分析】
+    功能: OCR分析
+    参数: context(string)
+    返回: table - 分析结果
+    实例: local result = Zy.OCR.analyze("test")
+
+43. Zy.OCR.find 【找字】
+    功能: 在区域内查找文字
+    参数: text(string), x1,y1,x2,y2(number)
+    返回: number,number - 命中坐标；未命中-1,-1
+    实例: local x, y = Zy.OCR.find("登录", 0, 0, 300, 300)
+          if x ~= -1 then
+            tap(x, y)
+          end
+
+44. Zy.OCR.findUntil 【等到找字】
+    功能: 等到找到文字或超时
+    参数: text(string), x1,y1,x2,y2(number), timeout_ms(number)
+    返回: boolean,number,number - 是否命中, x, y
+    实例: local hit, x, y = Zy.OCR.findUntil("确认", 0, 0, 300, 300, 2000)
+          if hit then
+            tap(x, y)
+          end
+
+45. Zy.OCR.region 【区域识字】
+    功能: 对区域进行OCR识别
+    参数: x1,y1,x2,y2(number)
+    返回: table - 识别结果
+    实例: local result = Zy.OCR.region(0, 0, 300, 300)
+          if result and result.text then
+            toast("识别: " .. result.text, 800)
+          end
+
+================================================================================
+六、应用/进程（14个）
+================================================================================
+
+46. Zy.App.activate 【切回应用】
+    功能: 切回应用（再launch/等前台）
+    参数: bundleId(string)
+    返回: boolean
+    实例: Zy.App.activate("com.example.game")
+
+47. Zy.App.bundlePath 【应用Bundle路径】
+    功能: 获取应用Bundle路径（best-effort）
+    参数: bundleId(string)
+    返回: string|nil
+    实例: local path = Zy.App.bundlePath("com.example.game")
+
+48. Zy.App.close 【关闭应用】
+    功能: 关闭指定应用
+    参数: bundleId(string)
+    返回: boolean
+    实例: Zy.App.close("com.example.game")
+
+49. Zy.App.dataPath 【应用Data路径】
+    功能: 获取应用数据路径（best-effort）
+    参数: bundleId(string)
+    返回: string|nil
+    实例: local path = Zy.App.dataPath("com.example.game")
+
+50. Zy.App.front 【当前前台Bundle】
+    功能: 获取当前前台应用的Bundle ID
+    参数: 无
+    返回: string|nil
+    实例: local bundle = Zy.App.front()
+          if bundle then
+            toast("前台: " .. bundle, 800)
+          end
+
+51. Zy.App.id 【获取App ID】
+    功能: 获取当前应用ID
+    参数: 无
+    返回: string
+    实例: local id = Zy.App.id()
+
+52. Zy.App.isForeground 【是否在前台】
+    功能: 检查应用是否在前台
+    参数: bundleId(string) - 可选
+    返回: boolean
+    实例: local isFront = Zy.App.isForeground("com.example.game")
+
+53. Zy.App.isRunning 【是否在运行】
+    功能: 检查应用是否在运行（前台或进程）
+    参数: bundleId(string) - 可选
+    返回: boolean
+    实例: local running = Zy.App.isRunning("com.example.game")
+
+54. Zy.App.launch 【启动应用】
+    功能: 启动应用并尽量等到前台
+    参数: bundleId(string)
+    返回: boolean
+    实例: Zy.App.launch("com.example.game")
+
+55. Zy.App.list 【已安装应用列表】
+    功能: 获取已安装应用列表
+    参数: 无
+    返回: table - 应用列表
+    实例: local apps = Zy.App.list()
+          for _, app in ipairs(apps) do
+            Zy.Log.write(app.bundleID)
+          end
+
+56. Zy.App.monitor 【运行状态监控】
+    功能: 监控应用运行状态，采样N次
+    参数: times(number) - 采样次数
+    返回: table - 监控结果
+    实例: local status = Zy.App.monitor(3)
+
+57. Zy.App.recognize 【识别应用】
+    功能: 识别当前前台应用（仅记录Bundle，不做游戏特判）
+    参数: 无
+    返回: string|nil
+    实例: local bid = Zy.App.recognize()
+
+58. Zy.App.set 【设置应用】
+    功能: 设置当前操作的应用
+    参数: bundleId(string)
+    返回: 无
+    实例: Zy.App.set("com.example.game")
+
+59. Zy.App.windowState 【窗口状态】
+    功能: 获取窗口/前台状态快照
+    参数: 无
+    返回: table
+    实例: local state = Zy.App.windowState()
+
+================================================================================
+七、文件（17个）
+================================================================================
+
+60. Zy.File.scriptsDir 【脚本目录】
+    功能: 获取脚本目录路径
+    参数: 无
+    返回: string
+    实例: local dir = Zy.File.scriptsDir()
+
+61. Zy.File.varDir 【变量目录】
+    功能: 获取变量目录路径
+    参数: 无
+    返回: string
+    实例: local dir = Zy.File.varDir()
+
+62. Zy.File.exists 【判断存在】
+    功能: 检查文件是否存在
+    参数: path(string)
+    返回: boolean
+    实例: local exists = Zy.File.exists("/tmp/test.txt")
+
+63. Zy.File.read 【读取文件】
+    功能: 读取文件内容
+    参数: path(string)
+    返回: string|nil
+    实例: local content = Zy.File.read("/tmp/test.txt")
+
+64. Zy.File.list 【列出目录】
+    功能: 列出目录下的文件
+    参数: path(string)
+    返回: table - 文件列表
+    实例: local files = Zy.File.list("/tmp")
+
+65. Zy.File.size 【文件大小】
+    功能: 获取文件大小（字节）
+    参数: path(string)
+    返回: number
+    实例: local size = Zy.File.size("/tmp/test.txt")
+
+66. Zy.File.write 【写入文件】
+    功能: 写入文件
+    参数: path(string), content(string)
+    返回: boolean
+    实例: Zy.File.write("/tmp/test.txt", "内容")
+
+67. Zy.File.append 【追加写入】
+    功能: 追加内容到文件
+    参数: path(string), content(string)
+    返回: boolean
+    实例: Zy.File.append("/tmp/test.txt", "追加内容")
+
+68. Zy.File.mkdir 【创建目录】
+    功能: 创建目录
+    参数: path(string)
+    返回: boolean
+    实例: Zy.File.mkdir("/tmp/test_dir")
+
+69. Zy.File.copy 【复制文件/目录】
+    功能: 复制文件或目录
+    参数: src(string), dst(string)
+    返回: boolean
+    实例: Zy.File.copy("/tmp/src", "/tmp/dst")
+
+70. Zy.File.move 【移动/重命名】
+    功能: 移动或重命名
+    参数: src(string), dst(string)
+    返回: boolean
+    实例: Zy.File.move("/tmp/old.txt", "/tmp/new.txt")
+
+71. Zy.File.find 【按名查找】
+    功能: 按名称查找文件
+    参数: name(string), searchPath(string)
+    返回: table - 路径列表
+    实例: local paths = Zy.File.find("test", "/tmp")
+
+72. Zy.File.getFile 【读取文件(别名)】
+    功能: 读取文件（getFile别名）
+    参数: path(string)
+    返回: string|nil
+    实例: local content = Zy.File.getFile("/tmp/test.txt")
+
+73. Zy.File.loadFile 【读取文件(别名)】
+    功能: 读取文件（loadFile别名）
+    参数: path(string)
+    返回: string|nil
+    实例: local content = Zy.File.loadFile("/tmp/test.txt")
+
+74. Zy.File.zip 【打包zip】
+    功能: 打包目录为zip
+    参数: zipPath(string), sourceDir(string)
+    返回: boolean
+    实例: Zy.File.zip("/tmp/test.zip", "/tmp/dir")
+
+75. Zy.File.unzip 【解压zip】
+    功能: 解压zip文件
+    参数: zipPath(string), destDir(string)
+    返回: boolean
+    实例: Zy.File.unzip("/tmp/test.zip", "/tmp/dir")
+
+76. Zy.File.remove 【删除文件】
+    功能: 删除文件
+    参数: path(string)
+    返回: boolean
+    实例: Zy.File.remove("/tmp/test.txt")
+
+================================================================================
+八、输入/按键（9个）
+================================================================================
+
+77. Zy.Input.clear 【清空输入】
+    功能: 清空当前输入
+    参数: 无
+    返回: 无
+    实例: Zy.Input.clear()
+
+78. Zy.Input.getClipboard 【读剪贴板】
+    功能: 获取剪贴板内容
+    参数: 无
+    返回: string|nil
+    实例: local text = Zy.Input.getClipboard()
+
+79. Zy.Input.setClipboard 【写剪贴板】
+    功能: 设置剪贴板内容
+    参数: text(string)
+    返回: boolean
+    实例: Zy.Input.setClipboard("测试内容")
+
+80. Zy.Input.text 【输入文本】
+    功能: 输入文本
+    参数: text(string)
+    返回: 无
+    实例: Zy.Input.text("你好")
+
+81. Zy.Input.typeAtRatio 【点比例并输入】
+    功能: 点击指定比例位置并输入
+    参数: xRatio,yRatio,text(string)
+    返回: 无
+    实例: Zy.Input.typeAtRatio(0.5, 0.8, "测试")
+
+82. Zy.Input.keycode 【系统按键模拟】
+    功能: 系统按键模拟（自研；无后端时诚实返回false）
+    参数: keyName(string) - "HOME","VOL_UP"等
+    返回: boolean
+    实例: Zy.Input.keycode("HOME")
+
+83. Zy.Input.pressHome 【模拟Home键】
+    功能: 模拟按下Home键
+    参数: 无
+    返回: boolean
+    实例: Zy.Input.pressHome()
+
+84. Zy.Input.keySequence 【顺序按键】
+    功能: 依次按多个键
+    参数: ... - 按键名称序列
+    返回: 无
+    实例: Zy.Input.keySequence("HOME", "VOL_UP")
+
+85. Zy.Input.switchInputText 【切换输入法】
+    功能: 切换子砚输入法（诚实失败）
+    参数: text(string)
+    返回: boolean
+    实例: Zy.Input.switchInputText("test")
+
+================================================================================
+九、设备（23个）
+================================================================================
+
+86. Zy.Device.deviceId 【设备UUID】
+    功能: 获取设备唯一ID
+    参数: 无
+    返回: string
+    实例: local id = Zy.Device.deviceId()
+
+87. Zy.Device.deviceName 【设备名】
+    功能: 获取设备名称
+    参数: 无
+    返回: string
+    实例: local name = Zy.Device.deviceName()
+
+88. Zy.Device.osType 【系统类型】
+    功能: 获取操作系统类型
+    参数: 无
+    返回: string
+    实例: local os = Zy.Device.osType()
+
+89. Zy.Device.osVersion 【系统版本】
+    功能: 获取系统版本
+    参数: 无
+    返回: string
+    实例: local ver = Zy.Device.osVersion()
+
+90. Zy.Device.batteryLevel 【电量】
+    功能: 获取电量(0-100)
+    参数: 无
+    返回: number
+    实例: local level = Zy.Device.batteryLevel()
+          toast("电量: " .. level .. "%", 800)
+
+91. Zy.Device.ip 【局域网IP】
+    功能: 获取设备局域网IP
+    参数: 无
+    返回: string
+    实例: local ip = Zy.Device.ip()
+
+92. Zy.Device.netInterfaces 【网卡列表】
+    功能: 获取网卡信息
+    参数: 无
+    返回: table
+    实例: local ifs = Zy.Device.netInterfaces()
+
+93. Zy.Device.memoryInfo 【内存信息】
+    功能: 获取内存使用信息
+    参数: 无
+    返回: table - {total, free, used}
+    实例: local mem = Zy.Device.memoryInfo()
+
+94. Zy.Device.gameRect 【游戏区域】
+    功能: 获取游戏区域坐标
+    参数: 无
+    返回: table
+    实例: local rect = Zy.Device.gameRect()
+
+95. Zy.Device.isAuth 【是否授权】
+    功能: 检查越狱是否可用
+    参数: 无
+    返回: boolean
+    实例: local auth = Zy.Device.isAuth()
+
+96. Zy.Device.isLocked 【是否锁屏】
+    功能: 检查是否锁屏
+    参数: 无
+    返回: boolean
+    实例: local locked = Zy.Device.isLocked()
+
+97. Zy.Device.profile 【设备画像】
+    功能: 获取设备画像
+    参数: 无
+    返回: table
+    实例: local profile = Zy.Device.profile()
+
+98. Zy.Device.getAlias 【获取别名】
+    功能: 获取设备别名
+    参数: 无
+    返回: string
+    实例: local alias = Zy.Device.getAlias()
+
+99. Zy.Device.refresh 【刷新设备】
+    功能: 刷新设备信息
+    参数: 无
+    返回: 无
+    实例: Zy.Device.refresh()
+
+100. Zy.Device.save 【保存设备】
+     功能: 保存设备设置
+     参数: 无
+     返回: 无
+     实例: Zy.Device.save()
+
+101. Zy.Device.lock 【锁屏】
+     功能: 锁屏请求
+     参数: 无
+     返回: boolean
+     实例: Zy.Device.lock()
+
+102. Zy.Device.unlock 【解锁】
+     功能: 解锁设备
+     参数: 无
+     返回: boolean
+     实例: Zy.Device.unlock()
+
+103. Zy.Device.setAlias 【设置别名】
+     功能: 设置设备别名
+     参数: alias(string)
+     返回: 无
+     实例: Zy.Device.setAlias("我的设备")
+
+104. Zy.Device.setDeviceName 【设置设备名】
+     功能: 设置设备名称
+     参数: name(string)
+     返回: 无
+     实例: Zy.Device.setDeviceName("iPhone-7")
+
+105. Zy.Device.setAutoLockTime 【自动锁屏时间】
+     功能: 设置自动锁屏时间(秒)
+     参数: seconds(number)
+     返回: 无
+     实例: Zy.Device.setAutoLockTime(300)
+
+106. Zy.Device.setRotationLockEnable 【旋转锁】
+     功能: 开启/关闭旋转锁
+     参数: enable(boolean)
+     返回: 无
+     实例: Zy.Device.setRotationLockEnable(true)
+
+107. Zy.Device.setWifiEnable 【WiFi开关】
+     功能: WiFi开关请求
+     参数: enable(boolean)
+     返回: boolean
+     实例: Zy.Device.setWifiEnable(true)
+
+108. Zy.Device.connectToWifi 【连接WiFi】
+     功能: 连接WiFi
+     参数: ssid(string), password(string)
+     返回: boolean
+     实例: Zy.Device.connectToWifi("MyWiFi", "password")
+
+================================================================================
+十、网络（10个）
+================================================================================
+
+109. Zy.Network.netIP 【本机IP】
+     功能: 获取本机IP
+     参数: 无
+     返回: string
+     实例: local ip = Zy.Network.netIP()
+
+110. Zy.Network.netTime 【网络时间】
+     功能: 获取网络时间
+     参数: 无
+     返回: number
+     实例: local time = Zy.Network.netTime()
+
+111. Zy.Network.httpGet 【HTTP获取】
+     功能: GET请求
+     参数: url(string)
+     返回: string|nil
+     实例: local resp = Zy.Network.httpGet("https://api.example.com/data")
+
+112. Zy.Network.httpPost 【HTTP提交】
+     功能: POST请求
+     参数: url(string), body(string)
+     返回: string|nil
+     实例: local resp = Zy.Network.httpPost("https://api.example.com/data", '{"key":"val"}')
+
+113. Zy.Network.download 【下载文件】
+     功能: 下载到本地
+     参数: url(string), destPath(string)
+     返回: boolean
+     实例: Zy.Network.download("https://example.com/file.zip", "/tmp/file.zip")
+
+114. Zy.Network.jsonEncode 【JSON编码】
+     功能: Lua表转JSON
+     参数: tbl(table)
+     返回: string
+     实例: local json = Zy.Network.jsonEncode({key = "value"})
+
+115. Zy.Network.jsonDecode 【JSON解码】
+     功能: JSON转Lua表
+     参数: jsonStr(string)
+     返回: table|nil
+     实例: local tbl = Zy.Network.jsonDecode('{"key":"value"}')
+
+116. Zy.Network.httpBuildQuery 【URL参数构建】
+     功能: 构建查询字符串
+     参数: params(table)
+     返回: string
+     实例: local qs = Zy.Network.httpBuildQuery({a="1", b="2"})
+
+117. Zy.Network.setTimeout 【设置超时】
+     功能: HTTP默认超时秒
+     参数: seconds(number)
+     返回: 无
+     实例: Zy.Network.setTimeout(5)
+
+118. Zy.Network.pyCall 【调用Python】
+     功能: 执行Python代码
+     参数: code(string)
+     返回: string|nil
+     实例: local result = Zy.Network.pyCall("print('hello')")
+
+================================================================================
+十一、线程（6个）
+================================================================================
+
+119. Zy.Thread.create 【创建线程】
+     功能: 创建协作线程
+     参数: func(function)
+     返回: thread
+     实例: local t = Zy.Thread.create(function()
+             mSleep(100)
+             Zy.Log.write("done")
+           end)
+
+120. Zy.Thread.wait 【线程等待】
+     功能: 协作等待毫秒
+     参数: ms(number)
+     返回: 无
+     实例: Zy.Thread.wait(1000)
+
+121. Zy.Thread.stop 【停止线程】
+     功能: 停止协作线程
+     参数: 无
+     返回: 无
+     实例: Zy.Thread.stop()
+
+122. Zy.Thread.clearTimeout 【清除延时】
+     功能: 取消延时回调
+     参数: 无
+     返回: 无
+     实例: Zy.Thread.clearTimeout()
+
+123. Zy.Thread.setTimeout 【设置延时】
+     功能: 延时回调
+     参数: ms(number), func(function)
+     返回: 无
+     实例: Zy.Thread.setTimeout(1000, function()
+             Zy.Log.write("timeout")
+           end)
+
+124. Zy.Thread.waitAllThreadExit 【等待全部结束】
+     功能: 等待所有线程结束
+     参数: 无
+     返回: 无
+     实例: Zy.Thread.waitAllThreadExit()
+
+================================================================================
+十二、控件（7个）
+================================================================================
+
+125. Zy.Widget.isAccessibilityOn 【无障碍检查】
+     功能: 检查无障碍是否开启
+     参数: 无
+     返回: boolean
+     实例: local on = Zy.Widget.isAccessibilityOn()
+
+126. Zy.Widget.find 【找控件】
+     功能: OCR找控件文案
+     参数: text(string)
+     返回: table|nil
+     实例: local widget = Zy.Widget.find("按钮")
+
+127. Zy.Widget.click 【点击控件】
+     功能: 点击控件/坐标
+     参数: textOrX, y
+     返回: boolean
+     实例: Zy.Widget.click("按钮")
+
+128. Zy.Widget.longClick 【长按控件】
+     功能: 长按控件
+     参数: text(string)
+     返回: boolean
+     实例: Zy.Widget.longClick("按钮")
+
+129. Zy.Widget.setText 【设置文本】
+     功能: 输入文本
+     参数: widgetText(string), inputText(string)
+     返回: boolean
+     实例: Zy.Widget.setText("输入框", "用户名")
+
+130. Zy.Widget.scrollForward 【上滑】
+     功能: 向上滑动列表
+     参数: text(string)
+     返回: boolean
+     实例: Zy.Widget.scrollForward("列表")
+
+131. Zy.Widget.scrollBackward 【下滑】
+     功能: 向下滑动列表
+     参数: text(string)
+     返回: boolean
+     实例: Zy.Widget.scrollBackward("列表")
+
+================================================================================
+十三、脚本（31个）
+================================================================================
+
+132. Zy.Script.scriptsDir 【脚本目录】
+     功能: 获取脚本目录
+     参数: 无
+     返回: string
+     实例: local dir = Zy.Script.scriptsDir()
+
+133. Zy.Script.sdkRoot 【SDK根路径】
+     功能: 获取SDK根路径
+     参数: 无
+     返回: string
+     实例: local root = Zy.Script.sdkRoot()
+
+134. Zy.Script.load 【加载脚本】
+     功能: 加载脚本
+     参数: name(string)
+     返回: boolean
+     实例: Zy.Script.load("test_script")
+
+135. Zy.Script.get 【获取变量】
+     功能: 取变量
+     参数: key(string)
+     返回: any
+     实例: local val = Zy.Script.get("counter")
+
+136. Zy.Script.has 【检查变量】
+     功能: 有变量
+     参数: key(string)
+     返回: boolean
+     实例: local exists = Zy.Script.has("counter")
+
+137. Zy.Script.set 【设置变量】
+     功能: 设变量
+     参数: key(string), value(any)
+     返回: 无
+     实例: Zy.Script.set("counter", 10)
+
+138. Zy.Script.vars 【变量表】
+     功能: 获取所有脚本变量
+     参数: 无
+     返回: table
+     实例: local vars = Zy.Script.vars()
+
+139. Zy.Script.clearVars 【清空变量】
+     功能: 清空所有脚本变量
+     参数: 无
+     返回: 无
+     实例: Zy.Script.clearVars()
+
+140. Zy.Script.generate 【生成脚本】
+     功能: 为指定游戏生成脚本
+     参数: bundleId(string)
+     返回: string|nil
+     实例: Zy.Script.generate("com.example.game")
+
+141. Zy.Script.generateFromState 【按状态生成】
+     功能: 根据Game状态生成下一步动作脚本片段/完整脚本
+     参数: state(string)
+     返回: string|nil
+     实例: Zy.Script.generateFromState("login_state")
+
+142. Zy.Script.generateFromTask 【按任务生成】
+     功能: 根据任务描述生成完整自动化流程（打通Zy.AI）
+     参数: task(string)
+     返回: string|nil
+     实例: Zy.Script.generateFromTask("每日任务")
+
+143. Zy.Script.generateTemplate 【模板生成】
+     功能: 仅模板路径（旧7.35）
+     参数: name(string)
+     返回: string|nil
+     实例: Zy.Script.generateTemplate("template_name")
+
+144. Zy.Script.run 【运行脚本】
+     功能: 运行脚本
+     参数: name(string)
+     返回: boolean
+     实例: Zy.Script.run("test_script")
+
+145. Zy.Script.act 【执行动作】
+     功能: 动作
+     参数: action(string)
+     返回: boolean
+     实例: Zy.Script.act("tap_button")
+
+146. Zy.Script.begin 【开始会话】
+     功能: 开始脚本会话
+     参数: sessionId(string)
+     返回: 无
+     实例: Zy.Script.begin("session_1")
+
+147. Zy.Script.stepState 【状态步进】
+     功能: 状态机步进
+     参数: state(string)
+     返回: boolean
+     实例: Zy.Script.stepState("next_state")
+
+148. Zy.Script.tick 【滴答】
+     功能: 执行脚本tick
+     参数: 无
+     返回: 无
+     实例: Zy.Script.tick()
+
+149. Zy.Script.loop 【循环执行】
+     功能: 循环
+     参数: name(string)
+     返回: 无
+     实例: Zy.Script.loop("loop_name")
+
+150. Zy.Script.untilPhase 【等到相位】
+     功能: 等到指定阶段
+     参数: phase(string)
+     返回: boolean
+     实例: Zy.Script.untilPhase("battle_phase")
+
+151. Zy.Script.when 【条件触发】
+     功能: 当条件满足时执行动作
+     参数: condition(string), action(string)
+     返回: 无
+     实例: Zy.Script.when("condition", "action")
+
+152. Zy.Script.runTask 【跑任务】
+     功能: 跑任务
+     参数: task(string)
+     返回: boolean
+     实例: Zy.Script.runTask("daily_task")
+
+153. Zy.Script.runTasks 【跑任务列表】
+     功能: 跑任务列表
+     参数: tasks(table)
+     返回: table
+     实例: Zy.Script.runTasks({"task1", "task2"})
+
+154. Zy.Script.defineTask 【定义任务】
+     功能: 定义新任务
+     参数: name(string), config(table)
+     返回: 无
+     实例: Zy.Script.defineTask("new_task", {})
+
+155. Zy.Script.debug 【调试】
+     功能: 调试
+     参数: info(string)
+     返回: 无
+     实例: Zy.Script.debug("debug_info")
+
+156. Zy.Script.exit 【退出】
+     功能: 退出脚本执行
+     参数: 无
+     返回: 无
+     实例: Zy.Script.exit()
+
+157. Zy.Script.restart 【重启脚本】
+     功能: 重启脚本
+     参数: 无
+     返回: 无
+     实例: Zy.Script.restart()
+
+158. Zy.Script.recover 【恢复】
+     功能: 恢复脚本执行
+     参数: 无
+     返回: boolean
+     实例: Zy.Script.recover()
+
+159. Zy.Script.optimizeScript 【优化脚本】
+     功能: 根据运行日志优化已有脚本
+     参数: name(string)
+     返回: boolean
+     实例: Zy.Script.optimizeScript("test_script")
+
+160. Zy.Script.repairScript 【修复脚本】
+     功能: 根据错误自动修复脚本
+     参数: name(string)
+     返回: boolean
+     实例: Zy.Script.repairScript("test_script")
+
+161. Zy.Script.validate 【校验脚本】
+     功能: 校验
+     参数: name(string)
+     返回: boolean
+     实例: Zy.Script.validate("test_script")
+
+162. Zy.Script.assertPlatform 【断言平台】
+     功能: 断言平台支持
+     参数: 无
+     返回: boolean
+     实例: Zy.Script.assertPlatform()
+
+163. Zy.Script.lastError 【最后错误】
+     功能: 最后错误
+     参数: 无
+     返回: string|nil
+     实例: local err = Zy.Script.lastError()
+
+================================================================================
+十四、验证（4个）
+================================================================================
+
+164. Zy.Verify.act 【执行验证】
+     功能: 执行并验证
+     参数: action(string)
+     返回: boolean
+     实例: Zy.Verify.act("test_action")
+
+165. Zy.Verify.fingerprint 【获取指纹】
+     功能: 指纹
+     参数: 无
+     返回: string
+     实例: local fp = Zy.Verify.fingerprint()
+
+166. Zy.Verify.failReport 【失败报告】
+     功能: 失败报告
+     参数: reason(string)
+     返回: 无
+     实例: Zy.Verify.failReport("验证失败")
+
+167. Zy.Verify.lastFail 【最后失败】
+     功能: Verify.lastFail
+     参数: 无
+     返回: table|nil
+     实例: local fail = Zy.Verify.lastFail()
+
+================================================================================
+十五、状态机（4个）
+================================================================================
+
+168. Zy.StateMachine.current 【当前状态】
+     功能: 当前
+     参数: 无
+     返回: string
+     实例: local state = Zy.StateMachine.current()
+
+169. Zy.StateMachine.step 【步进】
+     功能: 步进
+     参数: nextState(string)
+     返回: boolean
+     实例: Zy.StateMachine.step("next_state")
+
+170. Zy.StateMachine.canTransit 【可转移】
+     功能: 可转移
+     参数: fromState, toState(string)
+     返回: boolean
+     实例: local can = Zy.StateMachine.canTransit("state_a", "state_b")
+
+171. Zy.StateMachine.suggest 【建议】
+     功能: 建议
+     参数: context(string)
+     返回: string|nil
+     实例: local suggest = Zy.StateMachine.suggest("context")
+
+================================================================================
+十六、游戏（9个）
+================================================================================
+
+172. Zy.Game.phase 【游戏相位】
+     功能: 相位
+     参数: 无
+     返回: string
+     实例: local phase = Zy.Game.phase()
+
+173. Zy.Game.open 【打开游戏】
+     功能: 打开
+     参数: bundleId(string)
+     返回: boolean
+     实例: Zy.Game.open("com.example.game")
+
+174. Zy.Game.close 【关闭游戏】
+     功能: 关闭
+     参数: 无
+     返回: boolean
+     实例: Zy.Game.close()
+
+175. Zy.Game.enterRole 【进入角色】
+     功能: 进角
+     参数: role(string)
+     返回: boolean
+     实例: Zy.Game.enterRole("role_name")
+
+176. Zy.Game.analyze 【分析帧】
+     功能: 分析帧
+     参数: state(string)
+     返回: table
+     实例: local analysis = Zy.Game.analyze("game_state")
+
+177. Zy.Game.classify 【分类】
+     功能: 分类
+     参数: scene(string)
+     返回: string
+     实例: local cls = Zy.Game.classify("game_scene")
+
+178. Zy.Game.stateSuggest 【状态建议】
+     功能: 状态建议
+     参数: 无
+     返回: string|nil
+     实例: local suggest = Zy.Game.stateSuggest()
+
+179. Zy.Game.stepTo 【步进到】
+     功能: 步进到
+     参数: targetState(string)
+     返回: boolean
+     实例: Zy.Game.stepTo("target_state")
+
+180. Zy.Game.suggest 【游戏建议】
+     功能: 建议
+     参数: context(string)
+     返回: string|nil
+     实例: local suggest = Zy.Game.suggest("context")
+
+================================================================================
+十七、引擎（2个）
+================================================================================
+
+181. Zy.Engine.pipeline 【引擎管线】
+     功能: Engine.pipeline
+     参数: name(string)
+     返回: table
+     实例: Zy.Engine.pipeline("test_pipeline")
+
+182. Zy.Engine.validate 【引擎校验】
+     功能: 对任意Bundle跑通用能力验证链
+     参数: bundleId(string)
+     返回: table
+     实例: Zy.Engine.validate("target_bundle")
+
+================================================================================
+十八、分层（2个）
+================================================================================
+
+183. Zy.Layers.list 【分层列表】
+     功能: 列出文档分层与模块归属（自研索引）
+     参数: 无
+     返回: table
+     实例: local layers = Zy.Layers.list()
+
+184. Zy.Layers.findModule 【查找模块】
+     功能: 按模块名查所属文档层
+     参数: moduleName(string)
+     返回: table|nil
+     实例: local mod = Zy.Layers.findModule("Screen")
+
+================================================================================
+十九、用例（3个）
+================================================================================
+
+185. Zy.Case.path 【用例路径】
+     功能: Case.path
+     参数: 无
+     返回: string
+     实例: local path = Zy.Case.path()
+
+186. Zy.Case.record 【用例记录】
+     功能: Case.record
+     参数: caseName(string)
+     返回: 无
+     实例: Zy.Case.record("test_case")
+
+187. Zy.Case.registerApp 【登记应用】
+     功能: 登记测试应用（仅元数据，不含专用流程）
+     参数: bundleId(string)
+     返回: 无
+     实例: Zy.Case.registerApp("com.test.app")
+
+================================================================================
+二十、配置（5个）
+================================================================================
+
+188. Zy.Config.path 【配置路径】
+     功能: 路径
+     参数: 无
+     返回: string
+     实例: local path = Zy.Config.path()
+
+189. Zy.Config.get 【获取配置】
+     功能: 取值
+     参数: key(string)
+     返回: any
+     实例: local val = Zy.Config.get("key")
+
+190. Zy.Config.set 【设置配置】
+     功能: 设值
+     参数: key(string), value(any)
+     返回: 无
+     实例: Zy.Config.set("key", "value")
+
+191. Zy.Config.load 【加载配置】
+     功能: 加载
+     参数: name(string)
+     返回: boolean
+     实例: Zy.Config.load("config_name")
+
+192. Zy.Config.save 【保存配置】
+     功能: 保存
+     参数: name(string)
+     返回: boolean
+     实例: Zy.Config.save("config_name")
+
+================================================================================
+二十一、AI（11个）
+================================================================================
+
+193. Zy.AI.analyzeNeed 【需求分析】
+     功能: 需求分析（自然语言→结构化任务）
+     参数: need(string)
+     返回: table
+     实例: local plan = Zy.AI.analyzeNeed("自动登录游戏")
+
+194. Zy.AI.collect 【采集输入】
+     功能: 采集AI生成输入：设备/屏幕/截图/状态/视觉启发/历史
+     参数: context(string)
+     返回: table
+     实例: Zy.AI.collect("context")
+
+195. Zy.AI.generate 【生成脚本】
+     功能: 将plan编译为仅含Zy.*的Lua脚本源码
+     参数: plan(table)
+     返回: string|nil
+     实例: local script = Zy.AI.generate(plan)
+
+196. Zy.AI.loop 【闭环执行】
+     功能: 完整闭环：collect→plan→generate→test→optimize→再生成
+     参数: task(string)
+     返回: table
+     实例: Zy.AI.loop("task")
+
+197. Zy.AI.optimize 【优化代码】
+     功能: 根据失败原因调整plan（比例微调/重开）
+     参数: code(string)
+     返回: string|nil
+     实例: Zy.AI.optimize("code")
+
+198. Zy.AI.pathDB 【AI数据库路径】
+     功能: 返回AI_GEN_DB.jsonl路径
+     参数: 无
+     返回: string
+     实例: local path = Zy.AI.pathDB()
+
+199. Zy.AI.pipeline 【AI管线】
+     功能: 完整AI脚本开发流程（7.5.2）需求分析→规划→状态机→函数选择→生成→静态检查→模拟→真机测→验证→修复→存优
+     参数: target(string)
+     返回: table
+     实例: Zy.AI.pipeline("target")
+
+200. Zy.AI.plan 【制定计划】
+     功能: 根据目标与上下文建立状态模型并选择Zy函数
+     参数: goal(string), context(string)
+     返回: table
+     实例: local plan = Zy.AI.plan("goal", "context")
+
+201. Zy.AI.record 【记录生成】
+     功能: 写入AI生成流水：时间/目标/函数/版本/设备/结果
+     参数: target, func, result(string)
+     返回: 无
+     实例: Zy.AI.record("target", "function", "result")
+
+202. Zy.AI.save 【保存脚本】
+     功能: 保存生成脚本到scripts/generated/并写AI_GEN_DB
+     参数: script(string), path(string)
+     返回: boolean
+     实例: Zy.AI.save("script", "path")
+
+203. Zy.AI.test 【真机测试】
+     功能: 真机执行生成脚本并记录结果
+     参数: script(string)
+     返回: table
+     实例: Zy.AI.test("script")
+
+================================================================================
+二十二、知识库（5个）
+================================================================================
+
+204. Zy.Knowledge.path 【知识库路径】
+     功能: Knowledge.path
+     参数: 无
+     返回: string
+     实例: local path = Zy.Knowledge.path()
+
+205. Zy.Knowledge.query 【检索知识】
+     功能: 按任务名关键词检索最近匹配行（简单文本扫）
+     参数: keyword(string)
+     返回: table
+     实例: local results = Zy.Knowledge.query("关键词")
+
+206. Zy.Knowledge.recordSuccess 【记录成功】
+     功能: Knowledge.recordSuccess
+     参数: task, step(string)
+     返回: 无
+     实例: Zy.Knowledge.recordSuccess("task", "step")
+
+207. Zy.Knowledge.recordFailure 【记录失败】
+     功能: Knowledge.recordFailure
+     参数: task, error(string)
+     返回: 无
+     实例: Zy.Knowledge.recordFailure("task", "error")
+
+208. Zy.Knowledge.save 【保存知识】
+     功能: 写入一条经验entry: task, game, bid, shot, ocr, rules, flow, fail_reason, optimize, ok, phase, path, issue_type, patch, version, metrics, extra
+     参数: entry(table)
+     返回: boolean
+     实例: Zy.Knowledge.save({task="test", ok=true})
+
+================================================================================
+二十三、优化（15个）
+================================================================================
+
+209. Zy.Optimization.historyPath 【优化历史路径】
+     功能: history — optimization_history.jsonl
+     参数: 无
+     返回: string
+     实例: local path = Zy.Optimization.historyPath()
+
+210. Zy.Optimization.detect 【检测问题】
+     功能: detect
+     参数: target(string)
+     返回: table
+     实例: Zy.Optimization.detect("target")
+
+211. Zy.Optimization.analyze 【分析问题】
+     功能: analyze
+     参数: problem(string)
+     返回: table
+     实例: Zy.Optimization.analyze("problem")
+
+212. Zy.Optimization.classify 【问题分类】
+     功能: 分类
+     参数: issue(string)
+     返回: string
+     实例: local cls = Zy.Optimization.classify("issue")
+
+213. Zy.Optimization.collect 【收集数据】
+     功能: collect
+     参数: source(string)
+     返回: table
+     实例: Zy.Optimization.collect("source")
+
+214. Zy.Optimization.propose 【提出方案】
+     功能: propose
+     参数: problem(string)
+     返回: table
+     实例: Zy.Optimization.propose("problem")
+
+215. Zy.Optimization.apply 【应用方案】
+     功能: apply
+     参数: solution(string)
+     返回: boolean
+     实例: Zy.Optimization.apply("solution")
+
+216. Zy.Optimization.commit 【提交方案】
+     功能: commit
+     参数: change(string)
+     返回: boolean
+     实例: Zy.Optimization.commit("change")
+
+217. Zy.Optimization.verify 【验证方案】
+     功能: verify
+     参数: solution(string)
+     返回: boolean
+     实例: Zy.Optimization.verify("solution")
+
+218. Zy.Optimization.schedule 【调度任务】
+     功能: 长期任务调度（二期）
+     参数: task(string)
+     返回: 无
+     实例: Zy.Optimization.schedule("task")
+
+219. Zy.Optimization.cycle 【闭环】
+     功能: 闭环
+     参数: target(string)
+     返回: table
+     实例: Zy.Optimization.cycle("target")
+
+220. Zy.Optimization.status 【优化状态】
+     功能: 读取优化任务状态
+     参数: 无
+     返回: table
+     实例: local status = Zy.Optimization.status()
+
+221. Zy.Optimization.recordHistory 【记录历史】
+     功能: 记历史
+     参数: record(string)
+     返回: 无
+     实例: Zy.Optimization.recordHistory("record")
+
+222. Zy.Optimization.reportIssue 【报告问题】
+     功能: hooks / status
+     参数: issue(string)
+     返回: 无
+     实例: Zy.Optimization.reportIssue("issue")
+
+223. Zy.Optimization._write_cycle_summary 【写周期摘要】
+     功能: Optimization._write_cycle_summary
+     参数: 无
+     返回: 无
+     实例: Zy.Optimization._write_cycle_summary()
+
+================================================================================
+二十四、问题分类（3个）
+================================================================================
+
+224. Zy.IssueClassifier.categories 【问题类别】
+     功能: 返回七类问题定义
+     参数: 无
+     返回: table
+     实例: local cats = Zy.IssueClassifier.categories()
+
+225. Zy.IssueClassifier.classify 【问题分类】
+     功能: 问题分类
+     参数: issue(string)
+     返回: string
+     实例: local cls = Zy.IssueClassifier.classify("issue")
+
+226. Zy.IssueClassifier.classifyMany 【批量分类】
+     功能: 批量分类issue列表
+     参数: issues(table)
+     返回: table
+     实例: local results = Zy.IssueClassifier.classifyMany({"issue1", "issue2"})
+
+================================================================================
+二十五、优化建议（6个）
+================================================================================
+
+227. Zy.OptimizationAdvisor.pending 【待处理建议】
+     功能: 列出pending proposal
+     参数: 无
+     返回: table
+     实例: local pending = Zy.OptimizationAdvisor.pending()
+
+228. Zy.OptimizationAdvisor.get 【获取建议】
+     功能: OptimizationAdvisor.get
+     参数: issue(string)
+     返回: table|nil
+     实例: local advice = Zy.OptimizationAdvisor.get("issue")
+
+229. Zy.OptimizationAdvisor.advise 【生成建议】
+     功能: 优化建议
+     参数: problem(string)
+     返回: table
+     实例: Zy.OptimizationAdvisor.advise("problem")
+
+230. Zy.OptimizationAdvisor.canApply 【检查适用】
+     功能: 是否允许apply
+     参数: option(string)
+     返回: boolean
+     实例: local can = Zy.OptimizationAdvisor.canApply("option")
+
+231. Zy.OptimizationAdvisor.confirm 【确认建议】
+     功能: 确认建议
+     参数: advice(string)
+     返回: boolean
+     实例: Zy.OptimizationAdvisor.confirm("advice")
+
+232. Zy.OptimizationAdvisor.reject 【拒绝建议】
+     功能: OptimizationAdvisor.reject
+     参数: proposalId(any)
+     返回: any
+     实例: Zy.OptimizationAdvisor.reject("demo")
+
+================================================================================
+二十六、优化回滚（5个）
+================================================================================
+
+233. Zy.OptimizationRollback.list 【回滚列表】
+     功能: 列出已有快照
+     参数: 无
+     返回: table
+     实例: local list = Zy.OptimizationRollback.list()
+
+234. Zy.OptimizationRollback.last 【最后回滚】
+     功能: OptimizationRollback.last
+     参数: 无
+     返回: any
+     实例: local last = Zy.OptimizationRollback.last()
+
+235. Zy.OptimizationRollback.snapshot 【创建快照】
+     功能: 优化apply前保存脚本/文件快照
+     参数: meta(table) - {path, reason, version}
+     返回: string,string,table - id, dir, info
+     实例: local id = Zy.OptimizationRollback.snapshot({path = "/tmp/script.lua", reason = "pre_apply"})
+
+236. Zy.OptimizationRollback.restore 【恢复快照】
+     功能: 从快照恢复文件
+     参数: snapshotId(string)
+     返回: boolean,number - ok, n_files
+     实例: local ok, n = Zy.OptimizationRollback.restore("snap_001")
+
+237. Zy.OptimizationRollback.auto_restore_on_fail 【失败自动回滚】
+     功能: verify失败时自动回滚
+     参数: snapshotId(any), verifyOk(any)
+     返回: any
+     实例: Zy.OptimizationRollback.auto_restore_on_fail("snap_001", false)
+
+================================================================================
+二十七、诊断（1个）
+================================================================================
+
+238. Zy.Diagnose.onStuck 【卡住诊断】
+     功能: 卡住时自动分析应优化哪一模块
+     参数: frame(any), label(any)
+     返回: any
+     实例: Zy.Diagnose.onStuck("frame_data", "stuck_label")
+
+================================================================================
+综合实战示例
+================================================================================
+
+-- 示例1: 基本找色点击流程
+init(1)
+keepScreen(true)
+for i = 1, 10 do
+  local c = getColor(120, 120)
+  if type(c) == "number" and c >= 0 then
+    local x, y = findMultiColorInRegionFuzzy(c, string.format("0|0|0x%06x", c % 0x1000000), 85, 110, 110, 130, 130)
+    if x ~= -1 then
+      tap(x, y)
+      break
+    end
+  end
+  mSleep(200)
+end
+keepScreen(false)
+
+-- 示例2: OCR识别与点击
+init(1)
+local ok, text = Zy.Vision.ocr(0, 0, 1136, 200)
+if ok and text then
+  local x, y = Zy.Vision.findText("登录")
+  if x ~= -1 then
+    tap(x, y)
+    mSleep(500)
+    toast("已点击登录", 800)
+  end
+end
+
+-- 示例3: 状态机驱动的自动化流程
+init(1)
+Zy.Screen.keep(true)
+local currentState = Zy.StateMachine.current()
+local targetState = "login_complete"
+
+while currentState ~= targetState do
+  local suggest = Zy.StateMachine.suggest(currentState)
+  if suggest then
+    Zy.Script.stepState(suggest)
+    mSleep(300)
+  else
+    break
+  end
+  currentState = Zy.StateMachine.current()
+end
+Zy.Screen.keep(false)
+
+-- 示例4: 应用启动与监控
+local bid = "com.example.game"
+Zy.App.launch(bid)
+mSleep(3000)
+
+if Zy.App.isForeground() then
+  toast("应用已启动", 1000)
+
+  local status = Zy.App.monitor(5)
+  if status and status.running then
+    Zy.Log.write("应用运行正常")
+  end
+end
+
+-- 示例5: 文件操作示例
+local dir = Zy.File.varDir() .. "/test_demo"
+Zy.File.mkdir(dir)
+
+Zy.File.write(dir .. "/config.txt", "key=value\n")
+
+local content = Zy.File.read(dir .. "/config.txt")
+if content then
+  toast("读取成功: " .. content, 1000)
+end
+
+local files = Zy.File.list(dir)
+Zy.Log.write("文件数: " .. #files)
+
+Zy.File.remove(dir .. "/config.txt")
+Zy.File.remove(dir)
+
+-- 示例6: 网络请求示例
+local ok = Zy.Network.setTimeout(5)
+local resp = Zy.Network.httpGet("https://api.example.com/health")
+if resp then
+  local data = Zy.Network.jsonDecode(resp)
+  if data and data.status == "ok" then
+    toast("服务正常", 800)
+  end
+end
+
+-- 示例7: 线程与协作
+local result = nil
+local thread = Zy.Thread.create(function()
+  mSleep(500)
+  result = Zy.Device.batteryLevel()
+end)
+
+Zy.Thread.waitAllThreadExit()
+if result then
+  toast("电量: " .. result .. "%", 1000)
+end
+
+================================================================================
+函数使用注意事项
+================================================================================
+
+1. 坐标系统
+   - 全局坐标基于逻辑坐标，不是物理像素
+   - 建议使用 init(1) 或 init(2) 初始化方向
+   - keepScreen(true) 可显著提升找色性能
+
+2. 性能优化
+   - 找色前务必开启 keepScreen(true)
+   - 使用局部区域找色，避免全屏扫描
+   - OCR识别间隔建议 200-350ms
+   - 找色相似度建议 85-95
+
+3. 错误处理
+   - getColor 返回 -1 表示取色失败
+   - findMultiColorInRegionFuzzy 返回 -1,-1 表示未命中
+   - OCR 返回 false 表示识别失败
+
+4. 多机型适配测试
+   - 支持机型: iPhone 7 (A1660/A1778)、iPhone 7 Plus (A1661/A1784)、iPhone 8 (A1863/A1905)、iPhone 8 Plus (A1864/A1898)
+   - 系统版本: iOS 13.x - iOS 16.x
+   - 越狱环境: rootless (Dopamine/Unc0ver) 与 rootful (Pangu/PP)
+   - 禁止单设备坐标特判
+   - 所有修复必须多机型通用
+   - 分辨率适配: 统一使用 ScreenTransform 逻辑坐标系，禁止硬编码物理像素
+   - 内存管理: 遵循 keepScreen 缓存机制，30秒缓存TTL
+   - iOS 16+ 适配: 使用 UIGraphicsImageRenderer 替代 _UICreateScreenUIImage 截屏
+   - A11 芯片优化: NCNN 模型 int8 量化，CPU 推理，禁止 ANE/MLX 硬件加速
+
+================================================================================
+统计信息
+================================================================================
+函数总数: 245个
+分类数: 27个模块
+全局函数: 9个
+屏幕图像/找色: 16个
+触控模拟: 13个
+Toast/日志: 3个
+OCR识别: 4个
+应用/进程: 14个
+文件: 17个
+输入/按键: 9个
+设备: 23个
+网络: 10个
+线程: 6个
+控件: 7个
+脚本: 31个
+验证: 4个
+状态机: 4个
+游戏: 9个
+引擎: 2个
+分层: 2个
+用例: 3个
+配置: 5个
+AI: 11个
+知识库: 5个
+优化: 15个
+问题分类: 3个
+优化建议: 6个
+优化回滚: 5个
+诊断: 1个
+================================================================================

@@ -1,0 +1,28 @@
+PKG=
+---round---
+round=28
+---orient---
+1
+2208
+1242
+---minlog---
+sb open_app launchIdentifier=com.ziyan.ziyan ok=1
+01:01:41 app_run_trig
+01:01:41 run_ok login_usb.lua dt=0.22
+01:01:41 begin
+01:01:41 path=go_home_req
+01:01:41 path=suspend_0
+sb go_home via homeHardwareButton singlePressUp:
+01:01:41 state_after_0.25=1
+01:01:41 path=go_home_req
+01:01:41 path=suspend_r0.25
+01:01:41 path=go_home_retry
+sb go_home via homeHardwareButton singlePressUp:
+01:01:42 state_after_0.70=1
+01:01:42 path=go_home_req
+01:01:42 path=suspend_r0.70
+01:01:42 path=go_home_retry
+sb go_home via homeHardwareButton singlePressUp:
+---fg---
+0
+ 9178 ??         0:00.00 /var/jb/usr/lib/ziyan/bin/lua5.3 /var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua /private/var/mobile/Media/ZiYan/login_usb.lua

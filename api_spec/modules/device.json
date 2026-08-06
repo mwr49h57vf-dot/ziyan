@@ -1,0 +1,11 @@
+{
+  "module": "device",
+  "version": "2.0.0",
+  "status": "partial",
+  "globals": [
+    "deviceProfile", "deviceRefresh", "deviceGameRect", "deviceSaveProfile",
+    "userPath", "unlockDevice", "deviceUnlock", "deviceIsLock",
+    "writePasteboard", "readPasteboard", "getNetIP"
+  ],
+  "notes": "Device recognition + device_db.json. No TouchSprite APIs. Bundle IDs not hardcoded."
+}

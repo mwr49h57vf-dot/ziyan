@@ -1,0 +1,118 @@
+{
+  "module": "image",
+  "title": "找图 / 图像处理",
+  "backend": "lua/ziyan_engine/{cv,py_cv}.lua + ScreenBridge findImage",
+  "apis": [
+    {
+      "name": "findImage",
+      "args": [
+        "path",
+        "trans?"
+      ],
+      "returns": "x,y",
+      "note": "全屏找图",
+      "status": "partial",
+      "aliases": [
+        "pyFindImage"
+      ]
+    },
+    {
+      "name": "findImageFuzzy",
+      "args": [
+        "path",
+        "fuzzy",
+        "trans?"
+      ],
+      "returns": "x,y",
+      "note": "全屏+精度",
+      "status": "partial",
+      "aliases": []
+    },
+    {
+      "name": "findImageInRegion",
+      "args": [
+        "path",
+        "x1",
+        "y1",
+        "x2",
+        "y2",
+        "trans?"
+      ],
+      "returns": "x,y",
+      "note": "区域找图",
+      "status": "partial",
+      "aliases": []
+    },
+    {
+      "name": "findImageInRegionFuzzy",
+      "args": [
+        "path",
+        "fuzzy",
+        "x1",
+        "y1",
+        "x2",
+        "y2",
+        "trans?"
+      ],
+      "returns": "x,y",
+      "note": "区域+精度",
+      "status": "done",
+      "aliases": []
+    },
+    {
+      "name": "imageWidth",
+      "args": [
+        "path"
+      ],
+      "returns": "number",
+      "note": "图宽",
+      "status": "planned",
+      "aliases": []
+    },
+    {
+      "name": "imageHeight",
+      "args": [
+        "path"
+      ],
+      "returns": "number",
+      "note": "图高",
+      "status": "planned",
+      "aliases": []
+    },
+    {
+      "name": "imageFilter",
+      "args": [
+        "path",
+        "colors",
+        "fuzzy?"
+      ],
+      "returns": "bool",
+      "note": "颜色过滤",
+      "status": "planned",
+      "aliases": []
+    },
+    {
+      "name": "imageBinarization",
+      "args": [
+        "path",
+        "threshold"
+      ],
+      "returns": "bool",
+      "note": "二值化",
+      "status": "planned",
+      "aliases": []
+    },
+    {
+      "name": "imageResize",
+      "args": [
+        "path",
+        "w",
+        "h"
+      ],
+      "returns": "bool",
+      "note": "缩放",
+      "status": "planned",
+      "aliases": []
+    }
+  ]
+}

@@ -1,0 +1,513 @@
+#!/bin/bash
+set -e
+
+# rootless: /var/jb ；rootful: 空
+JB=""
+if [ -d /var/jb/usr ]; then
+  JB="/var/jb"
+fi
+ROOT="${JB}/usr/lib/ziyan"
+MS="${JB}/Library/MobileSubstrate/DynamicLibraries"
+LD="${JB}/Library/LaunchDaemons"
+DIR="/private/var/mobile/Media/ZiYan"
+ZYCV="$DIR/ZYCV"
+
+mkdir -p "$DIR" "$DIR/lua" \
+  "$ZYCV" "$ZYCV/config" "$ZYCV/log" "$ZYCV/tmp" "$ZYCV/res"
+mkdir -p "$ROOT/bin" "$ROOT/lib" "$ROOT/engine" "$ROOT/var" \
+  "$ROOT/runtime/scripts" "$ROOT/runtime/var/lib" \
+  "$ROOT/runtime/var/log" "$ROOT/runtime/var/tmp" \
+  "$ROOT/hook"
+
+# 旧布局迁移：Media/ZiYan/{config,log,tmp,res} → ZYCV/ 后删除顶层四目录
+migrate_old() {
+  local name="$1"
+  local src="$DIR/$name"
+  local dst="$ZYCV/$name"
+  if [ -d "$src" ]; then
+    mkdir -p "$dst"
+    cp -an "$src/." "$dst/" 2>/dev/null || true
+    rm -rf "$src"
+  fi
+}
+migrate_old config
+migrate_old log
+migrate_old tmp
+migrate_old res
+
+# layout 在 rootless 会落到 $JB/private/...；用户 Media 必须在真实 /private/...
+# 规范：Media/ZiYan/ 根目录只放作者执行脚本（如 ios7.lua / ios8p.lua）
+# 工程内部 smoke/login/demo/防御配置 → ZYCV/res
+SEED="$ROOT/share/media_seed"
+mkdir -p "$ZYCV/res" "$ZYCV/config" "$ZYCV/log" "$ZYCV/tmp" "$DIR/lua"
+if [ -d "$SEED" ]; then
+  if [ -d "$SEED/ZYCV" ]; then
+    cp -an "$SEED/ZYCV/." "$ZYCV/" 2>/dev/null || true
+  fi
+  if [ -d "$SEED/config" ]; then
+    cp -n "$SEED/config/"* "$ZYCV/config/" 2>/dev/null || true
+  fi
+  if [ -d "$SEED/res" ]; then
+    cp -n "$SEED/res/"* "$ZYCV/res/" 2>/dev/null || true
+  fi
+  # 兼容：若 seed 根仍残留内部 lua，一律进 res，不进 Media 根
+  for f in "$SEED/"*.lua; do
+    [ -f "$f" ] || continue
+    base=$(basename "$f")
+    if [ ! -f "$ZYCV/res/$base" ]; then
+      cp -n "$f" "$ZYCV/res/$base" 2>/dev/null || true
+    fi
+  done
+  if [ -d "$SEED/lua" ]; then
+    # lua/ 仅保留 README；内部示例进 res
+    cp -n "$SEED/lua/README.txt" "$DIR/lua/" 2>/dev/null || true
+    for f in "$SEED/lua/"*.lua; do
+      [ -f "$f" ] || continue
+      base=$(basename "$f")
+      if [ ! -f "$ZYCV/res/$base" ]; then
+        cp -n "$f" "$ZYCV/res/$base" 2>/dev/null || true
+      fi
+    done
+  fi
+  # R8.4.2：Ai代码训练导入的 knowledge（index/KB/families）
+  if [ -d "$SEED/knowledge" ]; then
+    mkdir -p "$DIR/knowledge/families"
+    cp -an "$SEED/knowledge/." "$DIR/knowledge/" 2>/dev/null || true
+    chmod -R a+r "$DIR/knowledge" 2>/dev/null || true
+  fi
+fi
+# 一次性迁移：根目录工程内部文件 → ZYCV/res（保留作者脚本）
+for f in "$DIR/"*; do
+  [ -f "$f" ] || continue
+  base=$(basename "$f")
+  case "$base" in
+    _zy_*|_ziyan_*|login_*.lua|hello.lua|config.plist|defense_*|cleanup_flag)
+      if [ ! -f "$ZYCV/res/$base" ]; then
+        mv -f "$f" "$ZYCV/res/$base" 2>/dev/null || true
+      else
+        rm -f "$f" 2>/dev/null || true
+      fi
+      ;;
+  esac
+done
+# 清理 lua/ 下同名内部脚本（避免 App 列表重复）
+for f in "$DIR/lua/"*; do
+  [ -f "$f" ] || continue
+  base=$(basename "$f")
+  case "$base" in
+    _zy_*|_ziyan_*|login_*.lua|hello.lua)
+      if [ ! -f "$ZYCV/res/$base" ]; then
+        mv -f "$f" "$ZYCV/res/$base" 2>/dev/null || true
+      else
+        rm -f "$f" 2>/dev/null || true
+      fi
+      ;;
+  esac
+done
+# 不再从 staging private 往 Media 根灌脚本
+if [ -d "${JB}/private/var/mobile/Media/ZiYan" ]; then
+  mkdir -p "$ZYCV/res"
+  for f in "${JB}/private/var/mobile/Media/ZiYan/"*.lua \
+           "${JB}/private/var/mobile/Media/ZiYan/"*.plist; do
+    [ -f "$f" ] || continue
+    base=$(basename "$f")
+    case "$base" in
+      ios7.lua|ios8p.lua) continue ;;
+    esac
+    if [ ! -f "$ZYCV/res/$base" ]; then
+      cp -n "$f" "$ZYCV/res/$base" 2>/dev/null || true
+    fi
+  done
+fi
+
+# 默认配置（不覆盖已有）
+if [ ! -f "$ZYCV/config/screen.cfg" ]; then
+  echo "640,1136" > "$ZYCV/config/screen.cfg"
+fi
+if [ ! -f "$ZYCV/config/select.lua" ]; then
+  : > "$ZYCV/config/select.lua"
+fi
+if [ ! -f "$ZYCV/config/run.cfg" ]; then
+  : > "$ZYCV/config/run.cfg"
+fi
+touch "$ZYCV/log/.keep" "$ZYCV/tmp/.keep" "$ZYCV/.keep" 2>/dev/null || true
+
+# 工程示例/冒烟：只写 ZYCV/res，禁止污染 Media 根（根目录仅作者脚本）
+mkdir -p "$ZYCV/res" "$DIR/models"
+if [ ! -f "$ZYCV/res/hello.lua" ]; then
+  cat > "$ZYCV/res/hello.lua" <<'EOF'
+function main()
+  mSleep(300)
+  toast("你好!~子砚", 2000)
+end
+EOF
+fi
+cat > "$ZYCV/res/_ziyan_usb_smoke.lua" <<EOF
+function main()
+  local OUT="${ROOT}/var/.ziyan_usb_smoke.txt"
+  pcall(os.remove, OUT)
+  local n=0
+  while n<3 do
+    n=n+1
+    local f=io.open(OUT,"a"); if f then f:write("round="..n.."\\n"); f:close() end
+    if toast then pcall(toast, "usb_smoke "..n, 800) end
+    if mSleep then mSleep(400) else os.execute("sleep 0.4") end
+  end
+end
+EOF
+# 装包后再扫一遍：根目录内部文件强制进 res
+for f in "$DIR/"*; do
+  [ -f "$f" ] || continue
+  base=$(basename "$f")
+  case "$base" in
+    ios7.lua|ios8p.lua) continue ;;
+    _zy_*|_ziyan_*|login_*.lua|hello.lua|config.plist|defense_*|cleanup_flag)
+      if [ ! -f "$ZYCV/res/$base" ]; then
+        mv -f "$f" "$ZYCV/res/$base" 2>/dev/null || true
+      else
+        rm -f "$f" 2>/dev/null || true
+      fi
+      ;;
+  esac
+done
+
+chmod 777 "$ROOT/var" 2>/dev/null || true
+if [ -d "$DIR" ]; then
+  for f in "$DIR"/.ziyan_*; do
+    [ -e "$f" ] || continue
+    mv -f "$f" "$ROOT/var/" 2>/dev/null || true
+  done
+fi
+chown -R mobile:mobile "$DIR" 2>/dev/null || true
+chmod 755 "$DIR" "$DIR/lua" "$DIR/models" "$ZYCV" "$ZYCV/config" "$ZYCV/log" "$ZYCV/tmp" "$ZYCV/res" 2>/dev/null || true
+
+if [ -d "$ROOT/bin" ]; then
+  chmod 755 "$ROOT/bin/"* 2>/dev/null || true
+  ln -sfn lua5.3 "$ROOT/bin/lua" 2>/dev/null || true
+  ln -sfn python3.7 "$ROOT/bin/python3" 2>/dev/null || true
+fi
+
+if [ ! -e "$ROOT/lib/libncurses.6.dylib" ]; then
+  if [ -f "${JB}/usr/lib/libncursesw.6.dylib" ]; then
+    ln -sfn "${JB}/usr/lib/libncursesw.6.dylib" "$ROOT/lib/libncurses.6.dylib" 2>/dev/null || true
+  elif [ -f "${JB}/usr/lib/libncurses.6.dylib" ]; then
+    ln -sfn "${JB}/usr/lib/libncurses.6.dylib" "$ROOT/lib/libncurses.6.dylib" 2>/dev/null || true
+  fi
+fi
+if [ -n "$JB" ] && [ ! -e "${JB}/usr/lib/libncurses.6.dylib" ] && [ -f "${JB}/usr/lib/libncursesw.6.dylib" ]; then
+  ln -sfn libncursesw.6.dylib "${JB}/usr/lib/libncurses.6.dylib" 2>/dev/null || true
+fi
+
+if [ -f "$ROOT/engine/wnriakwyww" ]; then
+  chown root:wheel "$ROOT/engine/wnriakwyww" "$ROOT/engine/wnriakwyww.dylib" 2>/dev/null || true
+  chmod 755 "$ROOT/engine/wnriakwyww" "$ROOT/engine/wnriakwyww.dylib" 2>/dev/null || true
+fi
+
+ln -sfn "${ROOT}/engine/wnriakwyww" "${JB}/bin/wnriakwyww" 2>/dev/null || true
+ln -sfn "${ROOT}/runtime" "${JB}/var/touchelf" 2>/dev/null || true
+chmod 777 -R "$ROOT/runtime" 2>/dev/null || true
+
+rm -f "$MS/ZiYanTEHook.dylib" "$MS/ZiYanTEHook.plist" 2>/dev/null || true
+rm -f /Library/MobileSubstrate/DynamicLibraries/ZiYanTEHook.dylib \
+      /Library/MobileSubstrate/DynamicLibraries/ZiYanTEHook.plist 2>/dev/null || true
+
+if [ -n "$JB" ] && [ -f "$LD/com.ziyan.engine.plist" ]; then
+  sed -i '' "s|/usr/lib/ziyan|${JB}/usr/lib/ziyan|g" "$LD/com.ziyan.engine.plist" 2>/dev/null || \
+    sed -i "s|/usr/lib/ziyan|${JB}/usr/lib/ziyan|g" "$LD/com.ziyan.engine.plist" 2>/dev/null || true
+fi
+killall -9 wnriakwyww >/dev/null 2>&1 || true
+killall -9 ziyan_fscloakd.sh >/dev/null 2>&1 || true
+if [ -f "$LD/com.ziyan.engine.plist" ]; then
+  launchctl bootout system "$LD/com.ziyan.engine.plist" >/dev/null 2>&1 || true
+  launchctl unload "$LD/com.ziyan.engine.plist" >/dev/null 2>&1 || true
+  launchctl bootstrap system "$LD/com.ziyan.engine.plist" >/dev/null 2>&1 || \
+    launchctl load -w "$LD/com.ziyan.engine.plist" >/dev/null 2>&1 || true
+fi
+
+# 8-71：装包即杀 App + 清 AFC/会话残留 + 还原桌面隐藏 App
+killall -9 ZiYan 2>/dev/null || true
+rm -f \
+  "${JB}/Library/MobileSubstrate/DynamicLibraries/ZiYanFsCloak.dylib.disabled_867" \
+  "${JB}/Library/MobileSubstrate/DynamicLibraries/ZiYanFsCloak.plist.disabled_867" \
+  /Library/MobileSubstrate/DynamicLibraries/ZiYanFsCloak.dylib.disabled_867 \
+  /Library/MobileSubstrate/DynamicLibraries/ZiYanFsCloak.plist.disabled_867 \
+  "$ROOT/var/.ziyan_fs_cloak" "$ROOT/var/.ziyan_fs_cloak_restore_req" \
+  "$ROOT/var/.ziyan_app_session" "$ROOT/var/.ziyan_app_heartbeat" \
+  "$ROOT/var/.ziyan_jb_icons_hidden" \
+  /var/mobile/Media/ZiYan/defense_fs_cloak.txt \
+  /var/mobile/Media/ZiYan/ZYCV/res/defense_fs_cloak.txt \
+  /var/mobile/Media/ZiYan/.ziyan_app_session \
+  /var/mobile/Media/ZiYan/.ziyan_app_heartbeat \
+  /var/mobile/Media/ZiYan/.ziyan_jb_icons_hidden 2>/dev/null || true
+echo 0 >"$ROOT/var/.ziyan_app_fg" 2>/dev/null || true
+# 防御状态文件统一到 ZYCV/res（旧顶层迁入）
+RES="/var/mobile/Media/ZiYan/ZYCV/res"
+mkdir -p "$RES"
+for f in defense_fingerprint.plist defense_fp_info.txt defense_status.txt \
+  defense.log cleanup_flag defense_bypass_trig.txt defense_break.flag \
+  defense_shutdown_trig defense_exit_toast.txt defense_fs_cloak.txt; do
+  if [ -f "/var/mobile/Media/ZiYan/$f" ] && [ ! -f "$RES/$f" ]; then
+    mv -f "/var/mobile/Media/ZiYan/$f" "$RES/$f" 2>/dev/null || true
+  elif [ -f "/var/mobile/Media/ZiYan/$f" ]; then
+    rm -f "/var/mobile/Media/ZiYan/$f" 2>/dev/null || true
+  fi
+done
+for b in /usr/libexec/afc2d /var/jb/usr/libexec/afc2d /usr/libexec/afc2dSupport \
+  /Library/MobileSubstrate/DynamicLibraries/afc2dService.dylib \
+  /Library/MobileSubstrate/DynamicLibraries/afc2dService.plist \
+  /var/jb/Library/MobileSubstrate/DynamicLibraries/afc2dService.dylib \
+  /var/jb/Library/MobileSubstrate/DynamicLibraries/afc2dService.plist; do
+  if [ -f "${b}.ziyan_cloaked" ]; then
+    mv -f "${b}.ziyan_cloaked" "$b" 2>/dev/null || true
+  fi
+done
+# 还原桌面隐藏的越狱 App（含 rootless preboot 真实路径）
+for dir in /Applications /var/jb/Applications; do
+  [ -d "$dir" ] || continue
+  for hidden in "$dir"/*.ziyan_desk_hidden; do
+    [ -d "$hidden" ] || continue
+    orig="${hidden%.ziyan_desk_hidden}"
+    if [ ! -d "$orig" ]; then
+      mv -f "$hidden" "$orig" 2>/dev/null || true
+    fi
+  done
+done
+if [ -L /var/jb ] || [ -d /var/jb ]; then
+  realjb=$(readlink -f /var/jb 2>/dev/null || true)
+  if [ -n "$realjb" ] && [ -d "$realjb/Applications" ]; then
+    for hidden in "$realjb/Applications"/*.ziyan_desk_hidden; do
+      [ -d "$hidden" ] || continue
+      orig="${hidden%.ziyan_desk_hidden}"
+      if [ ! -d "$orig" ]; then
+        mv -f "$hidden" "$orig" 2>/dev/null || true
+      fi
+    done
+  fi
+fi
+
+# FsCloak 守护：仅 restore_only；重写 XML plist
+FSCLOAK_SH="${ROOT}/bin/ziyan_fscloakd.sh"
+if [ -n "$JB" ] && [ -x "${JB}/bin/sh" ]; then
+  FSCLOAK_SHELL="${JB}/bin/sh"
+elif [ -x /bin/sh ]; then
+  FSCLOAK_SHELL="/bin/sh"
+else
+  FSCLOAK_SHELL="/var/jb/bin/sh"
+fi
+if [ -f "$FSCLOAK_SH" ]; then
+  # rootful 修正 shebang
+  if [ -z "$JB" ] || [ "$JB" = "/" ]; then
+    sed -i '' '1s|^#!.*|#!/bin/sh|' "$FSCLOAK_SH" 2>/dev/null || \
+      sed -i '1s|^#!.*|#!/bin/sh|' "$FSCLOAK_SH" 2>/dev/null || true
+  else
+    sed -i '' "1s|^#!.*|#!${JB}/bin/sh|" "$FSCLOAK_SH" 2>/dev/null || \
+      sed -i "1s|^#!.*|#!${JB}/bin/sh|" "$FSCLOAK_SH" 2>/dev/null || true
+  fi
+  chmod 755 "$FSCLOAK_SH"
+  cat >"$LD/com.ziyan.fscloak.plist" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.ziyan.fscloak</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>${FSCLOAK_SHELL}</string>
+		<string>${FSCLOAK_SH}</string>
+	</array>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>KeepAlive</key>
+	<true/>
+	<key>UserName</key>
+	<string>root</string>
+	<key>StandardErrorPath</key>
+	<string>${ROOT}/var/.ziyan_fs_cloakd_err</string>
+	<key>StandardOutPath</key>
+	<string>${ROOT}/var/.ziyan_fs_cloakd_out</string>
+</dict>
+</plist>
+EOF
+  launchctl bootout system "$LD/com.ziyan.fscloak.plist" >/dev/null 2>&1 || true
+  launchctl unload "$LD/com.ziyan.fscloak.plist" >/dev/null 2>&1 || true
+  launchctl bootstrap system "$LD/com.ziyan.fscloak.plist" >/dev/null 2>&1 || \
+    launchctl load -w "$LD/com.ziyan.fscloak.plist" >/dev/null 2>&1 || true
+fi
+
+# ScriptHub：保留脚本，但 8-88 起由 ZyDaemon 接管保活（避免双守护抢拉）
+SCRIPTHUB_SH="${ROOT}/bin/ziyan_scripthubd.sh"
+if [ -f "$SCRIPTHUB_SH" ]; then
+  chmod 755 "$SCRIPTHUB_SH"
+  killall -9 ziyan_scripthubd.sh >/dev/null 2>&1 || true
+  launchctl bootout system "$LD/com.ziyan.scripthub.plist" >/dev/null 2>&1 || true
+  launchctl unload "$LD/com.ziyan.scripthub.plist" >/dev/null 2>&1 || true
+  rm -f "$LD/com.ziyan.scripthub.plist" 2>/dev/null || true
+fi
+
+# ZyDaemon：脚本 KeepAlive + 帧 shm 维护（不截屏；不碰 Desktop lua）
+ZYDAEMON_SH="${ROOT}/bin/ziyan_zydaemond.sh"
+if [ -f "$ZYDAEMON_SH" ]; then
+  if [ -z "$JB" ] || [ "$JB" = "/" ]; then
+    ZD_SHELL="/bin/sh"
+  elif [ -x "${JB}/bin/sh" ]; then
+    ZD_SHELL="${JB}/bin/sh"
+  else
+    ZD_SHELL="/bin/sh"
+  fi
+  chmod 755 "$ZYDAEMON_SH"
+  cat >"$LD/com.ziyan.zydaemon.plist" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.ziyan.zydaemon</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>${ZD_SHELL}</string>
+		<string>${ZYDAEMON_SH}</string>
+	</array>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>KeepAlive</key>
+	<true/>
+	<key>UserName</key>
+	<string>root</string>
+	<key>ThrottleInterval</key>
+	<integer>10</integer>
+	<key>EnablePressuredExit</key>
+	<false/>
+	<key>StandardErrorPath</key>
+	<string>${ROOT}/var/.ziyan_zydaemon_err</string>
+	<key>StandardOutPath</key>
+	<string>${ROOT}/var/.ziyan_zydaemon_out</string>
+</dict>
+</plist>
+EOF
+  killall -9 ziyan_zydaemond.sh >/dev/null 2>&1 || true
+  launchctl bootout system "$LD/com.ziyan.zydaemon.plist" >/dev/null 2>&1 || true
+  launchctl unload "$LD/com.ziyan.zydaemon.plist" >/dev/null 2>&1 || true
+  launchctl bootstrap system "$LD/com.ziyan.zydaemon.plist" >/dev/null 2>&1 || \
+    launchctl load -w "$LD/com.ziyan.zydaemon.plist" >/dev/null 2>&1 || true
+  # 预创建外置帧文件（mobile/root 均可写）
+  touch "${ROOT}/var/.ziyan_frame_shm" 2>/dev/null || true
+  chmod 666 "${ROOT}/var/.ziyan_frame_shm" 2>/dev/null || true
+fi
+
+# FrameCap：守护侧截帧（8-89；峰值不进 SpringBoard）
+# 8-161-51：argv0 用系统常驻 sh（禁直接盯 package binary → missing exec panic）
+# 8-161-104：rootless 常无 /bin/sh（.53 仅 df/ps）→ 与 FsCloak 同选 JB/bin/sh
+FRAMECAP_BIN="${ROOT}/bin/ziyan_framecap"
+FRAMECAP_WRAP="${ROOT}/bin/ziyan_framecap_wrap.sh"
+if [ -x "$FRAMECAP_BIN" ] || [ -f "$FRAMECAP_WRAP" ]; then
+  if [ -x /bin/sh ]; then
+    FC_SHELL="/bin/sh"
+  elif [ -n "$JB" ] && [ -x "${JB}/bin/sh" ]; then
+    FC_SHELL="${JB}/bin/sh"
+  else
+    FC_SHELL="/var/jb/bin/sh"
+  fi
+  # 8-161-110：LaunchDaemon PATH 必须含 jb bin（.53 默认 PATH 无 grep/sleep）
+  if [ -n "$JB" ] && [ "$JB" != "/" ]; then
+    FC_PATH="${JB}/usr/bin:${JB}/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+  else
+    FC_PATH="/usr/bin:/bin:/usr/sbin:/sbin"
+  fi
+  chmod 755 "$FRAMECAP_WRAP" 2>/dev/null || true
+  cat >"$LD/com.ziyan.framecap.plist" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.ziyan.framecap</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>${FC_SHELL}</string>
+		<string>${FRAMECAP_WRAP}</string>
+	</array>
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>PATH</key>
+		<string>${FC_PATH}</string>
+	</dict>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>KeepAlive</key>
+	<true/>
+	<key>UserName</key>
+	<string>root</string>
+	<key>ThrottleInterval</key>
+	<integer>45</integer>
+	<key>EnablePressuredExit</key>
+	<false/>
+	<key>ProcessType</key>
+	<string>Interactive</string>
+	<key>POSIXSpawnType</key>
+	<string>Interactive</string>
+	<key>JetsamProperties</key>
+	<dict>
+		<key>JetsamPriority</key>
+		<integer>40</integer>
+		<key>JetsamMemoryLimit</key>
+		<integer>384</integer>
+		<key>JetsamMemoryLimitActive</key>
+		<integer>384</integer>
+	</dict>
+	<key>StandardErrorPath</key>
+	<string>${ROOT}/var/.ziyan_framecap_err</string>
+	<key>StandardOutPath</key>
+	<string>${ROOT}/var/.ziyan_framecap_out</string>
+</dict>
+</plist>
+EOF
+  killall -9 ziyan_framecap >/dev/null 2>&1 || true
+  launchctl bootout system "$LD/com.ziyan.framecap.plist" >/dev/null 2>&1 || true
+  launchctl unload "$LD/com.ziyan.framecap.plist" >/dev/null 2>&1 || true
+  launchctl bootstrap system "$LD/com.ziyan.framecap.plist" >/dev/null 2>&1 || \
+    launchctl load -w "$LD/com.ziyan.framecap.plist" >/dev/null 2>&1 || true
+fi
+
+APP="${JB}/Applications/ZiYan.app"
+if [ -d "$APP" ]; then
+  uicache -p "$APP" >/dev/null 2>&1 || uicache >/dev/null 2>&1 || true
+fi
+
+touch "$ROOT/var/.ziyan_active"
+chmod 666 "$ROOT/var/.ziyan_active" 2>/dev/null || true
+chown mobile:mobile "$ROOT/var/.ziyan_active" 2>/dev/null || true
+chmod 777 "$ROOT/var" 2>/dev/null || true
+# 8-161-112：升级后若缺会话基线则补 idle（旧 prerm 曾掏空 var）
+if [ ! -f "$ROOT/var/.ziyan_session" ]; then
+  printf 'state=idle\npath=\norient=-1\ngen=0\n' >"$ROOT/var/.ziyan_session"
+fi
+if [ ! -f "$ROOT/var/.ziyan_run_intent" ]; then
+  printf 'stop=1\n' >"$ROOT/var/.ziyan_run_intent"
+fi
+chmod 666 "$ROOT/var/.ziyan_session" "$ROOT/var/.ziyan_run_intent" 2>/dev/null || true
+# 8-136：orient 必须 mobile 可写，否则 init(1) 失败 → toast/找色方向错
+chmod 666 "$ROOT/var/.ziyan_orient" 2>/dev/null || true
+chown mobile:mobile "$ROOT/var/.ziyan_orient" 2>/dev/null || true
+chmod 666 "$ROOT/var/.ziyan_buf_wh" "$ROOT/var/.ziyan_native_wh" 2>/dev/null || true
+
+echo "ZiYan installed ROOT=$ROOT JB=${JB:-/} (lua5.3 primary; TE optional)"
+# 触发一次自动解锁（无密码）；SB 起来后也会再解
+touch "$ROOT/var/.ziyan_unlock_req" 2>/dev/null || true
+chmod 666 "$ROOT/var/.ziyan_unlock_req" 2>/dev/null || true
+echo "Please respring (sbreload / ldrestart). Auto-unlock (no passcode) after SB up."
+# 手测约束：重启 SB 前必须先完全关闭子砚 App（避免会话/图标状态污染）
+# 装包后需重载 SB；延后执行以免打断 dpkg/SSH
+nohup sh -c '
+  killall -9 ZiYan 2>/dev/null || true
+  killall -9 lua5.3 lua 2>/dev/null || true
+  rm -f /usr/lib/ziyan/var/.ziyan_app_session /var/jb/usr/lib/ziyan/var/.ziyan_app_session \
+    /var/mobile/Media/ZiYan/.ziyan_app_session \
+    /usr/lib/ziyan/var/.ziyan_app_heartbeat /var/jb/usr/lib/ziyan/var/.ziyan_app_heartbeat \
+    /var/mobile/Media/ZiYan/.ziyan_app_heartbeat \
+    /usr/lib/ziyan/var/.ziyan_jb_icons_hidden /var/jb/usr/lib/ziyan/var/.ziyan_jb_icons_hidden \
+    /var/mobile/Media/ZiYan/.ziyan_jb_icons_hidden 2>/dev/null || true
+  sleep 2
+  sbreload 2>/dev/null || killall -9 SpringBoard 2>/dev/null || true
+' >/dev/null 2>&1 &
+exit 0

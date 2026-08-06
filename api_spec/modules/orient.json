@@ -1,0 +1,47 @@
+{
+  "module": "orient",
+  "title": "坐标系 / init",
+  "backend": "lua/ziyan_engine/orient.lua + ZiYanOrientMap.h",
+  "apis": [
+    {
+      "name": "init",
+      "args": [
+        "0|1|2"
+      ],
+      "returns": "bool",
+      "note": "Home 下/右/左",
+      "status": "done",
+      "aliases": []
+    },
+    {
+      "name": "ZiYanOrient.to_phys",
+      "args": [
+        "x",
+        "y"
+      ],
+      "returns": "px,py",
+      "note": "逻辑→物理",
+      "status": "done",
+      "aliases": []
+    },
+    {
+      "name": "ZiYanOrient.to_logic",
+      "args": [
+        "px",
+        "py"
+      ],
+      "returns": "x,y",
+      "note": "物理→逻辑",
+      "status": "done",
+      "aliases": []
+    },
+    {
+      "name": "ZiYanOrient.logical_size",
+      "args": [],
+      "returns": "w,h",
+      "note": "",
+      "status": "done",
+      "aliases": []
+    }
+  ]
+}

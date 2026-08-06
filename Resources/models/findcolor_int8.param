@@ -1,0 +1,4 @@
+7767517
+2 2
+Input            input            0 1 input
+Flatten          output           1 1 input output

@@ -1,0 +1,120 @@
+{
+  "name": "ZiYan API Spec",
+  "version": "1.0.0-draft",
+  "source_logic": [
+    "触摸精灵分层与全局API习惯",
+    "触动精灵全局API习惯"
+  ],
+  "source_code": "none-copied",
+  "module_order": [
+    "sys",
+    "device",
+    "screen",
+    "coordinate",
+    "touch",
+    "image",
+    "ocr",
+    "app",
+    "file",
+    "net",
+    "codec",
+    "memory",
+    "control",
+    "orient",
+    "game"
+  ],
+  "counts": {
+    "apis_total": 101,
+    "by_status": {
+      "done": 55,
+      "planned": 19,
+      "partial": 27
+    }
+  },
+  "modules": {
+    "sys": {
+      "title": "系统 / 提示 / 延时",
+      "backend": "lua/ziyan_engine/{control,toast,device,res_interop}.lua + SpringBoard toast bridge",
+      "count": 18,
+      "file_json": "modules/sys.json",
+      "file_lua": "modules/sys_contract.lua"
+    },
+    "touch": {
+      "title": "触控 / 按键",
+      "backend": "lua/ziyan_engine/touch.lua + AppTouch / ScreenBridge HID",
+      "count": 8,
+      "file_json": "modules/touch.json",
+      "file_lua": "modules/touch_contract.lua"
+    },
+    "screen": {
+      "title": "屏幕 / 取色 / 找色 / 截屏 / 方向",
+      "backend": "lua/ziyan_engine/{cv,color,orient,screen}.lua + ZiYanScreenBridge",
+      "count": 15,
+      "file_json": "modules/screen.json",
+      "file_lua": "modules/screen_contract.lua"
+    },
+    "image": {
+      "title": "找图 / 图像处理",
+      "backend": "lua/ziyan_engine/{cv,py_cv}.lua + ScreenBridge findImage",
+      "count": 9,
+      "file_json": "modules/image.json",
+      "file_lua": "modules/image_contract.lua"
+    },
+    "ocr": {
+      "title": "OCR / 识字",
+      "backend": "lua/ziyan_engine/py_cv.lua + /usr/lib/ziyan/bin/ziyan_ocr (Vision)",
+      "count": 8,
+      "file_json": "modules/ocr.json",
+      "file_lua": "modules/ocr_contract.lua"
+    },
+    "app": {
+      "title": "应用管理",
+      "backend": "lua/ziyan_engine/app.lua",
+      "count": 6,
+      "file_json": "modules/app.json",
+      "file_lua": "modules/app_contract.lua"
+    },
+    "file": {
+      "title": "文件 / PLIST",
+      "backend": "lua/ziyan_engine/{io_fs,py_cv}.lua",
+      "count": 10,
+      "file_json": "modules/file.json",
+      "file_lua": "modules/file_contract.lua"
+    },
+    "net": {
+      "title": "网络 / FTP / 时间",
+      "backend": "lua/ziyan_engine/py_cv.lua (curl)",
+      "count": 8,
+      "file_json": "modules/net.json",
+      "file_lua": "modules/net_contract.lua"
+    },
+    "codec": {
+      "title": "编解码",
+      "backend": "lua/json.lua + 自研封装",
+      "count": 6,
+      "file_json": "modules/codec.json",
+      "file_lua": "modules/codec_contract.lua"
+    },
+    "memory": {
+      "title": "内存缓存 / Hook 读名（自研，非 TE）",
+      "backend": "lua/ziyan_engine/py_cv.lua + ziyan_mem / AppTouch MemHook",
+      "count": 7,
+      "file_json": "modules/memory.json",
+      "file_lua": "modules/memory_contract.lua"
+    },
+    "control": {
+      "title": "运行控制（音量菜单协同）",
+      "backend": "lua/ziyan_engine/control.lua + ZiYanVol tweak",
+      "count": 2,
+      "file_json": "modules/control.json",
+      "file_lua": "modules/control_contract.lua"
+    },
+    "orient": {
+      "title": "坐标系 / init",
+      "backend": "lua/ziyan_engine/orient.lua + ZiYanOrientMap.h",
+      "count": 4,
+      "file_json": "modules/orient.json",
+      "file_lua": "modules/orient_contract.lua"
+    }
+  }
+}

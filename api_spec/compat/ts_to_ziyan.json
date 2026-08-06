@@ -1,0 +1,19 @@
+{
+  "description": "触动全局名 → 子砚名（同名则保持）",
+  "map": {
+    "runApp": "appRun",
+    "closeApp": "appKill",
+    "appIsRunning": "appRunning",
+    "unlockDevice": "deviceUnlock",
+    "getScreenSize": "getScreenResolution",
+    "snapshot": "snapshot",
+    "nLog": "logDebug",
+    "sysLog": "logDebug",
+    "lua_exit": "scriptStop",
+    "ocrText": "getText",
+    "findMultiColorInRegionFuzzy": "findMultiColorInRegionFuzzy",
+    "mSleep": "mSleep",
+    "toast": "toast",
+    "tap": "tap"
+  }
+}

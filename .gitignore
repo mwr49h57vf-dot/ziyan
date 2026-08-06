@@ -1,0 +1,60 @@
+# 构建产物
+.theos/
+packages/
+packages/*.deb
+ZiYanVol.stage/
+*.tgz
+
+# 误放的装机镜像（真相源 layout/）
+/var/
+
+# 真机日志（大、可再生）
+tmp_shots/*
+!tmp_shots/.gitkeep
+!tmp_shots/SURPASS_TS/
+!tmp_shots/TS_OBS/
+!tmp_shots/SELF_ITERATE/
+tmp_shots/SURPASS_TS/*
+!tmp_shots/SURPASS_TS/.gitkeep
+tmp_shots/TS_OBS/*
+!tmp_shots/TS_OBS/.gitkeep
+tmp_shots/SELF_ITERATE/*
+!tmp_shots/SELF_ITERATE/.gitkeep
+
+# 系统垃圾
+.DS_Store
+**/.DS_Store
+*~
+*.swp
+*.bak
+__MACOSX/
+
+# deb 解包残留（勿放仓库根）
+/debian-binary
+/control.tar.gz
+/data.tar.lzma
+/*_副本.lua
+
+# 探测产物（保留 probes/README.md）
+probes/*.png
+probes/*.ppm
+probes/*.jpg
+probes/*.jpeg
+probes/tmp_probe*.py
+toast_snap.png
+
+# vendor 临时 deb 缓存
+vendor/_debs/
+
+# 本地杂项
+_*.py
+_*.lua
+
+# 私有库首推：排除大体积非交付目录与包产物
+vendor/
+逆向学习/
+logs/
+Ai代码训练/
+大模型/
+*.deb
+*.ipa

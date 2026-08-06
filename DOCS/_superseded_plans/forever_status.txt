@@ -1,0 +1,9 @@
+phase=3_login_once
+STOP=no
+round=login_once_20260722_115926
+ts=2026-07-22 11:59:26
+lan_deploy=prior
+lan_smoke=FAIL_still_login
+usb=USB_SKIPPED
+forever_play=NOT_STARTED
+STOP_ITERATE=no

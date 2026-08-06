@@ -1,0 +1,11 @@
+{
+  "module": "game",
+  "version": "1.0.0",
+  "status": "done",
+  "globals": [
+    "gameDefaultBid", "gameOpen", "gameClose", "gameSync", "gameRecover",
+    "gameRemember", "gameCodegen", "gameLoadLearned", "gameGetLearned",
+    "gameTapStep", "gameSnapshot", "gameLog", "gameBeat", "gameLoginBadaoCalib"
+  ],
+  "notes": "ZiYan-native game automation: learn table + auto_gen script + recover. No TouchSprite APIs."
+}

@@ -1,0 +1,254 @@
+{
+  "disclaimer": "TS chapter themes used only for handbook layering paradigm; ZiYan APIs are independent.",
+  "archive_pages": 573,
+  "chapters": {
+    "8": {
+      "ts_theme": "文本输入",
+      "zy_layer": "input_text",
+      "zy_modules": [
+        "Input"
+      ],
+      "zh": "文本与输入法",
+      "ts_sample_title": "函数：inputText 输入字符串",
+      "ts_page_count": 8
+    },
+    "9": {
+      "ts_theme": "应用进程",
+      "zy_layer": "app_proc",
+      "zy_modules": [
+        "App"
+      ],
+      "zh": "应用 / 进程",
+      "ts_sample_title": "函数：runApp 运行应用",
+      "ts_page_count": 19
+    },
+    "10": {
+      "ts_theme": "日志输出",
+      "zy_layer": "log",
+      "zy_modules": [
+        "Log"
+      ],
+      "zh": "日志",
+      "ts_sample_title": "函数：log 日志",
+      "ts_page_count": 24
+    },
+    "11": {
+      "ts_theme": "系统打开/URL",
+      "zy_layer": "device_sys",
+      "zy_modules": [
+        "Device",
+        "Network"
+      ],
+      "zh": "设备系统 / 网络",
+      "ts_sample_title": "函数：openURL 打开网络地址",
+      "ts_page_count": 33
+    },
+    "12": {
+      "ts_theme": "脚本UI",
+      "zy_layer": "script_ui",
+      "zy_modules": [
+        "Script",
+        "Config"
+      ],
+      "zh": "脚本会话 / 配置",
+      "ts_sample_title": "脚本 UI",
+      "ts_page_count": 57
+    },
+    "13": {
+      "ts_theme": "文件遍历",
+      "zy_layer": "file",
+      "zy_modules": [
+        "File"
+      ],
+      "zh": "文件",
+      "ts_sample_title": "函数：getList 遍历文件",
+      "ts_page_count": 35
+    },
+    "14": {
+      "ts_theme": "压缩解压",
+      "zy_layer": "file_zip",
+      "zy_modules": [
+        "File"
+      ],
+      "zh": "文件扩展",
+      "ts_sample_title": "函数：unzip 解压",
+      "ts_page_count": 5
+    },
+    "15": {
+      "ts_theme": "相册图片",
+      "zy_layer": "image_album",
+      "zy_modules": [
+        "Image",
+        "Screen"
+      ],
+      "zh": "图像 / 相册",
+      "ts_sample_title": "函数：saveImageToAlbum 图片存入相册",
+      "ts_page_count": 6
+    },
+    "16": {
+      "ts_theme": "剪贴板",
+      "zy_layer": "clipboard",
+      "zy_modules": [
+        "Device",
+        "Input"
+      ],
+      "zh": "剪贴板 / 输入",
+      "ts_sample_title": "函数：clearPasteboard 清空剪贴板（iOS）",
+      "ts_page_count": 8
+    },
+    "17": {
+      "ts_theme": "找色取色",
+      "zy_layer": "screen_color",
+      "zy_modules": [
+        "Screen",
+        "Vision",
+        "Image"
+      ],
+      "zh": "屏幕图像 / 找色",
+      "ts_sample_title": "函数：getColor 获取屏幕某点颜色值",
+      "ts_page_count": 23
+    },
+    "18": {
+      "ts_theme": "截图方向",
+      "zy_layer": "screen_orient",
+      "zy_modules": [
+        "Screen",
+        "Coordinate"
+      ],
+      "zh": "屏幕方向 / 坐标",
+      "ts_sample_title": "函数：resetScreen 重置截图方向（Android）",
+      "ts_page_count": 26
+    },
+    "19": {
+      "ts_theme": "图像处理",
+      "zy_layer": "image_proc",
+      "zy_modules": [
+        "Image",
+        "Vision"
+      ],
+      "zh": "图像处理",
+      "ts_sample_title": "函数：imageBinaryzation 图片二值化",
+      "ts_page_count": 10
+    },
+    "20": {
+      "ts_theme": "二维码",
+      "zy_layer": "qr",
+      "zy_modules": [
+        "Vision",
+        "Image"
+      ],
+      "zh": "视觉扩展",
+      "ts_sample_title": "函数：ts.qrEncode 二维码图片生成",
+      "ts_page_count": 6
+    },
+    "21": {
+      "ts_theme": "OCR",
+      "zy_layer": "ocr",
+      "zy_modules": [
+        "OCR",
+        "Vision"
+      ],
+      "zh": "OCR识别",
+      "ts_sample_title": "函数：ppOcrText 飞桨文字识别",
+      "ts_page_count": 19
+    },
+    "22": {
+      "ts_theme": "云打码",
+      "zy_layer": "captcha_cloud",
+      "zy_modules": [
+        "Network",
+        "OCR"
+      ],
+      "zh": "网络识别（规划）",
+      "ts_sample_title": "触动精灵云打码",
+      "ts_page_count": 7
+    },
+    "23": {
+      "ts_theme": "客户端路径",
+      "zy_layer": "paths",
+      "zy_modules": [
+        "File",
+        "Device"
+      ],
+      "zh": "路径 / 文件",
+      "ts_sample_title": "函数：userPath 获取客户端文件路径",
+      "ts_page_count": 13
+    },
+    "24": {
+      "ts_theme": "系统信息",
+      "zy_layer": "os_info",
+      "zy_modules": [
+        "Device"
+      ],
+      "zh": "设备信息",
+      "ts_sample_title": "函数：getOSVer 获取系统版本号",
+      "ts_page_count": 29
+    },
+    "25": {
+      "ts_theme": "时间网络",
+      "zy_layer": "time_net",
+      "zy_modules": [
+        "Network",
+        "Device"
+      ],
+      "zh": "时间 / 网络",
+      "ts_sample_title": "函数：getNetTime 获取网络时间",
+      "ts_page_count": 47
+    },
+    "26": {
+      "ts_theme": "随机工具",
+      "zy_layer": "util",
+      "zy_modules": [
+        "Script",
+        "Engine"
+      ],
+      "zh": "工具 / 引擎",
+      "ts_sample_title": "函数：getRndNum 获取随机数",
+      "ts_page_count": 36
+    },
+    "27": {
+      "ts_theme": "协程线程",
+      "zy_layer": "thread",
+      "zy_modules": [
+        "Engine",
+        "Script"
+      ],
+      "zh": "并发（规划）",
+      "ts_sample_title": "函数：thread.create 创建协程",
+      "ts_page_count": 9
+    },
+    "28": {
+      "ts_theme": "脚本退出",
+      "zy_layer": "script_exit",
+      "zy_modules": [
+        "Script",
+        "Engine"
+      ],
+      "zh": "脚本控制",
+      "ts_sample_title": "函数：lua_exit 退出脚本",
+      "ts_page_count": 6
+    },
+    "29": {
+      "ts_theme": "无障碍控件",
+      "zy_layer": "accessibility",
+      "zy_modules": [
+        "App",
+        "Input"
+      ],
+      "zh": "控件 / 无障碍（规划）",
+      "ts_sample_title": "函数：isAccessibilityOn 获取无障碍权限开关状态",
+      "ts_page_count": 8
+    },
+    "35": {
+      "ts_theme": "按键模拟",
+      "zy_layer": "keycode",
+      "zy_modules": [
+        "Input",
+        "Device"
+      ],
+      "zh": "按键模拟",
+      "ts_sample_title": "函数：keycode.back 模拟按下返回按键",
+      "ts_page_count": 7
+    }
+  }
+}

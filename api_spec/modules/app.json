@@ -1,0 +1,75 @@
+{
+  "module": "app",
+  "title": "应用管理",
+  "backend": "lua/ziyan_engine/app.lua",
+  "apis": [
+    {
+      "name": "appRun",
+      "args": [
+        "bid:string"
+      ],
+      "returns": "bool",
+      "note": "启动 App，bid 作者填写",
+      "status": "done",
+      "aliases": [
+        "runApp",
+        "pyOpenApp",
+        "open_app"
+      ]
+    },
+    {
+      "name": "appKill",
+      "args": [
+        "bid:string"
+      ],
+      "returns": "bool",
+      "note": "结束 App",
+      "status": "done",
+      "aliases": [
+        "closeApp",
+        "pyCloseApp",
+        "close_app"
+      ]
+    },
+    {
+      "name": "appRunning",
+      "args": [
+        "bid:string"
+      ],
+      "returns": "bool",
+      "note": "是否在跑",
+      "status": "partial",
+      "aliases": [
+        "appIsRunning"
+      ]
+    },
+    {
+      "name": "frontAppBid",
+      "args": [],
+      "returns": "string",
+      "note": "前台 Bundle ID",
+      "status": "planned",
+      "aliases": []
+    },
+    {
+      "name": "appBundlePath",
+      "args": [
+        "bid"
+      ],
+      "returns": "string",
+      "note": "包路径",
+      "status": "planned",
+      "aliases": []
+    },
+    {
+      "name": "appDataPath",
+      "args": [
+        "bid"
+      ],
+      "returns": "string",
+      "note": "数据路径",
+      "status": "planned",
+      "aliases": []
+    }
+  ]
+}

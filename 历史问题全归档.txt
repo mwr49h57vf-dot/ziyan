@@ -1,0 +1,240 @@
+====================
+历史问题全归档.txt
+阶段：7.6.3-R8.3.11 · 包锚点 0.0.92-8-42 · Engine 2.20.0
+用途：持久记录用户缺陷/需求/修复指令/回归标准；无需用户每次复述
+更新：2026-07-25 19:40（自动归档初始化 + 本轮规范固化）
+====================
+
+【归档规则】
+- 每次交互追加新增条目；按阶段分类
+- 一类设备 .149/.171 仅 TS 只读；验收仅 .166/.53
+- Desktop ios7.lua / ios8p.lua 禁止改源码，仅 scp 部署
+
+====================
+8-129 SafeMode · 2026-07-28 18:26 · .166
+====================
+现象：连接.166出现 Safe Mode（SpringBoard crashed）
+根因：ios7.lua 找色挂死 → framecap miss → mem_warn 清节流 → 同票 SB UICreate 11MP → 崩
+修：mem_cooldown 90s 禁 UICreate；throttle 清空 shm 不再同票回退；hung/stop 跳过 resume；zydaemon 冷却期不 revive
+恢复：已杀挂死 lua + 装 0.0.92-8-129；resume_skipped 验证通过；SAFE=0
+
+====================
+R8.4.9 LiveLearn · 2026-07-28 18:10 · .101 · 0.0.92-8-128
+====================
+问题：自动生成须开游+大模型识字取色，禁人工 COLOR_PARAMS
+根因链：① unlock_ignored(idle)→截屏全黑；② CLI openApp 失败；③ SB OCR no_pixels
+修：LiveLearn 武装 script_session+unlock；.ziyan_open_app；dump+App Vision；全 hits 自动 getColor
+自测：live_color_count=16；自动跑 login→role→battle；Toast/报告「请人工审阅」
+产物：com_ychj_hlhjlygr.lua · knowledge/families/cslc.json · HUMAN_REVIEW_R849.txt
+已知弱项：游戏美术字 OCR 难出「登录」中文 → 色参多落 battle；待人工看登录链是否够用
+
+--------------------------------------------------------------------------------
+## A. 阶段锚点与门禁（R8.3.11）
+--------------------------------------------------------------------------------
+A1. 固定阶段 7.6.3-R8.3.11；CRITICAL FIX；门禁不通过；禁止自动下一阶段；禁止未闭环启动 3h 长稳
+A2. 包锚点锁定 0.0.92-8-42；引擎 ZiYan Engine 2.20.0
+A3. 必须生成并维护：已正常功能参考.txt（锁定音量/找色/点击）、本文件
+A4. 串行顺序：①AppTouch 横屏 HID 翻转 → ②SECURITY_AI → ③才允许 23:00 起 3h 长稳
+A5. 双机同方案；禁止单设备坐标/路径/逻辑硬编码特判
+A6. 禁止拷贝 TS/XXTouch 私有源码与 API
+
+--------------------------------------------------------------------------------
+## B. 音量 Overlay 历史问题
+--------------------------------------------------------------------------------
+B1. 音量弹窗方向/位置错；Toast 与 Volume 模式分裂（portraitHost_rotate vs rawLand_identity）
+B2. 空闲应按竖屏居中；运行中须暂停/继续/停止，不得掉成「运行」空闲菜单
+B3. .53 rootless：无 /bin/sh → popen 失败误判未运行 → 暂停链回归（8-42 已修并锁定）
+B4. 「运行」仅最小化 App，不得破坏暂停/继续/停止；不得 go_home 风暴杀脚本
+B5. .166 游戏横屏未跑脚本：空闲音量框左下裁切（host=320×568 盖 raw=568×320）
+B6. 误把仅 .166 音量修复装到 .53 → .53 乱位；用户指令：未确认不得动 .53；后规范要求双机同方案+锁定音量 → 回滚对齐 8-42
+B7. 音量/Toast safeBottom 底边规则锁定，禁止再分裂改造（见 已正常功能参考.txt）
+
+--------------------------------------------------------------------------------
+## C. 找色历史问题
+--------------------------------------------------------------------------------
+C1. .53 找色缓慢；keepScreen=0 误清导致缓存失效
+C2. 双机耗时差距过大（曾 avg 差数倍）；目标差距＜50%
+C3. keepScreen + 脉冲清缓存防 SB jetsam；会话误清导致找色失效
+C4. 找色全套锁定：缓存/匹配/释放逻辑禁止改动（见 已正常功能参考.txt）
+
+--------------------------------------------------------------------------------
+## D. 触控 / HID 历史问题
+--------------------------------------------------------------------------------
+D1. 找色坐标对、tap 点偏/点飞（逻辑点正确，HID 错）
+D2. 同逻辑点 HID 翻转：如 0.774,0.911 ↔ 0.911,0.226（窗 identity ↔ 玻璃 Norm）
+D3. 串行最高优先级：仅修 AppTouch 横屏 HID 单路径；竖屏/音量/找色不动
+D4. 基础 tap/swipe/比例坐标管线锁定；角点无偏移为验收标准
+D5. 点击验收脚本：ios7.lua@.166 / ios8p.lua@.53，禁止改 Desktop 源文件内容
+
+--------------------------------------------------------------------------------
+## E. SpringBoard / 稳定性
+--------------------------------------------------------------------------------
+E1. SB 持续重启 / jetsam / ExcResource（.53）
+E2. 僵尸 lua5.3（defunct）误判仍在跑
+E3. 断电/冷启：无根越狱失效双分支（已人工重激活 / 未激活）；.53 真断电+Dopamine 未完成不得标 PASS
+E4. 3h 长稳：前置门禁全 PASS 前永久禁止启动
+
+--------------------------------------------------------------------------------
+## F. 文档 / 镜像 / 模型 / 并行
+--------------------------------------------------------------------------------
+F1. 子砚触控函数说明.html 必须与代码同步；对标 TS 手册分层，不抄源码
+F2. TS doc-spider：helpdoc 全量归档，仅借鉴设计思路
+F3. HF 模型：PP-OCRv6-small / YOLOv8n / Qwen2.5-Coder-0.5B；未下完不启动 AI 防御编码
+F4. SECURITY_AI：串行2；不触碰音量/找色/点击锁定模块
+
+--------------------------------------------------------------------------------
+## G. 部署与设备
+--------------------------------------------------------------------------------
+G1. .166 rootful make package；.53 rootless make package-rootless；装后 sbreload
+G2. scp 脚本：
+    scp ios7.lua → .166:/var/mobile/Media/ZiYan
+    scp ios8p.lua → .53:/var/mobile/Media/ZiYan
+G3. .149/.171 禁止部署 ZiYan
+G4. SSH：root / alpine
+
+--------------------------------------------------------------------------------
+## H. 本轮（2026-07-25 19:40）执行指令摘要
+--------------------------------------------------------------------------------
+H1. 固化 R8.3.11 + 包 8-42 + Engine 2.20.0
+H2. 落地 已正常功能参考.txt / 历史问题全归档.txt
+H3. 音量/找色/点击锁定；仅允许横屏 HID 单路径修复
+H4. 双机回滚对齐 8-42；后续改动双机同方案
+H5. 门禁：不通过（HID 人手短测、SECURITY_AI、断电、HTML 全测、模型、3h 均未闭环）
+
+--------------------------------------------------------------------------------
+## I. 追加日志（自动追加区）
+--------------------------------------------------------------------------------
+[2026-07-25 19:40] 初始化两大归档；阶段钉扎 R8.3.11/8-42；声明锁定三大模块；串行1=HID。
+[2026-07-25 19:40] 用户重申：禁止要求重复告知历史问题；自动从本文件读取约束。
+[2026-07-25 19:41] 双机 dpkg 对齐包锚点 8-42；Desktop ios7/ios8p 仅 scp；control Version=0.0.92-8-42。
+[2026-07-25 19:41] 门禁判定：不通过（见 GPT_PROJECT_STATE）；禁止启动 3h / SECURITY_AI 编码抢跑。
+[2026-07-25 21:41] 串行1 HID：包 8-46 双机同装；AppTouch+SB 永远 MapLogicToNorm；剥除音量 idleLand 单机分支。
+[2026-07-25 21:41] 短测 ALL_PASS：.166 land=1 仍 portrait_glass hid=0.688,0.793×N；.53 hid 稳定=EXPECT；证据 hid_s1_846_dual.txt / HID_S1_846_REPORT.md。
+[2026-07-25 21:41] 串行1 自动短测 PASS；总门禁仍不通过；待人手游戏点色确认后可进入串行2 SECURITY_AI。
+[2026-07-25 21:50] 人工短测：.166 音量两次均错位（运行侧歪左下+空闲左下裁切）；.53 正常。申请改音量布局（非锁定找色/HID）。
+[2026-07-25 21:57] 8-47：空闲横屏跟 init；iOS13 Volume rawIdentity；iOS15+ 不套 rawIdentity。自动 rawLand=1 时 host=568x320 card 居中。待人手确认。
+[2026-07-25 22:07] 用户确认：1补 .166 音量横屏视觉已通过；授权开工串行2 SECURITY_AI。
+[2026-07-25 22:15] 串行2：包 8-48 双机同装；defense_status/shutdown_trig；自动 T1–T5 双机 PASS。待人手短测。禁止开 3h。
+[2026-07-25 22:27] 手签2问题：.53开App后音量无框；需藏桌面越狱图标(保ZiYan)；关程序/断电/冷启/死机恢复图标。
+[2026-07-25 22:36] 8-49：vol_rearm_app_alive；ZiYanIconShield(SB only)；CloseApp/BootRecovery/AppGone 恢复。双机已装待复测。
+[2026-07-25 22:54] 手签2补：.166关程序杀不死+音量误弹；.53 Home后图标恢复过早；需首次伪装信息框；关App指纹保持/冷启清。
+[2026-07-25 23:12] 8-52：禁 vol 误重武装；CloseApp 清 app_fg+TERM/KILL；Home 粘性藏图标；willTerminate 恢复；指纹信息框；冷启清指纹。
+[2026-07-25 23:24] 用户：阶段2通过；阶段3、4跳过；开工阶段6 HF三模型。
+[2026-07-26 00:05] 阶段6：三套权重本地齐全并双机同步；8-53 inventory；ready_count=3/3。待人手确认。禁止3h。
+[2026-07-26 01:25] 用户跳过1/3/5/6，回阶段2：爱思在App运行时仍可读越狱路径。
+[2026-07-26 01:25] 根因：Defense仅UIKit；爱思走AFC2(afc2d)。包8-60：ziyan_fscloakd挪afc2d + FsCloak@lockdownd/afc*。
+[2026-07-26 01:25] 自测双机标志ON→afc2d.ziyan_cloaked / OFF还原OK。待爱思手测：开App不可见JB路径；关程序后可读。
+[2026-07-26 02:05] 手测反馈：.166开App仍见越狱侧栏+Media失败；.53关程序后爱思不可读；需冷启自动恢复。
+[2026-07-26 02:05] 8-62：连带禁用afc2dService+reload USB；restore_req/无进程超时/boot_force_restore。双机自测ON/OFF OK。待爱思复测。
+[2026-07-26 02:17] .166爱思手测PASS；.53未开App爱思转圈无法测。
+[2026-07-26 02:25] 8-63：boot_clean_noop（干净态不杀lockdownd）；去掉CFPropertyList Hook；冷启清app_fg。双机已装，待.53复连爱思。
+[2026-07-26 02:38] 手测：.166关程序后爱思错误13+指纹框无；.53开App图标未藏+爱思卡连接。
+[2026-07-26 02:45] 8-64：FsCloak仅afc2d；lockdownd 30s冷却；图标hide优先；指纹多档重试。双机已装待手测。
+[2026-07-26 03:08] 根因：afc2dService 被挪走 + kill lockdownd → .166 Media错误13 / .53爱思转圈；图标误用app_fg导致Home后restore。
+[2026-07-26 03:08] 8-65：只cloak afc2d；永不碰afc2dService/lockdownd；.ziyan_app_session粘性（Home保持）；冷启强制还原；Defense加Executables=ZiYan。双机已装待爱思手测。
+[2026-07-26 03:14] 手测仍FAIL：.166错误13（无关App）；.53转圈+图标不藏。现场：afcd崩溃环；fscloakd仍在rename afc2d；icon hide后立刻restore。
+[2026-07-26 03:23] 8-66：彻底禁止rename/kill AFC二进制；fscloakd=restore_only；FsCloak仅afc2d路径Hook；图标加SBIconView+App续写hide；Defense dtor不再写restore_req。双机已装+lockdown已拉起，待爱思手测。
+[2026-07-26 03:32] 手测仍FAIL；双机无FlyJB/Shadow；.166有afc2d崩溃日志。学习Shadow：只在App内隐藏，不碰AFC。
+[2026-07-26 03:38] 8-67：FsCloak零注入；SetFsCloak空操作；IconShield加SBIconListModel.icons；冷启仍restore残留。双机已装待爱思手测。
+[2026-07-26 03:47] 用户：越改越乱/防御没了。澄清FlyJB等非桌面隐藏；现场Defense文件其实在，图标Hook无效+残留hide。
+[2026-07-26 03:53] 8-68：fscloakd桌面改名隐藏(Libhide思路)；指纹Alert独立Window；冷启还原desk_hidden+AFC残留。双机自测hide/restore OK，待手测。
+[2026-07-26 04:16] 用户 A–D PASS；追问游戏AFC→澄清不能；要求去写死游戏包名+加强Defense essential。
+[2026-07-26 04:30] 8-69：Defense Filter仅UIKit+子砚；Hook扩lstat/open/fopen/getenv/dyld/NSFileManager/canOpenURL；新建子砚工程防御/项目防御说明.txt。
+[2026-07-26 13:40] 用户固化串行规范：分工1真机长效压测确认后才可启分工2（爬虫+自研函数+HTML）。硬锁音量/找色/触控底层。scp主机.53=192.168.31.53。
+[2026-07-26 13:40] 分工1已REARM：ios7/ios8p仅scp；双机0.0.92-8-73；gate_8h_tick续采；禁止自动启分工2，待用户「启动分工2」。
+
+[2026-07-26 14:00] 分工1未确认：双机 App UI 坏、lua 单独正常。根因：.53 Defense 注入 App SIGSEGV(strstr)/dylib 缺 ZDCopyPathSafe+UIKit 自注入；AppIcon 0-byte；.166 指纹 iPhone12,1/17.4.1 过期。修：图标+uicache；Defense UIKit-only+skip_self_app_no_hooks 热更 MD5 2198c22cb8a44f6e442ef0bcb1df064a 双机；.53 App+heartbeat OK；.166 待手点图标。包 ~8-73/8-75；分工2 未启。
+
+[2026-07-26 14:32] 用户「分工1确认」：分工1人工PASS；音量键 signed ZiYanVol inject 已恢复；ios7/ios8p.lua 双机运行；分工2仍禁，待「启动分工2」。
+
+[2026-07-26 14:38] 用户「启动分工2」：分工2 STARTED。TS 归档573页无需重爬。新增 Zy.String/Clipboard/Timer/Dialog；扩展 File/Network/Device/Input；compat implemented 98/476；Engine 2.21.0 Modules 1.10.0；手册209条。硬锁音量/找色/触控未动。Lua scp 热更双机。
+
+[2026-07-26 22:08] 8-84 Division2 Wave4：implemented 144→169；Engine 2.24.0 / Modules 1.13.0；FINALPACKAGE 双机 dpkg（.166 rootful arm / .53 rootless arm64）+ sbreload + lua scp（含 Thread.lua/Widget.lua）；Widget=OCR非AX · Thread=协作式 · ftp via curl；Desktop ios7/ios8p 未覆盖；未主动 menu_run。
+
+====================
+END
+====================
+
+
+
+[2026-07-26 18:55] R8.3.11 SB审计后续：真机部署 0.0.92-8-76 ZiYanVol ScreenBridge TTL/hiRes 释压与 keep 后 rot 释放；双机 dpkg 装 signed deb + .53 TweakInject 镜像；sbreload 后 hooks=SBVolumeControl、mem_pulse rot=0 cap=0；gate_8h_tick 重启并 SB_OPT_876_DEPLOY 标记。
+
+[2026-07-26 19:06] .53 game com.ljzbbadao.game crash fixed in 0.0.92-8-77: ZiYanDefense fingerprint-only (essential=0), disabled FS/stat hooks that caused SIGILL/SIGSEGV FAR 0xa02. Verified game stays up ≥13s. Waiting for user next instruction. Do not start new work.
+
+[2026-07-26 19:22] 分工2 Wave2 交付：P1 HTTP/FTP/JSON/findFile/appBundlePath/cloud 诚实接线；TS mirror implemented 98→131（+33）；Engine 2.22.0 Modules 1.11.0；cloud_file_*/remote_file_*→unsupported:ts_cloud；Lua+手册 scp 双机未杀脚本；.166 验收 httpBuildQuery OK。
+
+[2026-07-26 19:42] 8-78 双机 signed 部署：icon hide + SB keep_hide + fscloakd v878（script_session/lua_runner 宽限）；.166 rootful + .53 rootless dpkg；fscloakd LaunchDaemon 重载；ios7/ios8p scp+menu_run_trig 未杀游戏；双机 desk=HIDE session_alive；gate_8h pid47400。用户须手开 ZiYan.app 目视桌面藏图标。
+[2026-07-26 20:26] 8-79 signed 双机：Toast iOS13 rawLand_identity + ScreenBridge hiRes SB 释压；.166/.53 dpkg 8-79 sbreload；ios7/ios8p scp+menu_run_trig 未杀游戏；toast mode OK；hide+desk=HIDE OK；gate_8h 重启。
+
+[2026-07-26 20:38] **8-80 回退 Toast LOCK**：禁止再动 Overlay/Toast 主路径（preferScreenLand / layoutOverlayWindow / showToast LOCK）除非用户书面批准回归修复。8-79 preferScreenLand=YES 误合已撤销；双机 toast mode=portraitHost_rotate 验收 PASS。
+
+[2026-07-26 20:55] 8-81 LOCK_ICON_HIDE：fscloakd v881 app_session_sticky（撤回 8-78 script_session 冒充存活；Home 粘性优先，勿因 ps/心跳抖动 desk_SHOW）；signed FINALPACKAGE 双机 dpkg（.166 rootful / .53 rootless）；LaunchDaemon+sbreload；.53 desk=HIDE（Sileo/Filza/NewTerm *.ziyan_desk_hidden，ZiYan.app 可见）；icon_shield v881；15s 观测无 desk=SHOW 抖动。
+[2026-07-26 21:16] 8-82 SB hiRes keep peak fix（SB_EXTRACT_2104）：hiRes keep 峰值释压；signed FINALPACKAGE 双机 dpkg（.166 rootful arm / .53 rootless arm64）+ sbreload；Desktop ios7/ios8p 未覆盖；脚本由用户手启。
+
+[2026-07-26 21:43] 8-83 Division2 Wave3 P2 Device：implemented 131→144；Engine 2.23.0 / Modules 1.12.0；FINALPACKAGE 双机 dpkg（.166 rootful arm / .53 rootless arm64）+ sbreload + lua scp；connectToWifi 诚实 no_hotspot_api；Desktop ios7/ios8p 未覆盖；脚本未手启。
+
+[2026-07-26 21:50] **锁定上下文同步**：刷新 GPT_PROJECT_STATE / GPT.txt / SYSTEM_REGRESSION_REPORT§14 / 已正常功能参考 / 本归档。硬锁确认：VOLUME(8-42) · Toast preferScreenLand=NO(8-80) · FINDCOLOR(+8-82脉冲) · TOUCH(8-46) · ICON(8-81)。包现装 8-83；分工2 Wave1–3 交付；Wave4 未启；门禁不通过。
+
+====================
+END
+====================
+[2026-07-26 22:18:27] LOOP_ROUND1 STEP1 started package=0.0.92-8-84 SB_etime .166=12:55 .53=10:28 lua=YES/YES gate=44210 spontaneous_sb_up=NO ROUND=/Users/mac/Desktop/ZiYan_副本/tmp_shots/PHASE763R8/sb_incidents/LOOP_ROUND1_20260726_2216
+
+[2026-07-26 22:22–22:33] LOOP_ROUND1 12min 窗：watch_12min.tsv 12/12 SSH_FAIL → VERDICT=SSH_GAP_NO_LIVE_SAMPLES（不计 STABLE/RESTART）。见 WATCH_12MIN.md。
+
+[2026-07-26 22:20] LOOP_ROUND1 STEP2：根因仍 .53 hiRes keep~11MP→静默回收；检索 asdfugil/overb0ard(MIT·勿先抬 jetsam)、XNU memorystatus、e1abrador/ScreenMirror hiRes OOM；方案仅脉冲层→8-85。见 STEP2_ROOTCAUSE_SEARCH.md。
+
+[2026-07-26 22:35] LOOP_ROUND1 STEP3 代码合入 0.0.92-8-85：ZiYanScreenBridge mem_warn_clear + hiRes abs keep 60s + img=nil；未触四大硬锁；文档同步。
+
+[2026-07-26 22:22–22:37] LOOP_ROUND1 窗（gate 重建）：**RESTART_DETECTED** — .166 SB 94513→40378 @22:29:13 自发 sb_up；.53 pid13420 未重启但 keepScreen 常驻 pix=10969344。见 WATCH_12MIN.md / incident_166_222913。
+
+[2026-07-26 22:39–22:45] LOOP_ROUND1 STEP3/4：双机 dpkg **0.0.92-8-85**；sbreload SB .166=65339/.53=38466；ios7/ios8p scp+nohup Y/Y；gate 归档 pre885 后重置 monitor_start **22:43:19** pid**61752**；8-85 后自发 sb_up=NO（仅 deploy）。见 STEP3_885_DEPLOY.md。门禁仍不通过。
+
+[2026-07-26 22:48–23:08] LOOP_ROUND1 8-85 短窗：**STABLE_20MIN** — SB 双机未变（65339/38466）；lua=1/1；gate 无 SB_RESTART_*。.53 已见 mem_warn_clear + keep_timeout_release 60s_hiRes_abs（8-85 脉冲生效）；.166 仅 600s keep 路径。见 WATCH_885_20MIN.md。8h 门禁续跑未 PASS。
+
+[2026-07-27 ~00:42] **用户手工发现 .166 脚本未真正跑业务**：进程 66243 虽 cmdline=ios7.lua 但挂死（0%CPU、color_perf 冻结）；gate `lua=1` 假阳性。处置：杀挂死进程 + scp Desktop ios7.lua（未改内容）+ nohup 重拉 → pid **20100**，color_perf 上涨、toast「iOS7 searching」。证据 SCRIPT_166_PROBE.md / SCRIPT_166_FIX.md。注：此前 .166「长稳」可能部分处在挂死低负载下，门禁须以业务心跳为准。
+
+[2026-07-27 ~01:05] LOOP_ROUND2 启动 **0.0.92-8-86**：学 TS 架构（Daemon隔离/脚本可死可拉/缓存可丢）不抄实现。ScreenBridge：keep30s、禁二次拷贝、4MB阈值、mem_warn冷却、lua_hung；gate：color_perf心跳重拉+SB后revive。ROUND=`LOOP_ROUND2_20260727_0103`。硬锁未改；Desktop lua 未改内容。门禁仍不通过。
+
+[2026-07-27 ~01:12] LOOP_ROUND2 STEP4：双机 dpkg **0.0.92-8-86**；SB .166=48923/.53=56158；ios7/ios8p nohup 真跑（color_perf .166 40→420 · .53 20→560）；gate 归档 pre886 后 monitor_start **01:12:26** pid**93066**。见 STEP4_886_DEPLOY.md。门禁续跑未 PASS。
+
+[2026-07-27 ~01:30] 复核自测：双机仍 8-86；gate93066 无 SB_RESTART；.53 color_perf 正常涨；**.166 再次挂死**（calls=1440 冻结且双 lua）→ 重拉单进程 pid**99979**，calls 20→40。门禁仍不通过。
+
+[2026-07-27 ~02:06] doc-spider 全量爬取 hectorqin/Cydia-1「iOSOpenDev 安装脚本」：5 文件落盘 iosopendev_spider/。结论：仅 Mac Xcode 安装器；**无** launchd/KeepAlive/防 SB 技术；仅 trap清理/失败即停可借鉴。已自研落地 ScriptHub（scripthubd+plist+postinst+Makefile），报告 REPORT_IOSOPENDEV_TO_ZIYAN.md；建议下包 8-87 双机装后继续 8h。
+
+[2026-07-27 ~02:35] 稳定架构系统爬取：`stability_arch_crawl_20260727/`（55文件）。含 iOSOpenDev + XXTouchNG(AGPL·架构学习) + XXTouchElite daemon-mode + haxii/ios-daemon + 5网页。结论：多 LaunchDaemon+XPC 分层隔离 SB；禁抄私有 jetsam ent。产出 REPORT_STABILITY_ARCHITECTURE.md（ZyDaemon 四步蓝图）。硬锁未改。
+
+[2026-07-27 ~02:50] **0.0.92-8-87** 双机 signed 部署并启用 ScriptHub：intent 已写；launchctl scripthub OK；kill lua ≤5s 自愈；color_perf PASS；gate 重置 pid**24996**（pre887 归档）。见 STEP_887_DEPLOY.md。门禁续跑未 PASS。
+
+[2026-07-27 ~21:35] **7.6.3-R8.4.1** 自动生成脚本+自动脱壳完善 · 包 **0.0.92-8-105**
+- 生成：强制 runApp/mSleep(3000)/syncGameScreen；OCR→findMulti→learn→codegen 闭环；旧侧车缺 learn 换本地训练稿
+- 脱壳：ZYCV/<App>/IPA/Payload + Mach-O/Framework/Resource；ANALYSIS.md/json 风险；dump_defense_feed 自我进化
+- 侧车：HTTP POST /v1/scriptgen/run · /v1/dump_analyze/run，失败文件投递
+- .101：血战屠龙 gen/dump PASS；Toast「测试完成，请人工验收」；硬锁抽检 PASS（未改 Overlay/找色/HID/图标）
+- .166/.53：8-105 冒烟 gen/dump PASS（部署 sbreload 有意）
+- 备份：tmp_shots/PHASE763R8/BACKUP_20260727_2113_scriptgen_dump_r841
+- 交付样例：tmp_shots/PHASE763R8/scriptgen_dump_r841_20260727/samples/
+
+[2026-07-28] R8.4.7 Fast-color scriptgen：色优先/去重/popup白名单；.101 自测 login→role→battle avg_wall~2ms；包 8-121-2
+
+[2026-07-28 16:56] **8-122 LOCK_ICON_HIDE hide-once**（用户诊断：回 SB 持续查隐藏 → 找色卡）
+- 根因：App 心跳每 2s 刷 `.ziyan_icon_hide_req`；IconShield 1.5s 有 session 就进主队列 hide；fscloakd 1Hz `ps`+`desk_hide`/`uicache` 与找色抢 SB/IO
+- 修：心跳禁刷 hide_req；IconShield 5s 边沿且已隐藏静默；fscloakd v8122 仅 session 边沿 hide，已隐藏不 ps
+- 双机 dpkg **0.0.92-8-122** + sbreload；Desktop ios7/ios8p 未改内容（装包后需 scp）
+- 自测：.166 color avg_wall≈1.3–1.8ms sb_avg≈7–8ms；.53 sb_avg≈18–19ms load≈3.5；desk=HIDE session_edge 一次 / SHOW clean
+- 硬锁其余三项未改；门禁长稳续跑未 PASS
+
+[2026-07-28 17:22] **8-123 找色软 TTL 冻帧修复**（手册 keepScreen「使用后清理」对齐）
+- 手册：`keepScreen(true)` 复用帧；示例 `keepScreen(false)` 使用后释放；引擎「TTL 软刷新 + 停脚本释放」
+- 根因：8-119 `prefer_keep_shm_no_daemon` 在软 TTL 过期后用 ≤120s 旧 shm 把 `lastRefreshAt=now` 假续命 → 最长约 2min 认不出；高分软 TTL 曾 8～15s
+- 修（脉冲/TTL 层，未改匹配算法）：软 TTL 1.2～2.5s；过期必须催 daemon（短等 ≤0.35s）；删假续命；tap 后 `keepScreen(false)`
+- 双机 **0.0.92-8-123**；Desktop lua 未改内容
+- 自测：.166 avg_wall≈3.6ms calls 上涨；.53 calls 上涨、lifecycle 见 framecap_daemon_ok / prefer_fresh_shm_keep（无新增 prefer_keep_shm_no_daemon）
+- 门禁长稳续跑未 PASS
+[2026-07-28] R8.4.10 自动生成脚本全链路：底栏改接 runGenerateForPick；提示词§8用户流水线；Live色覆盖训练库；包0.0.92-8-131 · .101/.112
+
+[2026-07-28] 8-133 SB keep thrash fix: half_ttl+TTL1.2→ui_create loop (.53 SIGSEGV). keep TTL 8-10s, full_credit stale, ban SB UICreate under keep. Deployed .166 arm + .53 arm64. Perf ui_create gap 6-10s→35-40s; avg 73→45 / 67→39. VS TouchSprite(public keepScreen): TS architecture still better for SB isolation; ZiYan fixed thrash; cache-hit last_ms~3.5 competitive. See SB_PULL_20260728_2010_53166/VERDICT_SB_FIX_8133_VS_TS.md
+
+[2026-07-28] 8-134 录制脚本：底栏改「录制脚本」；音量+起停（不改音量−硬锁）；AppTouch 录逻辑tap；.101/.112 自测 PASS rec_*.lua taps=3。BACKUP_20260728_2040_record_volup
+
+[2026-07-28] 8-137 SURPASS P1：触动式显式冻帧+自动350ms批；四机装包自测；.166 find≤7ms stop OK；.53 仍有慢miss；总排序仍触动。计划 SURPASS_TS_PLAN.md / VERDICT_SURPASS_TS_P1.md

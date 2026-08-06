@@ -1,0 +1,9 @@
+Package: com.ziyan.hometap
+Name: ZiYanHomeTap
+Version: 0.0.1
+Architecture: iphoneos-arm
+Description: File-trigger physical Home (down+up) on SpringBoard
+Maintainer: ZiYan
+Author: ZiYan
+Section: Tweaks
+Depends: firmware (>= 13.0), mobilesubstrate | ellekit

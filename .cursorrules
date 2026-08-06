@@ -1,0 +1,64 @@
+你是子砚（ZiYan）iOS 越狱自动化项目的专属工程师。
+
+## 项目路径
+- 根目录: /Users/mac/Desktop/ZiYan_副本
+- 方案归档: /Users/mac/Desktop/ZiYan_副本/逆向学习/方案归档/终稿/
+- ObjC 源码: /Users/mac/Desktop/ZiYan_副本/objc/
+- Lua 模块: /Users/mac/Desktop/ZiYan_副本/lua/
+- 构建工具: /Users/mac/Desktop/ZiYan_副本/tools/
+
+## 硬约束
+1. 禁止硬编码物理像素坐标，必须用 ScreenTransform 比例坐标
+2. 禁止修改桌面脚本 ios7.lua / ios8p.lua（设备 166/53 测试用）
+3. 禁止覆盖其他业务代码
+4. SB 重启后必须 mSleep(3000)
+5. 构建后验证包 install_name（verify_package_install_names.sh）
+6. 零注入默认关闭（opt-in：创建 .ziyan_zero_sb_inject_on 才开启）
+7. 禁止 ANE/MLX 硬件加速，A11 只用 CPU int8
+8. OCR 间隔 ≥350ms，禁止高频循环
+9. 学习/AI 代码必须在 daemon 进程，不在 SB
+10. **允许抄触动精灵**（业务 API 名/参/语义 + 找色/合帧/keep/Home 等逻辑算法）；实现落 `lua/`/`objc/`；仅禁止把触动 dylib/TSDaemon 链进包当运行依赖。旧「严禁照搬」作废
+11. **全项目 CPU 占用越低越好**（禁 toast/force/relay/空转风暴；默认勿 auto-keep）
+12. **内存释放对照触动**（缓冲/Toast/截帧用完即释；停脚本清 keep；长跑不弱于 .171）
+
+规则文件：`.cursor/rules/ziyan-api-cpu-mem.mdc` · `surpass-ts-four-pillar.mdc`
+
+## 设备
+- 53: root@192.168.31.53 alpine rootless iPhone8Plus iOS16
+- 101: root@192.168.31.101 alpine rootful iPhone7 iOS13
+- 166: root@192.168.31.166 alpine rootful iPhone7 iOS13
+
+## 构建
+```bash
+# rootful
+cd /Users/mac/Desktop/ZiYan_副本 && make clean-user-bins && make package
+
+# rootless（必须先构建 rootful 生成 obj/debug 目录）
+cd /Users/mac/Desktop/ZiYan_副本 && make clean-user-bins && make package && THEOS_PACKAGE_SCHEME=rootless make package
+```
+
+## 部署
+```bash
+# rootful 设备
+sshpass -p alpine scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null packages/com.ziyan.ziyan_*_iphoneos-arm.deb root@192.168.31.$IP:/tmp/ziyan.deb
+sshpass -p alpine ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@192.168.31.$IP 'dpkg -i /tmp/ziyan.deb && killall -9 SpringBoard'
+
+# rootless 设备
+sshpass -p alpine scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null packages/com.ziyan.ziyan_*_iphoneos-arm64.deb root@192.168.31.$IP:/tmp/ziyan.deb
+sshpass -p alpine ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@192.168.31.$IP 'dpkg -i /tmp/ziyan.deb && sbreload 2>/dev/null || killall -9 SpringBoard'
+```
+
+## 测试
+```bash
+# rootful 运行 Lua 脚本
+sshpass -p alpine ssh -o StrictHostKeyChecking=no root@192.168.31.$IP '/usr/lib/ziyan/bin/lua5.3 /usr/lib/ziyan/lib/lua/ziyan_run.lua /private/var/mobile/Media/ZiYan/test.lua'
+
+# rootless 运行 Lua 脚本
+sshpass -p alpine ssh -o StrictHostKeyChecking=no root@192.168.31.$IP 'DYLD_LIBRARY_PATH=/var/jb/usr/lib/ziyan/lib /var/jb/usr/lib/ziyan/bin/lua5.3 /var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua /private/var/mobile/Media/ZiYan/test.lua'
+```
+
+## 门禁测试5项
+toast / mSleep / findMultiColorInRegionFuzzy / tap / keepScreen
+
+## 迭代工作流
+修改代码 → 构建 → 部署 → 等待 SB 重启(10s) → 运行门禁测试 → 读结果 → 修正或提交

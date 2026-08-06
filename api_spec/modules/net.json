@@ -1,0 +1,124 @@
+{
+  "module": "net",
+  "title": "网络 / FTP / 时间",
+  "backend": "lua/ziyan_engine/py_cv.lua (curl)",
+  "apis": [
+    {
+      "name": "NetTime",
+      "args": [
+        "timeout?"
+      ],
+      "returns": "string",
+      "note": "网络时间 YYYY-mm-dd HH:MM:SS",
+      "status": "done",
+      "aliases": [
+        "NetTimeStr",
+        "getNetTime"
+      ]
+    },
+    {
+      "name": "NetIp",
+      "args": [
+        "timeout?"
+      ],
+      "returns": "string",
+      "note": "外网 IP",
+      "status": "partial",
+      "aliases": [
+        "getNetIP",
+        "net_ip"
+      ]
+    },
+    {
+      "name": "httpGet",
+      "args": [
+        "url",
+        "timeout?"
+      ],
+      "returns": "string",
+      "note": "HTTP GET",
+      "status": "planned",
+      "aliases": []
+    },
+    {
+      "name": "FtpUpload",
+      "args": [
+        "host",
+        "user",
+        "pass",
+        "local",
+        "remote",
+        "port?",
+        "timeout?"
+      ],
+      "returns": "table",
+      "note": "",
+      "status": "done",
+      "aliases": [
+        "ftp_upload"
+      ]
+    },
+    {
+      "name": "FtpDownload",
+      "args": [
+        "host",
+        "user",
+        "pass",
+        "remote",
+        "local",
+        "port?",
+        "timeout?"
+      ],
+      "returns": "table",
+      "note": "",
+      "status": "done",
+      "aliases": []
+    },
+    {
+      "name": "FtpDelete",
+      "args": [
+        "host",
+        "user",
+        "pass",
+        "remote",
+        "port?",
+        "timeout?"
+      ],
+      "returns": "table",
+      "note": "",
+      "status": "done",
+      "aliases": []
+    },
+    {
+      "name": "FtpRead",
+      "args": [
+        "host",
+        "user",
+        "pass",
+        "remote",
+        "port?",
+        "timeout?"
+      ],
+      "returns": "table",
+      "note": "",
+      "status": "done",
+      "aliases": []
+    },
+    {
+      "name": "FtpIsUpdate",
+      "args": [
+        "host",
+        "user",
+        "pass",
+        "remote",
+        "local?",
+        "port?",
+        "timeout?"
+      ],
+      "returns": "table",
+      "note": "",
+      "status": "done",
+      "aliases": []
+    }
+  ]
+}

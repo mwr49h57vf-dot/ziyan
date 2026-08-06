@@ -1,0 +1,123 @@
+{
+  "module": "ocr",
+  "title": "OCR / 识字",
+  "backend": "lua/ziyan_engine/py_cv.lua + /usr/lib/ziyan/bin/ziyan_ocr (Vision)",
+  "apis": [
+    {
+      "name": "getText",
+      "args": [
+        "x",
+        "y",
+        "x1",
+        "y1"
+      ],
+      "returns": "text, numbers",
+      "note": "区域文字+数字",
+      "status": "done",
+      "aliases": [
+        "pyGetText",
+        "readText"
+      ]
+    },
+    {
+      "name": "strFind",
+      "args": [
+        "x",
+        "y",
+        "x1",
+        "y1"
+      ],
+      "returns": "string",
+      "note": "区域识字",
+      "status": "done",
+      "aliases": [
+        "pyStrFind"
+      ]
+    },
+    {
+      "name": "findStr",
+      "args": [
+        "str",
+        "x",
+        "y",
+        "x1",
+        "y1"
+      ],
+      "returns": "x,y",
+      "note": "找文字位置",
+      "status": "partial",
+      "aliases": [
+        "pyFindStr"
+      ]
+    },
+    {
+      "name": "findNumber",
+      "args": [
+        "x",
+        "y",
+        "x1",
+        "y1"
+      ],
+      "returns": "number|nil",
+      "note": "区域数字",
+      "status": "partial",
+      "aliases": [
+        "pyFindNumber"
+      ]
+    },
+    {
+      "name": "localOcrText",
+      "args": [
+        "tessdata",
+        "lang",
+        "x",
+        "y",
+        "x1",
+        "y1",
+        "wl?"
+      ],
+      "returns": "string",
+      "note": "本地 tess 接口（可选）",
+      "status": "partial",
+      "aliases": []
+    },
+    {
+      "name": "cloudOcrText",
+      "args": [
+        "user",
+        "pass",
+        "softid",
+        "x",
+        "y",
+        "x1",
+        "y1"
+      ],
+      "returns": "string",
+      "note": "云 OCR（可选配置）",
+      "status": "partial",
+      "aliases": []
+    },
+    {
+      "name": "ZiYanCV.ocr_backends",
+      "args": [],
+      "returns": "table",
+      "note": "可用后端列表",
+      "status": "done",
+      "aliases": []
+    },
+    {
+      "name": "ZiYanCV.capture_region",
+      "args": [
+        "x",
+        "y",
+        "x1",
+        "y1",
+        "path?"
+      ],
+      "returns": "table",
+      "note": "裁剪区域图",
+      "status": "done",
+      "aliases": []
+    }
+  ]
+}

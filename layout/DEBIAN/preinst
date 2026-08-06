@@ -1,0 +1,15 @@
+#!/bin/bash
+# preinst — 换包前必须卸掉 KeepAlive，否则 iOS13 launchd 在 binary 缺失时内核 panic（冷重启）
+# 实证：.101 2026-07-30 22:24 panic-full Job=com.ziyan.framecap missing executable
+set +e
+for LD in /Library/LaunchDaemons /var/jb/Library/LaunchDaemons; do
+  for p in com.ziyan.framecap.plist com.ziyan.zydaemon.plist com.ziyan.fscloak.plist \
+           com.ziyan.engine.plist com.ziyan.scripthub.plist; do
+    [ -f "$LD/$p" ] || continue
+    launchctl bootout system "$LD/$p" >/dev/null 2>&1 || true
+    launchctl unload "$LD/$p" >/dev/null 2>&1 || true
+  done
+done
+killall -9 ziyan_framecap >/dev/null 2>&1 || true
+killall -9 ziyadaemond >/dev/null 2>&1 || true
+exit 0

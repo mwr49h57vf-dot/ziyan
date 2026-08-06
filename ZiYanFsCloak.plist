@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- 8-67：彻底停止注入任何进程。
+	     学习结论（Shadow/FlyJB/Liberty/tsProtector）：
+	     越狱隐藏只做「目标 App 内」API/路径伪装，绝不注入 afc2d/afcd/lockdownd。
+	     注入 AFC 会导致爱思错误13 / 连接转圈 / afc2d 崩溃。 -->
+	<key>Filter</key>
+	<dict>
+		<key>Bundles</key>
+		<array>
+			<string>com.ziyan.fscloak.disabled</string>
+		</array>
+	</dict>
+</dict>
+</plist>

@@ -1,0 +1,11 @@
+screen=1136,640 color@2111,549=12013462 find_b9271b=-1,-1 getColor_ok=true
+---
+时间:2026-07-20 00:42:22 点:-1,-1
+OCR:BHm
+Eo
+时间:2026-07-20 00:42:25 点:-1,-1
+OCR:BHm
+Eo
+---
+src=640x1136 logicBuf=1136x640 scale=2 img=320x568 orientUI=0 init=1 rot=1 logic=1136x640
+ii  com.ziyan.ziyan                                            0.0.82-19+debug iphoneos-arm ZiYan automation (rootful arm / rootless arm64 via THEOS_PACKAGE_SCHEME).

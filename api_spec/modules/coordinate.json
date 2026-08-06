@@ -1,0 +1,9 @@
+{
+  "module": "coordinate",
+  "version": "1.0.0",
+  "status": "done",
+  "globals": [
+    "coordScale", "coordPoint", "coordRegion", "coordClampGame", "coordTap"
+  ],
+  "notes": "Design-resolution scale + game-rect clamp. Image/OCR/Touch should go through Coordinate."
+}

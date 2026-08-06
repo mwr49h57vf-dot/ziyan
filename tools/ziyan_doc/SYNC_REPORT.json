@@ -1,0 +1,265 @@
+{
+  "scanned": 163,
+  "catalog_before": 136,
+  "added": [
+    "Zy.AI.analyzeNeed",
+    "Zy.AI.pipeline",
+    "Zy.IssueClassifier.classifyMany",
+    "Zy.IssueClassifier.categories",
+    "Zy.Knowledge.save",
+    "Zy.Knowledge.path",
+    "Zy.Knowledge.query",
+    "Zy.Knowledge.recordSuccess",
+    "Zy.Knowledge.recordFailure",
+    "Zy.Optimization.collect",
+    "Zy.Optimization.detect",
+    "Zy.Optimization.analyze",
+    "Zy.Optimization.propose",
+    "Zy.Optimization.apply",
+    "Zy.Optimization.verify",
+    "Zy.Optimization.commit",
+    "Zy.Optimization.historyPath",
+    "Zy.Optimization._write_cycle_summary",
+    "Zy.Optimization.reportIssue",
+    "Zy.Optimization.status",
+    "Zy.Optimization.schedule",
+    "Zy.OptimizationAdvisor.reject",
+    "Zy.OptimizationAdvisor.get",
+    "Zy.OptimizationAdvisor.pending",
+    "Zy.OptimizationAdvisor.canApply",
+    "Zy.OptimizationRollback.auto_restore_on_fail",
+    "Zy.OptimizationRollback.list",
+    "Zy.OptimizationRollback.last",
+    "Zy.Script.generateTemplate",
+    "Zy.Script.generateFromTask",
+    "Zy.Script.generateFromState",
+    "Zy.Script.optimizeScript",
+    "Zy.Script.repairScript",
+    "Zy.Verify.lastFail"
+  ],
+  "missing_in_code": [],
+  "modules": {
+    "AI": [
+      "record",
+      "collect",
+      "analyzeNeed",
+      "plan",
+      "generate",
+      "save",
+      "test",
+      "optimize",
+      "loop",
+      "pathDB",
+      "pipeline"
+    ],
+    "App": [
+      "id",
+      "set",
+      "launch",
+      "close",
+      "front",
+      "isForeground",
+      "isRunning",
+      "windowState",
+      "activate",
+      "monitor",
+      "recognize",
+      "list"
+    ],
+    "Case": [
+      "record",
+      "path",
+      "registerApp"
+    ],
+    "Config": [
+      "path",
+      "load",
+      "save",
+      "get",
+      "set"
+    ],
+    "Coordinate": [
+      "setDesign",
+      "design",
+      "point",
+      "ratio",
+      "region"
+    ],
+    "Device": [
+      "refresh",
+      "profile",
+      "save",
+      "gameRect",
+      "unlock"
+    ],
+    "Diagnose": [
+      "onStuck"
+    ],
+    "Engine": [
+      "pipeline",
+      "validate"
+    ],
+    "File": [
+      "read",
+      "write",
+      "remove",
+      "exists",
+      "scriptsDir",
+      "varDir"
+    ],
+    "Game": [
+      "classify",
+      "phase",
+      "analyze",
+      "suggest",
+      "open",
+      "close",
+      "enterRole",
+      "stepTo",
+      "stateSuggest"
+    ],
+    "Image": [
+      "findColor",
+      "find",
+      "colorAtLogic",
+      "colorAtDesign",
+      "findUntil"
+    ],
+    "Input": [
+      "text",
+      "clear",
+      "typeAtRatio"
+    ],
+    "IssueClassifier": [
+      "classify",
+      "classifyMany",
+      "categories"
+    ],
+    "Knowledge": [
+      "save",
+      "path",
+      "query",
+      "recordSuccess",
+      "recordFailure"
+    ],
+    "Log": [
+      "write",
+      "dialog"
+    ],
+    "Network": [
+      "pyCall",
+      "httpGet",
+      "httpPost"
+    ],
+    "OCR": [
+      "region",
+      "find",
+      "analyze",
+      "findUntil"
+    ],
+    "Optimization": [
+      "collect",
+      "detect",
+      "analyze",
+      "propose",
+      "apply",
+      "verify",
+      "commit",
+      "historyPath",
+      "recordHistory",
+      "classify",
+      "cycle",
+      "_write_cycle_summary",
+      "reportIssue",
+      "status",
+      "schedule"
+    ],
+    "OptimizationAdvisor": [
+      "advise",
+      "confirm",
+      "reject",
+      "get",
+      "pending",
+      "canApply"
+    ],
+    "OptimizationRollback": [
+      "snapshot",
+      "restore",
+      "auto_restore_on_fail",
+      "list",
+      "last"
+    ],
+    "Screen": [
+      "sync",
+      "info",
+      "size",
+      "snapshot",
+      "keep"
+    ],
+    "Script": [
+      "assertPlatform",
+      "set",
+      "get",
+      "has",
+      "clearVars",
+      "vars",
+      "begin",
+      "act",
+      "when",
+      "loop",
+      "untilPhase",
+      "stepState",
+      "defineTask",
+      "runTask",
+      "runTasks",
+      "tick",
+      "recover",
+      "lastError",
+      "scriptsDir",
+      "load",
+      "run",
+      "exit",
+      "restart",
+      "generateTemplate",
+      "generateFromTask",
+      "generateFromState",
+      "optimizeScript",
+      "repairScript",
+      "generate",
+      "debug",
+      "validate",
+      "sdkRoot"
+    ],
+    "StateMachine": [
+      "current",
+      "suggest",
+      "step",
+      "canTransit"
+    ],
+    "Touch": [
+      "tapDesign",
+      "tapRatio",
+      "tapHit",
+      "tap",
+      "swipeRatio",
+      "gesture",
+      "longPress",
+      "swipe"
+    ],
+    "UI": [],
+    "Verify": [
+      "fingerprint",
+      "act",
+      "failReport",
+      "lastFail"
+    ],
+    "Vision": []
+  },
+  "generated_at": "2026-07-22T20:19:14",
+  "catalog_after": 170,
+  "doc_quality": {
+    "target_complete": 109,
+    "target_total": 136,
+    "incomplete": 27
+  }
+}

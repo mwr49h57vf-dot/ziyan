@@ -1,0 +1,788 @@
+====================
+项目名称：
+ZiYan 子砚自动化引擎
+
+
+项目目标：
+打造类似触动精灵的下一代 iOS 自动化开发平台。
+
+支持：
+Lua自动化脚本
+图色识别
+OCR识别
+触控控制
+游戏状态机
+AI脚本生成
+真机自动化测试
+
+硬规则：
+- 禁止拷贝 TouchSprite / XXTouch 源码与私有 API
+- 禁止固定物理像素点击；管道 Device→Screen→Coordinate→Vision→OCR→Touch→Verify→StateMachine
+- 正确点击：Touch.atRatio / atDesign / atHit（Helper.tap = 设计坐标）
+- 验证 App：仅作手工/脚本测试样本，禁止写死进 ZiYanDefense.plist Filter
+  （Defense 对 UIKit 第三方 App 通用；样本常见于 DEVICE_RULES / 测试脚本）
+- 无真机测试结果不得标记业务成功
+- 【7.6.1-A】子砚功能验证结论仅允许在第二类设备（.53/.166）产生；.149/.171 仅为 TS 观察
+- SECURITY_AI：防游戏=App 内 Defense（Shadow essential）；爱思=原生 AFC；说明见
+  子砚工程防御/项目防御说明.txt
+====================
+
+当前架构：
+
+objc/     — 底层：App、ZiYanVol、AppTouch、ScriptRunner、Engine
+lua/      — API 真相源：modules/* + ziyan_engine/*
+api_spec/ — 接口契约
+layout/   — 装机路径镜像
+tools/    — 文档生成、OCR、冒烟工具
+DOCS/     — 人类文档
+Script/   — 用户脚本 SDK
+GPT.txt / GPT_PROJECT_STATE.txt / DEVICE_RULES.md
+子砚触控函数说明.html
+
+====================
+
+核心模块状态：
+
+Device…Touch / Verify / StateMachine / Game — DONE
+Script 2.2.0 — DONE
+AI 1.1.0 — DONE
+Knowledge 1.1.0 — DONE
+Optimization 2.0.0 LongTermOptLoop — DONE（阶段7.6.2）
+IssueClassifier 1.0.0 — DONE
+OptimizationAdvisor 1.0.0 — DONE（proposal 默认）
+OptimizationRollback 1.0.0 — DONE
+Config / Input / UI / Log — DONE
+
+引擎版本：ZiYan Engine **2.24.0** / Modules **1.13.0**（R8.4.1；compat implemented=169/476）
+
+====================
+
+设备分类（7.6.1-A · 权威）：
+
+第一类 TS 观察：192.168.31.149 / .171 — 禁止子砚部署与验收
+第二类 子砚测试：
+  192.168.31.166 — iPhone 7 / iOS 13.1.2 / rootful
+  192.168.31.53 — iPhone 8 Plus / iOS 16.7.16 / rootless【兼容基准】
+  双机必须同方案测试（7.6.2-R3）
+
+====================
+
+当前开发阶段：
+
+阶段7.5 AI平台 DONE
+阶段7.6 长期自主优化 1.0 DONE
+阶段7.6.1-A 设备规则校准 DONE
+阶段7.6.2 Optimization 2.0 增强 DONE
+阶段7.6.2-R / R2 / R3 / R3.1 / R3.3 / R4 DONE
+阶段7.6.3 Screen Mirror 坐标恢复 DONE
+阶段7.6.3-R2 双设备差异 + SB 重启专项 DONE
+阶段7.6.3-R3 SB降载+Overlay会话+生命周期 DONE
+阶段7.6.3-R3-hotfix1 CloseApp 主线程 + .53 SafeMode 恢复 DONE
+阶段7.6.3-R3-hotfix2 Toast/点击/CloseApp 深度修复 DONE
+阶段7.6.3-R4 双机全链路回归 + 生命周期/Overlay DONE
+阶段7.6.3-R4.1 CloseApp/Overlay/找色缓存加固 DONE
+阶段7.6.3-R5 SB降载/关闭程序音量解除/找色精度 DONE
+阶段7.6.3-R6 Overlay合成器跟屏 + 暂停继续 DONE
+阶段7.6.3-R8 .53找色性能/Toast位置/SB重启专项修复 + TS架构对照 DONE
+阶段7.6.3-R8.4 TS→Zy 一一镜像 + HTML 手册 + 双机 compat 覆盖 DONE
+阶段7.6.3-R8.3.11～R8.3.12 串行锁定 / 分工1–2 / Toast·图标·SB 释压 DONE（门禁仍不通过）
+阶段7.6.3-R8.4.1 自动生成脚本+自动脱壳完善 DONE（包 0.0.92-8-105）
+阶段7.6.3-R8.4.2 完整业务脚本+Ai代码训练导入 DONE（包 0.0.92-8-107；待人工验收）
+阶段7.6.3-R8.4.8 LOCK_ICON_HIDE hide-once（包 0.0.92-8-122）· 找色解卡 PARTIAL
+阶段7.6.3-R8.4.8 找色软 TTL 冻帧修复（包 0.0.92-8-123）PARTIAL
+
+【锁定上下文 · 2026-07-28 17:22 · 8-123】
+  包现装：0.0.92-8-123（.166/.53）
+  手册 keepScreen：锁帧复用；示例使用后 keepScreen(false)；停脚本释放
+  根因：8-119 ≤120s shm 假续命 → 找色要等很久才认新画面
+  修：软 TTL 1.2～2.5s；过期短催 daemon；tap 后释放锁帧
+  门禁：长稳续跑未 PASS
+
+【锁定上下文 · 2026-07-28 16:56 · 8-122】
+  包现装：0.0.92-8-122（.166 rootful / .53 rootless）
+  用户诊断：隐藏越狱图标只需 App 运行后一次；回 SB 持续检查导致找色卡
+  修：App 心跳禁刷 hide_req；IconShield 5s 边沿已隐藏静默；fscloakd v8122 hide-once
+  自测：.166 find avg≈1.5ms sb≈8ms；.53 sb≈19ms load≈3.5；desk=HIDE session_edge 一次
+  硬锁：ICON hide-once 用户授权；VOLUME/FINDCOLOR/TOUCH 未改
+  门禁：长稳续跑未 PASS
+
+【锁定上下文 · 2026-07-27 21:35 · R8.4.1】
+  包现装：0.0.92-8-105（.101/.166/.53）
+  生成：runApp→mSleep(3000)→syncGameScreen + OCR/learn/codegen；禁 TSLib
+  脱壳：IPA/Payload + ANALYSIS + dump_defense_feed；侧车 /v1/*
+  .101 Toast「测试完成，请人工验收」· 硬锁抽检 PASS
+  备份：BACKUP_20260727_2113_scriptgen_dump_r841
+
+【锁定上下文 · 2026-07-27 02:50】
+  包现装：0.0.92-8-87 双机 signed · ScriptHub 已启用
+  硬锁：见 已正常功能参考.txt（VOLUME/FINDCOLOR/TOUCH/ICON + Toast preferScreenLand=NO）
+  分工2：Wave1–4 已交付；implemented=169/476；SB 8h 主线优先
+  LOOP_ROUND2：gate pid24996；intent+自愈 PASS；门禁未过（须满 8h）
+  权威快照：GPT_PROJECT_STATE.txt（须与本文件、SYSTEM_REGRESSION、历史归档一致）
+
+Optimization 2.0 闭环：
+  collect → detect → classify → analyze → propose
+  → human_confirm → apply → verify → record
+  默认 proposal：禁止自动改核心；须 human_confirm 才 apply
+  落盘：optimization_history.jsonl + snapshots/
+
+====================
+
+新增功能记录：
+
+日期：2026-07-27 02:50
+阶段：7.6.3-R8.3.12 · 8-87 ScriptHub 启用 【CRITICAL FIX · 门禁不通过】
+包：0.0.92-8-87 双机 signed
+  com.ziyan.scripthub KeepAlive + .ziyan_run_intent；kill lua ≤5s 自愈
+  Desktop ios7/ios8p 仅 scp；color_perf PASS；gate pid24996 重置
+证据：STEP_887_DEPLOY.md
+门禁：不通过；续 8h
+权威：GPT_PROJECT_STATE.txt
+
+日期：2026-07-27 01:05
+阶段：7.6.3-R8.3.12 · LOOP_ROUND2 学架构不抄实现 【CRITICAL FIX · 门禁不通过】
+包：0.0.92-8-86 · ScreenBridge/gate 脉冲+心跳（避硬锁）
+  hiRes keep 60→30s；禁 dataWithData 二次拷贝；缓冲阈值 4MB
+  mem_warn 写盘 20s 冷却；color_perf 挂死旗；gate 心跳/SB 后 revive
+思想：TSDaemon 隔离/脚本可死可拉 → 自研脉冲+门禁拉起（未拆进程）
+ROUND：tmp_shots/PHASE763R8/sb_incidents/LOOP_ROUND2_20260727_0103/
+约束：Desktop ios7/ios8p 仅 scp；四大硬锁未改
+门禁：不通过；须双机真跑+8h 无自发 sb_up
+权威：GPT_PROJECT_STATE.txt · SYSTEM_REGRESSION_REPORT.md §17
+
+日期：2026-07-26 22:45
+阶段：7.6.3-R8.3.12 · LOOP_ROUND1 SB 循环修复 【CRITICAL FIX · 门禁不通过】
+包：0.0.92-8-85 双机 signed · ScreenBridge 脉冲加固（避硬锁）
+  mem_warn→清缓冲；hiRes 绝对 keep 90s→60s；像素落地 img=nil
+ROUND：tmp_shots/PHASE763R8/sb_incidents/LOOP_ROUND1_20260726_2216/
+  8-84 窗：RESTART_DETECTED · .166 自发 sb_up~22:29；.53 未重启但 keep~11MP
+  STEP2：检索 overb0ard/XNU/ScreenMirror（勿抬 jetsam 限额）
+  STEP4：脚本 Y/Y；gate pid61752 monitor_start 22:43:19；pre885 日志已归档
+约束：Desktop ios7/ios8p 仅 scp；四大硬锁未改
+门禁：不通过；须双机 8h 无 sb_up
+权威：GPT_PROJECT_STATE.txt · SYSTEM_REGRESSION_REPORT.md §16
+
+日期：2026-07-26 22:08
+阶段：7.6.3-R8.3.12 · 分工2 Wave4 ship 【CRITICAL FIX · 门禁不通过】
+包：0.0.92-8-84 双机 signed · Engine 2.24.0 / Modules 1.13.0
+分工2 Wave4：Thread 协作式 · Widget=OCR非AX · ftp.init(curl) · zip/unzip · optional http.get/getNetworkIP
+  implemented 144→169/476；手册 Engine 标头已同步
+约束：Desktop ios7/ios8p 禁止改；未自动 menu_run
+门禁：不通过；长稳续采
+权威：GPT_PROJECT_STATE.txt · SYSTEM_REGRESSION_REPORT.md §15
+
+日期：2026-07-26 21:50
+阶段：7.6.3-R8.3.12 · 锁定上下文同步 + 分工2 Wave3 【CRITICAL FIX · 门禁不通过】
+包：0.0.92-8-83 双机 signed · Engine 2.23.0 / Modules 1.12.0
+硬锁归档：已正常功能参考.txt（VOLUME/FINDCOLOR/TOUCH/ICON/Toast）
+分工2：
+  Wave1 String/Clipboard/Timer/Dialog + 扩展模块
+  Wave2 HTTP/FTP/JSON/findFile/appBundlePath；cloud→unsupported:ts_cloud
+  Wave3 P2 Device 13 API + SB pollDeviceControl；implemented 144/476
+  手册：子砚触控函数说明.html 已同步 Engine/Modules + Wave2/3
+近况包：
+  8-80 Toast LOCK 回退；8-81 图标 LOCK；8-82 SB hiRes keep 释压；8-83 Wave3
+约束：Desktop ios7/ios8p 禁止改；勿自动 menu_run；Wave4 须用户明示
+门禁：不通过；长稳续采
+权威：GPT_PROJECT_STATE.txt · SYSTEM_REGRESSION_REPORT.md §14
+
+日期：2026-07-22
+阶段：7.6.2 DONE
+新增：IssueClassifier / OptimizationAdvisor / OptimizationRollback
+升级：Optimization 2.0.0 · Zy 1.9.1
+文档：GPT / GPT_PROJECT_STATE / DOCS/API.md / api_spec / 子砚触控函数说明.html
+测试（仅第二类）：
+  .53 EXIT=0 proposal+confirm apply（tmp_shots/PHASE762_OPT2_202001）
+  .166 EXIT=0 同上
+  未宣称进角；.149/.171 未部署
+
+日期：2026-07-22
+问题：.166 脚本跑完后音量−无响应；图色/运行窗异常
+阶段：7.6.2-R 运行环境兼容恢复 【DONE · 等待确认 · 勿自动开下一阶段】
+包：0.0.92-8-12+debug（仅 .166）
+原因：
+  1) ziyan_run.lua 结束时删除 .ziyan_active（破坏音量拦截）
+  2) SB 未就绪/僵死后 ZiYanVol·ScreenBridge 失效（需 sbreload/ldrestart）
+  3) Zy.Image 管道缺 Device.refresh 自动补齐
+修复文件：ziyan_run.lua / ScriptRunner.m / _ctx.lua / postinst
+.166 终测：
+  ACTIVE_AFTER_RUN=1；vol_trig→present_menu↔dismiss；
+  snapshot true；getColor 真色；findMC/Image.findColor 返回坐标
+证据：tmp_shots/PHASE762R_RUNTIME.md
+未做：Media 净化；物理音量键人手点按确认
+
+日期：2026-07-22
+阶段：7.6.2-R2 ScriptRunner 兼容恢复 【DONE · 等待确认】
+问题：tap 无体感点击；Verify.success 缺失杀循环；音量−运行窗
+修复：
+  1) touch.lua 原子 req + os.time wait；启动清陈旧 app_alive
+  2) Verify.success=requestSuccess（禁假 PASS）；verifiedSuccess/act 才 pass
+  3) 运行中 vol→暂停/停止/关闭弹窗
+.166：LOOP_ALIVE；VERIFY request 行；tap hidOk；vol present_menu
+.53：LOOP_ALIVE RUNTIME=10；vol 暂停/停止；未改 ios8p.lua
+证据：tmp_shots/PHASE762R2_RUNNER.md
+未进下一阶段
+
+日期：2026-07-22
+阶段：7.6.2-R3 双设备兼容模型验证 【DONE · 等待确认】
+同方案：.166(iPhone7/13.1.2) + .53(iPhone8Plus/16.7.16)
+Device：device_db 已更新（iPhone9,3 / iPhone10,2；DPI 326/460）
+Screen：双机 snapshot OK；logic 1136×640 vs 2208×1242
+Coordinate：同 ratio→logic 恒等（design=logic）；尺寸比≈1.94
+Vision：findColor OK；.53 找色/OCR 更慢（大缓冲）
+Touch：tap OK；Verify 仅 request（禁假 PASS）；slide 已尝试
+Volume：脚本运行中双机 present_menu=暂停/停止/关闭弹窗
+脚本：ios7.lua / ios8p.lua 未修改；循环 alive=1
+修复：device.lua 设备库禁写 Media；.ziyan_device_hint
+证据：tmp_shots/PHASE762R3_COMPAT/
+未进下一阶段
+
+日期：2026-07-22
+阶段：7.6.2-R3.1 Touch坐标映射诊断与兼容修复 【DONE · 等待确认】
+问题：findMultiColor 可返回坐标，但 tap(x,y) 不点/错点（疑镜像/旋转/重复转换）
+原因：
+  1) ScreenBridge 曾在 init(1/2) 用横屏恒等归一化冒充系统 HID（数字化仪需竖屏玻璃互逆）
+  2) AppTouch 强制 long×short 恒等 HID，与 find OrientMap 不一致 → 表现为旋转/镜像错点
+  3) 主路径 Lua 未重复 Coordinate（transform_count=1）；非左右/上下镜像公式错误
+坐标模型：
+  lua tap(x,y) → 逻辑原样 IPC → Oc WindowNorm(窗口点) + MapLogicToNorm(竖屏玻璃 HID) → 触控
+  find 成功写 .ziyan_coord_diag（shot/vision/logic/screen/touch）
+修复：
+  OrientMap WindowNorm 竖屏窗一律互逆；ScreenBridge HID 固定 MapLogicToNorm
+  AppTouch 改用 ZiYanMapLogicToTap(preferPortraitHID=YES)
+  coord_diag.lua + touch_mapping_test.lua；未改 ios7.lua/ios8p.lua
+测试：.166 角点 5/5 error_type=ok；.53 角点 5/5 error_type=ok
+  循环 find→tap→Verify.request 双机 LOOP_ALIVE；音量窗 active 保留
+证据：tmp_shots/PHASE762R31_TOUCH/
+未进下一阶段
+
+日期：2026-07-23
+阶段：7.6.2-R3.3 统一 Screen Mirror 坐标模型诊断 + TS 学习日志 + 双机稳定性 【DIAG DONE · 等待修复指令】
+原则：App镜像=Screen=Vision=Coordinate=tap输入=Volume=Toast 同一坐标系；本阶段不改 tap、不开始修复
+Screen Mirror：
+  native 竖屏像素 → ScreenBridge 旋成 logicBuf(init1 横屏) → Vision 取样 → 逻辑点原样给 tap
+  toast：跟 .ziyan_orient init(1)+CCW(+90) 竖屏 host
+  volume：Tweak 硬编码 init=0 竖屏居中（与镜像原则冲突）→ 横屏 App 上竖条遮罩/窗口偏移
+坐标：
+  Vision 返回逻辑点；主路径无重复 Coordinate；tap 收到正确逻辑坐标
+  Oc HID=MapLogicToNorm（竖屏玻璃）；App 内偏移待下一阶段验证（非改 tap）
+图片：Desktop 9785/be8f/a2c9 → 旋转不一致 / toast 偏左 / volume 竖条
+SpringBoard：jetsam/截屏/OCR 循环；双机 lua 僵尸(RSS0)+SB 新起
+LearningObserver：lua/modules/LearningObserver.lua + tools/learning_observer/collect.sh
+  日志 logs/touchsprite_learning/（.149/.171 只读；.171 长跑对照）
+测试脚本：Desktop ios7.lua / ios8p.lua（设备 Media 同方案；本阶段未改）
+证据：tmp_shots/PHASE762R33_MIRROR/
+未开始修复；等待下一步指令
+
+日期：2026-07-23
+阶段：7.6.2-R4 Screen Mirror 统一优化 + 双机验证 + 学习对比 【DONE · 等待确认】
+目标：App镜像=Screen=Vision=Coordinate=tap输入=Toast=Volume 同一 Coordinate Space
+应用优化：
+  1) ZiYanScreenTransform.h — 统一 orient/host/logic/rot
+  2) Volume：废除硬编码 init(0)；dim 挂 orientRoot（消竖条）；跟 uiOrient
+  3) Toast：ToastPositionManager 逻辑底边居中（via ScreenTransform）
+  4) StabilityAnalyzer + LearningObserver JSONL
+测试：
+  .166/.53：menu_geom init=1 rot=CCW(+90) via=ScreenTransform
+  toast mode=ToastPositionManager；center tap hid≈0.5；Verify.request OK
+  SB_ALIVE 于 18s 脚本窗内保持
+学习对比：logs/touchsprite_learning/ + LEARNING_VS_ZIYAN.md
+证据：tmp_shots/PHASE762R4_MIRROR/
+未进下一阶段
+
+日期：2026-07-23
+阶段：7.6.3 系统恢复与架构冻结 【AUDIT DONE · 等待确认 · 未改代码】
+冻结：禁止新功能 / 禁止继续 Optimization / 禁止改核心执行逻辑
+审计产出：
+  SYSTEM_REGRESSION_REPORT.md
+  logs/device_behavior/DEVICE_BEHAVIOR_LOG_*（.149/.171 只读）
+发现问题：
+  1) tap 偏移：Lua 逻辑点正确；可疑 R3.1 AppTouch 改竖屏玻璃 HID
+  2) Toast/Volume 朝向：Overlay=竖屏 host+旋转；R4 改 Volume 跟 init(1)，视觉仍可能错旋
+  3) SB 重启：ScreenBridge jetsam 长跑模型 vs TSDaemon
+污染模块：OrientMap / ScreenBridge / AppTouch(R3.1) · Tweak+Toast+ScreenTransform(R4)
+建议：优先回滚 AppTouch HID 策略 + 校正/回滚 Overlay；不改 tap Lua
+未执行任何代码修改；等待下一步确认
+
+
+
+日期：2026-07-23
+阶段：7.6.3 TouchSprite坐标参考 + Screen Mirror 恢复 + 双机回归 【RECOVERY DONE · 等待确认】
+参考：Desktop/来源豆包解释.rtf（只学思想：截图=找色=点击同一标尺；横屏跟随旋转）
+根因：Coordinate Space 不一致（非 tap 函数错误）
+修复（未改 tap Lua / 未改 ios7·ios8p）：
+  1) AppTouch：横屏窗 identity HID；竖屏窗 MapLogicToTap(glass)
+  2) Toast/Volume ScreenTransform：rawLand+init(1/2) → host=raw rot=0
+  3) coord_diag：coordinateSpace + x1=x2=x3；横屏 identity 判 ok
+验证：
+  .166 toast rawLand_identity host=568x320 rot=0；角点 5/5 ok；via=app land=1
+  .53 游戏内 via=app land=1 space=identity；角点 5/5 ok；toast 随 raw
+  TS .149/.171 只读 learning JSONL；稳定性采样 logs/stability/
+证据：tmp_shots/PHASE763_RECOVERY/
+未进下一阶段
+
+
+日期：2026-07-23
+阶段：7.6.3-R2 双设备差异诊断 + Screen Mirror 稳定性 + SB 重启专项 【DIAG DONE · 等待确认】
+新增诊断：DeviceDifferenceAnalyzer / ScreenMirrorDiagnostic / SpringBoardStabilityAnalyzer
+报告：device_difference_report.md · tmp_shots/PHASE763R2_DIAG/
+结论：
+  .166 坐标/Toast 趋势正常；未过 30min SB 门禁
+  .53 Capture 正确 2208×1242@3（非 1920×1080 错绑）
+  SB 重启根因：jetsam highwater / largestProcess=SpringBoard；.53 缓冲≈3.77× 更易触发
+  .53 旁路：rootless lua Abort；Overlay 随 raw 竖/横翻转
+未改：tap / ios7·ios8p / 学习设备
+日志：logs/screen_mirror/ · logs/sb_restart/
+未进下一阶段
+
+
+日期：2026-07-23
+阶段：7.6.3-R3 双机长稳 SB 修复 + iPhone8P Overlay 对齐 + App 生命周期 【FIX DEPLOYED · 等待确认】
+修复（双机通用，禁单设备坐标特判；未改 tap/ios7/ios8p）：
+  1) ScreenBridge：旋转后丢弃 captureBuffer；find 缓存 1.5s/2.2s；.ziyan_release_screen；.ziyan_sb_mem_pulse
+  2) ToastBridge：废除 orient 180s 伪会话；空闲 uiOrient=0；会话跟 init + ScreenTransform
+  3) CloseApp / stopCurrentRun：清 session/project + release + shutdown 日志
+  4) ScreenWakeManager：空闲忽略 unlock_req
+验证：.166/.53 toast rawLand_identity；角点 5/5；cap=0；release PASS
+报告：iPhone7_vs_iPhone8Plus_report.md · tmp_shots/PHASE763R3_FIX/
+长跑门禁：30min 采样进行中；2h 无 SB 重启待签
+未进下一阶段
+
+
+日期：2026-07-23
+阶段：7.6.3-R3 门禁收尾 【部分通过 · 禁止下一阶段】
+代码补丁：关闭程序=停脚本+杀 com.ziyan.ziyan；停止=停脚本+release、App 存活
+已通过：双机 toast rawLand_identity；角点 5/5；cap=0；release PASS
+未签：30min/2h SB；Volume− 人手；暂停/继续/停止/关闭 UI 人手
+自测：ios7/ios8p 可启动循环；业务色多为 searching；角点管线 PASS
+证据：tmp_shots/PHASE763R3_FIX/GATE_VERDICT.md · Vol≈476992
+未进下一阶段
+
+
+日期：2026-07-23
+阶段：7.6.3-R3-hotfix1 .53 系统崩溃 + 物理音量键恢复 【DONE · 等待确认 · 禁止下一阶段】
+现象：.53 点「关闭程序」后 SpringBoard 崩；随后音量−完全无菜单（系统像挂了）
+崩溃：SpringBoard-2026-07-23-155805.ips · SIGABRT
+  asi=CA_ASSERT_MAIN_THREAD_TRANSACTIONS
+  栈：CloseApp_block(utility) → CloseApplicationBundle → RequestSpringBoardHome
+      → DismissPopup → UIWindow _setHidden（非主线程）
+连带：ElleKit 写 /var/mobile/.eksafemode「SB crash signal 6」→ 全部 Tweak 停注
+      （hooks/front_bid/vol_trig 全部冻结，表现为音量键崩溃）
+修复（Tweak.m，双机部署 Vol≈477872）：
+  1) ZiYanDismissPopup：非主线程则 dispatch_sync 主线程
+  2) ZiYanRequestSpringBoardHome：非主线程则 dispatch_async 主线程
+  3) CloseApplicationBundle 末尾 clearCachedPixels hop 主线程
+恢复：rm .eksafemode + sbreload
+验证：.53 hooks@16:06 刷新；vol_trig→claim=ok present_menu；
+  .ziyan_close_app 后 SB 同 pid、无新 IPS、无 safemode；再次 vol OK
+  .166 同步部署 + vol_trig present_menu
+证据：tmp_shots/PHASE763R3_FIX/sb_crash_53.txt
+未改：tap / ios7.lua / ios8p.lua / 学习设备
+未进下一阶段
+
+
+日期：2026-07-23
+阶段：7.6.3-R3-hotfix2 Toast/点击/关闭程序深度修复 【PARTIAL PASS · 等待人手 · 禁止下一阶段】
+对照：触动 tsdeamon/tsevent 分离 → 子砚 Vol/AppTouch；强调截图=找色=触控同坐标系
+修复（双机通用，禁单设备特判；Vol≈478304）：
+  1) Toast：layout 以 UIWindowScene.coordinateSpace 为合成宿主
+     Screen 横但 Scene 竖 → portraitHost_rotate（修 .53 偏移）；两者皆横 → rawLand_identity
+  2) 点击：ScreenBridge 横屏 keyWindow 时 HID=窗口归一化（对齐 AppTouch）；
+     AppTouch 认领窗口 0.12→0.28s（减少 SB 抢 req）
+  3) CloseApp：home @try；复测无 .eksafemode / 无新 SB IPS
+双机脚本自测：
+  - .166 (ios7.lua 短跑)：启动 toast「searching」✓ Toast dump 底边✓ 角点5/5✓
+    vol✓ close无SafeMode✓；业务命中/四键/30min/2h 未签
+  - .53 (ios8p.lua 短跑)：启动 toast「searching」✓ Toast dump 底边✓ 角点5/5✓
+    vol✓ close无SafeMode✓；业务命中/四键/30min/2h 未签
+验证：
+  - hotfix1 SafeMode：关闭程序路径自动化复测 PASS
+  - 坐标链路：双机 x1=x2=x3 / error_type=ok（角点）
+  - 长跑 / 游戏内点色：待人手
+未改：ios7.lua / ios8p.lua / 学习设备；未改 AppTouch 横屏恒等主体算法
+文档：GPT / GPT_PROJECT_STATE / DEVICE_RULES.md 已同步
+证据：tmp_shots/PHASE763R3_HOTFIX2/
+引擎版本：Zy 1.9.3 · Engine 2.18.0 · Vol≈478304（R3-hotfix2）
+未进下一阶段
+
+
+日期：2026-07-23
+阶段：7.6.3-R4 双机全链路回归 + 生命周期/Overlay + TS对照 【PARTIAL PASS · 禁止下一阶段】
+TS学习（.149/.171 只读 logs/touchsprite_learning · device_behavior）：
+  - TSDaemon 长驻（.171≈90MB RSS / 19天+）；脚本开始/结束成对；Hades 伴随
+  - 关脚本≠杀守护；长跑不在 GUI 囤截屏
+  - 映射：CloseApp 必净 lua+App；空闲释帧；Overlay 跟物理屏
+修复（双机通用 Vol≈478928）：
+  1) CloseApp：stopCurrentRun + killall lua5.3/lua + 杀 ZiYan；
+     .ziyan_close_app=close_program|com.ziyan.ziyan → 完整 CloseApp；
+     shutdown_log 记 lua_killed
+  2) Overlay：UIScreen 横屏 → rawLand_identity；竖屏 → host+旋转（menu …+R4）
+  3) 找色：TTL 0.35/0.55s；空闲 pulse 释帧；IPC 截断；清 var 内 WebKit 脏目录
+  4) 解锁：ziyan_run 会话写 unlock_req；停止/关闭清除
+双机自测：
+  - .53：CloseApp NONE_LEFT lua_killed=2+2 无SafeMode ✓；menu_geom R4 ✓；角点5/5 ✓
+  - .166：CloseApp shutdown 完整 无SafeMode ✓；ps 曾见短暂 (lua5.3) zombie
+  - 业务找色10次/横屏菜单体感/2h SB：未签
+未改：ios7.lua / ios8p.lua / 学习设备
+文档：GPT / GPT_PROJECT_STATE / DEVICE_RULES / tmp_shots/PHASE763R4/
+未进下一阶段
+
+日期：2026-07-23
+阶段：7.6.3-R4.1 CloseApp zombie + Overlay followScreen + 前台刷帧 【PARTIAL PASS · 禁止下一阶段】
+TS学习映射（延续 R4 + 现场对照）：
+  - idle Overlay 跟 raw UIScreen（对照 TS menu_geom）；关程序只杀 App+lua，Vol 留 SB
+  - 找色须跟前台画面：front_bid 变化强制 invalidate（对照 TS 不拿旧帧点色）
+现场根因→修复（双机通用 Vol≈479552）：
+  1) orient==0 曾强制短×长竖屏 host → 物理横屏空闲菜单错位
+     → idle followScreen（host=UIScreen.bounds）
+  2) CloseApp 后 .166 残留 (lua5.3) zombie → waitpid(WNOHANG) + killall 多路径加固
+  3) 最小化/前台切 SB 后旧截图缓存 → front_bid 变更强制刷帧；「运行」清缓存
+双机自测（~17:36）：
+  - .53：CloseApp NONE_LEFT lua_killed=2+2 无SafeMode ✓；idle followScreen 414×736 ✓；角点 HID ok ✓
+  - .166：CloseApp NONE_LEFT（zombie 消）✓；物理横屏 idle followScreen 568×320 rawLand=1 ✓
+  - 游戏前台找色10连 / 横持机 identity 菜单 / 2h SB：未签（待人手）
+未改：ios7.lua / ios8p.lua / 学习设备 / AppTouch 主体算法
+证据：tmp_shots/PHASE763R4/GATE_VERDICT_R41.md · TS_LEARNING_20260723.md
+未进下一阶段
+
+日期：2026-07-23
+阶段：7.6.3-R5 SB降载 + 关闭程序音量解除 + 找色精度 【PARTIAL PASS · 禁止下一阶段】
+TS学习（.149/.171 只读）：
+  - Daemon 长驻；关 GUI ≠ 卸守护
+  - 产品映射：关闭程序 = 杀 App+lua + **粘性解除**音量菜单（系统 HUD）；再开 ZiYan.app 才武装
+修复（双机通用 Vol≈497376）：
+  1) `.ziyan_vol_disarmed`；CloseApp 写入；SBDecreaseVolume 禁止 auto_enable；App/ziyan_run 清除
+  2) killAllZiYanAppProcesses + ps 扫；CloseApp 多轮杀；shutdown 记 vol_disarmed
+  3) 找色邻域命中 mapPx 回写；findColor step=1；TTL 0.25/0.35s；脉冲删大 PNG
+  4) 空闲释帧延续；解锁仍仅脚本会话
+双机自测（~18:10）：
+  - CloseApp：双机 NONE_LEFT；vol_disarmed；vol_trig→trig_skip；再武装 present_menu ✓
+  - 局部精确找色：.53 24/24、.166 20/20（±2px，fuzzy=100 小窗）✓
+  - 无 SafeMode；空闲 mem pulse pix=0 ✓
+  - 游戏业务找色 / 物理音量 HUD 体感 / 2h SB：未签
+未改：ios7.lua / ios8p.lua / 学习设备
+证据：tmp_shots/PHASE763R5/
+未进下一阶段
+
+日期：2026-07-23
+阶段：7.6.3-R6 Overlay合成器跟屏 + 暂停继续不退出 【PARTIAL PASS · 禁止下一阶段】
+TS学习：开菜单≠挂起；暂停/继续同进程；Toast/菜单跟可见合成器
+修复（双机通用 Vol≈497424）：
+  1) Overlay rawLand/host 以 UIWindowScene 合成器为准（禁仅 UIScreen）
+  2) PresentMenu 不再预 SIGSTOP；Resume 清 stop+CONT；freeze 只信号脚本 pid
+  3) 运行中缓冲>12MB 丢弃多余 capture/rot；menu_tap 落盘
+双机自测（~18:40）：
+  - Toast R6 逻辑底边居中 dump ✓；Menu via=R6 ✓
+  - SIGSTOP→CONT 后 lua alive=YES ✓；无 SafeMode
+  - 人手 Overlay 体感 / 游戏内继续 / 2h SB：未签
+证据：tmp_shots/PHASE763R6/
+未进下一阶段
+
+日期：2026-07-23
+阶段：7.6.3-R7 音量菜单位置回归 + 横屏找色 + 会话/解锁 【PARTIAL PASS · 禁止下一阶段】
+TS学习（.149/.171 只读 + 官网手册）：
+  - GUI/daemon/event 分离；菜单跟可见方向；init 后截图=找色=点击
+  - 脚本结束必须回到空闲坐标系（禁残留 session 劫持 Overlay）
+修复（双机通用 Vol≈498752 · .166 13-9 · .53 13-10）：
+  1) Overlay：物理 UIScreen 横优先，合成器横为辅（修 R6 回归）
+  2) 音量菜单：横屏脚本逻辑底边居中；竖屏居中；via=…+R7
+  3) scriptSessionActive：存活 lua/te/paused/pid(EPERM=活)；确认无 lua 清残留 session
+  4) PresentMenu：仅 ps 确认无 lua 才清 te_running
+  5) 找色：横屏 init + 竖屏缓冲 → 强制重截
+  6) 解锁与会话同源：空闲 ignore；脚本 ok；停止 ignore
+双机自测（~19:40 · menu_run_trig _zy_r7_hold.lua）：
+  - 空闲：双机 followScreen 居中；stale session 清除；unlock_ignored ✓
+  - 运行横屏（竖持）：portraitHost_rotate 底边；unlock ok；Toast scriptInit=1 ✓
+  - findColor 中心邻域 10/10（keepScreen）双机 ✓；无 SafeMode
+  - 物理横持 rawLand_identity / ios7·ios8p 游戏找色 / 2h SB：未签
+未改：ios7.lua / ios8p.lua / 学习设备
+证据：tmp_shots/PHASE763R7/
+未进下一阶段
+
+日期：2026-07-24
+阶段：7.6.3-R8.1 .53找色/Toast/SB · CRITICAL FIX 【进行中 · 禁止下一阶段】
+纠正：此前 GPT_PROJECT_STATE 误标 VERIFIED/PASS — **作废**；以本条与
+  tmp_shots/PHASE763R8/GATE_VERDICT.md 为准。
+现场根因（真机）：
+  1) ToastBridge 因 SB 沙盒 ps 漏检误删 .ziyan_project_active → Toast 竖屏 + pulse 清缓冲
+  2) keepScreen IPC 在 refreshPixelsForce 失败时返回 err → Lua keepScreen 永假
+  3) 双 lua / 缺 ios7.lua / .53 缺 DYLD_LIBRARY_PATH 导致启动异常
+R8.1 修复（双机通用）：
+  ZiYanToastBridge：禁止误清 session
+  ZiYanScreenBridge：keepScreen 失败仍开锁帧；isZiYanProjectActive 认 session
+  cv.lua / control.lua / ziyan_run.lua：SB 侧 keepScreen 重同步 + 会话心跳
+短时实测（14:45）：
+  .166 keepScreen=1 avg≈28.8 last=0.3 Toast rawLand_identity 底边
+  .53 keepScreen=1 avg≈169.8 last=0.7 Toast rawLand_identity 底边 · Ellekit 无 safemode
+  双机 avg 差距未达＜50%；30min SB 监控进行中
+TS学习：.149/.171 只读快照 20260724_144640；对照表见 PHASE763R8/
+未改：ios7.lua / ios8p.lua；未部署一类机
+证据：tmp_shots/PHASE763R8/
+未进下一阶段
+
+日期：2026-07-24
+阶段：7.6.3-R8.2.1 · CRITICAL FIX 【核心项部分通过 · 总门禁不通过 · 禁止下一阶段】
+包：0.0.92-8-20 双机
+日志前置：已解析 stability（含 8-19 完整 30min + 8-20 完整 30min）
+根因续：
+  A) Toast：屏横+scene竖 误 identity → 视觉中上；改 scene 宿主 + portraitHost_rotate
+  B) SB：keepScreen 空缓冲狂截；miss 全屏诊断/PNG（.166≈480ms）；15s keepScreen 强制重截
+修复：
+  ZiYanToastBridge.m — R8.2 scene 安全布局
+  ZiYanScreenBridge.m — 锁帧不清像素；禁全屏 miss dump；已锁帧不重截；降脉冲 IO
+  cv.lua — 取消 15s 定时 keepScreen(true)
+真机门禁分项（8-20 · 17:06–17:37）：
+  - 30min 无 SB_RESTART · SB166=41968 SB53=44775 ✓
+  - sb_avg .166=0.5ms .53=0.6ms 差距20%＜50% ✓
+  - Toast dump portraitHost_rotate 逻辑底边 ✓；人手视觉未签
+  - Ellekit SAFE=0 ✓
+  - 全量 API + HTML 手册重写 ✗ 未做
+总判定：不通过 · 禁止下一阶段
+证据：tmp_shots/PHASE763R8/GATE_VERDICT.md
+
+日期：2026-07-24
+阶段：7.6.3-R8.3.1 · SB日志分析 + BootRecovery + HTML结构 + 2h压测
+包：0.0.92-8-22
+溯源：TS手册 keepScreen/会话；XXTouchNG 快照续跑思想；Dopamine rootless 冷启失效
+新增：ZiYanBootRecovery；/var/mobile/ZiYan/state_snapshot.json；.ziyan_sb_lifecycle
+真机烟测：双机 snapshot running=true；.53 tip=manual_rejailbreak；lifecycle sb_up/boot_keep_cleared；SAFE=0
+文档：前言+Lua基础+目录已写入 html；全函数条目待续（HTML_HANDBOOK_PLAN.md）
+2h：stability_2h.log 进行中
+总判定：不通过 · 禁止下一阶段
+
+日期：2026-07-24
+阶段：7.6.3-R8.3.2 · CRITICAL FIX 【门禁不通过 · 禁止下一阶段】
+包：0.0.92-8-23 双机已装
+优先级执行：
+  1) HTML：tools/ziyan_doc/generate_handbook_r83.py → 子砚触控函数说明.html
+     结构：前言 / Lua基础 / UTF-8 / Zy总述 / 8 业务模块 / 综合示例；170 Zy + 全局
+     每函数：概述·语法·入参表·返回·示例；自测按 api_selftest 精确挂载（约46项 PASS，其余「待逐函数补测」）
+  2) API 自测：双机 pass=46 fail=0 skip=8 · find 100% · 无 SB 重启
+  3) 冷启：.166 整机 reboot 迟到补采 lifecycle PASS；resume_armed 有、进程续跑未见
+     .53 仅 sbreload 软冷启 PASS；真断电+Dopamine **未做**
+  4) 过夜：schedule_overnight_2300.sh 已挂起（23:00→08:00）；日志将写 stability_overnight_2300_0800.log
+  5) SB：8-23 软刷新 TTL 加长（2.5/4.0s）+ snapshot 心跳 60s；早前 2h@.53 min8 SB_RESTART 不得冒充 PASS
+总判定：不通过（HTML逐测未齐 · 冷启完整未齐 · 过夜未出）
+证据：tmp_shots/PHASE763R8/GATE_VERDICT.md
+
+
+====================
+
+下一步计划（等待确认）：
+
+1. 【优先】统一脚本会话下 Toast/Volume Overlay host（解决 .53 portraitHost_rotate vs rawLand_identity 分裂）
+2. 【优先】锁定 AppTouch 横屏 HID 单路径（消除同逻辑点 HID 翻转）
+3. 游戏前台短验收 ios7.lua / ios8p.lua（找色命中 + 人手看 Toast/音量底边）
+4. 通过后再开串行2：SECURITY_AI 全量 + 双机实测
+5. 串行2 PASS 后才允许串行3：3h 长稳
+6. 三项硬门禁全绿前禁止下一阶段 / 禁止长稳采集
+
+
+====================
+
+助手工作约定：
+
+1. 先读 GPT.txt + DEVICE_RULES.md + GPT_PROJECT_STATE.txt
+2. 不重新初始化；不删模块
+3. 禁止物理 Touch.click/tap；禁止拷贝触动/XXTouch 私有 API
+4. 子砚 PASS 仅第二类设备（.53/.166）
+5. 无真机数据不得标成功；禁止虚构门禁 PASS
+====================
+
+日期：2026-07-24 19:33
+阶段：R8.3.2 · .53真断电重越狱补采
+结果：JB/Ellekit/boot_idle_clean/引擎冒烟 PASS；snapshot.running=false → 未 resume_armed；续跑闭环仍缺
+门禁：仍不通过（缺过夜日志等）
+证据：tmp_shots/PHASE763R8/COLD_BOOT_RETEST_REPORT.md §7
+
+日期：2026-07-24 20:09
+阶段：R8.3.3 · 音量Overlay位置统一
+包：0.0.92-8-24
+根因：停脚本后 uiOrient 掉 0，.ziyan_active+orient=1 仍在 → 两次菜单位置分裂
+修复：active 粘滞 orient；ShowMenu 对齐 Toast host；每次重建窗
+验收：.166 人手横屏 运行中/停止后 两次音量− 同位置
+过夜：仍等 23:00 自动拉起，未提前开长稳
+门禁：不通过
+
+日期：2026-07-24 20:46
+阶段：R8.3.4/R8.4 · 音量统一+SECURITY_AI
+包：0.0.92-8-28
+音量：启停 geom 一致 PASS（需人手横屏游戏再确认底边视觉）
+防御：ZiYanDefense 双机 T1–T5 记录见 DEFENSE_DUAL_TEST_REPORT；HF权重未拉
+过夜：按规则挂起，两项人手确认前不启动23:00
+门禁：不通过
+
+日期：2026-07-26 00:05
+阶段：7.6.3-R8.3.11 阶段6 · HF 三模型权重 【8-53 · 待人手确认】
+包：0.0.92-8-53 双机
+三模型已同步 Media/ZiYan/models（约2.4GB）；models_status ready_count=3/3
+运行：启发式+权重在位探测（真机不跑满 Transformer）
+阶段2用户PASS；阶段3/4用户跳过
+门禁：不通过
+
+日期：2026-07-25 23:12
+阶段：7.6.3-R8.3.11 串行2补2 · SECURITY_AI 【8-52 · 用户 PASS】
+包：0.0.92-8-52 双机
+修：CloseApp/音量/Home图标/伪装信息框/指纹冷启清
+门禁：不通过
+
+日期：2026-07-25 22:36
+阶段：7.6.3-R8.3.11 串行2补 · SECURITY_AI 手签三问题 【8-49】
+包：0.0.92-8-49 双机
+修：vol_rearm；IconShield；关程序恢复
+门禁：不通过
+
+日期：2026-07-25 22:15
+阶段：7.6.3-R8.3.11 串行2 · SECURITY_AI 【自动 T1–T5 PASS · 待人手短测】
+包：0.0.92-8-48 双机
+改动：defense_status + shutdown_trig 恢复；AI BREAK 同步 toast 文件
+自动：双机 T1–T5 PASS（DEFENSE_DUAL_TEST_REPORT.md）
+未动：音量/找色/HID 锁定；不注入 SB/backboardd
+HF：启发式默认；权重未全拉（需确认）
+门禁：不通过（人手确认前不签串行2；禁止 3h）
+
+日期：2026-07-25 21:57
+阶段：7.6.3-R8.3.11 串行1补 · .166 音量横屏 【8-47 · 用户 PASS】
+包：0.0.92-8-47 双机
+人工：.166 暂停菜单侧歪左下 + 空闲运行菜单左下裁切；.53 正常 → 已通过
+修复：空闲横屏跟 init；Volume iOS13 rawIdentity；iOS15+ 保护.53
+自动：rawLand=1 → host=568x320 card≈124,58 rot=0
+门禁：不通过
+
+日期：2026-07-25 21:41
+阶段：7.6.3-R8.3.11 串行1 · HID 单路径双机 【自动短测 PASS · 总门禁不通过】
+包：0.0.92-8-46 双机
+改动：仅 AppTouch+SB HID→永远 MapLogicToNorm
+证据：hid_s1_846_dual.txt
+门禁：不通过
+
+日期：2026-07-25 19:40
+阶段：7.6.3-R8.3.11 · 归档锁定 + 包锚点 8-42 【CRITICAL FIX · 门禁不通过】
+包锚点：0.0.92-8-42 · Engine 2.20.0
+落地：已正常功能参考.txt（音量/找色/点击锁定）+ 历史问题全归档.txt
+约束：禁止改锁定模块；仅允许横屏 HID 单路径；双机同方案；禁止未闭环 3h
+串行：HID → SECURITY_AI → 长稳
+门禁：不通过
+
+日期：2026-07-25 19:35
+阶段：R8.3.13.1 · .53回滚8-43 + 空闲横屏修复仅iOS13 【已作废单机分叉策略】
+说明：与 R8.3.11「双机同方案+音量锁定+包锚点8-42」冲突 → 以 19:40 锚点为准回滚对齐
+门禁：不通过
+
+日期：2026-07-25 19:25
+阶段：R8.3.13 · 游戏空闲音量框横屏居中 【.166 已装 8-44 · 待人手横持确认】
+包：0.0.92-8-44
+根因：空闲 init=0 用竖 host=320×568 盖 raw=568×320 → 左下裁切
+修复：Volume orient=0+screenLand → raw 横屏宿主 + 卡片居中（idleLand_rawIdentity）
+门禁：不通过；请人手横持游戏内音量确认
+
+日期：2026-07-25 19:13
+阶段：R8.3.12 · HID 锁定竖屏玻璃 Norm 【.166 找色tap回归 PASS · 总门禁仍不通过】
+包：0.0.92-8-43
+根因：AppTouch 随 winLand 在玻璃 Norm ↔ 窗 identity 间翻转（找色对、点乱）
+修复：数字化仪 HID 永远 MapLogicToNorm；UITouch 仍 WindowNorm；SB 同步
+.166：land=1 仍 space=portrait_glass；logic=900,200×10 hid 唯一=EXPECT
+证据：hid_lock_843.txt / VERDICT_843.md
+门禁：不通过（人手点色/长稳未签）；禁止 3h
+
+日期：2026-07-25 19:02
+阶段：R8.3.11 · 空闲竖屏居中 + .53 暂停/继续/停止 【本项PASS · 总门禁仍不通过】
+包：0.0.92-8-42
+修复：
+  - volumeMenuOrient：空闲强制 init=0（勿粘滞 .ziyan_active/orient=1）
+  - rootless：jb-shell + /bin/ps -Aww；扫描失败勿清 te_running
+  - pid 无 cmdline 时仅信任仍存在的 .ziyan_lua_run.pid；排除 (lua5.3) 僵尸
+双机：IDLE/RUN/PAUSE/RESUME/STOP 全 PASS（regress_842_dual.txt）
+门禁：不通过（HID 未闭环）；禁止 3h
+
+日期：2026-07-25 18:40
+阶段：R8.3.10 · Toast/Volume 分流 + 运行最小化不伤暂停链
+包：0.0.92-8-40
+修复：
+  - Toast 恢复 R8.2 portraitHost（.166 不再跟 Volume 误用 iOS13 identity）
+  - Volume 仍 .166 identity / .53 rotate
+  - 「运行」仅 SIGTERM App；去掉 go_home 风暴；keep_script + isRunning EPERM
+.166 证据：Toast host=320x568 CCW；Volume host=568x320；运行后菜单=暂停/停止
+门禁：待人手确认 .166 toast+音量双视觉；暂停/继续实机点按
+
+日期：2026-07-25 18:32
+阶段：R8.3.9 · .166 游戏音量窗 iOS13 跟屏 identity 【请人手确认视觉】
+包：0.0.92-8-39
+根因：iOS13 上 UIScreen 已横仍建竖 host → 裁切错位
+修复：屏横+scene竖 → iOS13/14 rawLand_identity；iOS15+ 仍 portraitHost_rotate
+.166 dump：mode=rawLand_identity_iOS13 host=568x320 rot=0 card 底边
+.53 dump：仍 portraitHost_rotate（未回归）
+门禁：待人手确认 .166 游戏画面音量框底边居中
+
+日期：2026-07-25 18:25
+阶段：R8.3.8 · Volume=Toast对齐 + 仅「运行」最小化 【部分PASS · 总门禁仍不通过】
+包：0.0.92-8-38（.166/.53）
+约束：未改 Desktop ios7.lua / ios8p.lua 内容
+现场：
+  1) Volume/Toast 双机均为 portraitHost_rotate（含 .53 游戏 rawLand=1 sceneLand=0）
+  2) 点「运行」后 App 退出前台：.166/.53 PASS；lua 保留；仅弹音量不杀 App
+  3) 找色 toast 布局与 Volume 同源；色点未命中时无 tap 日志属预期
+  4) tap HID 翻转仍 OPEN
+证据：tmp_shots/PHASE763R8/REGRESS_VOL_MIN/run_min_838_*.txt · overlay_find_838_*.txt
+下一步：锁定横屏 AppTouch HID 单路径后再开 SECURITY_AI/长稳
+门禁：仍不通过
+
+日期：2026-07-25 17:35
+阶段：7.6.3-R8.4-REGRESS · ios7/ios8p 业务脚本复测 【OPEN · 总门禁仍不通过】
+脚本：Desktop/ios7.lua → .166；Desktop/ios8p.lua → .53
+现场：
+  1) compat 未 wrap find/toast（wrap_find=nil）；自命中找色双机 OK
+  2) .166 采样时 front=SpringBoard → toast「searching」（业务色依赖游戏前台）
+  3) .53 Toast=portraitHost_rotate 且 Volume=rawLand_identity → Overlay 分裂（弹窗乱）
+  4) .53 同逻辑点 tap HID 在 0.774,0.911 ↔ 0.911,0.226 翻转（点偏风险）
+  5) Zy.Compat 被 modules/init 整表覆盖 → count=nil（已修源码并 scp 热更）
+已修：
+  - lua/modules/init.lua：重建 Zy 时保留 prev Compat
+未改：
+  - Oc ToastBridge / Tweak Volume preferScreenLandIdentity 分裂
+  - AppTouch HID 路径；未打新 deb
+证据：
+  - tmp_shots/PHASE763R8/REGRESS_IOS_SCRIPTS/REGRESS_REPORT.md
+  - probe_166.txt / probe_53.txt / script_run_*.txt
+下一步：
+  1) 统一脚本会话下 Toast/Volume host（禁止一边 identity 一边 rotate）
+  2) 锁定横屏 AppTouch HID 单路径
+  3) 游戏前台短验收后再开 SECURITY_AI / 长稳
+门禁：仍不通过
+
+日期：2026-07-25 17:20
+阶段：7.6.3-R8.4 · TS→Zy 一一镜像 + HTML 手册 + 双机 compat 覆盖 【串行1 PASS · 总门禁仍不通过】
+包：0.0.92-8-29 双机热更 Lua · Engine 2.20.0
+完成：
+  1) TS 文档采集完成：573/573 → tmp_shots/PHASE763R8/ts_docs_archive/
+  2) HF 三模型权重 COMPLETE：v5 / UPG / mmbert → vendor/hf_models/
+  3) 476 个采集函数名一一注册到 ZiYan 自研 compat 后端：
+     implemented=82 / stub_generic=309 / stub_planned=25 / stub_unsupported=60
+  4) 子砚触控函数说明.html 已重生：
+     Zy API 条目 174；TS→Zy 镜像 476；已回写双机 compat 结果
+  5) 真机 compat_mirror_selftest：
+     .166 rootful：pass=478 fail=0 skip=0 total=476
+     .53 rootless：pass=478 fail=0 skip=0 total=476
+  6) 新增模块：layers.lua · Input.Keycode / pressHome · compat_impl / compat_registry
+修复：
+  - init.lua 同版本早退分支补载 layers/compat_registry（修 Zy.Compat.count=nil）
+  - compat_registry 保证创建 Zy.Compat，并支持 yolo 这类命名空间+函数名冲突
+  - pressHomeKey ↔ keycode.home 递归死循环（改走 __ZIYAN_NATIVE_* / wrap 标记）
+  - compat_mirror_selftest：纯函数/轻量图色真实调用；触控/输入/截图/IO/应用/设备控制走注册契约检查
+边界：
+  - 触动/XXTouch 仅作章节/契约学习；未导入、未调用其私有 API 或源码
+  - stub_generic/planned 不等于功能完成，后续需继续把高优先级 stub 提升为自研后端
+证据：
+  - tools/ziyan_doc/ts_zy_mirror_map.json
+  - lua/ziyan_engine/compat_impl.lua / compat_registry.lua / init.lua
+  - lua/modules/Input.lua
+  - 子砚触控函数说明.html
+  - tmp_shots/PHASE763R8/api_selftest/compat_result_166.txt
+  - tmp_shots/PHASE763R8/api_selftest/compat_result_53.txt
+  - tmp_shots/PHASE763R8/TS_ZY_MIRROR_REPORT.md
+  - tmp_shots/PHASE763R8/HTML_HANDBOOK_R84.md
+  - tmp_shots/PHASE763R8/GATE_VERDICT.md
+  - SYSTEM_REGRESSION_REPORT.md §8
+下一步：
+  串行2 SECURITY_AI 全量 + 双机实测；全部通过后才允许启动 3h 长稳。
+门禁：仍不通过（SECURITY_AI 双机未闭环；3h 长稳未启动）

@@ -1,0 +1,70 @@
+2026-08-05 整改总方案落地（勿改 plan 文件）
+
+一句话：第0期冻结粘滞 keep；刀 E1=禁 embed 暗 keep + 热路径禁 color_req + path_stats；默认双机。
+
+版本目标：0.0.92-8-161-200-1（开发验收默认 .101 + .53）
+
+## 开机清单
+1. 四机 ACTIVE=0 KEEP=0；有粘滞：`tools/zy_miss_fuse_emergency.sh all`
+2. 确认包：双机 **200-1**（DUR53 换前台催帧）
+3. 业务可见验收：`tools/zy_run1_script_logic_gate.sh`（认找到目标+tap；不拆链等登录）
+4. 引擎刀只用双机：`tools/zy_build_dual.sh` → 只装 .101+.53
+5. E1–E4：`zy_e1_*` / `zy_e2_*` / `zy_e3_*` / `zy_e4_promo_gate.sh`
+
+## 冻结清单（禁止再改）
+- 会话 auto-keep / embed 启动 `ZiYanFrameKeepEnable`
+- framecap `hasColor→KeepEnable`
+- 无假设的 relay/toast 连改
+- 用改 keep 赌业务色点命中
+- **CLEAR1**：禁再开 DESK/FG/COLOR 话术刀；禁关 CAP53 同场景 30s 空赌；禁宣称已抄成触动找色内存
+- 业务可见验收 **只认** `zy_run1_script_logic_gate.sh`
+
+## 熔断（防 190）
+- 机上：`.ziyan_no_auto_keep` 常驻
+- 引擎：连续 miss≥120s 且 keep/会话 → 拆 keep，写 `.ziyan_miss_fuse`
+- 急救：`bash tools/zy_miss_fuse_emergency.sh all`
+
+## 色点专线（第 3 期，与引擎错开）
+- 找色=当前前台；取什么找什么
+- 三机间歇能认≠永久瞎；`.53` 主痛=出帧耐久（DUR53）
+- FG1 仅引擎错前台硬拒，不作业务验收
+- deb分析无找色内存源码可抄
+
+## 未闭环 / 下一刀
+- RF_LEAVE **FAIL**：游戏仅.166可开；RUN1 仅.112仍找到目标且未离桌；.101 Dock点可得Mail但色漂
+- 证据：`tmp_shots/RECTIFY_RF_LEAVE_*`；待你装游戏+真实图标v134取色后再跑
+- IOMFB / 超越触动 / E4：未做
+- 真相：`tmp_shots/RECTIFY_CLEAR1/`
+
+## 助手默认首条
+读本文件 → 查双机版本/ACTIVE/KEEP → 用户未点业务则只做引擎/稳态，色点走 probe 专线。
+
+----
+历史摘要（节选）
+- 190：会话 auto-keep → 内存/SB 崩 → 191 回滚 Lua 侧
+- 193：拆 embed StartEmbedThread 暗 KeepEnable（KEEP 粘滞真凶）+ E1 热路径禁 color_req
+- 188/189：TS keep/find + Frida createScreenIOSurface
+
+----
+[2026-08-05 09:15] 加速落地：192 双机 HOT20 PASS；fuse/probe/build_dual 就绪
+[2026-08-05 09:40] 整改开工：清 KEEP；.53/.166 reboot；E1 代码+门禁脚本；包目标 193-1
+[2026-08-05 10:00] 整改收工：四机 193 ACTIVE=0 KEEP=0；E1 双机 PASS（embed_find=80 color_req=0）；证据 tmp_shots/RECTIFY_E1_193；下一刀 E2
+[2026-08-05 10:35] 刀 E2 PASS：194-2 keep TTL + Relock不续命；双机 TTL_FIRED；证据 RECTIFY_E2_194；下一刀 E3
+[2026-08-05 11:10] 刀 E3 PASS：195-1 去 toast_bump+force/CapLog 节流；双机门禁；证据 RECTIFY_E3_195；下一刀 E4
+[2026-08-05 12:00] 刀 E4 FAIL：30min 四机；RF三机 PASS；.53 SB环×5；.171 TSDaemon≈33MB 对照；证据 RECTIFY_E4_195；下一刀查.53 SB
+[2026-08-05 12:55] 刀 S53 PASS：196 @3x relay节流；.53 SB_CHG=0(15min)；证据 RECTIFY_S53_196
+[2026-08-05 13:40] 刀 E4R FAIL：196 四机30min；.53 SB×2（≈7min/≈28min）；RF三机 PASS；证据 RECTIFY_E4R_196
+[2026-08-05 14:55] 刀 S53B PASS：197 iomfb_nil force≥12s；.53 30min 无 SB 环；证据 RECTIFY_S53B_197；下一刀 E4R2
+[2026-08-05 15:45] 刀 VIS1：停E4R2空跑；双机 Desktop 可见 toast；.101=searching(未进游戏) .53=登录(主色未点)；证据 RECTIFY_VIS1_197
+[2026-08-05 16:05] 刀 COLOR1：probe 证 .53 主色漂移(0xfdfdef→近黑)登录仍命中；三机场景/包不对；mSleep×2；证据 RECTIFY_COLOR1_197
+[2026-08-05 17:15] 刀 CAP53 PASS：198 @3x relay≥30s + soft_keep + miss催帧30s；.53 15min SB_CHG=0 RELAY=28(对照obs≈75)；.101 5min PASS；证据 RECTIFY_CAP53_198
+[2026-08-05 19:55] 刀 DESK2：两段色门禁纠偏；.53 Home→找到目标→登录 PASS；.166 FAIL_DESK；证据 RECTIFY_DESK2_*；脚本 zy_desk2_two_segment_gate.sh
+[2026-08-05 20:20] 刀 FG1：找色=当前前台；去主副话术；zy_fg1_front_match_gate；199 color_req 错前台硬拒；证据 RECTIFY_FG1_*
+[2026-08-05 23:55] 刀 RUN1：按脚本逻辑验收；.53 找到目标+tap PASS；三机 FAIL_NO_FIND(色点A)；证据 RECTIFY_RUN1_*；脚本 zy_run1_script_logic_gate.sh
+[2026-08-06 00:46] 刀 CLEAR1+DUR53 PASS：200 换前台 force 1s；.53 找到目标→SHM≤10s 对齐；SB_CHG=0；证据 RECTIFY_CLEAR1/
+[2026-08-06 07:40] 刀 DUR53L PASS：.53 15min POST+900；FORCE 换前台；soft_keep 仍在；SB pid 未换(83128)；证据 RECTIFY_DUR53L_20260806_072038
+[2026-08-06 08:35] 刀 RF1 FAIL(部分)：三机200；重取880,200 取色当下三机FIND；复跑112/166找到目标但A3仍Home；游戏open失败；证据 RECTIFY_RF1_*
+[2026-08-06 09:42] 刀 RF_ALIGN：三机RUN1均找到目标396,195；A3仍Home；游戏仅.166可开；证据 RECTIFY_RF_ALIGN_*
+[2026-08-06 09:55] 刀 RF_LEAVE FAIL：GAME 101/112=0 166=1；RUN1 112找到目标仍Home；101/166 NO_FIND；证据 RECTIFY_RF_LEAVE_*
+
+[2026-08-06 10:07] 刀 MCP_GH 决策：唯一推荐 GitHub Connect；其它 Integrations 跳过；本机无 .git/无 gh，推库待你确认 owner/name；证据 /Users/mac/Desktop/ZiYan_副本/tmp_shots/RECTIFY_MCP_GH_20260806_100742

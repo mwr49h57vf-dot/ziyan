@@ -1,0 +1,195 @@
+{
+  "module": "screen",
+  "title": "屏幕 / 取色 / 找色 / 截屏 / 方向",
+  "backend": "lua/ziyan_engine/{cv,color,orient,screen}.lua + ZiYanScreenBridge",
+  "apis": [
+    {
+      "name": "init",
+      "args": [
+        "orient:number"
+      ],
+      "returns": "bool",
+      "note": "0 Home下 1右 2左；逻辑坐标基准",
+      "status": "done",
+      "aliases": []
+    },
+    {
+      "name": "getColor",
+      "args": [
+        "x",
+        "y"
+      ],
+      "returns": "number",
+      "note": "逻辑坐标取色 0xRRGGBB",
+      "status": "done",
+      "aliases": []
+    },
+    {
+      "name": "getColorRGB",
+      "args": [
+        "x",
+        "y"
+      ],
+      "returns": "r,g,b",
+      "note": "拆分 RGB",
+      "status": "partial",
+      "aliases": []
+    },
+    {
+      "name": "findColor",
+      "args": [
+        "color"
+      ],
+      "returns": "x,y",
+      "note": "全屏单色",
+      "status": "partial",
+      "aliases": []
+    },
+    {
+      "name": "findColorFuzzy",
+      "args": [
+        "color",
+        "fuzzy"
+      ],
+      "returns": "x,y",
+      "note": "全屏+精度",
+      "status": "partial",
+      "aliases": []
+    },
+    {
+      "name": "findColorInRegion",
+      "args": [
+        "color",
+        "x1",
+        "y1",
+        "x2",
+        "y2"
+      ],
+      "returns": "x,y",
+      "note": "区域单色",
+      "status": "partial",
+      "aliases": []
+    },
+    {
+      "name": "findColorInRegionFuzzy",
+      "args": [
+        "color",
+        "fuzzy",
+        "x1",
+        "y1",
+        "x2",
+        "y2"
+      ],
+      "returns": "x,y",
+      "note": "区域+精度",
+      "status": "partial",
+      "aliases": []
+    },
+    {
+      "name": "findMultiColorInRegionFuzzy",
+      "args": [
+        "main",
+        "offsetStr",
+        "fuzzy",
+        "x1",
+        "y1",
+        "x2",
+        "y2"
+      ],
+      "returns": "x,y",
+      "note": "TS/TE 多点找色主路径",
+      "status": "done",
+      "aliases": [
+        "findMultiColor",
+        "pyFindMultiColor",
+        "pyFindColor"
+      ]
+    },
+    {
+      "name": "findMultiColorInRegionFuzzyEx",
+      "args": [
+        "main",
+        "offsetStr",
+        "fuzzy",
+        "x1",
+        "y1",
+        "x2",
+        "y2"
+      ],
+      "returns": "table",
+      "note": "返回全部命中",
+      "status": "planned",
+      "aliases": []
+    },
+    {
+      "name": "keepScreen",
+      "args": [
+        "on:boolean"
+      ],
+      "returns": "void",
+      "note": "缓存开关（占位/桥接）",
+      "status": "partial",
+      "aliases": []
+    },
+    {
+      "name": "rotateScreen",
+      "args": [
+        "deg:number"
+      ],
+      "returns": "bool",
+      "note": "旋转提示（逻辑向由 init 管）",
+      "status": "partial",
+      "aliases": []
+    },
+    {
+      "name": "getScreenResolution",
+      "args": [],
+      "returns": "w,h",
+      "note": "逻辑分辨率",
+      "status": "partial",
+      "aliases": [
+        "getScreenSize"
+      ]
+    },
+    {
+      "name": "dumpScreen",
+      "args": [
+        "path?:string"
+      ],
+      "returns": "string|nil",
+      "note": "逻辑方向 PNG",
+      "status": "done",
+      "aliases": []
+    },
+    {
+      "name": "snapshot",
+      "args": [
+        "path?:string"
+      ],
+      "returns": "bool",
+      "note": "截屏别名",
+      "status": "done",
+      "aliases": [
+        "snapshotScreen",
+        "pySnapshot"
+      ]
+    },
+    {
+      "name": "snapshotRegion",
+      "args": [
+        "path",
+        "x1",
+        "y1",
+        "x2",
+        "y2",
+        "scale?"
+      ],
+      "returns": "bool",
+      "note": "区域截屏",
+      "status": "partial",
+      "aliases": [
+        "ZiYanCV.capture_region"
+      ]
+    }
+  ]
+}

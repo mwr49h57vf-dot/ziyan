@@ -1,0 +1,19 @@
+Warning: Permanently added '192.168.31.166' (RSA) to the list of known hosts.
+T1_app=OK
+T1_vol=OK
+T1_sb=1
+T1_hooks=SBVolumeControl.decreaseVolume
+T5_ACK=ok 8451
+T5_SMOKE=round=1;round=2;round=3;
+round=1
+round=2
+round=3
+T2_rounds=PASS detail=round=1..3
+T3_toast=PASS detail=called
+T3_mSleep=PASS detail=ok
+T3_getColor=PASS detail=16479744
+T3_findMultiColor=PASS detail=-1,-1
+T3_dumpScreen=PASS detail=/usr/lib/ziyan/var/.ziyan_dual_dump.png
+T3_tap=PASS detail=called
+T4_stop_clear=PASS detail=no residual stop
+DONE=1

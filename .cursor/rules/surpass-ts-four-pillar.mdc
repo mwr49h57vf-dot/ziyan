@@ -1,0 +1,116 @@
+---
+description: 子砚架构铁律——四支柱+机型矩阵+设备分工+TS日志+全面超越触动（SB稳态/业务效率）
+alwaysApply: true
+---
+
+# 子砚超越触动 · 架构铁律（写死）
+
+凡本仓库内开发、联调、验收、写 VERDICT、改启动链/找色/触控/Toast/守护，**必须**遵守本文。  
+目标：**综合性能完全超越触动精灵**（尤其 **SpringBoard 稳定性**、**业务脚本执行效率**）；未满足宣称门槛前禁止口头宣称已全面超越。
+
+---
+
+## A. 四条设备与目标铁律（与四支柱同级 · 写死）
+
+### A1. 机型 / 系统矩阵（必须兼容）
+
+当前必须兼容的越狱苹果机型与系统（**后续扩展以用户通知为准，未通知前不得擅自抬上限**）：
+
+| 机型 | 说明 |
+|------|------|
+| iPhone **7** / **7 Plus** | rootful 为主验收面 |
+| iPhone **8** / **8 Plus** | rootless / rootful 均须可跑 |
+| 系统 | **iOS 13 ~ 16.7.16**（含中间小版本；上限写死到 16.7.16） |
+
+禁止为单机写死不可移植坐标/路径特判；分辨率走 `init` + OrientMap / ScreenTransform。  
+构建默认兼顾 arm64；rootful / rootless 双包（`make package` / `make package-rootless`）。
+
+### A2. `.149` / `.171`：触动日志可随时拉取对照
+
+- 角色：**TouchSprite 只读观察机**（禁止部署 ZiYan、禁止当 ZiYan 验收结论来源）。
+- **必须**维护可拉取的触动运行日志/状态（TSDaemon、脚本 status、关键日志路径等）。
+- 需要对照时：**随时 SSH 拉取** → 落盘 `tmp_shots/TS_OBS/<timestamp>/`（或既有 SURPASS_TS 目录）→ 与四机 ZiYan VERDICT 并排比较。
+- 定期或任务前应能回答：TS 是否仍长跑、SB etime、脚本是否在圈、有无新崩溃。
+
+### A3. `.53` / `.101` / `.112` / `.166`：只做 ZiYan 项目测试
+
+| IP | 典型角色 |
+|----|----------|
+| `.53` | iPhone 8 Plus · rootless · 兼容基准 |
+| `.101` `.112` `.166` | iPhone 7 · rootful · 功能/稳态验收 |
+
+- **唯一**允许部署 ZiYan、跑业务脚本、出功能/稳态 PASS/FAIL 的真机集合。
+- 禁止拿观察机冒充测试机；禁止把测试机改成长期只装触动不做 ZiYan 验收。
+
+### A4. 综合性能必须完全超越触动（重点两项）
+
+| 维度 | 要求 |
+|------|------|
+| **SB 稳定性** | 长跑无自发 SB/backboardd 重启环；对标并超过 `.171` 触动侧稳态（见 `FIVE_PHONE_SURPASS_PLAN.md` G0 / 归档 G1） |
+| **业务代码执行效率** | 找色/点击/圈速/跟手优于同脚本语义下的触动表现（换屏跟手、keep 吞吐等见 G2–G5） |
+
+宣称「完全超越」须：**四机 VERDICT + `.149`/`.171` 日志对照 + G1–G6**。无证据禁止宣称。
+
+---
+
+## B. 四支柱（缺一不可）
+
+| 支柱 | 含义 | 允许 | 禁止 |
+|------|------|------|------|
+| **1. 模仿触动** | 对齐 TS **产品体感与运行模型**（常驻合帧、音量启停、找色/点/Toast 跟手、Home 后可点、冷启动可跑） | `.171`/`.149` 只读观察；公开手册 | 观察机部署 ZiYan；TS 冒烟写成 ZiYan PASS |
+| **2. 可抄触动** | **允许抄**业务 API 名/参/语义，以及找色/合帧/keep/Home/守护等**逻辑与算法**（手册、日志、逆向、`open_code`、corpus） | 对照移植进 `lua/` `objc/` | 链接触动 so/TSDaemon 作包内运行依赖；观察机验收 |
+| **3. 落点自有树** | 抄来的接口与逻辑写进 ZiYan 二进制/脚本，不依赖触动进程代跑 | `lua/` `objc/` `tools/ziyan_*` 自有 IPC | 改 Desktop ios7/ios8p（仅 scp） |
+| **4. 网络+corpus** | 开源与语料加速 | `逆向学习/corpus/`；免费 GitHub/HF | 无确认批量拉；付费闭源；编造 API |
+| **5. CPU↓ / 内存对照触动** | 全项目 CPU **越低越好**；缓冲/Toast/截帧释放对照触动长跑 | 节流、禁风暴、keep 显式、复用窗 | 2Hz toast/force/relay 打满 SB；脚本停仍 keep=1 |
+
+工作流：
+
+```
+拉取 .149/.171 TS 日志（需要时）+ corpus/手册
+  → 抽象语义与稳态模型 → 自研进 lua/objc
+  → 仅在 .53/.101/.112/.166 真测
+  → 与 TS 日志对照 → VERDICT（SB 稳态 + 业务效率）
+```
+
+---
+
+## C. 架构落点
+
+| 层 | 路径 | 角色 |
+|----|------|------|
+| TS 观察+日志 | `.171` / `.149` | 只读；日志随时拉 `tmp_shots/TS_OBS/` |
+| ZiYan 测试 | `.53` `.101` `.112` `.166` | 唯一部署/验收 |
+| 脚本 API | `lua/ziyan_engine/` | 找色/触控/Toast/orient |
+| SB 薄注入 | Vol + FrameRelay | 音量/Toast/合帧中继；BBTouch 默认关 |
+| 合帧守护 | `ziyan_framecap` + launchd | 对标 TSDaemon；`menu_run` 必须 EnsureFramecapAlive |
+| 语料 | `逆向学习/corpus/` | 先查再造 |
+
+---
+
+## D. 稳态与验收
+
+1. 冷启动 = 脚本 + 合帧守护（禁只起 lua）。
+2. IPC 真路径：`$JB/usr/lib/ziyan/var`。
+3. 禁默认杀 backboardd；dylib 热更才可单次杀 SB；纯 lua 禁杀 SB。
+4. 手动路径与助手路径同构（EnsureFramecapAlive + 目标 App 前台）。
+5. 兼容矩阵：7/7P/8/8P × iOS 13～16.7.16，改坐标/路径必须可移植；扩展机型/系统待用户告知。
+6. 超越门槛：`COPY_TS_REFORM_PLAN.md` 刀序 + `FIVE_PHONE_SURPASS_PLAN.md` G0 + 四机 VERDICT + TS 日志对照。
+
+---
+
+## E. 业务 API / CPU / 内存（摘要 · 详见专用规则）
+
+1. **允许抄触动**（API + 逻辑 + 算法）；实现落 `lua/`/`objc/`，禁止链触动 dylib/TSDaemon 作运行依赖。旧「严禁照搬」表述作废。  
+2. **CPU 越低越好**：禁热轮询与 toast/force/relay 风暴。  
+3. **内存释放对照触动**：用完即释、停脚本清 keep、长跑不弱于 `.171`。  
+
+完整条文：`.cursor/rules/ziyan-api-cpu-mem.mdc`。
+
+---
+
+## F. 权威索引
+
+- 本规则 · `ziyan-api-cpu-mem.mdc`（Agent 必遵）
+- `ARCHITECTURE.md` · `STRUCTURE.md` · `DEVICE_RULES.md`
+- `COPY_TS_REFORM_PLAN.md` · `FIVE_PHONE_SURPASS_PLAN.md` · `api_spec/architecture.json`
+- `逆向学习/corpus/` · `tmp_shots/TS_OBS/`（触动对照落盘）

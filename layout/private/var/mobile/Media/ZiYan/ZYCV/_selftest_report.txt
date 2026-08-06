@@ -1,0 +1,33 @@
+===== USB =====
+ZiYan habit auto selftest (fix1 jetsam)
+date=2026-07-20 pkg=0.0.82-63+debug arm64 role=USB
+script=_habit_auto_test.lua kept=login_xztl.lua
+round=role=USB round=52 t=1784533784
+SB_PASS start=23448 end=23448
+init/toast/mSleep PASS
+findMultiColor PASS
+NetTime PASS
+tap PASS
+getText PASS
+ZYCV PASS tmp_left=0 toast=text=时间:2026-07-20 15:49:44 点:-1,-1
+init=1 host=414x736 raw=414x736 logic=736x414 pad=20.0
+label.center=368.0,379.0 mode=fixedPortraitHost
+ocr={"roi":[2208,1242],"ok":true,"err":"","region":[0,0,2207,1241],"zh_ok":true,"img":[540,303],"via":"sb_ocr","obs":1,"text":"O*E"}
+VERDICT=PASS
+
+===== LAN =====
+ZiYan habit auto selftest (fix1)
+date=2026-07-20 pkg=0.0.82-64+debug arm role=LAN
+script=_habit_auto_test.lua (cyan) kept=login_xztl.lua
+round=role=LAN round=21 t=1784533783
+SB_PASS start=67162 end=67162
+init/toast/mSleep PASS
+findMultiColor PASS (x=-1 allowed)
+NetTime PASS
+tap PASS
+getText PASS
+ZYCV PASS tmp_left=0 toast=text=时间:2026-07-20 15:49:44 点:-1,-1
+init=1 host=320x568 raw=320x568 logic=568x320 pad=20.0
+label.center=284.0,285.0 mode=fixedPortraitHost
+ocr=
+VERDICT=PASS

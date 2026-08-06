@@ -1,0 +1,31 @@
+{
+  "note": "校验通过后再 rsync/安装；当前仅规格，未要求写入手机",
+  "tree": {
+    "/usr/lib/ziyan/": {
+      "lib/lua/ziyan_engine/": "模块实现（与 api_spec/modules 一一对应）",
+      "lib/lua/ziyan_run.lua": "内置运行入口",
+      "lib/lua/ziyan_te_boot.lua": "预加载",
+      "modules/": "HTML/JSON 文档与 catalog",
+      "var/": "运行时 IPC",
+      "bin/": "工具链",
+      "engine/": "可选守护（自有或兼容入口，不捆绑破解二进制到规格）",
+      "include/": "C 头（自研）"
+    },
+    "/private/var/mobile/Media/ZiYan/": {
+      "*.lua": "用户脚本",
+      "res/": "资源/模板图"
+    },
+    "/Library/MobileSubstrate/DynamicLibraries/": {
+      "ZiYanVol.*": "SpringBoard",
+      "ZiYanAppTouch.*": "目标 App"
+    }
+  },
+  "api_spec_on_repo": {
+    "api_spec/architecture.json": "分层",
+    "api_spec/catalog.json": "总表",
+    "api_spec/modules/<name>.json": "模块规格",
+    "api_spec/modules/<name>_contract.lua": "签名契约（无专有实现）",
+    "api_spec/compat/*.json": "命名映射",
+    "api_spec/layout/device_tree.json": "装机路径树"
+  }
+}

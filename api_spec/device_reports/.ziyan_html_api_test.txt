@@ -1,0 +1,75 @@
+PASS  [boot] ziyan_te_boot 
+PASS  [orient] init(1) 
+PASS  [screen] dumpScreen /usr/lib/ziyan/var/.ziyan_html_shot.png sz=100768
+PASS  [screen] getColor c=15921911
+PASS  [screen] snapshot 
+PASS  [screen] pySnapshot table: 0x10531c8f0
+PASS  [color] pyFindColor 0,0
+PASS  [color] findMultiColorInRegionFuzzy 0,0
+PASS  [color] pyFindMultiColor 0,0
+PASS  [image] pyFindImage 0,0
+PASS  [ocr] getText text="6\
+<\
+nes 5 " n=0
+PASS  [ocr] strFind len=10
+PASS  [ocr] findStr -1,nil
+PASS  [ocr] findNumber n=nil
+PASS  [ocr] ZiYanCV.ocr_backends ziyan_ocr,tessdata_chi_sim,tessdata_eng
+PASS  [ocr] ZiYanCV.capture_region /usr/lib/ziyan/var/.ziyan_region.png
+PASS  [touch] tap 
+PASS  [touch] pyTap 
+PASS  [touch] swipe 
+PASS  [touch] pySwipe 
+PASS  [touch] touchDown/Move/Up 
+PASS  [app] appRun 
+PASS  [app] closeApp/appKill 
+PASS  [app] pyOpenApp 
+PASS  [app] pyCloseApp 
+PASS  [app] pyOpenApp(Preferences) true
+PASS  [net] NetTime 2026-07-19 16:06:58
+PASS  [net] NetTimeStr 2026-07-19 16:06:58
+PASS  [net] NetIp ip= (empty=env)
+PASS  [net] FtpUpload 
+PASS  [net] FtpDownload 
+PASS  [net] FtpDelete 
+PASS  [net] FtpRead 
+PASS  [net] FtpIsUpdate 
+PASS  [net] FtpUpload_struct ok=false
+PASS  [fs] CopyClipboard 
+PASS  [fs] PasteClipboard ziyan_html_clip_ok
+PASS  [fs] FileCreate_dir 
+PASS  [fs] FileCreate_file 
+PASS  [fs] FileExists 
+PASS  [fs] FileCopy 
+PASS  [fs] FileList n=2
+PASS  [fs] FileMove 
+PASS  [fs] FileDelete 
+PASS  [fs] PlistWrite 
+PASS  [fs] PlistRead bar
+PASS  [memory] MemoryWrite 
+PASS  [memory] MemoryAccess 8888
+PASS  [memory] MemoryKeys 
+PASS  [memory] MemoryDump n=1
+PASS  [memory] MemoryFind n=0
+PASS  [memory] MemoryScanNames 
+PASS  [memory] MemoryRoleName 
+PASS  [control] mSleep 
+PASS  [control] __ZIYAN_wait_while_paused 
+PASS  [codec] jsonEncode 
+PASS  [codec] jsonDecode_empty no throw
+PASS  [codec] jsonDecode_obj 
+--- TOTAL pass=58 fail=0 skip=0 ---
+--- BY MODULE ---
+  touch  PASS=5 FAIL=0 SKIP=0
+  codec  PASS=3 FAIL=0 SKIP=0
+  ocr  PASS=6 FAIL=0 SKIP=0
+  net  PASS=9 FAIL=0 SKIP=0
+  memory  PASS=7 FAIL=0 SKIP=0
+  orient  PASS=1 FAIL=0 SKIP=0
+  boot  PASS=1 FAIL=0 SKIP=0
+  image  PASS=1 FAIL=0 SKIP=0
+  control  PASS=2 FAIL=0 SKIP=0
+  app  PASS=5 FAIL=0 SKIP=0
+  color  PASS=3 FAIL=0 SKIP=0
+  screen  PASS=4 FAIL=0 SKIP=0
+  fs  PASS=11 FAIL=0 SKIP=0

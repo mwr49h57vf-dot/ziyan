@@ -1,0 +1,723 @@
+{
+  "modules": {
+    "Device": "设备",
+    "App": "应用",
+    "Screen": "屏幕",
+    "Coordinate": "坐标",
+    "Vision": "视觉",
+    "Image": "图像",
+    "OCR": "文字",
+    "Touch": "触控",
+    "File": "文件",
+    "Network": "网络",
+    "Verify": "验证",
+    "StateMachine": "状态机",
+    "Game": "交互",
+    "Script": "脚本",
+    "AI": "智能",
+    "Config": "配置",
+    "Input": "输入",
+    "UI": "界面",
+    "Knowledge": "知识库",
+    "Optimization": "优化",
+    "IssueClassifier": "问题分类",
+    "OptimizationAdvisor": "优化建议",
+    "OptimizationRollback": "优化回滚",
+    "Log": "日志",
+    "Engine": "引擎",
+    "Case": "案例",
+    "Diagnose": "诊断"
+  },
+  "functions": {
+    "Device.refresh": {
+      "short": null,
+      "zh": "刷新",
+      "zh_desc": "刷新设备画像（分辨率/DPI/游戏区等）"
+    },
+    "Device.profile": {
+      "short": null,
+      "zh": "画像",
+      "zh_desc": "读取当前设备画像表"
+    },
+    "Device.save": {
+      "short": null,
+      "zh": "保存",
+      "zh_desc": "将设备画像落盘"
+    },
+    "Device.gameRect": {
+      "short": "gameArea",
+      "zh": "游戏区域",
+      "zh_desc": "返回游戏内容区 x,y,w,h（逻辑坐标）"
+    },
+    "Device.unlock": {
+      "short": null,
+      "zh": "解锁",
+      "zh_desc": "尝试解锁设备屏幕"
+    },
+    "Screen.sync": {
+      "short": null,
+      "zh": "同步",
+      "zh_desc": "按方向与 Bundle 同步屏幕坐标系"
+    },
+    "Screen.info": {
+      "short": null,
+      "zh": "信息",
+      "zh_desc": "返回屏幕信息（逻辑宽高等）"
+    },
+    "Screen.size": {
+      "short": null,
+      "zh": "尺寸",
+      "zh_desc": "返回逻辑宽、高"
+    },
+    "Screen.snapshot": {
+      "short": null,
+      "zh": "截图",
+      "zh_desc": "截取当前屏并返回路径"
+    },
+    "Screen.keep": {
+      "short": null,
+      "zh": "锁帧",
+      "zh_desc": "保持/释放屏幕帧缓存"
+    },
+    "Coordinate.setDesign": {
+      "short": "design",
+      "zh": "设设计分辨率",
+      "zh_desc": "设置设计稿宽高，后续点/区均相对设计坐标"
+    },
+    "Coordinate.design": {
+      "short": null,
+      "zh": "设计分辨率",
+      "zh_desc": "读取当前设计宽高"
+    },
+    "Coordinate.point": {
+      "short": null,
+      "zh": "点",
+      "zh_desc": "设计点 → 逻辑点"
+    },
+    "Coordinate.ratio": {
+      "short": null,
+      "zh": "比例点",
+      "zh_desc": "0~1 比例 → 逻辑点"
+    },
+    "Coordinate.region": {
+      "short": null,
+      "zh": "区域",
+      "zh_desc": "设计区域 → 逻辑矩形"
+    },
+    "Vision.findColor": {
+      "short": null,
+      "zh": "找色",
+      "zh_desc": "视觉门面：转调 Image.findColor"
+    },
+    "Vision.findImage": {
+      "short": null,
+      "zh": "找图",
+      "zh_desc": "视觉门面：转调 Image.find"
+    },
+    "Vision.colorAt": {
+      "short": null,
+      "zh": "取色",
+      "zh_desc": "设计点取色"
+    },
+    "Vision.ocr": {
+      "short": null,
+      "zh": "识字",
+      "zh_desc": "区域 OCR"
+    },
+    "Vision.findText": {
+      "short": null,
+      "zh": "找字",
+      "zh_desc": "在屏上查找文字"
+    },
+    "Vision.analyze": {
+      "short": null,
+      "zh": "分析",
+      "zh_desc": "词表视觉综合分析"
+    },
+    "Image.findColor": {
+      "short": null,
+      "zh": "找色",
+      "zh_desc": "设计区域内多点找色"
+    },
+    "Image.find": {
+      "short": null,
+      "zh": "找图",
+      "zh_desc": "设计区域内找图"
+    },
+    "Image.colorAtDesign": {
+      "short": "colorAt",
+      "zh": "取色",
+      "zh_desc": "设计坐标取色（推荐）"
+    },
+    "Image.colorAtLogic": {
+      "short": "colorAtPx",
+      "zh": "取色逻辑点",
+      "zh_desc": "已同步屏幕上的逻辑点取色"
+    },
+    "Image.findUntil": {
+      "short": null,
+      "zh": "等到找色",
+      "zh_desc": "超时内轮询找色，直到命中"
+    },
+    "OCR.region": {
+      "short": null,
+      "zh": "区域识字",
+      "zh_desc": "识别设计区域内文字"
+    },
+    "OCR.find": {
+      "short": null,
+      "zh": "找字",
+      "zh_desc": "查找目标文字位置"
+    },
+    "OCR.analyze": {
+      "short": null,
+      "zh": "分析",
+      "zh_desc": "多词表视觉/OCR 分析"
+    },
+    "OCR.findUntil": {
+      "short": null,
+      "zh": "等到找字",
+      "zh_desc": "超时内轮询找字"
+    },
+    "Touch.tapDesign": {
+      "short": "atDesign",
+      "zh": "点设计",
+      "zh_desc": "按设计坐标点击（推荐）"
+    },
+    "Touch.tapRatio": {
+      "short": "atRatio",
+      "zh": "点比例",
+      "zh_desc": "按 0~1 比例点击（推荐）"
+    },
+    "Touch.tapHit": {
+      "short": "atHit",
+      "zh": "点命中",
+      "zh_desc": "点击视觉/找色返回的逻辑命中点"
+    },
+    "Touch.tap": {
+      "short": null,
+      "zh": "禁止裸点",
+      "zh_desc": "已禁用：禁止固定物理坐标点击"
+    },
+    "Touch.swipeRatio": {
+      "short": "swipe",
+      "zh": "滑比例",
+      "zh_desc": "按比例从起点滑到终点"
+    },
+    "Touch.gesture": {
+      "short": null,
+      "zh": "手势",
+      "zh_desc": "按下→移动→抬起手势链（比例点）"
+    },
+    "File.read": {
+      "short": null,
+      "zh": "读",
+      "zh_desc": "读取文本文件"
+    },
+    "File.write": {
+      "short": null,
+      "zh": "写",
+      "zh_desc": "写入文本文件"
+    },
+    "File.remove": {
+      "short": null,
+      "zh": "删",
+      "zh_desc": "删除文件"
+    },
+    "File.exists": {
+      "short": null,
+      "zh": "存在",
+      "zh_desc": "判断路径是否存在"
+    },
+    "File.scriptsDir": {
+      "short": null,
+      "zh": "脚本目录",
+      "zh_desc": "返回脚本根目录"
+    },
+    "File.varDir": {
+      "short": null,
+      "zh": "变量目录",
+      "zh_desc": "返回运行变量目录"
+    },
+    "Network.httpGet": {
+      "short": null,
+      "zh": "获取",
+      "zh_desc": "HTTP GET 请求"
+    },
+    "Network.httpPost": {
+      "short": null,
+      "zh": "提交",
+      "zh_desc": "HTTP POST 请求"
+    },
+    "Network.pyCall": {
+      "short": null,
+      "zh": "调Python",
+      "zh_desc": "调用 Python 侧函数"
+    },
+    "Verify.act": {
+      "short": null,
+      "zh": "执行并验证",
+      "zh_desc": "执行动作后比对指纹/相位"
+    },
+    "Verify.fingerprint": {
+      "short": null,
+      "zh": "指纹",
+      "zh_desc": "采集当前画面指纹"
+    },
+    "Verify.failReport": {
+      "short": "fail",
+      "zh": "失败报告",
+      "zh_desc": "写入失败原因与建议"
+    },
+    "StateMachine.current": {
+      "short": null,
+      "zh": "当前",
+      "zh_desc": "当前交互状态"
+    },
+    "StateMachine.suggest": {
+      "short": null,
+      "zh": "建议",
+      "zh_desc": "根据状态给出建议动作标签"
+    },
+    "StateMachine.step": {
+      "short": null,
+      "zh": "步进",
+      "zh_desc": "按 handler 执行一步并验证"
+    },
+    "StateMachine.canTransit": {
+      "short": null,
+      "zh": "可转移",
+      "zh_desc": "判断状态转移是否合法"
+    },
+    "Game.classify": {
+      "short": null,
+      "zh": "分类",
+      "zh_desc": "通用界面分类"
+    },
+    "Game.phase": {
+      "short": null,
+      "zh": "相位",
+      "zh_desc": "当前相位名"
+    },
+    "Game.analyze": {
+      "short": null,
+      "zh": "分析帧",
+      "zh_desc": "分析当前帧并返回结构"
+    },
+    "Game.suggest": {
+      "short": null,
+      "zh": "建议",
+      "zh_desc": "相位→建议动作"
+    },
+    "Game.open": {
+      "short": null,
+      "zh": "打开",
+      "zh_desc": "启动目标应用"
+    },
+    "Game.close": {
+      "short": null,
+      "zh": "关闭",
+      "zh_desc": "关闭目标应用"
+    },
+    "Game.enterRole": {
+      "short": null,
+      "zh": "进角",
+      "zh_desc": "尝试进入角色/主界面流程"
+    },
+    "Game.stepTo": {
+      "short": null,
+      "zh": "步进到",
+      "zh_desc": "向目标相位推进一步"
+    },
+    "Game.stateSuggest": {
+      "short": null,
+      "zh": "状态建议",
+      "zh_desc": "兼容旧名，等同 suggest"
+    },
+    "Script.begin": {
+      "short": null,
+      "zh": "开始",
+      "zh_desc": "初始化脚本会话（bid/设计分辨率/方向）"
+    },
+    "Script.act": {
+      "short": null,
+      "zh": "动作",
+      "zh_desc": "带验证的动作执行"
+    },
+    "Script.set": {
+      "short": null,
+      "zh": "设变量",
+      "zh_desc": "设置脚本变量"
+    },
+    "Script.get": {
+      "short": null,
+      "zh": "取变量",
+      "zh_desc": "读取脚本变量"
+    },
+    "Script.when": {
+      "short": null,
+      "zh": "当",
+      "zh_desc": "条件成立时执行"
+    },
+    "Script.loop": {
+      "short": null,
+      "zh": "循环",
+      "zh_desc": "有限次循环"
+    },
+    "Script.untilPhase": {
+      "short": null,
+      "zh": "等到相位",
+      "zh_desc": "轮询直到目标相位"
+    },
+    "Script.tick": {
+      "short": null,
+      "zh": "滴答",
+      "zh_desc": "主循环单步：分析→处理→验证"
+    },
+    "Script.recover": {
+      "short": null,
+      "zh": "恢复",
+      "zh_desc": "异常恢复（同步/重开）"
+    },
+    "Script.defineTask": {
+      "short": null,
+      "zh": "定义任务",
+      "zh_desc": "注册命名任务"
+    },
+    "Script.runTask": {
+      "short": null,
+      "zh": "跑任务",
+      "zh_desc": "执行单个命名任务"
+    },
+    "Script.runTasks": {
+      "short": null,
+      "zh": "跑任务列表",
+      "zh_desc": "按序执行任务"
+    },
+    "Script.run": {
+      "short": null,
+      "zh": "运行脚本",
+      "zh_desc": "加载并运行 scripts 下文件"
+    },
+    "Script.exit": {
+      "short": null,
+      "zh": "退出",
+      "zh_desc": "结束当前脚本会话"
+    },
+    "Script.restart": {
+      "short": null,
+      "zh": "重启脚本",
+      "zh_desc": "标记并请求重新运行入口脚本"
+    },
+    "Script.generate": {
+      "short": null,
+      "zh": "生成脚本",
+      "zh_desc": "按自然语言需求生成 Lua 脚本"
+    },
+    "Script.generateFromTask": {
+      "short": null,
+      "zh": "按任务生成",
+      "zh_desc": "打通 Zy.AI 生成完整自动化流程"
+    },
+    "Script.generateFromState": {
+      "short": null,
+      "zh": "按状态生成",
+      "zh_desc": "根据 Game 状态机生成下一步脚本"
+    },
+    "Script.optimizeScript": {
+      "short": null,
+      "zh": "优化脚本",
+      "zh_desc": "根据运行日志优化已有脚本"
+    },
+    "Script.repairScript": {
+      "short": null,
+      "zh": "修复脚本",
+      "zh_desc": "根据错误自动修复脚本"
+    },
+    "Script.debug": {
+      "short": null,
+      "zh": "调试",
+      "zh_desc": "输出当前函数/坐标/截图/错误快照"
+    },
+    "Script.validate": {
+      "short": null,
+      "zh": "校验",
+      "zh_desc": "检查模块依赖与禁止的物理点击写法"
+    },
+    "Script.assertPlatform": {
+      "short": null,
+      "zh": "断言平台",
+      "zh_desc": "确认当前在子砚运行环境中"
+    },
+    "Script.clearVars": {
+      "short": null,
+      "zh": "清空变量",
+      "zh_desc": "清空脚本会话变量表"
+    },
+    "Script.has": {
+      "short": null,
+      "zh": "有变量",
+      "zh_desc": "判断脚本变量是否存在"
+    },
+    "Script.lastError": {
+      "short": null,
+      "zh": "最后错误",
+      "zh_desc": "读取最近一次脚本错误原因"
+    },
+    "Script.load": {
+      "short": null,
+      "zh": "加载",
+      "zh_desc": "dofile 加载指定路径 Lua 文件"
+    },
+    "Script.scriptsDir": {
+      "short": null,
+      "zh": "脚本目录",
+      "zh_desc": "返回用户脚本根目录路径"
+    },
+    "Script.stepState": {
+      "short": null,
+      "zh": "状态步进",
+      "zh_desc": "委托状态机执行一步"
+    },
+    "Script.vars": {
+      "short": null,
+      "zh": "变量表",
+      "zh_desc": "返回当前脚本变量表副本"
+    },
+    "Touch.longPress": {
+      "short": null,
+      "zh": "长按",
+      "zh_desc": "设计坐标长按（规划/扩展）"
+    },
+    "Touch.swipe": {
+      "short": null,
+      "zh": "滑动",
+      "zh_desc": "比例滑动（swipeRatio 短别名）"
+    },
+    "Optimization.collect": {
+      "short": null,
+      "zh": "采集",
+      "zh_desc": "汇总一轮运行指标与证据"
+    },
+    "Optimization.detect": {
+      "short": null,
+      "zh": "发现",
+      "zh_desc": "从指标中发现问题列表"
+    },
+    "Optimization.classify": {
+      "short": null,
+      "zh": "分类",
+      "zh_desc": "委托 IssueClassifier 自动分类"
+    },
+    "Optimization.analyze": {
+      "short": null,
+      "zh": "分析",
+      "zh_desc": "归因问题根因"
+    },
+    "Optimization.propose": {
+      "short": null,
+      "zh": "提案",
+      "zh_desc": "产出优化 patch 方案"
+    },
+    "Optimization.apply": {
+      "short": null,
+      "zh": "应用",
+      "zh_desc": "将 patch 应用到 plan/脚本（须确认）"
+    },
+    "Optimization.verify": {
+      "short": null,
+      "zh": "验证",
+      "zh_desc": "静态检查+轻量测试优化结果"
+    },
+    "Optimization.commit": {
+      "short": null,
+      "zh": "提交",
+      "zh_desc": "版本落盘并更新知识库"
+    },
+    "Optimization.cycle": {
+      "short": null,
+      "zh": "闭环",
+      "zh_desc": "2.0 闭环：默认 proposal，须 human_confirm"
+    },
+    "Optimization.recordHistory": {
+      "short": null,
+      "zh": "记历史",
+      "zh_desc": "写入 optimization_history.jsonl"
+    },
+    "Optimization.historyPath": {
+      "short": null,
+      "zh": "历史路径",
+      "zh_desc": "返回优化历史 jsonl 路径"
+    },
+    "Optimization.reportIssue": {
+      "short": null,
+      "zh": "上报问题",
+      "zh_desc": "可选钩子上报 issue（默认关）"
+    },
+    "Optimization.status": {
+      "short": null,
+      "zh": "状态",
+      "zh_desc": "读取优化任务状态"
+    },
+    "Optimization.schedule": {
+      "short": null,
+      "zh": "调度",
+      "zh_desc": "长期任务调度（二期）"
+    },
+    "IssueClassifier.classify": {
+      "short": null,
+      "zh": "分类",
+      "zh_desc": "将 issue 归入七类问题之一"
+    },
+    "IssueClassifier.classifyMany": {
+      "short": null,
+      "zh": "批量分类",
+      "zh_desc": "批量分类 issue 列表"
+    },
+    "IssueClassifier.categories": {
+      "short": null,
+      "zh": "类别表",
+      "zh_desc": "返回七类问题定义"
+    },
+    "OptimizationAdvisor.advise": {
+      "short": null,
+      "zh": "建议",
+      "zh_desc": "生成 proposal（不自动改核心）"
+    },
+    "OptimizationAdvisor.confirm": {
+      "short": null,
+      "zh": "确认",
+      "zh_desc": "人工确认/拒绝 proposal"
+    },
+    "OptimizationAdvisor.canApply": {
+      "short": null,
+      "zh": "可应用",
+      "zh_desc": "是否允许 apply"
+    },
+    "OptimizationAdvisor.pending": {
+      "short": null,
+      "zh": "待确认",
+      "zh_desc": "列出 pending proposal"
+    },
+    "OptimizationRollback.snapshot": {
+      "short": null,
+      "zh": "快照",
+      "zh_desc": "优化前保存文件快照"
+    },
+    "OptimizationRollback.restore": {
+      "short": null,
+      "zh": "恢复",
+      "zh_desc": "从快照回滚文件"
+    },
+    "OptimizationRollback.auto_restore_on_fail": {
+      "short": null,
+      "zh": "失败回滚",
+      "zh_desc": "verify 失败自动恢复"
+    },
+    "OptimizationRollback.list": {
+      "short": null,
+      "zh": "快照列表",
+      "zh_desc": "列出已有快照"
+    },
+    "App.launch": {
+      "short": null,
+      "zh": "启动",
+      "zh_desc": "启动应用"
+    },
+    "App.close": {
+      "short": null,
+      "zh": "关闭",
+      "zh_desc": "关闭应用"
+    },
+    "App.front": {
+      "short": null,
+      "zh": "前台",
+      "zh_desc": "当前前台 Bundle ID"
+    },
+    "App.list": {
+      "short": null,
+      "zh": "列表",
+      "zh_desc": "已安装应用列表"
+    },
+    "Log.write": {
+      "short": null,
+      "zh": "写日志",
+      "zh_desc": "输出日志并可 toast"
+    },
+    "Log.dialog": {
+      "short": null,
+      "zh": "对话框",
+      "zh_desc": "弹出确认/提示对话框"
+    },
+    "Config.path": {
+      "short": null,
+      "zh": "路径",
+      "zh_desc": "返回配置文件绝对路径"
+    },
+    "Config.load": {
+      "short": null,
+      "zh": "加载",
+      "zh_desc": "读取 JSON 配置表"
+    },
+    "Config.save": {
+      "short": null,
+      "zh": "保存",
+      "zh_desc": "保存配置表为 JSON"
+    },
+    "Config.get": {
+      "short": null,
+      "zh": "取值",
+      "zh_desc": "读取配置中的单个键"
+    },
+    "Config.set": {
+      "short": null,
+      "zh": "设值",
+      "zh_desc": "写入配置键并落盘"
+    },
+    "Input.text": {
+      "short": null,
+      "zh": "输入文本",
+      "zh_desc": "向当前焦点输入字符串"
+    },
+    "Input.clear": {
+      "short": null,
+      "zh": "清空",
+      "zh_desc": "尝试清空当前输入框"
+    },
+    "Input.typeAtRatio": {
+      "short": null,
+      "zh": "点比例并输入",
+      "zh_desc": "先点比例焦点再输入文字"
+    },
+    "Input.VolumeDown": {
+      "short": null,
+      "zh": "音量减",
+      "zh_desc": "触发音量−并弹出运行信息窗口"
+    },
+    "Input.VolumeUp": {
+      "short": null,
+      "zh": "音量加",
+      "zh_desc": "记录/派发音量+事件"
+    },
+    "UI.show": {
+      "short": null,
+      "zh": "显示",
+      "zh_desc": "显示运行信息对话框"
+    },
+    "UI.hide": {
+      "short": null,
+      "zh": "隐藏",
+      "zh_desc": "隐藏对话框"
+    },
+    "UI.update": {
+      "short": null,
+      "zh": "更新",
+      "zh_desc": "更新对话框正文"
+    },
+    "UI.setText": {
+      "short": null,
+      "zh": "设文案",
+      "zh_desc": "设置对话框正文"
+    }
+  }
+}

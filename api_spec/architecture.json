@@ -1,0 +1,63 @@
+{
+  "product": "ZiYan",
+  "version_spec": "1.0.0-draft",
+  "principle": [
+    "四支柱写死：模仿触动体感 + 借鉴触动语义 + ZiYan自研实现 + 逆向学习/corpus与免费开源网络学习（见 ARCHITECTURE.md / .cursor/rules/surpass-ts-four-pillar.mdc）",
+    "机型矩阵写死：越狱 iPhone 7/7P/8/8P × iOS 13～17 必须兼容",
+    "设备分工写死：.149/.171 只读触动且日志随时可拉对照；.53/.101/.112/.166 只做 ZiYan 项目测试",
+    "性能目标写死：综合性能完全超越触动，尤其 SpringBoard 稳定性与业务脚本执行效率",
+    "只吸收 TE/TS 的分层与 API 语义，不拷贝任何二进制/telib/wifi_native/破解脚本",
+    "脚本作者使用全局驼峰函数（兼容触动/触摸破解版调用习惯）",
+    "bid/路径等参数一律由作者填写，引擎不写死游戏 Bundle ID",
+    "冷启动必须 EnsureFramecapAlive：menu_run 与助手测试路径同构，禁止只起 lua 无合帧守护",
+    "宣称超越须 SURPASS_TS_PLAN G1-G6 + 四机 VERDICT + .149/.171 TS 日志对照",
+    "装机前须人工校验本目录 JSON/Lua"
+  ],
+  "layers": [
+    {
+      "id": "app",
+      "path": "/Applications/ZiYan.app",
+      "role": "配置/选脚本 UI"
+    },
+    {
+      "id": "tweak_sb",
+      "path": "ZiYanVol.dylib → SpringBoard",
+      "role": "音量菜单、Toast、截屏找色、HID 兜底"
+    },
+    {
+      "id": "tweak_app",
+      "path": "ZiYanAppTouch.dylib → 目标 App(Filter)",
+      "role": "进程内触控/MemHook"
+    },
+    {
+      "id": "engine",
+      "path": "/usr/lib/ziyan/engine/",
+      "role": "可选 TE 兼容守护；失败则 lua5.3 fallback"
+    },
+    {
+      "id": "lua",
+      "path": "/usr/lib/ziyan/lib/lua/ziyan_engine/",
+      "role": "自研 API 实现"
+    },
+    {
+      "id": "scripts",
+      "path": "/private/var/mobile/Media/ZiYan/",
+      "role": "用户脚本唯一真相源"
+    },
+    {
+      "id": "var",
+      "path": "/usr/lib/ziyan/var/",
+      "role": "IPC 文件总线 .ziyan_*"
+    },
+    {
+      "id": "bins",
+      "path": "/usr/lib/ziyan/bin/",
+      "role": "lua5.3 / python3 / ziyan_ocr / ziyan_mem"
+    }
+  ],
+  "forbidden_sources": [
+    "触摸精灵破解包内任何 Mach-O / telib.lua / wifi_native.*",
+    "触动精灵 TSDaemon/TSTweak/TSLib 等二进制与专有库",
+    "授权绕过、SUID 伪装、包名混淆方案"
+  ]
+}

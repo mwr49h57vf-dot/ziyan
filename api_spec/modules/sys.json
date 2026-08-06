@@ -1,0 +1,189 @@
+{
+  "module": "sys",
+  "title": "系统 / 提示 / 延时",
+  "backend": "lua/ziyan_engine/{control,toast,device,res_interop}.lua + SpringBoard toast bridge",
+  "apis": [
+    {
+      "name": "mSleep",
+      "args": [
+        "ms:number"
+      ],
+      "returns": "void",
+      "note": "延时毫秒；内含暂停/停止检查点",
+      "status": "done",
+      "aliases": []
+    },
+    {
+      "name": "toast",
+      "args": [
+        "any",
+        "ms?:number"
+      ],
+      "returns": "void",
+      "note": "非阻塞吐司",
+      "status": "done",
+      "aliases": []
+    },
+    {
+      "name": "notifyMessage",
+      "args": [
+        "any",
+        "ms?:number"
+      ],
+      "returns": "void",
+      "note": "消息提示（对齐 dialog 语义）",
+      "status": "done",
+      "aliases": []
+    },
+    {
+      "name": "logDebug",
+      "args": [
+        "any"
+      ],
+      "returns": "void",
+      "note": "调试日志",
+      "status": "done",
+      "aliases": []
+    },
+    {
+      "name": "scriptStop",
+      "args": [],
+      "returns": "void",
+      "note": "安静退出脚本",
+      "status": "done",
+      "aliases": []
+    },
+    {
+      "name": "notifyVibrate",
+      "args": [
+        "ms?:number"
+      ],
+      "returns": "bool",
+      "note": "震动",
+      "status": "planned",
+      "aliases": []
+    },
+    {
+      "name": "notifyVoice",
+      "args": [
+        "path:string"
+      ],
+      "returns": "bool",
+      "note": "播放提示音",
+      "status": "planned",
+      "aliases": []
+    },
+    {
+      "name": "inputText",
+      "args": [
+        "text:string"
+      ],
+      "returns": "bool",
+      "note": "输入文字",
+      "status": "partial",
+      "aliases": []
+    },
+    {
+      "name": "openURL",
+      "args": [
+        "url:string"
+      ],
+      "returns": "bool",
+      "note": "打开 URL / Bundle",
+      "status": "partial",
+      "aliases": []
+    },
+    {
+      "name": "getDeviceID",
+      "args": [],
+      "returns": "string",
+      "note": "设备标识",
+      "status": "planned",
+      "aliases": []
+    },
+    {
+      "name": "copyText",
+      "args": [
+        "text:string"
+      ],
+      "returns": "bool",
+      "note": "写剪贴板",
+      "status": "done",
+      "aliases": [
+        "CopyClipboard",
+        "writePasteboard"
+      ]
+    },
+    {
+      "name": "clipText",
+      "args": [],
+      "returns": "string",
+      "note": "读剪贴板",
+      "status": "done",
+      "aliases": [
+        "PasteClipboard",
+        "readPasteboard"
+      ]
+    },
+    {
+      "name": "deviceIsLock",
+      "args": [],
+      "returns": "number",
+      "note": "锁屏状态 0/1",
+      "status": "partial",
+      "aliases": []
+    },
+    {
+      "name": "deviceUnlock",
+      "args": [
+        "pass?:string"
+      ],
+      "returns": "bool",
+      "note": "解锁",
+      "status": "partial",
+      "aliases": [
+        "unlockDevice"
+      ]
+    },
+    {
+      "name": "userPath",
+      "args": [],
+      "returns": "string",
+      "note": "脚本工程目录 Media/ZiYan",
+      "status": "done",
+      "aliases": []
+    },
+    {
+      "name": "getVersion",
+      "args": [],
+      "returns": "string",
+      "note": "子砚引擎版本",
+      "status": "partial",
+      "aliases": []
+    },
+    {
+      "name": "pyCall",
+      "args": [
+        "moduleOrPath:string",
+        "func:string",
+        "args?:table",
+        "opts?:table"
+      ],
+      "returns": "ok, result|error",
+      "note": "res/ Lua→Python；子进程 JSON；见 ziyan_res.py",
+      "status": "done",
+      "aliases": []
+    },
+    {
+      "name": "pyEval",
+      "args": [
+        "path:string",
+        "opts?:table"
+      ],
+      "returns": "ok, result|error",
+      "note": "运行整个 res/*.py",
+      "status": "done",
+      "aliases": []
+    }
+  ]
+}

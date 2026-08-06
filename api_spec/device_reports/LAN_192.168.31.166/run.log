@@ -1,0 +1,33 @@
+Warning: Permanently added '192.168.31.166' (RSA) to the list of known hosts.
+===T1===
+-rwxr-xr-x 1 root wheel 238272 Jul 19 23:39 /Applications/ZiYan.app/ZiYan
+-rwxr-xr-x 1 root wheel 125616 Jul 19 23:55 /Library/MobileSubstrate/DynamicLibraries/ZiYanAppTouch.dylib
+-rwxr-xr-x 1 root wheel 326816 Jul 19 23:55 /Library/MobileSubstrate/DynamicLibraries/ZiYanVol.dylib
+-rwxr-xr-x 1 root wheel 71120 Jul 16 19:11 /usr/lib/ziyan/bin/lua5.3
+/private/var/mobile/Media/ZiYan/_ziyan_dual_smoke.lua
+sb_alive=1
+hooks=SBVolumeControl.decreaseVolume
+===T2T3===
+lua_done
+--- dual_smoke.txt ---
+round=1
+round=2
+round=3
+T2_rounds=PASS detail=round=1..3
+T3_toast=PASS detail=called
+T3_mSleep=PASS detail=ok
+T3_getColor=PASS detail=4210752
+T3_findMultiColor=PASS detail=-1,-1
+T3_dumpScreen=PASS detail=/usr/lib/ziyan/var/.ziyan_dual_dump.png
+T3_tap=PASS detail=called
+T4_stop_clear=PASS detail=no residual stop
+DONE=1
+--- log ---
+--- json ---
+{"suite":"dual_smoke","rounds":3,"items":[{"k":"T2_rounds","ok":true,"d":"round=1..3"},{"k":"T3_toast","ok":true,"d":"called"},{"k":"T3_mSleep","ok":true,"d":"ok"},{"k":"T3_getColor","ok":true,"d":"4210752"},{"k":"T3_findMultiColor","ok":true,"d":"-1,-1"},{"k":"T3_dumpScreen","ok":true,"d":"/usr/lib/ziyan/var/.ziyan_dual_dump.png"},{"k":"T3_tap","ok":true,"d":"called"},{"k":"T4_stop_clear","ok":true,"d":"no residual stop"}]}===T4===
+T4_stop_cleared=1
+===T5===
+ACK=ok 7793
+SMOKE=round=1;round=2;round=3;
+hooks2=SBVolumeControl.decreaseVolume
+sb2=1

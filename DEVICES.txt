@@ -1,0 +1,9 @@
+# ZiYan devices — self-iterate loop
+# tag|ip|pass|scheme|script|note
+53|192.168.31.53|alpine|rootless|ios8p.lua|iPhone8Plus iOS16
+101|192.168.31.101|alpine|rootful|ios7.lua|iPhone7 iOS13
+112|192.168.31.112|alpine|rootful|ios7.lua|iPhone7 iOS13
+166|192.168.31.166|alpine|rootful|ios7.lua|iPhone7 iOS13
+# observe-only (TouchSprite, never deploy ZiYan)
+149|192.168.31.149|alpine|ts|—|TouchSprite observe
+171|192.168.31.171|alpine|ts|—|TouchSprite observe

@@ -1,0 +1,56 @@
+#!/bin/bash
+# 8-161-112 Phase1-R：升级不得毁状态/业务脚本（旧 prerm 无差别 rm -rf 是 rootful 丢 session/orient/ios7 根因）
+set +e
+
+stop_daemons() {
+  for LD in /Library/LaunchDaemons /var/jb/Library/LaunchDaemons; do
+    for p in com.ziyan.framecap.plist com.ziyan.zydaemon.plist com.ziyan.fscloak.plist \
+             com.ziyan.engine.plist com.ziyan.scripthub.plist; do
+      [ -f "$LD/$p" ] || continue
+      launchctl bootout system "$LD/$p" >/dev/null 2>&1 || true
+      launchctl unload "$LD/$p" >/dev/null 2>&1 || true
+    done
+  done
+  killall -9 ziyan_framecap >/dev/null 2>&1 || true
+  killall -9 ziyadaemond >/dev/null 2>&1 || true
+  killall -9 wnriakwyww >/dev/null 2>&1 || true
+  killall -9 ziyan_fscloakd.sh >/dev/null 2>&1 || true
+}
+
+restore_afc() {
+  for b in /usr/libexec/afc2d /var/jb/usr/libexec/afc2d /usr/libexec/afc2dSupport; do
+    [ -f "${b}.ziyan_cloaked" ] && mv -f "${b}.ziyan_cloaked" "$b" 2>/dev/null || true
+  done
+}
+
+case "$1" in
+  upgrade|failed-upgrade)
+    # 仅停守护；禁碰 var / Media 脚本（dpkg 会覆盖 package 文件）
+    stop_daemons
+    exit 0
+    ;;
+esac
+
+# remove / purge / deconfigure
+stop_daemons
+restore_afc
+rm -f /Library/LaunchDaemons/com.ziyan.framecap.plist \
+      /var/jb/Library/LaunchDaemons/com.ziyan.framecap.plist \
+      /Library/LaunchDaemons/com.ziyan.engine.plist \
+      /Library/LaunchDaemons/com.ziyan.fscloak.plist \
+      /var/jb/Library/LaunchDaemons/com.ziyan.fscloak.plist \
+      /Library/LaunchDaemons/com.ziyan.touchelf.plist \
+      /Library/MobileSubstrate/DynamicLibraries/ZiYanTEHook.dylib \
+      /Library/MobileSubstrate/DynamicLibraries/ZiYanTEHook.plist \
+      /bin/wnriakwyww /bin/wnriakwyww.dylib 2>/dev/null || true
+rm -rf /var/touchelf 2>/dev/null || true
+# 卸包删安装树；用户脚本仅 purge 时删（升级/普通 remove 保留）
+if [ "$1" = "purge" ]; then
+  rm -rf /usr/lib/ziyan /var/jb/usr/lib/ziyan 2>/dev/null || true
+  rm -rf /private/var/mobile/Media/ZiYan /var/mobile/Media/ZiYan 2>/dev/null || true
+else
+  # remove：留 Media 脚本与 var 会话，便于重装续测
+  rm -rf /usr/lib/ziyan/bin /usr/lib/ziyan/lib /var/jb/usr/lib/ziyan/bin /var/jb/usr/lib/ziyan/lib 2>/dev/null || true
+fi
+
+exit 0

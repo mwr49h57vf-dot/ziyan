@@ -1,0 +1,23 @@
+{
+  "module": "control",
+  "title": "运行控制（音量菜单协同）",
+  "backend": "lua/ziyan_engine/control.lua + ZiYanVol tweak",
+  "apis": [
+    {
+      "name": "ziyan_pause_point",
+      "args": [],
+      "returns": "void",
+      "note": "检查暂停/停止标志",
+      "status": "done",
+      "aliases": []
+    },
+    {
+      "name": "__ZIYAN_wait_while_paused",
+      "args": [],
+      "returns": "void",
+      "note": "内部：暂停自旋",
+      "status": "done",
+      "aliases": []
+    }
+  ]
+}

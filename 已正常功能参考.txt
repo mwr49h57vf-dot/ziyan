@@ -1,0 +1,203 @@
+====================
+已正常功能参考.txt · 锁定模块归档
+阶段锚点：7.6.3-R8.4.9 · 包 **0.0.92-8-141**（稳定性能终稿 P0 + shm 竞态止血）
+引擎：ZiYan Engine 2.25.0 / Modules 1.14.0
+包锚点（锁定语义）：0.0.92-8-42（音量）· 0.0.92-8-46（HID）· 0.0.92-8-81（图标）
+包现状（真机现装）：部署中 → **0.0.92-8-141**
+状态：按《稳定性能优化方案_终稿》执行 P0 + FrameShm Clear 禁活 inode 截断；四机自测
+更新：2026-07-29 04:05
+
+====================
+【变更申请 · 8-141 · 稳定性能终稿 P0 + 注入丢失根因止血】
+====================
+- SafeExecutor.activate：用户脚本零修改挂 mSleep/tap/find；HealthMonitor.pulse 联动
+- HealthMonitor + MemoryGuard + CrashLog 装载；inject-gate 校验 sb_pid / .eksafemode
+- ZiYanFrameShmClear：O_TRUNC→tmp+rename，杜绝 SIGBUS→safemode
+- 影响硬锁：否（音量/找色/触控/图标路径未改语义）
+
+====================
+【事故闭环 · 8-140 rootless install_name】
+====================
+- 现象：ZiYanVol 不进 SB；hooks/cap_diag 停更；冷帧中继全死
+- 根因：未 clean 的 rootless 包 install_name=/Library/...（缺 /var/jb）
+- 修复：clean 重打 + 机上已换正确 dylib；Makefile package-rootless 挂 verify；device_inject_gate
+- 约束：并行双打禁止；装包后必须 inject-gate；palera1n 重启后开 Loader
+- 影响硬锁：否
+
+====================
+【变更申请 · 8-140 · SURPASS P3 止血】
+====================
+- 触及：LOCK_FINDCOLOR（仅脉冲/配额/执行路径；匹配算法未改）
+- 原因：四机日志 .53/.112 SB 夜崩 + lua_hung 假阳性 + 空 shm 狂中继
+- 范围：
+  1) SB relay/fallback ui_create 每分钟配额（hiRes 10/4，普通 18/8）
+  2) ZiYanFrameShmHasPixels；空 shm 禁盲找色；空 shm 中继限速
+  3) lua_hung 300s+mtime；cv.lua color_perf 15s 心跳；zydaemon 不因 hung 误杀活 lua
+  4) zydaemon 护 framecap kickstart；.ziyan_cap_stats 取帧成功率
+- 四机自测：装包后查 via=daemon / cap_stats / 无新 lua_hung 误杀
+- 影响 8-42/8-46/8-80：否
+
+====================
+【变更申请 · 8-138/8-139 · SURPASS P2】
+====================
+- 触及：LOCK_FINDCOLOR（仅执行路径：匹配迁 framecap；算法未改）
+- 原因：超越计划 P2 — 热 shm 直接答 color_req，减 SB 热路径
+- 范围：ZiYanColorMatch；framecap PollColorReq；SB pollColor 热帧让出+150ms 回退
+- 四机自测：见 tmp_shots/SURPASS_TS/VERDICT_SURPASS_TS_P2.md（via=daemon 10/10）
+- 影响 8-42/8-46/8-80：否
+
+====================
+【变更申请 · 8-137 · SURPASS P1】
+====================
+- 触及：LOCK_FINDCOLOR（仅 keep/TTL 脉冲层）
+- 原因：超越计划 P1 — 对齐触动显式冻帧 + 自动短批换帧
+- 范围：ScreenBridge keep 真冻；cv.lua EXPLICIT vs 自动 350ms 批
+- 四机自测：见 tmp_shots/SURPASS_TS/VERDICT_SURPASS_TS_P1.md
+- 影响 8-42/8-46/8-80：否
+
+====================
+
+【总则】
+本文件归档「已修复且验收通过、禁止擅自改动」的稳定模块。
+后续任何代码/逻辑调整：
+1) 严禁触碰本文件标注功能；
+2) 如需改动必须提前申请，并留存双机回归复测记录；
+3) 横屏 HID 单路径已于 8-46 合入（ALLOW 例外已用尽，默认禁止再改点击底层）；
+4) Toast 主路径已于 8-80 强制回退锁定（preferScreenLand=NO），禁止再「自由发挥」。
+
+====================
+一、音量 Overlay（锁定 · 禁止改动）
+====================
+标记：LOCK_VOLUME_OVERLAY
+
+稳定范围（以 8-42 双机验收为准）：
+1. 空闲（无脚本进程、未暂停）：音量信息框竖屏居中（init=0 语义，卡片逻辑居中）
+2. 运行中：暂停 / 停止 / 关闭弹窗
+3. 已暂停：继续 / 停止 / 关闭弹窗
+4. 停止后回到空闲运行菜单；「运行」最小化仅 SIGTERM ZiYan App，保留 lua
+5. Toast 与 Volume 统一 safeBottom 底边安全边距渲染策略（R8.2/R8.3.10 分流：
+   Toast preferScreenLand=NO；Volume 按既有 8-42 策略，禁止再引入单机特判分支）
+6. 无弹窗分裂、无双路径位置抖动（以 8-42 现场为准）
+
+禁止改动：
+- Tweak.m 音量菜单按钮文案/启停链路（PresentMenu / Pause / Continue / Stop）
+- ZiYanToastBridge Volume/Toast 布局主路径（除经申请的回归修复）
+- ScriptRunner 运行态探测中与音量菜单联动的已验收逻辑（8-42）
+- 禁止再将 Toast 改为 preferScreenLand=YES（8-79 事故 / 8-80 回退）
+
+证据目录（参考）：
+tmp_shots/PHASE763R8/REGRESS_VOL_MIN/regress_842_dual.txt
+tmp_shots/PHASE763R8/REGRESS_VOL_MIN/VERDICT_842.md
+
+====================
+二、找色体系（锁定 · 禁止改动）
+====================
+标记：LOCK_FINDCOLOR
+
+稳定范围：
+1. keepScreen 缓存 IPC（ScreenBridge）
+2. findMultiColorInRegionFuzzy 主路径与性能优化（缓存命中 last_ms）
+3. 双机耗时差距目标＜50%（持续监控；未达标不得借「优化」改动锁定内核）
+4. 识别率目标 100%（业务脚本色点依赖前台画面；引擎自命中路径已验）
+5. 缓存自动释放 / 内存脉冲清理（防 SB jetsam）
+   —— 已合入：8-82 hiRes 软刷新 TTL / 重截前释旧缓冲 / 绝对 keep 释放
+   —— 已合入：8-85 mem_warn→强制清缓冲 + 像素落地后 img=nil
+   —— 已合入：8-86 hiRes 绝对 keep **30s** / 单缓冲禁二次拷贝 / 4MB 阈值 /
+              mem_warn 写盘冷却 / color_perf 挂死旗 `.ziyan_lua_hung`
+   —— 已合入：8-123 找色软 TTL 识别优先（1.2～2.5s；禁 8-119 ≤120s shm 假续命
+              `prefer_keep_shm_no_daemon`）；TTL 过期短催 daemon(≤0.35s)；
+              tap 后 keepScreen(false) 对齐手册「使用后清理」
+   —— 仅允许在「脉冲/TTL/峰值」层继续申请；禁止改匹配算法与坐标语义
+
+禁止改动：
+- ScreenBridge 截图像素缓存与 keepScreen 语义（除上列已批准脉冲路径）
+- cv.lua / 找色 native 匹配主算法（仅允许扩展新参数，不改旧语义）
+- 找色坐标输出与逻辑缓冲旋转规则（OrientMap 找色侧）
+
+证据：tmp_shots/PHASE763R8/sb_incidents/SB_EXTRACT_20260726_2104_DUAL/
+
+====================
+三、触控点击（锁定 · 有限例外）
+====================
+标记：LOCK_TOUCH_BASE
+例外：ALLOW_HID_LANDSCAPE_SINGLE_PATH_FIX（仅横屏 HID 单路径翻转 · 已用尽）
+
+稳定范围（禁止改动）：
+1. 比例归一化坐标管线：Device→Screen→Coordinate→Vision→Touch→Verify→StateMachine
+2. Touch.atRatio / atDesign / atHit（禁用固定物理像素点击）
+3. 角点识别无偏移的基础验收标准
+4. 基础 tap / swipe / longTap 生命周期与 IPC（touch_req / tap_proof）
+5. 竖屏玻璃 MapLogicToNorm、WindowNorm 窗口点映射（除横屏 HID 单路径例外）
+
+HID 单路径状态（8-46 · 串行1 自动短测 PASS）：
+- 数字化仪 HID：永远 ZiYanMapLogicToNorm（竖屏玻璃）
+- UITouch 窗口点：仍 WindowNorm
+- 禁止再引入 winLand→identity HID 分支
+- 证据：tmp_shots/PHASE763R8/REGRESS_VOL_MIN/hid_s1_846_dual.txt
+
+禁止改动：
+- 音量弹窗渲染、找色缓冲映射
+- 非经申请的点击底层再改动
+
+====================
+四、桌面越狱图标隐藏（锁定 · 禁止改动）
+====================
+标记：LOCK_ICON_HIDE
+锚点包：0.0.92-8-81（撤回 8-78 script_session 乱动；现装随 8-83）
+
+稳定范围（手签2 语义，双机同方案 · **8-122 hide-once 性能修订**）：
+1. 打开 ZiYan App → **仅边沿隐藏一次**越狱图标（Cydia/Sileo/Filza/NewTerm/Zebra/Dopamine/TrollStore 等）
+2. 保留 com.ziyan.ziyan（ZiYan.app）图标可见
+3. Home 最小化 → 保持隐藏（仅认 `.ziyan_app_session` 粘性，含 Media 双写；**禁止回 SB 持续 ps/desk_hide/uicache**）
+4. 「关闭程序」/ App willTerminate / 冷启·断电无 session → 恢复桌面图标
+5. 主路径：ziyan_fscloakd 改名 `*.ziyan_desk_hidden` + uicache；辅路径：SB IconShield 软隐藏
+6. 禁止 rename/kill afc2d、禁止杀 lockdownd（爱思稳态）
+
+禁止改动：
+- 不得再用 `.ziyan_script_session` / `.ziyan_project_active` 冒充 App 存活决定 desk_HIDE/SHOW
+- 不得恢复「每秒 hide_req / 每拍进主队列 hideJailbreakIconsIfNeeded」（会与找色抢 SB）
+- 不得缩短「关程序才 restore」语义导致 Home 后误 desk_SHOW
+- ZiYanIconShield / ZiYanBootRecovery 图标分支 / ziyan_fscloakd.sh **hide-once 边沿**语义
+- 不得为「对齐 TSDaemon」擅自扩宽隐藏触发条件（须书面申请）
+
+实现要点（8-122 · 用户授权 LOCK_ICON_HIDE 性能优化）：
+- App：`ceshiAppDelegate` 冷启写 session + **一次** hide_req；心跳**只**续 session/heartbeat（禁刷 hide_req）
+- SB：IconShield **5s 边沿**；已隐藏则不进主队列；CloseApp → restore_req
+- Daemon：fscloakd **v8122 hide_once** — 仅 session 0→1 时 desk_hide；已隐藏静默；僵尸 session 约 90s 慢检
+
+====================
+五、分工2 交付基线（参考 · 非硬锁 API 表）
+====================
+标记：BASELINE_DIVISION2（可扩展新 API；禁止回退已实现语义为 stub）
+
+Wave1–4 已交付：implemented=**169**/476
+Engine 2.24.0 / Modules 1.13.0
+手册：子砚触控函数说明.html 必须与 mirror 同步再生后再宣称交付
+Wave3 Device：lock/wifi/rotation/autolock 经 SB pollDeviceControl；
+  connectToWifi 诚实 no_hotspot_api（禁止伪造成功）
+Wave4：Thread=协作式；Widget=OCR非AX；ftp via curl；zip/unzip CLI
+证据：tmp_shots/PHASE763R8/DIVISION2_WAVE1..4.md · TS_ZY_MIRROR_REPORT.md
+
+====================
+六、变更申请模板（改锁定模块前必填）
+====================
+- 申请日期 / 申请人：
+- 触及锁定标记：LOCK_VOLUME_OVERLAY / LOCK_FINDCOLOR / LOCK_TOUCH_BASE / LOCK_ICON_HIDE
+- 变更原因与范围：
+- 双机回归计划（.166 + .53）：
+- 证据路径：
+- 是否影响 8-42 / 8-46 / 8-80 / 8-81 / 8-82 锚点：是/否
+
+====================
+END
+====================
+
+====================
+【R8.4.1 新增稳定模块 · 非硬锁】
+====================
+标记：MOD_SCRIPTGEN_R841 / MOD_DUMP_R841（可迭代优化；禁止覆盖作者 ios7/ios8p）
+1. ZiYanScriptGenerator：训练映射 + runApp 启动链 + learn/codegen 闭环
+2. ZiYanDumpManager：IPA Payload 提取 + 本地防御启发式 + defense_feed
+3. ZiYanLLMSidecarClient：HTTP /v1/* + 文件回退
+4. ceshiRootViewController：autotest UI 指令 + Toast 验收提示
+硬锁四项本阶段 **未申请变更** · 抽检 PASS

@@ -1,0 +1,83 @@
+{
+  "module": "memory",
+  "title": "内存缓存 / Hook 读名（自研，非 TE）",
+  "backend": "lua/ziyan_engine/py_cv.lua + ziyan_mem / AppTouch MemHook",
+  "apis": [
+    {
+      "name": "MemoryAccess",
+      "args": [
+        "bid",
+        "key"
+      ],
+      "returns": "string",
+      "note": "优先读缓存 plist",
+      "status": "done",
+      "aliases": []
+    },
+    {
+      "name": "MemoryWrite",
+      "args": [
+        "bid",
+        "key",
+        "value"
+      ],
+      "returns": "bool",
+      "note": "写缓存",
+      "status": "done",
+      "aliases": []
+    },
+    {
+      "name": "MemoryKeys",
+      "args": [
+        "bid"
+      ],
+      "returns": "table",
+      "note": "",
+      "status": "done",
+      "aliases": []
+    },
+    {
+      "name": "MemoryDump",
+      "args": [
+        "bid",
+        "max?"
+      ],
+      "returns": "table",
+      "note": "",
+      "status": "done",
+      "aliases": []
+    },
+    {
+      "name": "MemoryFind",
+      "args": [
+        "bid",
+        "query"
+      ],
+      "returns": "table",
+      "note": "角色/排行榜/背包等",
+      "status": "partial",
+      "aliases": []
+    },
+    {
+      "name": "MemoryRoleName",
+      "args": [
+        "bid",
+        "hint?"
+      ],
+      "returns": "string",
+      "note": "",
+      "status": "partial",
+      "aliases": []
+    },
+    {
+      "name": "MemoryScanNames",
+      "args": [
+        "bid"
+      ],
+      "returns": "table",
+      "note": "",
+      "status": "partial",
+      "aliases": []
+    }
+  ]
+}

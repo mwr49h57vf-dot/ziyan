@@ -1,0 +1,455 @@
+{
+  "generated_at": "2026-07-24T18:56:57",
+  "target_modules": [
+    "Config",
+    "Coordinate",
+    "Device",
+    "File",
+    "Game",
+    "Image",
+    "Input",
+    "IssueClassifier",
+    "Log",
+    "Network",
+    "OCR",
+    "Optimization",
+    "OptimizationAdvisor",
+    "OptimizationRollback",
+    "Screen",
+    "Script",
+    "StateMachine",
+    "Touch",
+    "Verify",
+    "Vision"
+  ],
+  "enriched": [
+    "Zy.Device.refresh",
+    "Zy.Device.profile",
+    "Zy.Device.save",
+    "Zy.Device.gameRect",
+    "Zy.Device.unlock",
+    "Zy.Screen.sync",
+    "Zy.Screen.info",
+    "Zy.Screen.size",
+    "Zy.Screen.snapshot",
+    "Zy.Screen.keep",
+    "Zy.Coordinate.setDesign",
+    "Zy.Coordinate.design",
+    "Zy.Coordinate.point",
+    "Zy.Coordinate.ratio",
+    "Zy.Coordinate.region",
+    "Zy.Touch.tapRatio",
+    "Zy.Touch.tapDesign",
+    "Zy.Touch.tapHit",
+    "Zy.Touch.tap",
+    "Zy.Touch.swipeRatio",
+    "Zy.Touch.gesture",
+    "Zy.Touch.longPress",
+    "Zy.Touch.swipe",
+    "Zy.Vision.analyze",
+    "Zy.Vision.findColor",
+    "Zy.Vision.findImage",
+    "Zy.Vision.colorAt",
+    "Zy.Vision.ocr",
+    "Zy.Vision.findText",
+    "Zy.Image.findColor",
+    "Zy.Image.find",
+    "Zy.Image.colorAtDesign",
+    "Zy.Image.colorAtLogic",
+    "Zy.Image.findUntil",
+    "Zy.OCR.region",
+    "Zy.OCR.find",
+    "Zy.OCR.analyze",
+    "Zy.OCR.findUntil",
+    "Zy.File.read",
+    "Zy.File.write",
+    "Zy.File.exists",
+    "Zy.File.remove",
+    "Zy.File.scriptsDir",
+    "Zy.File.varDir",
+    "Zy.Network.httpGet",
+    "Zy.Network.httpPost",
+    "Zy.Network.pyCall",
+    "Zy.Verify.act",
+    "Zy.Verify.fingerprint",
+    "Zy.Verify.failReport",
+    "Zy.StateMachine.current",
+    "Zy.StateMachine.suggest",
+    "Zy.StateMachine.step",
+    "Zy.StateMachine.canTransit",
+    "Zy.Game.classify",
+    "Zy.Game.phase",
+    "Zy.Game.analyze",
+    "Zy.Game.suggest",
+    "Zy.Game.open",
+    "Zy.Game.close",
+    "Zy.Game.enterRole",
+    "Zy.Game.stepTo",
+    "Zy.Game.stateSuggest",
+    "Zy.Script.begin",
+    "Zy.Script.act",
+    "Zy.Script.set",
+    "Zy.Script.get",
+    "Zy.Script.tick",
+    "Zy.Script.recover",
+    "Zy.Script.loop",
+    "Zy.Script.untilPhase",
+    "Zy.Script.when",
+    "Zy.Script.defineTask",
+    "Zy.Script.runTask",
+    "Zy.Script.runTasks",
+    "Zy.Script.run",
+    "Zy.Script.exit",
+    "Zy.Script.restart",
+    "Zy.Script.has",
+    "Zy.Script.clearVars",
+    "Zy.Script.vars",
+    "Zy.Script.lastError",
+    "Zy.Script.load",
+    "Zy.Script.scriptsDir",
+    "Zy.Script.stepState",
+    "Zy.Script.assertPlatform",
+    "Zy.Script.generate",
+    "Zy.Script.debug",
+    "Zy.Script.validate",
+    "Zy.Script.sdkRoot",
+    "Zy.Config.path",
+    "Zy.Config.load",
+    "Zy.Config.save",
+    "Zy.Config.get",
+    "Zy.Config.set",
+    "Zy.Input.text",
+    "Zy.Input.clear",
+    "Zy.Input.typeAtRatio",
+    "Zy.Log.write",
+    "Zy.Log.dialog",
+    "Zy.Log",
+    "Zy.Optimization.cycle",
+    "Zy.Optimization.recordHistory",
+    "Zy.Optimization.classify",
+    "Zy.IssueClassifier.classify",
+    "Zy.OptimizationAdvisor.advise",
+    "Zy.OptimizationAdvisor.confirm",
+    "Zy.OptimizationRollback.snapshot",
+    "Zy.OptimizationRollback.restore"
+  ],
+  "incomplete": [
+    {
+      "id": "Zy.IssueClassifier.classifyMany",
+      "gaps": [
+        "缺使用场景",
+        "缺关联函数",
+        "参数缺说明"
+      ]
+    },
+    {
+      "id": "Zy.IssueClassifier.categories",
+      "gaps": [
+        "缺使用场景",
+        "缺关联函数"
+      ]
+    },
+    {
+      "id": "Zy.Optimization.collect",
+      "gaps": [
+        "缺使用场景",
+        "缺关联函数",
+        "参数缺说明"
+      ]
+    },
+    {
+      "id": "Zy.Optimization.detect",
+      "gaps": [
+        "缺使用场景",
+        "缺关联函数",
+        "参数缺说明"
+      ]
+    },
+    {
+      "id": "Zy.Optimization.analyze",
+      "gaps": [
+        "缺使用场景",
+        "缺关联函数",
+        "参数缺说明"
+      ]
+    },
+    {
+      "id": "Zy.Optimization.propose",
+      "gaps": [
+        "缺使用场景",
+        "缺关联函数",
+        "参数缺说明"
+      ]
+    },
+    {
+      "id": "Zy.Optimization.apply",
+      "gaps": [
+        "缺使用场景",
+        "缺关联函数",
+        "参数缺说明"
+      ]
+    },
+    {
+      "id": "Zy.Optimization.verify",
+      "gaps": [
+        "缺使用场景",
+        "缺关联函数",
+        "参数缺说明"
+      ]
+    },
+    {
+      "id": "Zy.Optimization.commit",
+      "gaps": [
+        "缺使用场景",
+        "缺关联函数",
+        "参数缺说明"
+      ]
+    },
+    {
+      "id": "Zy.Optimization.historyPath",
+      "gaps": [
+        "缺使用场景",
+        "缺关联函数"
+      ]
+    },
+    {
+      "id": "Zy.Optimization._write_cycle_summary",
+      "gaps": [
+        "缺中文名称",
+        "缺真实示例",
+        "缺使用场景",
+        "缺关联函数",
+        "参数缺说明"
+      ]
+    },
+    {
+      "id": "Zy.Optimization.reportIssue",
+      "gaps": [
+        "缺使用场景",
+        "缺关联函数",
+        "参数缺说明"
+      ]
+    },
+    {
+      "id": "Zy.Optimization.status",
+      "gaps": [
+        "缺使用场景",
+        "缺关联函数"
+      ]
+    },
+    {
+      "id": "Zy.Optimization.schedule",
+      "gaps": [
+        "缺使用场景",
+        "缺关联函数",
+        "参数缺说明"
+      ]
+    },
+    {
+      "id": "Zy.OptimizationAdvisor.reject",
+      "gaps": [
+        "缺中文名称",
+        "缺真实示例",
+        "缺使用场景",
+        "缺关联函数",
+        "参数缺说明"
+      ]
+    },
+    {
+      "id": "Zy.OptimizationAdvisor.get",
+      "gaps": [
+        "缺中文名称",
+        "缺真实示例",
+        "缺使用场景",
+        "缺关联函数",
+        "参数缺说明"
+      ]
+    },
+    {
+      "id": "Zy.OptimizationAdvisor.pending",
+      "gaps": [
+        "缺使用场景",
+        "缺关联函数"
+      ]
+    },
+    {
+      "id": "Zy.OptimizationAdvisor.canApply",
+      "gaps": [
+        "缺使用场景",
+        "缺关联函数",
+        "参数缺说明"
+      ]
+    },
+    {
+      "id": "Zy.OptimizationRollback.auto_restore_on_fail",
+      "gaps": [
+        "缺使用场景",
+        "缺关联函数",
+        "参数缺说明"
+      ]
+    },
+    {
+      "id": "Zy.OptimizationRollback.list",
+      "gaps": [
+        "缺使用场景",
+        "缺关联函数",
+        "说明过短"
+      ]
+    },
+    {
+      "id": "Zy.OptimizationRollback.last",
+      "gaps": [
+        "缺中文名称",
+        "缺真实示例",
+        "缺使用场景",
+        "缺关联函数"
+      ]
+    },
+    {
+      "id": "Zy.Script.generateTemplate",
+      "gaps": [
+        "缺中文名称",
+        "缺真实示例",
+        "缺使用场景",
+        "缺关联函数",
+        "参数缺说明"
+      ]
+    },
+    {
+      "id": "Zy.Script.generateFromTask",
+      "gaps": [
+        "缺使用场景",
+        "缺关联函数",
+        "参数缺说明"
+      ]
+    },
+    {
+      "id": "Zy.Script.generateFromState",
+      "gaps": [
+        "缺使用场景",
+        "缺关联函数",
+        "参数缺说明"
+      ]
+    },
+    {
+      "id": "Zy.Script.optimizeScript",
+      "gaps": [
+        "缺使用场景",
+        "缺关联函数",
+        "参数缺说明"
+      ]
+    },
+    {
+      "id": "Zy.Script.repairScript",
+      "gaps": [
+        "缺使用场景",
+        "缺关联函数",
+        "参数缺说明"
+      ]
+    },
+    {
+      "id": "Zy.Verify.lastFail",
+      "gaps": [
+        "缺中文名称",
+        "缺真实示例",
+        "缺使用场景",
+        "缺关联函数"
+      ]
+    }
+  ],
+  "new_in_docs": [
+    "Zy.Config.path",
+    "Zy.Config.load",
+    "Zy.Config.save",
+    "Zy.Config.get",
+    "Zy.Config.set",
+    "Zy.Input.text",
+    "Zy.Input.clear",
+    "Zy.Input.typeAtRatio",
+    "Zy.Log"
+  ],
+  "counts": {
+    "Coordinate": {
+      "total": 5,
+      "complete": 5
+    },
+    "Device": {
+      "total": 5,
+      "complete": 5
+    },
+    "File": {
+      "total": 6,
+      "complete": 6
+    },
+    "Game": {
+      "total": 9,
+      "complete": 9
+    },
+    "Image": {
+      "total": 5,
+      "complete": 5
+    },
+    "Log": {
+      "total": 3,
+      "complete": 3
+    },
+    "Network": {
+      "total": 3,
+      "complete": 3
+    },
+    "OCR": {
+      "total": 4,
+      "complete": 4
+    },
+    "Screen": {
+      "total": 5,
+      "complete": 5
+    },
+    "Script": {
+      "total": 32,
+      "complete": 27
+    },
+    "StateMachine": {
+      "total": 4,
+      "complete": 4
+    },
+    "Touch": {
+      "total": 8,
+      "complete": 8
+    },
+    "Verify": {
+      "total": 4,
+      "complete": 3
+    },
+    "Vision": {
+      "total": 6,
+      "complete": 6
+    },
+    "Config": {
+      "total": 5,
+      "complete": 5
+    },
+    "Input": {
+      "total": 3,
+      "complete": 3
+    },
+    "Optimization": {
+      "total": 15,
+      "complete": 3
+    },
+    "IssueClassifier": {
+      "total": 3,
+      "complete": 1
+    },
+    "OptimizationAdvisor": {
+      "total": 6,
+      "complete": 2
+    },
+    "OptimizationRollback": {
+      "total": 5,
+      "complete": 2
+    }
+  },
+  "target_total": 136,
+  "target_complete": 109
+}

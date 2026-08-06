@@ -1,0 +1,28 @@
+子砚取点抓色器 v1.3.4
+====================
+唯一主程序：ZiYanColorPicker.py
+色串唯一源：formats.py
+生成色参只服务 Desktop ios7.lua / ios8p.lua（本抓色器产出）
+禁止用触动精灵色参替换或写入自测样例。
+
+启动
+  Mac:    ./run.sh
+          或 python3 ZiYanColorPicker.py
+  Windows: 双击 启动取色器.bat
+          或 ZiYanColorPicker_v134.exe / 先 build_exe.bat
+
+设备截屏（不需要 SSH）
+  1. 手机子砚 framecap 监听 50005（占用则 50015）
+  2. 取色器填 IP →「检测环境」→ 选 init 方向 →「截屏并加载」
+  3. 测试找色走 POST /findtest（与机上 ColorMatch 同核）
+
+协议
+  GET  /status
+  GET  /snapshot?orient=
+  POST /findtest
+
+自测（只对照 Desktop，不改色参）
+  python3 ZiYanColorPicker.py --test
+
+兼容入口
+  ziyan_colorpicker.py → 转调 ZiYanColorPicker.py（无第二套 UI）

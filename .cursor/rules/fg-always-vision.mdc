@@ -1,0 +1,37 @@
+---
+description: 找色/找字/找图永远跟前台；会话内 keep；init 定方向
+alwaysApply: true
+---
+
+# 视觉识别永远跟前台（死记）
+
+## 死记两条
+
+1. **像素永远对准当前前台**：游戏就扫游戏，桌面就扫桌面。禁止用旧 App 冻帧 / retain 在 Home 上冒充业务画面。  
+2. **keep 只跟触动一样「显式锁」**：脚本 `keepScreen(true)` 或 `.ziyan_auto_keep`。**禁止**会话一 active 就自动 KeepEnable（190 已证实：miss 死循环 → 内存暴涨 → SB 重启）。
+
+## 与触动对齐（Frida/静态）
+
+```lua
+init(1)
+keepScreen(true)   -- 显式；循环复用同一缓冲，不是每圈 create
+-- find：像素=当前前台；坐标=业务 init
+keepScreen(false)  -- 停脚本必拆
+```
+
+1. **扫谁**：当前前台像素。  
+2. **方向**：业务 `init` 钉死。  
+3. **keep**：显式；daemon **不得**因 hasColor 暗补锁。  
+4. **回桌面**：只扫桌面。
+
+## 反模式（禁止）
+
+- Home 后仍扫游戏冻帧  
+- 会话默认 auto-keep / framecap `hasColor→KeepEnable`  
+- miss 环 + keep 不拆 + toast 狂刷  
+
+## 改代码自检
+
+1. 像素是不是当前前台？  
+2. 有没有「无显式 keep 却 KeepEnable」？  
+3. 停脚本后 `.ziyan_keep_daemon` 是否消失？

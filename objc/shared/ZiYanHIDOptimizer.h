@@ -36,6 +36,13 @@ NS_ASSUME_NONNULL_BEGIN
                 finger:(int)finger
                 holdMs:(int)ms;
 
+/// 同上；桌面用 hand+finger，App 前台可用 finger-only。
+- (BOOL)injectTapNormX:(double)nx
+                     y:(double)ny
+                finger:(int)finger
+                holdMs:(int)ms
+              skipHand:(BOOL)skipHand;
+
 @end
 
 NS_ASSUME_NONNULL_END

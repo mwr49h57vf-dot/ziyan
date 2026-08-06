@@ -70,6 +70,40 @@ local function ensure_game_for_touch()
   return true
 end
 
+local function ziyan_is_front(front)
+  front = tostring(front or ""):lower()
+  return front == "com.ziyan.ziyan"
+end
+
+local function request_ziyan_minimize(reason)
+  pcall(function()
+    local f = io.open(ZIYAN_VAR .. "/.ziyan_app_minimize_req", "w")
+    if not f then return end
+    f:write(string.format(
+      "ts=%d\nsource=touch_%s\npath=\n",
+      os.time() or 0, tostring(reason or "guard")))
+    f:close()
+  end)
+end
+
+local function reject_ziyan_front_touch(kind, x, y, orient)
+  local front = read_line(ZIYAN_VAR .. "/.ziyan_front_bid")
+  if not ziyan_is_front(front) then
+    return false, front
+  end
+  request_ziyan_minimize(kind)
+  pcall(function()
+    local f = io.open(ZIYAN_VAR .. "/.ziyan_tap_gate", "w")
+    if not f then return end
+    f:write(string.format(
+      "ts=%d x=%s y=%s front=%s orient=%d rejected=ziyan_front kind=%s\n",
+      os.time() or 0, tostring(x), tostring(y), front,
+      tonumber(orient) or 0, tostring(kind or "touch")))
+    f:close()
+  end)
+  return true, front
+end
+
 -- 每指最后一次 down 的逻辑坐标（touchUp(finger) 无坐标时用，避免抬在 0,0）
 local _last_down = {}
 
@@ -80,15 +114,23 @@ local function next_nonce()
 end
 
 local function wait_touch_rep(nonce, timeout_s)
-  -- CLI/部分宿主：mSleep / os.execute(sleep) 不可靠 → os.clock 截止（禁 os.time 整秒抬到 2s+）
-  -- 8-161-61：light 对齐触动 fire-and-forget，默认 120ms；非 light 仍 ≤0.8s
+  -- embed 用单调墙钟；冷路径再用有界轮询。禁止 os.clock（CPU 时间）把 1.5s
+  -- 等待放大成几十秒。
   timeout_s = tonumber(timeout_s) or 0.8
   if _G.ZIYAN_LIGHT and timeout_s > 0.15 then
     timeout_s = 0.12
   end
-  local t0 = os.clock() or 0
+  local native_clock = type(_G.ziyan_embed_monotonic_ms) == "function"
+  local deadline_ms = nil
+  if native_clock then
+    local ok, now = pcall(_G.ziyan_embed_monotonic_ms)
+    if ok and tonumber(now) then
+      deadline_ms = tonumber(now) + timeout_s * 1000
+    end
+  end
+  local max_spins = math.max(1, math.ceil(timeout_s * 1000))
   local spins = 0
-  while ((os.clock() or 0) - t0) < timeout_s do
+  while spins < max_spins do
     spins = spins + 1
     local r = io.open(TOUCH_REP, "r")
     if r then
@@ -98,6 +140,12 @@ local function wait_touch_rep(nonce, timeout_s)
       if n == nonce then
         pcall(os.remove, TOUCH_REP)
         return st == "ok"
+      end
+    end
+    if deadline_ms then
+      local ok, now = pcall(_G.ziyan_embed_monotonic_ms)
+      if ok and tonumber(now) and tonumber(now) >= deadline_ms then
+        break
       end
     end
     if type(_G.__ZIYAN_RAW_MSLEEP) == "function" then
@@ -147,6 +195,15 @@ local function hid_phase(phase, id, x, y, strict)
   id = tonumber(id) or 1
   if phase == "down" then
     _last_down[id] = { x = x, y = y }
+  end
+  if _G.ZIYAN_EMBED and type(_G.ziyan_embed_touch_phase) == "function" then
+    local ok, sent = pcall(_G.ziyan_embed_touch_phase, phase, id, x, y)
+    if ok and sent == true then
+      if phase == "up" then
+        _last_down[id] = nil
+      end
+      return true
+    end
   end
   local nonce = next_nonce()
   pcall(os.remove, TOUCH_REP)
@@ -203,6 +260,9 @@ function M.install()
   function touchDown(a, b, c)
     checkpoint()
     local id, x, y = parse_args(a, b, c)
+    if reject_ziyan_front_touch("down", x, y, _G.__ZIYAN_ORIENT) then
+      return false
+    end
     if hid_phase("down", id, x, y) then
       return true
     end
@@ -318,7 +378,7 @@ function M.install()
 
   local function write_tap_meta(finger, x, y, holdMs, afterMs)
     pcall(function()
-      local f = io.open(ZIYAN_VAR .. "/.ziyan_tap_meta", "a")
+      local f = io.open(ZIYAN_VAR .. "/.ziyan_tap_meta", "w")
       if not f then return end
       f:write(string.format(
         "finger=%d xy=%.1f,%.1f holdMs=%d afterUpMs=%d\n",
@@ -375,6 +435,14 @@ function M.install()
     end
     local afterMs = random_after_up_ms()
     write_tap_meta(id, x, y, holdMs, afterMs)
+    if _G.ZIYAN_EMBED and type(_G.ziyan_embed_tap) == "function" then
+      local ok, sent = pcall(_G.ziyan_embed_tap, id, x, y,
+        math.floor(holdMs))
+      sleep_ms(afterMs)
+      if ok and sent == true then
+        return true
+      end
+    end
     local nonce = next_nonce()
     pcall(os.remove, TOUCH_REP)
     local body = table.concat({
@@ -383,16 +451,16 @@ function M.install()
     }, "\n")
     if not write_touch_req(body) then return false end
     -- 8-161-61：light 触动式 — 写完即算发出（AppTouch 无回执时旧路径可堵 15s）
-    local ok = wait_touch_rep(nonce, _G.ZIYAN_LIGHT and 0.12 or 1.5)
+    -- 202：LIGHT 仅缩短等待；无 touch_rep=ok 不算成功（禁假成功）
+    local ok = wait_touch_rep(nonce, _G.ZIYAN_LIGHT and 0.35 or 1.5)
     sleep_ms(afterMs)
     if ok == true then return true end
     if _G.ZIYAN_LIGHT then
-      -- 无回执：补一条 up 文件（不等待），防粘指；不进入 human_press_lift 风暴
       local upNonce = next_nonce()
       write_touch_req(table.concat({
         "touch", "up", tostring(id), tostring(x), tostring(y), upNonce, ""
       }, "\n"))
-      return true
+      return false
     end
     for _ = 1, 2 do
       if hid_phase("up", id, x, y, true) then
@@ -418,8 +486,50 @@ function M.install()
       holdMs = random_hold_ms()
     end
 
-    -- Home / 回桌面：先拉回游戏再点（否则 thin 路径 touch_req 无人消费）
+    -- 202：附带视觉门快照；前台已变则拒绝旧点
+    local gate_gen, gate_seq, gate_orient = 0, 0, tonumber(_G.__ZIYAN_ORIENT) or 1
+    local blocked, front_before =
+      reject_ziyan_front_touch("tap", x, y, gate_orient)
+    if blocked then
+      return false
+    end
+    local reject_stale = false
+    pcall(function()
+      local cv = package.loaded["ziyan_engine.cv"]
+      if type(cv) == "table" and type(cv.vision_gate) == "function" then
+        local okg, snap = cv.vision_gate("tap")
+        if type(snap) == "table" then
+          gate_gen = tonumber(snap.front_generation) or 0
+          gate_seq = tonumber(snap.seq) or 0
+          gate_orient = tonumber(snap.init_orient) or gate_orient
+          if okg == false and snap.err == "VISION_STALE" then
+            reject_stale = true
+          end
+        end
+      end
+    end)
+    if reject_stale then
+      return false
+    end
+    -- Home 上清陈旧 app_alive，避免 AppTouch 让路挡住 SB 消费 touch_req
+    if tostring(front_before):lower():find("springboard", 1, true) then
+      pcall(os.remove, APP_ALIVE)
+      pcall(os.remove, ZIYAN_VAR .. "/.ziyan_prefer_app_touch")
+    end
+
     ensure_game_for_touch()
+
+    -- 旁路写触控契约（门禁可读）
+    pcall(function()
+      local f = io.open(ZIYAN_VAR .. "/.ziyan_tap_gate", "w")
+      if f then
+        f:write(string.format(
+          "ts=%d x=%s y=%s front=%s gen=%d seq=%d orient=%d\n",
+          os.time() or 0, tostring(x), tostring(y), front_before,
+          gate_gen, gate_seq, gate_orient))
+        f:close()
+      end
+    end)
 
     local ok = hid_tap(finger, x, y, holdMs)
     pcall(function()
@@ -429,16 +539,19 @@ function M.install()
         if type(D) == "table" and D.install then D.install() end
       end
       if D and D.write_tap then
-        -- 主路径逻辑原样下发：transform_count=1（Oc 侧唯一 OrientMap）
         D.write_tap(x, y, 1)
       end
     end)
     if ok then
       return true
     end
-    -- 8-161-61：light 已 fire-and-forget，禁止再走 human_press_lift（每 phase 再等 0.8s×N）
+    -- 202：LIGHT 不再假成功；可观测前台变化才认
     if _G.ZIYAN_LIGHT then
-      return true
+      local front_after = read_line(ZIYAN_VAR .. "/.ziyan_front_bid")
+      if front_after ~= "" and front_after ~= front_before then
+        return true
+      end
+      return false
     end
     ok = human_press_lift(finger, x, y, holdMs)
     if ok then

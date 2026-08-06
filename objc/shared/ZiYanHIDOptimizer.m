@@ -19,13 +19,24 @@ enum {
   kIOHIDDigitizerEventTouch = 1 << 1,
   kIOHIDDigitizerEventPosition = 1 << 2,
   kIOHIDDigitizerEventIdentity = 1 << 5,
+  kIOHIDTransducerTypeHand = 3,
+  kIOHIDFieldDisplayIntegrated = (11 << 16) | 19,
+  kIOHIDFieldEventMask = (11 << 16) | 1,
+  kIOHIDFieldRange = (11 << 16) | 3,
+  kIOHIDFieldTouch = (11 << 16) | 4,
+  kIOHIDFieldBuiltIn = (0 << 16) | 0x4000011,
 };
 
+static IOHIDEventRef (*HIDCreateDigitizer)(
+    CFAllocatorRef, uint64_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t,
+    double, double, double, double, double, boolean_t, boolean_t,
+    uint32_t) = NULL;
 static IOHIDEventRef (*HIDCreateFinger)(CFAllocatorRef, uint64_t, uint32_t,
                                         uint32_t, uint32_t, uint32_t, double,
                                         double, double, double, double, uint32_t,
                                         uint32_t, uint32_t, boolean_t, boolean_t,
                                         boolean_t) = NULL;
+static void (*HIDAppend)(IOHIDEventRef, IOHIDEventRef) = NULL;
 static void (*HIDSetInt)(IOHIDEventRef, uint32_t, CFIndex) = NULL;
 static void (*HIDSetSender)(IOHIDEventRef, uint64_t) = NULL;
 static void (*HIDDispatch)(IOHIDEventSystemClientRef, IOHIDEventRef) = NULL;
@@ -85,7 +96,9 @@ static void loadSyms(void) {
       h = dlopen("/System/Library/Frameworks/IOKit.framework/Versions/A/IOKit",
                  RTLD_LAZY);
     }
+    HIDCreateDigitizer = dlsym(h, "IOHIDEventCreateDigitizerEvent");
     HIDCreateFinger = dlsym(h, "IOHIDEventCreateDigitizerFingerEvent");
+    HIDAppend = dlsym(h, "IOHIDEventAppendEvent");
     HIDSetInt = dlsym(h, "IOHIDEventSetIntegerValue");
     HIDSetSender = dlsym(h, "IOHIDEventSetSenderID");
     HIDClientCreate = dlsym(h, "IOHIDEventSystemClientCreate");
@@ -147,7 +160,6 @@ static void loadSyms(void) {
                      nx:(double)nx
                      ny:(double)ny
                skipHand:(BOOL)skipHand {
-  (void)skipHand; // 本路径固定 finger-only（游戏热路径）
   loadSyms();
   if (!HIDCreateFinger) {
     return NO;
@@ -161,12 +173,42 @@ static void loadSyms(void) {
   uint32_t fingerMask =
       isMove ? kIOHIDDigitizerEventPosition
              : (kIOHIDDigitizerEventRange | kIOHIDDigitizerEventTouch |
+                kIOHIDDigitizerEventIdentity |
                 kIOHIDDigitizerEventPosition);
   uint64_t ts = mach_absolute_time();
   uint32_t idx = (uint32_t)MAX(finger, 1);
-  IOHIDEventRef toSend = HIDCreateFinger(kCFAllocatorDefault, ts, idx, 2,
-                                         fingerMask, 0, nx, ny, 0, 0, 0, 0, 0, 0,
-                                         inRange, down, 0);
+  IOHIDEventRef toSend = NULL;
+  if (!skipHand && HIDCreateDigitizer && HIDAppend) {
+    IOHIDEventRef hand = HIDCreateDigitizer(
+        kCFAllocatorDefault, ts, kIOHIDTransducerTypeHand, 0, 1, fingerMask, 0,
+        nx, ny, 0, 0, 0, inRange, down, 0);
+    IOHIDEventRef fingerEvent =
+        HIDCreateFinger(kCFAllocatorDefault, ts, idx, 2, fingerMask, 0, nx, ny,
+                        0, 0, 0, 0, 0, 0, inRange, down, 0);
+    if (hand && fingerEvent) {
+      HIDAppend(hand, fingerEvent);
+      CFRelease(fingerEvent);
+      if (HIDSetInt) {
+        HIDSetInt(hand, kIOHIDFieldDisplayIntegrated, 1);
+        HIDSetInt(hand, kIOHIDFieldBuiltIn, 1);
+        HIDSetInt(hand, kIOHIDFieldEventMask, (CFIndex)fingerMask);
+        HIDSetInt(hand, kIOHIDFieldRange, inRange);
+        HIDSetInt(hand, kIOHIDFieldTouch, down);
+      }
+      toSend = hand;
+    } else {
+      if (fingerEvent) {
+        CFRelease(fingerEvent);
+      }
+      if (hand) {
+        CFRelease(hand);
+      }
+    }
+  }
+  if (!toSend) {
+    toSend = HIDCreateFinger(kCFAllocatorDefault, ts, idx, 2, fingerMask, 0, nx,
+                             ny, 0, 0, 0, 0, 0, 0, inRange, down, 0);
+  }
   if (!toSend) {
     return NO;
   }
@@ -203,6 +245,18 @@ static void loadSyms(void) {
                      y:(double)ny
                 finger:(int)finger
                 holdMs:(int)ms {
+  return [self injectTapNormX:nx
+                           y:ny
+                      finger:finger
+                      holdMs:ms
+                    skipHand:YES];
+}
+
+- (BOOL)injectTapNormX:(double)nx
+                     y:(double)ny
+                finger:(int)finger
+                holdMs:(int)ms
+              skipHand:(BOOL)skipHand {
   uint64_t t0 = [ZiYanHIDOptimizer monoMs];
   if (ms < 80) {
     ms = 80;
@@ -214,17 +268,17 @@ static void loadSyms(void) {
                                finger:finger
                                    nx:nx
                                    ny:ny
-                             skipHand:YES];
+                             skipHand:skipHand];
   usleep((useconds_t)ms * 1000);
   BOOL okUp = [self injectNormPhase:@"up"
                              finger:finger
                                  nx:nx
                                  ny:ny
-                           skipHand:YES];
+                           skipHand:skipHand];
   double dt = (double)([ZiYanHIDOptimizer monoMs] - t0);
   [ZiYanHIDOptimizer noteInjectMs:dt];
-  // 设备实测 P0-2：>50ms 写降级旗供监控（不改 LOCK 几何）
-  if (dt > 50.0) {
+  // tap 包含按压时长；只在注入开销额外超过 50ms 时标慢。
+  if (dt > (double)ms + 50.0) {
     ZiYanWriteVarText(
         @".ziyan_hid_slow",
         [NSString stringWithFormat:@"ts=%.0f last_ms=%.2f\n",

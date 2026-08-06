@@ -215,7 +215,8 @@ static void ZiYanPresentFingerprintInfoIfReady(UIViewController *host) {
 	{
 		NSFileManager *fm = [NSFileManager defaultManager];
 		for (NSString *name in @[
-			   @".ziyan_go_home", @".ziyan_app_suspend_trig", @".ziyan_app_run_trig"
+			   @".ziyan_go_home", @".ziyan_app_suspend_trig", @".ziyan_app_run_trig",
+			   @".ziyan_app_minimize_req"
 			 ]) {
 			NSString *p = ZiYanVarFile(name);
 			if ([fm fileExistsAtPath:p]) {

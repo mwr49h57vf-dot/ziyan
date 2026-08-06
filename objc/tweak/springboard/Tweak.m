@@ -2484,6 +2484,41 @@ void ZiYanVolTrigPollOnce(void) {
   // App「运行」：经 SB 代启 lua（避开 App 沙盒 pid 无效）
   [ZiYanScriptRunner serviceSpringBoardRunRequestIfNeeded];
 
+  NSString *minimizePath = ZiYanVarFile(@".ziyan_app_minimize_req");
+  if ([fm fileExistsAtPath:minimizePath]) {
+    NSString *request =
+        [NSString stringWithContentsOfFile:minimizePath
+                                  encoding:NSUTF8StringEncoding
+                                     error:nil]
+            ?: @"";
+    [fm removeItemAtPath:minimizePath error:nil];
+    dispatch_async(dispatch_get_main_queue(), ^{
+      NSString *frontBid =
+          ZiYanBundleIdOfApp(ZiYanFrontmostSBApplication());
+      if (frontBid.length == 0) {
+        frontBid = [[NSString
+            stringWithContentsOfFile:ZiYanVarFile(@".ziyan_front_bid")
+                            encoding:NSUTF8StringEncoding
+                               error:nil]
+            stringByTrimmingCharactersInSet:
+                [NSCharacterSet whitespaceAndNewlineCharacterSet]];
+      }
+      if ([frontBid isEqualToString:@"com.ziyan.ziyan"]) {
+        ZiYanAppendMinimizeLog([NSString
+            stringWithFormat:@"start_contract minimize front=%@ req=%@",
+                             frontBid,
+                             [request
+                                 stringByReplacingOccurrencesOfString:@"\n"
+                                                           withString:@" "]]);
+        ZiYanMinimizeLikeAppPlay();
+      } else {
+        ZiYanAppendMinimizeLog([NSString
+            stringWithFormat:@"start_contract skip front=%@",
+                             frontBid.length ? frontBid : @"(nil)"]);
+      }
+    });
+  }
+
   NSString *homePath =
       [ZiYanVarDirectory() stringByAppendingPathComponent:@".ziyan_go_home"];
   if ([fm fileExistsAtPath:homePath]) {

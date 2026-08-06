@@ -295,7 +295,7 @@ static BOOL ZiYanArgsLookLikeZiYanLua(NSString *args) {
   return hit;
 }
 
-/// 8-161-68：EnsureFramecapAlive —— menu_run / 脚本启动与助手路径同构
+/// 8-161-68 / 202：EnsureFramecapAlive —— 已有 serve 禁止 spawn；禁 unload/load 活服务
 /// 内存风险：禁在 SB 主线程长时间 busy-wait；调用方应在后台队列。
 + (BOOL)ensureFramecapAlive {
   ZiYanEnsureVarDirectory();
@@ -308,7 +308,7 @@ static BOOL ZiYanArgsLookLikeZiYanLua(NSString *args) {
   // 清陈旧 alive，避免 find 路径误信死 pid
   [[NSFileManager defaultManager]
       removeItemAtPath:ZiYanVarFile(@".ziyan_framecap_alive")
-                 error:nil];
+                   error:nil];
 
   NSString *plist = [self framecapLaunchPlistPath];
   NSString *launchctl = nil;
@@ -320,46 +320,43 @@ static BOOL ZiYanArgsLookLikeZiYanLua(NSString *args) {
       break;
     }
   }
+  // 202：仅 kickstart（无 -k）；禁 unload/load 叠窗双开
   if (plist.length && launchctl.length) {
-    const char *argvU[] = {launchctl.UTF8String, "unload", plist.UTF8String,
-                           NULL};
-    const char *argvL[] = {launchctl.UTF8String, "load", plist.UTF8String, NULL};
+    const char *argvK[] = {launchctl.UTF8String, "kickstart",
+                           "system/com.ziyan.framecap", NULL};
     pid_t p = 0;
-    if (posix_spawn(&p, argvU[0], NULL, NULL, (char *const *)argvU, environ) ==
-            0 &&
-        p > 0) {
-      waitpid(p, NULL, 0);
-    }
-    p = 0;
-    if (posix_spawn(&p, argvL[0], NULL, NULL, (char *const *)argvL, environ) ==
-            0 &&
-        p > 0) {
+    if (posix_spawn(&p, argvK[0], NULL, NULL, (char *const *)argvK, environ) !=
+            0 ||
+        p <= 0) {
+      const char *argvK2[] = {launchctl.UTF8String, "kickstart",
+                              "com.ziyan.framecap", NULL};
+      p = 0;
+      if (posix_spawn(&p, argvK2[0], NULL, NULL, (char *const *)argvK2,
+                      environ) == 0 &&
+          p > 0) {
+        waitpid(p, NULL, 0);
+      }
+    } else {
       waitpid(p, NULL, 0);
     }
   }
 
-  // launchd 未装上或未生效 → 直接 serve（对标助手 nohup）
-  if (![self framecapProcessRunning]) {
-    NSString *bin = [self framecapBinaryPath];
-    if (bin.length) {
-      posix_spawnattr_t attr;
-      posix_spawnattr_init(&attr);
-      short flags = POSIX_SPAWN_SETPGROUP;
-      posix_spawnattr_setflags(&attr, flags);
-      const char *argv[] = {bin.UTF8String, "serve", NULL};
-      char **childEnv = [self copySpawnEnvironWithRuntime];
-      char *const *envp = childEnv ? (char *const *)childEnv : environ;
-      pid_t sp = 0;
-      int st = posix_spawn(&sp, bin.UTF8String, NULL, &attr,
-                           (char *const *)argv, envp);
-      posix_spawnattr_destroy(&attr);
-      [self freeSpawnEnviron:childEnv];
-      (void)st;
-      // 不 wait：serve 常驻
+  // 203：只等 launchd；禁 posix_spawn serve（与 launchd/wrap 竞态 → FC_N=2）
+  for (int i = 0; i < 60; i++) {
+    if ([self framecapProcessRunning]) {
+      [[NSFileManager defaultManager]
+          removeItemAtPath:ZiYanVarFile(@".ziyan_watchdog_framecap_need")
+                     error:nil];
+      ZiYanWriteVarText(
+          @".ziyan_ensure_framecap_log",
+          [NSString stringWithFormat:@"ts=%.0f ok=1 via=kickstart\n",
+                                     [[NSDate date] timeIntervalSince1970]]);
+      return YES;
     }
+    usleep(50000);
   }
-
-  // 等进程起来（最多 ~2s）；循环阻塞隐患：仅后台队列调用
+  // 仍无：写 need，交给 zydaemon 低频 kickstart（禁本进程 orphan spawn）
+  ZiYanWriteVarText(@".ziyan_watchdog_framecap_need", @"1\n");
   for (int i = 0; i < 40; i++) {
     if ([self framecapProcessRunning]) {
       [[NSFileManager defaultManager]
@@ -367,7 +364,7 @@ static BOOL ZiYanArgsLookLikeZiYanLua(NSString *args) {
                      error:nil];
       ZiYanWriteVarText(
           @".ziyan_ensure_framecap_log",
-          [NSString stringWithFormat:@"ts=%.0f ok=1 via=menu_run\n",
+          [NSString stringWithFormat:@"ts=%.0f ok=1 via=watchdog_need\n",
                                      [[NSDate date] timeIntervalSince1970]]);
       return YES;
     }
@@ -1840,6 +1837,9 @@ static BOOL ZiYanArgsLookLikeZiYanLua(NSString *args) {
     BOOL ok = [result[@"ok"] boolValue];
     NSInteger code = [result[@"code"] integerValue];
     NSString *output = result[@"output"] ?: @"";
+    if (ok && [ext isEqualToString:@"lua"]) {
+      ZiYanRequestAppMinimizeAfterScriptStart(@"script_runner", path);
+    }
 
     dispatch_async(dispatch_get_main_queue(), ^{
       if (completion) {

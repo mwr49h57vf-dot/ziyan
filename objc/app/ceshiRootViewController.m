@@ -43,36 +43,17 @@ static void ZiYanWriteMinimizeLog(NSString *line) {
   [body writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:nil];
 }
 
-/// 请求 SpringBoard 回桌面（本机 suspend 常无效；非原子写避免原子替换失败）
-static BOOL ZiYanRequestGoHome(void) {
-  ZiYanEnsureVarDirectory();
-  NSString *path = ZiYanVarFile(@".ziyan_go_home");
-  NSError *err = nil;
-  BOOL ok = [@"1\n" writeToFile:path
-                     atomically:NO
-                       encoding:NSUTF8StringEncoding
-                          error:&err];
-  if (!ok) {
-    // 再试：先删再写
-    [[NSFileManager defaultManager] removeItemAtPath:path error:nil];
-    ok = [@"1\n" writeToFile:path
-                  atomically:NO
-                    encoding:NSUTF8StringEncoding
-                       error:&err];
-  }
-  ZiYanWriteMinimizeLog(ok ? @"path=go_home_req" : [NSString
-      stringWithFormat:@"path=go_home_write_fail %@",
-                       err.localizedDescription ?: @"?"]);
-  return ok;
-}
-
-/// 回桌面：立即 go_home + suspend；未进 Background 则多次重试（不杀脚本）
+/// 运行成功后只最小化 ZiYan：SB 在确认 ZiYan 仍为前台后结束 App，保留脚本。
+/// App 侧 suspend 仅作无 SB 桥时的兜底；不按 Home，避免误切目标游戏。
 static void ZiYanMinimizeApp(void) {
   UIApplication *app = UIApplication.sharedApplication;
   ZiYanWriteMinimizeLog(@"begin");
+  BOOL requested = ZiYanRequestAppMinimizeAfterScriptStart(
+      @"app_ui", ZiYanSelectedPathFromState());
+  ZiYanWriteMinimizeLog(requested ? @"path=start_contract_req"
+                                  : @"path=start_contract_req_fail");
 
   void (^pulse)(NSString *) = ^(NSString *tag) {
-    ZiYanRequestGoHome();
     SEL sus = NSSelectorFromString(@"suspend");
     if ([app respondsToSelector:sus]) {
       ((void (*)(id, SEL))objc_msgSend)(app, sus);
@@ -84,7 +65,7 @@ static void ZiYanMinimizeApp(void) {
     }
   };
 
-  // 优先 SB Home（rootless 上 suspend 常空操作）；最多再补一次，避免 Home 风暴
+  // 请求交给 SB；本地 suspend 最多补一次。
   pulse(@"0");
   dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.45 * NSEC_PER_SEC)),
                  dispatch_get_main_queue(), ^{
@@ -95,8 +76,10 @@ static void ZiYanMinimizeApp(void) {
                      ZiYanWriteMinimizeLog(@"path=background_ok");
                      return;
                    }
+                   ZiYanRequestAppMinimizeAfterScriptStart(
+                       @"app_ui_retry", ZiYanSelectedPathFromState());
                    pulse(@"r0.45");
-                   ZiYanWriteMinimizeLog(@"path=go_home_retry");
+                   ZiYanWriteMinimizeLog(@"path=start_contract_retry");
                  });
 }
 

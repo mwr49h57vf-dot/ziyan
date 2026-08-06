@@ -1,13 +1,14 @@
 #import "ZiYanFrameResident.h"
 #import "ZiYanPaths.h"
+#import <math.h>
 #import <stdatomic.h>
 #import <string.h>
 
 /*
- * 174：自有常驻帧（仿触动 createScreenIOSurface，不链 TS）
- * - 双堆缓冲：renew 写 inactive → 原子切换；find 读 active，禁半帧竞态
- * - 对标 .171 Dirty 定值：槽位常驻，同几何不 realloc（setLength 同尺寸 no-op）
- * - 禁 sticky 系统合成层；本槽为 ZiYan 自有 heap（进程内，等同 Surface 角色）
+ * 174/204：自有常驻帧（仿触动 createScreenIOSurface，不链 TS）
+ * - 双槽定容复用：renew 写 inactive → 原子切换；同几何不 malloc/free
+ * - 两槽像素总预算 ≤6MB；超预算则整数下采样（文件 shm 仍可全尺寸中继）
+ * - 禁 sticky 系统合成层；本槽为 ZiYan 自有 heap
  */
 
 static ZiYanFrameShmHeader sHdr[2];
@@ -15,13 +16,38 @@ static NSMutableData *sBuf[2] = {nil, nil}; // 整槽：header64 + pixels
 static atomic_int sActive = 0;              // 0/1 可读面
 static BOOL sReady = NO;
 static BOOL sPinned = NO; // 178：keepScreen 钉槽，禁 SB renew 覆盖
+enum {
+  ZFR_MAX_WORKSET = 6u * 1024u * 1024u,
+  ZFR_SLOT_BUDGET = ZFR_MAX_WORKSET / 2u,
+};
 
-static void ZFR_WriteDiag(size_t payload, uint32_t seq, uint32_t w, uint32_t h) {
+static size_t ZFR_ResidentPayloadBytes(void) {
+  size_t total = 0;
+  for (int i = 0; i < 2; i++) {
+    if (sBuf[i] && sBuf[i].length >= sizeof(ZiYanFrameShmHeader)) {
+      total += sBuf[i].length - sizeof(ZiYanFrameShmHeader);
+    }
+  }
+  return total;
+}
+
+static void ZFR_WriteDiag(size_t activePayload, uint32_t seq, uint32_t w,
+                          uint32_t h, int scale) {
+  size_t residentBytes = ZFR_ResidentPayloadBytes();
+  int overBudget = residentBytes > ZFR_MAX_WORKSET ? 1 : 0;
   NSString *path = ZiYanVarFile(@".ziyan_resident_bytes");
-  NSString *body =
-      [NSString stringWithFormat:@"%zu via=heap_dblbuf seq=%u %ux%u\n", payload,
-                                 seq, w, h];
+  NSString *body = [NSString
+      stringWithFormat:
+          @"%zu via=heap_double active=%zu budget=%u over=%d scale=%d seq=%u "
+          @"%ux%u\n",
+          residentBytes, activePayload, (unsigned)ZFR_MAX_WORKSET, overBudget,
+          scale, seq, w, h];
   [body writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:nil];
+  ZiYanWriteVarText(
+      @".ziyan_workset_bytes",
+      [NSString stringWithFormat:@"%zu active=%zu over=%d scale=%d %ux%u\n",
+                                 residentBytes, activePayload, overBudget, scale,
+                                 w, h]);
 }
 
 static void ZFR_FillHdr(ZiYanFrameShmHeader *hdr, size_t width, size_t height,
@@ -80,6 +106,40 @@ BOOL ZiYanFrameResidentRenew(const void *pixels, size_t width, size_t height,
   if (status == ZiYanFrameStatusWriting) {
     status = ZiYanFrameStatusValid;
   }
+  // 204：双槽总预算 ≤6MB；单槽按 3MB 选整数缩放。
+  // 直接写 inactive 槽，禁每次 renew 另建 2~3MB scaled 临时缓冲。
+  int scale = 1;
+  size_t srcW = width, srcH = height;
+  size_t srcBpr = bpr;
+  const uint8_t *srcPix = (const uint8_t *)pixels;
+  if (payload > ZFR_SLOT_BUDGET) {
+    double ratio = (double)payload / (double)ZFR_SLOT_BUDGET;
+    scale = (int)ceil(sqrt(ratio));
+    if (scale < 2) {
+      scale = 2;
+    }
+    if (scale > 8) {
+      scale = 8;
+    }
+    size_t dw = width / (size_t)scale;
+    size_t dh = height / (size_t)scale;
+    if (dw < 2) {
+      dw = 2;
+    }
+    if (dh < 2) {
+      dh = 2;
+    }
+    size_t dbpr = dw * 4;
+    size_t dpay = dbpr * dh;
+    width = dw;
+    height = dh;
+    bpr = dbpr;
+    payload = dpay;
+    status = ZiYanFrameStatusDownsampled;
+  }
+  if (payload > ZFR_SLOT_BUDGET) {
+    return NO;
+  }
   size_t total = sizeof(ZiYanFrameShmHeader) + payload;
   int cur = atomic_load(&sActive);
   int wr = 1 - (cur & 1);
@@ -87,7 +147,6 @@ BOOL ZiYanFrameResidentRenew(const void *pixels, size_t width, size_t height,
   if (!sBuf[wr]) {
     sBuf[wr] = [[NSMutableData alloc] initWithLength:total];
   } else if (sBuf[wr].length != total) {
-    // 几何变：才扩/缩；同尺寸原地复用（对标触动 Δsize=0）
     [sBuf[wr] setLength:total];
   }
   if (sBuf[wr].length < total) {
@@ -97,14 +156,39 @@ BOOL ZiYanFrameResidentRenew(const void *pixels, size_t width, size_t height,
   ZiYanFrameShmHeader tmp;
   ZFR_FillHdr(&tmp, width, height, bpr, provider, orient, frontHash, status, seq,
               ts_ms);
+  // flags 低 8 位存 scale（1=原尺寸）
+  tmp.flags = (uint32_t)((tmp.flags & ~0xffu) | (uint32_t)(scale & 0xff));
   uint8_t *base = (uint8_t *)sBuf[wr].mutableBytes;
   memcpy(base, &tmp, sizeof(tmp));
-  memcpy(base + sizeof(ZiYanFrameShmHeader), pixels, payload);
+  uint8_t *dst = base + sizeof(ZiYanFrameShmHeader);
+  if (scale == 1) {
+    memcpy(dst, srcPix, payload);
+  } else {
+    for (size_t y = 0; y < height; y++) {
+      const uint8_t *srow = srcPix + (y * (size_t)scale) * srcBpr;
+      uint8_t *drow = dst + y * bpr;
+      for (size_t x = 0; x < width; x++) {
+        const uint8_t *sp = srow + (x * (size_t)scale) * 4;
+        uint8_t *dp = drow + x * 4;
+        dp[0] = sp[0];
+        dp[1] = sp[1];
+        dp[2] = sp[2];
+        dp[3] = sp[3];
+      }
+    }
+  }
   sHdr[wr] = tmp;
 
   atomic_store(&sActive, wr);
   sReady = YES;
-  ZFR_WriteDiag(payload, seq, (uint32_t)width, (uint32_t)height);
+  ZFR_WriteDiag(payload, seq, (uint32_t)width, (uint32_t)height, scale);
+  // 工作集元数据：脚本逻辑坐标 = workset * scale（native）
+  NSString *meta = [NSString
+      stringWithFormat:
+          @"scale=%d\nnative_w=%zu\nnative_h=%zu\nwork_w=%zu\nwork_h=%zu\n"
+          @"payload=%zu\nseq=%u\n",
+          scale, srcW, srcH, width, height, payload, seq];
+  ZiYanWriteVarText(@".ziyan_workset_meta", meta);
   return YES;
 }
 

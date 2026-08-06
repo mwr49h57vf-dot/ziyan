@@ -8,11 +8,11 @@ NS_ASSUME_NONNULL_BEGIN
 ///
 /// 铁律：
 /// - 只持有 **ZiYan 自有** 缓冲（IOSurfaceCreate 或 heap），禁止 sticky 系统合成层句柄
-/// - renew = 同几何原地 memcpy；几何变才重建
+/// - renew = 双槽原子切换；同几何原地复用，禁止逐帧 malloc/free
 /// - find/getColor 直读本槽，不每圈 mmap 文件 shm
 /// - 文件 shm 仍作跨进程镜像（SB relay / HTTP snapshot）
 ///
-/// 内存风险：常驻 ≈ w*h*4（对标 .171 Dirty ~5744KB）；禁在 SB 进程启用本模块
+/// 内存风险：双槽总像素预算 ≤6MB（对标 .171 Dirty ~5744KB）；禁在 SB 进程启用
 
 void ZiYanFrameResidentRegisterHooks(void);
 

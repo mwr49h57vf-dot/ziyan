@@ -256,6 +256,11 @@ void ZiYanFrameKeepDisable(void) {
   ZFK_Persist();
   // 武装空闲回收（PollKeepOff 在无会话时才 Clear；运行中保留槽）
   ZiYanWriteVarText(@".ziyan_release_screen", @"1\n");
+  // 201：冷却态标记（framecap ServeLoop / embed 共读）
+  ZiYanWriteVarText(
+      @".ziyan_frame_lifecycle",
+      [NSString stringWithFormat:@"ts=%.0f state=cooldown seq=0 bytes=0 keep=0 keep_disable\n",
+                                 NSDate.date.timeIntervalSince1970]);
 }
 
 void ZiYanFrameKeepPollTTL(void) {

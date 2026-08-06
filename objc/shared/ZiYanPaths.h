@@ -193,6 +193,18 @@ static inline BOOL ZiYanWriteVarText(NSString *name, NSString *body) {
   return ok;
 }
 
+/// 脚本确认启动后，请求 SpringBoard 仅在 ZiYan 仍为前台时结束 ZiYan App。
+/// 不按 Home、不结束脚本，也不影响已经切到游戏或桌面的前台。
+static inline BOOL ZiYanRequestAppMinimizeAfterScriptStart(
+    NSString *_Nullable source, NSString *_Nullable scriptPath) {
+  NSString *body = [NSString
+      stringWithFormat:@"ts=%.3f\nsource=%@\npath=%@\n",
+                       [[NSDate date] timeIntervalSince1970],
+                       source.length ? source : @"runner",
+                       scriptPath.length ? scriptPath : @""];
+  return ZiYanWriteVarText(@".ziyan_app_minimize_req", body);
+}
+
 /// T5：ObjC ziyadaemond 已启动（决策层迁出）
 static inline BOOL ZiYanDaemonV2Active(void) {
   return access(ZiYanVarFile(@".ziyan_daemon_v2").fileSystemRepresentation,

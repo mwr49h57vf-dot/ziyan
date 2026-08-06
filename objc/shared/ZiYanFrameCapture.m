@@ -527,11 +527,13 @@ static NSMutableData *ZiYanCaptureViaIOMobileFB(size_t *outW, size_t *outH,
         memcpy(RD + y * dbpr + x * 4, D + sy * (w * 4) + sx * 4, 4);
       }
     }
-    rgba = [NSMutableData dataWithBytes:RD length:rneed];
+    // 204：返回复用槽本身；调用方在本次 capture 内立即写 shm。
+    // 禁每帧 dataWithBytes 再复制 2~11MB，短命大块会持续抬 RSS 高水位。
+    rgba = sIomfbRot;
     w = dw;
     h = dh;
   } else {
-    rgba = [NSMutableData dataWithBytes:D length:need];
+    rgba = sIomfbRgba;
   }
   *outW = w;
   *outH = h;
@@ -708,11 +710,11 @@ static NSMutableData *ZiYanCaptureViaCARender(size_t *outW, size_t *outH,
             memcpy(RD + y * dbpr + x * 4, D + sy * (w * 4) + sx * 4, 4);
           }
         }
-        rgba = [NSMutableData dataWithBytes:RD length:rneed];
+        rgba = sRotReuse;
         w = dw;
         h = dh;
       } else {
-        rgba = [NSMutableData dataWithBytes:D length:need];
+        rgba = sRgbaReuse;
       }
       *outW = w;
       *outH = h;

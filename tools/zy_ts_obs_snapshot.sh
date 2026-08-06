@@ -102,12 +102,12 @@ fi
 sleep 60
 # 5 点基线，间隔 2s，取中位数
 BASE_SAMPLES=""
-for i in 1 2 3 4 5; do
+for i in $(seq 1 15); do
   R0=$(ts_rss "$PID_PIN"); R0=${R0:-0}
   BASE_SAMPLES="$BASE_SAMPLES $R0"
   sleep 2
 done
-RSS_BASE=$(echo "$BASE_SAMPLES" | tr ' ' '\n' | grep -E '^[0-9]+$' | sort -n | sed -n '3p')
+RSS_BASE=$(echo "$BASE_SAMPLES" | tr ' ' '\n' | grep -E '^[0-9]+$' | sort -n | sed -n '8p')
 RSS_BASE=${RSS_BASE:-0}
 echo "WARM_BASE_RSS_KB=$RSS_BASE samples=$BASE_SAMPLES"
 
@@ -134,11 +134,11 @@ while [ "$(date +%s)" -lt "$end" ]; do
   if [ "$RSS_MIN" = "0" ] || [ "$TR" -lt "$RSS_MIN" ] 2>/dev/null; then RSS_MIN=$TR; fi
   echo "SAMPLE $(date +%s) $TR $TC $(sb_rss)"
   TAIL_BUF="$TAIL_BUF $TR"
-  TAIL_BUF=$(echo "$TAIL_BUF" | tr ' ' '\n' | grep -E '^[0-9]+$' | tail -5 | tr '\n' ' ')
+  TAIL_BUF=$(echo "$TAIL_BUF" | tr ' ' '\n' | grep -E '^[0-9]+$' | tail -15 | tr '\n' ' ')
   sleep 2
 done
 
-RSS_END=$(echo "$TAIL_BUF" | tr ' ' '\n' | grep -E '^[0-9]+$' | sort -n | sed -n '3p')
+RSS_END=$(echo "$TAIL_BUF" | tr ' ' '\n' | grep -E '^[0-9]+$' | sort -n | sed -n '8p')
 RSS_END=${RSS_END:-0}
 DELTA=$(( RSS_END - RSS_BASE ))
 PER100=$(( DELTA * 100 / SEC ))

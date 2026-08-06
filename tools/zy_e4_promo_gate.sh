@@ -36,7 +36,19 @@ SSH_OPTS=(-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o Connect
           -o PreferredAuthentications=password -o PubkeyAuthentication=no
           -o ServerAliveInterval=20 -o ServerAliveCountMax=6)
 ssh_r() { sshpass -p "$PASS" ssh "${SSH_OPTS[@]}" "root@$1" "${@:2}"; }
-scp_r() { sshpass -p "$PASS" scp "${SSH_OPTS[@]}" "$1" "root@$2:$3"; }
+# 越狱机 sshd 在短时间大量连接后会偶发 "Permission denied"（认证限流）。
+# 单次传输失败不得中断整场多机长跑，退避重试后仍失败才跳过该机。
+scp_r() {
+  local i
+  for i in 1 2 3 4 5; do
+    if sshpass -p "$PASS" scp "${SSH_OPTS[@]}" "$1" "root@$2:$3"; then
+      return 0
+    fi
+    echo "WARN scp retry $i/5 → $2:$3"
+    sleep $((i * 4))
+  done
+  return 1
+}
 
 [[ -f "$DESKTOP_IOS7" && -f "$DESKTOP_IOS8P" ]] || {
   echo "FATAL missing Desktop ios7/ios8p"; exit 2
@@ -60,7 +72,10 @@ run_remote() {
   local RMAX100="$RMAX100_RF"
   [ "$H" = "53" ] && SCHEME=rootless && SCRIPT=ios8p.lua && LOCAL="$DESKTOP_IOS8P" && SHA="$SHA8" && RMAX100="$RMAX100_R53"
   echo "==== start .$H script=$SCRIPT (${MIN}min) ===="
-  scp_r "$LOCAL" "$IP" "/private/var/mobile/Media/ZiYan/$SCRIPT"
+  if ! scp_r "$LOCAL" "$IP" "/private/var/mobile/Media/ZiYan/$SCRIPT"; then
+    echo "SKIP .$H scp_failed_after_retry" | tee "$OUT/gate_${H}.txt"
+    return 0
+  fi
   ssh_r "$IP" "SCHEME=$SCHEME SEC=$SEC H=$H SCRIPT=$SCRIPT SHA=$SHA RMAX100=$RMAX100 bash -s" <<'R' >"$OUT/gate_${H}.txt" 2>&1 &
 set +e
 if [ "$SCHEME" = rootless ]; then
@@ -125,15 +140,18 @@ echo 1 >"$V/.ziyan_force_recap" 2>/dev/null || true
 sleep 3
 rm -f "$V/.ziyan_force_recap" 2>/dev/null || true
 sleep 2
-# 采 5 点基线中位数（此时工作集应已常驻）
+# 基线取 15 点（约 30s）中位数。
+# 不能只取 5 点/10s：framecap RSS 在合帧期是周期约 60s、振幅约 3MB 的锯齿
+# （触动 .171 同期摆幅 3168KB，同量级），10s 窗口测 60s 周期信号属于混叠，
+# 测到的是采样相位而不是趋势。
 BASE_SAMPLES=""
-for i in 1 2 3 4 5; do
+for i in $(seq 1 15); do
   FR=$(fc_rss_line | cut -d' ' -f1); FR=${FR:-0}
   BASE_SAMPLES="$BASE_SAMPLES $FR"
   sleep 2
 done
-# 无 awk（部分越狱机无）：5 点取第 3 个为中位数
-RSS_BASE=$(echo "$BASE_SAMPLES" | tr ' ' '\n' | grep -E '^[0-9]+$' | sort -n | sed -n '3p')
+# 无 awk（部分越狱机无）：15 点取第 8 个为中位数
+RSS_BASE=$(echo "$BASE_SAMPLES" | tr ' ' '\n' | grep -E '^[0-9]+$' | sort -n | sed -n '8p')
 RSS_BASE=${RSS_BASE:-0}
 WS0=$(tr '\n' ' ' <"$V/.ziyan_workset_bytes" 2>/dev/null | sed 's/[^0-9].*//' | tr -dc '0-9')
 [ -n "$WS0" ] || WS0=0
@@ -171,13 +189,13 @@ while [ "$(date +%s)" -lt "$end" ]; do
   LIFE=""; [ -f "$V/.ziyan_frame_lifecycle" ] && LIFE=$(tr -d '\r\n' <"$V/.ziyan_frame_lifecycle" | head -c 48)
   echo -e "$(date +%s)\t${FC_N:-0}\t${FC_R}\t${SB_RSS}\t${KEEP_NOW}\t${LIFE}" >>"$V/.ziyan_e4_resource.tsv"
   TAIL_BUF="$TAIL_BUF $FC_R"
-  # 只保留末段约 5 点用于斜率
-  TAIL_BUF=$(echo "$TAIL_BUF" | tr ' ' '\n' | grep -E '^[0-9]+$' | tail -5 | tr '\n' ' ')
+  # 末段保留 15 点（约 30s），与基线同宽，抗锯齿混叠
+  TAIL_BUF=$(echo "$TAIL_BUF" | tr ' ' '\n' | grep -E '^[0-9]+$' | tail -15 | tr '\n' ' ')
   sleep 2
 done
 
-# 末段 5 点中位数（无 awk）
-RSS_END=$(echo "$TAIL_BUF" | tr ' ' '\n' | grep -E '^[0-9]+$' | sort -n | sed -n '3p')
+# 末段 15 点中位数（无 awk）
+RSS_END=$(echo "$TAIL_BUF" | tr ' ' '\n' | grep -E '^[0-9]+$' | sort -n | sed -n '8p')
 RSS_END=${RSS_END:-0}
 FC_DELTA=$(( RSS_END - RSS_BASE ))
 FC_PEAK_DELTA=$(( FC_RSS_MAX - RSS_BASE ))
@@ -243,7 +261,8 @@ R
 }
 
 for H in "${HOSTS[@]}"; do
-  run_remote "$H"
+  # 单机启动失败不得让整场多机长跑退出（set -e）；该机记 SKIP 后继续
+  run_remote "$H" || echo "WARN launch_failed .$H"
 done
 
 echo "waiting ${MIN}min workers…"

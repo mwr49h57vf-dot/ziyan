@@ -66,66 +66,44 @@ end
 
 local function defined(n) return type(_G[n]) == "function" end
 
--- 179：找色/找字/找图共用——切前台后重 sync init 方向并催当前前台帧（禁啃旧缓冲）
-local _vision_last_front = nil
-local _vision_last_force_t = 0
-function M.ensure_foreground_frame()
-  -- 181：像素永远跟前台；坐标方向永远钉业务 init（切 SB/最小化也不改 rotate）
-  refresh_paths()
-  local bid = nil
-  if type(_G.frontAppBid) == "function" then
-    local ok, v = pcall(_G.frontAppBid)
-    if ok and type(v) == "string" and #v > 0 then
-      bid = v
-    end
+-- 202：找色/找字/找图共用 ForegroundFrameGate（像素=当前前台；方向=业务 init）
+local function load_fg_gate()
+  if type(_G.ZiYanFgGate) == "table" then
+    return _G.ZiYanFgGate
   end
-  if not bid then
-    local f = io.open(VAR .. "/.ziyan_front_bid", "r")
-    if f then
-      bid = (f:read("*l") or ""):match("%S+")
-      f:close()
-    end
-  end
-  -- 每圈轻量重申钉死方向（防文件被旁路写成 0）
-  pcall(function()
-    if type(_G.ZiYanOrient) == "table" then
-      if type(_G.ZiYanOrient.reassert_init_orient) == "function" then
-        _G.ZiYanOrient.reassert_init_orient()
-      elseif type(_G.ZiYanOrient.soft_sync) == "function" then
-        _G.ZiYanOrient.soft_sync()
-      end
-    end
+  local ok, g = pcall(function()
+    return require("ziyan_engine.fg_gate")
   end)
-  if type(bid) ~= "string" or #bid < 1 then
+  if ok and type(g) == "table" then
+    _G.ZiYanFgGate = g
+    return g
+  end
+  return nil
+end
+
+function M.ensure_foreground_frame()
+  refresh_paths()
+  local g = load_fg_gate()
+  if g and type(g.ensure_foreground_frame) == "function" then
+    g.ensure_foreground_frame()
     return
   end
-  if _vision_last_front and _vision_last_front ~= bid then
-    local isHome = tostring(bid):lower():find("springboard", 1, true) ~= nil
-    -- 只换前台帧 + 重申同一 rotate；禁止 init(0) / 跟桌面竖屏
-    pcall(function()
-      if type(_G.ZiYanOrient) == "table" and type(_G.ZiYanOrient.sync_game_screen) == "function" then
-        local pinned = _G.__ZIYAN_ORIENT
-        if type(_G.ZiYanOrient.pinned_orient) == "function" then
-          pinned = _G.ZiYanOrient.pinned_orient()
-        end
-        _G.ZiYanOrient.sync_game_screen(pinned, bid)
-      end
-    end)
-    local now = os.clock() or 0
-    -- 195 E3：切前台 force 更钝（对标触动不连环 recap）；ensure 与 invalidate 共用节流
-    local gap = isHome and 2.0 or 1.5
-    if (now - (_vision_last_force_t or 0)) >= gap then
-      _vision_last_force_t = now
-      pcall(function()
-        local f = io.open(VAR .. "/.ziyan_force_recap", "w")
-        if f then
-          f:write("1\n")
-          f:close()
-        end
-      end)
+  -- 极简回退：仅重申 init
+  pcall(function()
+    if type(_G.ZiYanOrient) == "table" and type(_G.ZiYanOrient.reassert_init_orient) == "function" then
+      _G.ZiYanOrient.reassert_init_orient()
     end
+  end)
+end
+
+--- 返回 gate 快照（触控可附带 front_generation/seq）
+function M.vision_gate(kind)
+  local g = load_fg_gate()
+  if g and type(g.acquire) == "function" then
+    return g.acquire(kind or "vision")
   end
-  _vision_last_front = bid
+  M.ensure_foreground_frame()
+  return true, { ok = true, front_generation = 0, init_orient = tonumber(_G.__ZIYAN_ORIENT) or 1, seq = 0 }
 end
 
 --- 点表安全编码：禁止走 TE jsonEncode（纯哈希表 #t==0 会被编成 []）
@@ -335,9 +313,73 @@ local function wait_rep(want_nonce, timeout_s)
   return false, nil
 end
 
+--- 201：读 .ziyan_last_find → _G.__ZIYAN_LAST_FIND（分类：hit/pixel_miss/front_mismatch/...）
+local function load_last_find_class()
+  local path = VAR .. "/.ziyan_last_find"
+  local f = io.open(path, "r")
+  if not f then return nil end
+  local line = f:read("*l") or ""
+  f:close()
+  local info = { raw = line, class = "unknown" }
+  for k, v in string.gmatch(line, "([%w_]+)=([^%s]+)") do
+    info[k] = v
+  end
+  if info.class then
+    _G.__ZIYAN_LAST_FIND = info
+  end
+  return info
+end
+
+function M.last_find_class()
+  local info = load_last_find_class()
+  if type(info) == "table" then return info.class or "unknown", info end
+  return "unknown", info
+end
+
+--- 201：契约快照（逻辑 ROI / 点数 / 前台）；单行覆盖，供门禁对照
+local function write_find_contract(flat, fuzzy, x1, y1, x2, y2, vx, vy)
+  pcall(function()
+    local n = 0
+    if type(flat) == "table" then
+      if flat[1] and type(flat[1]) == "table" then n = #flat
+      else n = math.floor((#flat + 2) / 3) end
+    end
+    local front = "-"
+    local ff = io.open(VAR .. "/.ziyan_front_bid", "r")
+    if ff then front = (ff:read("*l") or "-"):gsub("%s+", ""); ff:close() end
+    local ori = "-"
+    local of = io.open(VAR .. "/.ziyan_orient", "r")
+    if of then ori = (of:read("*l") or "-"):gsub("%s+", ""); of:close() end
+    local cls = "unknown"
+    local lf = load_last_find_class()
+    if type(lf) == "table" and lf.class then cls = lf.class end
+    if tonumber(vx) and vx >= 0 then cls = "hit" end
+    local now = os.time() or 0
+    local key = table.concat({
+      cls, tostring(x1), tostring(y1), tostring(x2), tostring(y2),
+      tostring(fuzzy), tostring(n), front, ori, tostring(vx), tostring(vy),
+    }, "|")
+    if _G.__ZIYAN_FIND_CONTRACT_KEY == key
+        and now == tonumber(_G.__ZIYAN_FIND_CONTRACT_SEC) then
+      return
+    end
+    _G.__ZIYAN_FIND_CONTRACT_KEY = key
+    _G.__ZIYAN_FIND_CONTRACT_SEC = now
+    local f = io.open(VAR .. "/.ziyan_find_contract", "w")
+    if not f then return end
+    f:write(string.format(
+      "ts=%d class=%s roi=%d,%d,%d,%d fuzzy=%d points=%d front=%s orient=%s xy=%s,%s\n",
+      now, cls, tonumber(x1) or 0, tonumber(y1) or 0,
+      tonumber(x2) or -1, tonumber(y2) or -1, tonumber(fuzzy) or 90, n,
+      front, ori, tostring(vx), tostring(vy)))
+    f:close()
+  end)
+end
+
 --- 调 ScreenBridge；pts 为 [{c,dx,dy,b},...] 或旧扁平数字表
 function M.find_multi_flat(flat, fuzzy, x1, y1, x2, y2)
   if type(flat) ~= "table" or #flat < 1 then
+    write_find_contract(flat, fuzzy, x1, y1, x2, y2, -1, -1)
     return -1, -1
   end
   refresh_paths()
@@ -348,13 +390,16 @@ function M.find_multi_flat(flat, fuzzy, x1, y1, x2, y2)
     if (_ps_embed_find % 20) == 0 then flush_path_stats(false) end
     if type(_G.ziyan_embed_find_multi) ~= "function" then
       flush_path_stats(true)
+      write_find_contract(flat, fuzzy, x1, y1, x2, y2, -1, -1)
       return -1, -1
     end
     local ok, vx, vy = pcall(_G.ziyan_embed_find_multi, json_encode_payload(flat),
       fuzzy or 90, x1 or 0, y1 or 0, x2 or -1, y2 or -1)
     if ok and tonumber(vx) and vx >= 0 then
+      write_find_contract(flat, fuzzy, x1, y1, x2, y2, vx, vy)
       return tonumber(vx), tonumber(vy)
     end
+    write_find_contract(flat, fuzzy, x1, y1, x2, y2, -1, -1)
     return -1, -1
   end
 
@@ -375,12 +420,14 @@ function M.find_multi_flat(flat, fuzzy, x1, y1, x2, y2)
   _ps_color_req_find = _ps_color_req_find + 1
   if (_ps_color_req_find % 10) == 0 then flush_path_stats(false) end
   if not write_color_req(payload) then
+    write_find_contract(flat, fuzzy, x1, y1, x2, y2, -1, -1)
     return -1, -1
   end
 
   -- 8-161-74：锁帧热路径应答应 <50ms；0.25s 超时够用（触动圈节奏）
   local ok, body = wait_rep(n, 0.25)
   if not ok or not body or body == "" then
+    write_find_contract(flat, fuzzy, x1, y1, x2, y2, -1, -1)
     return -1, -1
   end
   local obj = json_decode(body)
@@ -404,6 +451,7 @@ function M.find_multi_flat(flat, fuzzy, x1, y1, x2, y2)
   if type(obj) == "table" and obj.ok and tonumber(obj.x) and obj.x >= 0 then
     local vx, vy = tonumber(obj.x), tonumber(obj.y)
     diag_hit(vx, vy, obj.w, obj.h)
+    write_find_contract(flat, fuzzy, x1, y1, x2, y2, vx, vy)
     return vx, vy
   end
   if type(obj) == "table" and obj[1] and type(obj[1]) == "table" then
@@ -411,9 +459,30 @@ function M.find_multi_flat(flat, fuzzy, x1, y1, x2, y2)
     if tonumber(p.x) and p.x >= 0 then
       local vx, vy = tonumber(p.x), tonumber(p.y)
       diag_hit(vx, vy, obj.w or p.w, obj.h or p.h)
+      write_find_contract(flat, fuzzy, x1, y1, x2, y2, vx, vy)
       return vx, vy
     end
   end
+  -- 冷路径分类：有 err 字段则写入 last_find
+  if type(obj) == "table" and obj.err then
+    pcall(function()
+      local f = io.open(VAR .. "/.ziyan_last_find", "w")
+      if f then
+        f:write(string.format("ts=%d class=%s via=color_req\n", os.time() or 0,
+          tostring(obj.err)))
+        f:close()
+      end
+    end)
+  else
+    pcall(function()
+      local f = io.open(VAR .. "/.ziyan_last_find", "w")
+      if f then
+        f:write(string.format("ts=%d class=pixel_miss via=color_req\n", os.time() or 0))
+        f:close()
+      end
+    end)
+  end
+  write_find_contract(flat, fuzzy, x1, y1, x2, y2, -1, -1)
   return -1, -1
 end
 
@@ -479,7 +548,10 @@ function M.find_image(path, fuzzy, x1, y1, x2, y2)
   if type(path) ~= "string" or path == "" then
     return -1, -1
   end
-  M.ensure_foreground_frame()
+  local gok = M.vision_gate("findImage")
+  if not gok then
+    return -1, -1
+  end
   x1, y1, x2, y2 = normalize_region(x1, y1, x2, y2)
   local n = nonce()
   local payload = table.concat({
@@ -1052,8 +1124,12 @@ function M.install()
     if type(_G.__ZIYAN_wait_while_paused) == "function" then
       _G.__ZIYAN_wait_while_paused()
     end
-    -- 179：与找图/OCR 共用前台同步（invalidate_keep 保留兼容）
-    M.ensure_foreground_frame()
+    -- 203：硬 gate；VISION_STALE → 兼容 miss（-1,-1），诊断在 .ziyan_vision_gate
+    local gok = M.vision_gate("findMulti")
+    if not gok then
+      maybe_miss_fuse(false)
+      return -1, -1
+    end
     invalidate_keep_if_front_changed()
     ensure_target_bid_file()
     -- auto-keepScreen：确保 find 前缓存已启用（首次 find 或 tap 后重新启用）

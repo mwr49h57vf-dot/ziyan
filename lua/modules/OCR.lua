@@ -93,7 +93,7 @@ local function trim_text(s)
   return s
 end
 
---- 与 init 对齐：刷新逻辑屏/朝向（不锁 keep，不落盘）
+--- 与 init 对齐：统一 ForegroundFrameGate（不锁 keep，不落盘）
 local function sync_init_logic()
   local orient = tonumber(_G.__ZIYAN_ORIENT) or tonumber(_G.__ZIYAN_TE_ORIENT) or tonumber(C.orient) or 1
   if orient < 0 or orient > 2 then
@@ -102,12 +102,17 @@ local function sync_init_logic()
   C.orient = orient
   _G.__ZIYAN_ORIENT = orient
   pcall(function()
-    if type(softSync) == "function" then
-      softSync()
-    elseif type(screenSync) == "function" then
-      screenSync(orient, _G.__ZIYAN_LAST_BID or C.bid)
-    elseif type(ZiYanOrient) == "table" and type(ZiYanOrient.soft_sync) == "function" then
-      ZiYanOrient.soft_sync()
+    local cv = package.loaded["ziyan_engine.cv"] or package.loaded["ziyan_engine/cv"]
+    if type(cv) == "table" and type(cv.vision_gate) == "function" then
+      cv.vision_gate("ocr")
+      return
+    end
+    if type(cv) == "table" and type(cv.ensure_foreground_frame) == "function" then
+      cv.ensure_foreground_frame()
+      return
+    end
+    if type(ZiYanOrient) == "table" and type(ZiYanOrient.reassert_init_orient) == "function" then
+      ZiYanOrient.reassert_init_orient()
     end
   end)
 end

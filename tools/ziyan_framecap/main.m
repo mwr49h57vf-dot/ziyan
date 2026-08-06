@@ -28,6 +28,8 @@
 #import <malloc/malloc.h>
 #import <dlfcn.h>
 #import <pthread.h>
+#import <math.h>
+#import <ImageIO/ImageIO.h>
 
 extern char **environ;
 
@@ -171,6 +173,10 @@ static void PollKeepOffShmRelease(void) {
   ZiYanFrameKeepRecycle(YES);
   sReleaseQuietUntil = CACurrentMediaTime() + 12.0;
   malloc_zone_pressure_relief(NULL, 0);
+  ZiYanWriteVarText(
+      @".ziyan_frame_lifecycle",
+      [NSString stringWithFormat:@"ts=%.0f state=release seq=0 bytes=0 keep=0 idle_recycle\n",
+                                 NSDate.date.timeIntervalSince1970]);
   CapLog(@"idle → keep_recycle_clear_shm");
 }
 
@@ -199,39 +205,24 @@ static void ZiYanArmForceRecap(NSString *reasonTag, NSString *prev,
                                NSString *bid);
 
 static BOOL ZiYanRetainAppFrameActive(void) {
-  // 文件为准（duplicate serve）；Home 期间 sticky 直到回 App 或硬超时
-  if (!ZiYanFrontIsSpringBoard()) {
-    return NO;
+  // 203：废止 Home 旧 App 冻帧（.171 main.lua = init("0",1) 永远当前前台）
+  // 显式 keepScreen 由 keep 路径 pin resident；此处恒 NO。
+  (void)sRetainAppFrameUntil;
+  (void)sRetainAppBid;
+  return NO;
+}
+
+/// 203：daemon 发布的前台 generation（Lua/OCR/tap 共用，禁进程内假自增）
+static uint32_t sFrontGeneration = 0;
+static void ZiYanBumpFrontGeneration(NSString *prev, NSString *bid) {
+  sFrontGeneration += 1;
+  if (sFrontGeneration == 0) {
+    sFrontGeneration = 1;
   }
-  NSString *r = [NSString
-      stringWithContentsOfFile:ZiYanVarFile(@".ziyan_retain_app_frame")
-                      encoding:NSUTF8StringEncoding
-                         error:nil];
-  if (r.length > 0) {
-    NSArray *lines = [r componentsSeparatedByCharactersInSet:
-                                   [NSCharacterSet newlineCharacterSet]];
-    NSString *untilLine =
-        [lines.firstObject stringByTrimmingCharactersInSet:
-                               [NSCharacterSet whitespaceAndNewlineCharacterSet]];
-    BOOL sticky = [r containsString:@"sticky=1"];
-    if (lines.count > 1) {
-      NSString *bid = [lines[1] stringByTrimmingCharactersInSet:
-                                   [NSCharacterSet whitespaceAndNewlineCharacterSet]];
-      if (bid.length > 0) {
-        sRetainAppBid = bid;
-      }
-    }
-    if (untilLine.length > 0) {
-      sRetainAppFrameUntil = untilLine.doubleValue;
-    }
-    if (sticky ||
-        (untilLine.length > 0 &&
-         untilLine.doubleValue > NSDate.date.timeIntervalSince1970)) {
-      return sRetainAppBid.length > 0;
-    }
-  }
-  return sRetainAppBid.length > 0 &&
-         NSDate.date.timeIntervalSince1970 < sRetainAppFrameUntil;
+  ZiYanWriteVarText(
+      @".ziyan_front_generation",
+      [NSString stringWithFormat:@"%u\nprev=%@\nbid=%@\n", sFrontGeneration,
+                                 prev ?: @"-", bid ?: @"-"]);
 }
 
 /// 168c：若存在 retain_bak 可回滚毒帧（170 不再新建 backup；旧 bak 仍可 restore）
@@ -431,11 +422,7 @@ static BOOL ZiYanShmBidMatchesFront(void) {
     return NO;
   }
   if (ZiYanFrontIsSpringBoard()) {
-    // 168：retain 期 shm 有意盖 App bid（对标触动 keepScreen）→ 视为对齐，禁 needFresh 狂截黑屏
-    if (ZiYanRetainAppFrameActive() && sRetainAppBid.length > 0 &&
-        [shm isEqualToString:sRetainAppBid]) {
-      return YES;
-    }
+    // 202：Home 永不认 App retain 帧为对齐（视觉永远当前前台=桌面）
     return [slow isEqualToString:@"com.apple.springboard"] ||
            [slow containsString:@"springboard"];
   }
@@ -615,11 +602,13 @@ static void ZiYanFramecapNoteFrontBidIfChanged(void) {
   }
   NSString *prev = sLastBid ?: @"-";
   sLastBid = [bid copy];
-  // 首次启动只记 bid，不冲帧
+  // 首次启动只记 bid，不冲帧；仍发布 generation=1
   if ([prev isEqualToString:@"-"]) {
+    ZiYanBumpFrontGeneration(prev, bid);
     ZiYanStampShmFrontBid(bid);
     return;
   }
+  ZiYanBumpFrontGeneration(prev, bid);
   BOOL home = ZiYanFrontIsSpringBoard();
   BOOL fromApp =
       prev.length > 0 && ![prev isEqualToString:@"-"] &&
@@ -760,6 +749,9 @@ static void CapLog(NSString *msg) {
   }
 }
 
+static int sServeLockFd = -1;
+static long sServeLockGen = 0;
+
 static void Heartbeat(void) {
   ZiYanEnsureVarDirectory();
   time_t t = time(NULL);
@@ -774,6 +766,13 @@ static void Heartbeat(void) {
   NSString *alias = ZiYanVarFile(@".ziyan_heartbeat_framecap");
   [body writeToFile:alias atomically:NO encoding:NSUTF8StringEncoding error:nil];
   chmod(alias.fileSystemRepresentation, 0666);
+  // 202：单例 owner 旁路（门禁核验 FC_N=1 + lock 持有者）
+  if (sServeLockFd >= 0) {
+    NSString *owner = [NSString
+        stringWithFormat:@"pid=%d ts=%ld lock_generation=%ld\n", getpid(),
+                         (long)t, sServeLockGen];
+    ZiYanWriteVarText(@".ziyan_framecap_owner", owner);
+  }
   // 8-150：ControlShm 心跳双写
   ZiYanControlShmWriteHeartbeat(@"framecap");
 }
@@ -1291,9 +1290,10 @@ static BOOL HandleOnce(NSString *nonce) {
   NSString *via = @"-";
   NSString *chain = nil;
   // 阶段3：IOMFB → CARender → BBFrame(显式启用) → 至多一次 SB relay → 失败保留旧帧
-  // 168：retain 保旧 App 像素时禁因 bid「看起来不齐」狂截（否则 SB/黑帧盖槽→卡屏变黑）
+  // 203：仅显式 keep 时可跳过催帧；RetainAppFrame 已恒 NO（禁旧 App 冻帧）
   BOOL needFresh = forceRecap || !ZiYanShmBidMatchesFront();
-  if (ZiYanRetainAppFrameActive() && !forceRecap) {
+  if (ZiYanFrameKeepIsOn() && !forceRecap && ZiYanShmBidMatchesFront()) {
+    // keep + 前台已对齐：复用当前槽（对标触动 keep 后不每圈 create）
     needFresh = NO;
   }
   BOOL lockedNow = ZiYanDisplayIsLocked();
@@ -2141,7 +2141,417 @@ static void PollColorReq(void) {
                                       ZiYanFrameKeepLockedSeq()]);
     return;
   }
-  // 找色/取色在 Daemon；其余（dump/OCR）还回文件队列（不进 SB 找色）
+  // 203：找图 — front gate + 模板 LRU + 当前工作集（禁全屏 dump / 禁 SB Vision）
+  if ([op isEqualToString:@"findImage"] && lines.count >= 8) {
+    NSString *path = lines[1];
+    int fuzzy = [lines[2] intValue];
+    int ltx = [lines[3] intValue], lty = [lines[4] intValue];
+    int rbx = [lines[5] intValue], rby = [lines[6] intValue];
+    NSString *nonce = lines[7];
+    if (fuzzy <= 0) {
+      fuzzy = 80;
+    }
+    if (!ZiYanShmBidMatchesFront()) {
+      CapSM_AsyncNudgeCapture(@"findImage_front_mismatch");
+      NSString *repBody =
+          @"{\"ok\":false,\"x\":-1,\"y\":-1,\"err\":\"VISION_STALE\"}";
+      NSString *rep =
+          [NSString stringWithFormat:@"%@\nok\n%@\n", nonce ?: @"0", repBody];
+      [rep writeToFile:repPath
+            atomically:NO
+              encoding:NSUTF8StringEncoding
+                 error:nil];
+      chmod(repPath.fileSystemRepresentation, 0666);
+      return;
+    }
+    size_t w = 0, h = 0, bpr = 0;
+    const ZiYanFrameShmHeader *hdr = NULL;
+    const uint8_t *pix = NULL;
+    size_t mapLen = 0;
+    void *map = NULL;
+    BOOL mapped = NO;
+    int wsScale = 1;
+    if (ZiYanFrameResidentMapRead(&hdr, &pix, &mapLen, &map) && hdr && pix) {
+      w = hdr->width;
+      h = hdr->height;
+      bpr = hdr->bpr;
+      wsScale = (int)(hdr->flags & 0xffu);
+      if (wsScale < 1) {
+        wsScale = 1;
+      }
+      mapped = YES;
+    } else if (ZiYanFrameShmMapRead(&hdr, &pix, &mapLen, &map) && hdr && pix) {
+      w = hdr->width;
+      h = hdr->height;
+      bpr = hdr->bpr;
+      mapped = YES;
+    }
+    // 逻辑坐标 → 工作集坐标
+    if (wsScale > 1) {
+      if (ltx >= 0) {
+        ltx /= wsScale;
+      }
+      if (lty >= 0) {
+        lty /= wsScale;
+      }
+      if (rbx >= 0) {
+        rbx /= wsScale;
+      }
+      if (rby >= 0) {
+        rby /= wsScale;
+      }
+    }
+    // 模板 LRU：path+mtime，最多 4 条 / 总 ≤2MB
+    typedef struct {
+      NSString *path;
+      NSTimeInterval mtime;
+      NSMutableData *rgba;
+      size_t tw, th, tbpr;
+      NSTimeInterval lastUse;
+    } ZyTplCache;
+    static ZyTplCache sTpl[4];
+    static size_t sTplBytes = 0;
+    int hx = -1, hy = -1;
+    if (mapped && path.length > 0 &&
+        [[NSFileManager defaultManager] fileExistsAtPath:path]) {
+      NSDictionary *attrs =
+          [[NSFileManager defaultManager] attributesOfItemAtPath:path
+                                                           error:nil];
+      NSTimeInterval mt =
+          [[attrs fileModificationDate] timeIntervalSince1970];
+      NSMutableData *td = nil;
+      size_t tw = 0, th = 0, tbpr = 0;
+      int hit = -1;
+      for (int i = 0; i < 4; i++) {
+        if (sTpl[i].path && [sTpl[i].path isEqualToString:path] &&
+            fabs(sTpl[i].mtime - mt) < 0.001 && sTpl[i].rgba) {
+          hit = i;
+          break;
+        }
+      }
+      if (hit >= 0) {
+        td = sTpl[hit].rgba;
+        tw = sTpl[hit].tw;
+        th = sTpl[hit].th;
+        tbpr = sTpl[hit].tbpr;
+        sTpl[hit].lastUse = NSDate.date.timeIntervalSince1970;
+      } else {
+        UIImage *tpl = [UIImage imageWithContentsOfFile:path];
+        CGImageRef cg = tpl.CGImage;
+        tw = cg ? CGImageGetWidth(cg) : 0;
+        th = cg ? CGImageGetHeight(cg) : 0;
+        if (cg && tw >= 2 && th >= 2) {
+          // 模板亦按工作集 scale 缩
+          size_t tw2 = tw / (size_t)MAX(wsScale, 1);
+          size_t th2 = th / (size_t)MAX(wsScale, 1);
+          if (tw2 < 2) {
+            tw2 = tw;
+          }
+          if (th2 < 2) {
+            th2 = th;
+          }
+          tbpr = tw2 * 4;
+          td = [NSMutableData dataWithLength:tbpr * th2];
+          CGColorSpaceRef cs = CGColorSpaceCreateDeviceRGB();
+          CGContextRef ctx = CGBitmapContextCreate(
+              td.mutableBytes, tw2, th2, 8, tbpr, cs,
+              kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
+          if (ctx) {
+            CGContextDrawImage(ctx, CGRectMake(0, 0, tw2, th2), cg);
+            CGContextRelease(ctx);
+          }
+          if (cs) {
+            CGColorSpaceRelease(cs);
+          }
+          tw = tw2;
+          th = th2;
+          size_t add = td.length;
+          // 腾出槽：LRU 或总字节超限
+          int slot = -1;
+          NSTimeInterval oldest = 1e300;
+          for (int i = 0; i < 4; i++) {
+            if (!sTpl[i].rgba) {
+              slot = i;
+              break;
+            }
+            if (sTpl[i].lastUse < oldest) {
+              oldest = sTpl[i].lastUse;
+              slot = i;
+            }
+          }
+          while (sTplBytes + add > 2u * 1024u * 1024u) {
+            int victim = -1;
+            oldest = 1e300;
+            for (int i = 0; i < 4; i++) {
+              if (sTpl[i].rgba && sTpl[i].lastUse < oldest) {
+                oldest = sTpl[i].lastUse;
+                victim = i;
+              }
+            }
+            if (victim < 0) {
+              break;
+            }
+            sTplBytes -= MIN(sTplBytes, sTpl[victim].rgba.length);
+            sTpl[victim].rgba = nil;
+            sTpl[victim].path = nil;
+            if (slot < 0) {
+              slot = victim;
+            }
+          }
+          if (slot < 0) {
+            slot = 0;
+          }
+          if (sTpl[slot].rgba) {
+            sTplBytes -= MIN(sTplBytes, sTpl[slot].rgba.length);
+          }
+          sTpl[slot].path = [path copy];
+          sTpl[slot].mtime = mt;
+          sTpl[slot].rgba = td;
+          sTpl[slot].tw = tw;
+          sTpl[slot].th = th;
+          sTpl[slot].tbpr = tbpr;
+          sTpl[slot].lastUse = NSDate.date.timeIntervalSince1970;
+          sTplBytes += add;
+        }
+      }
+      if (td && tw >= 2 && th >= 2 && w >= tw && h >= th) {
+        if (rbx < 0) {
+          rbx = (int)w - 1;
+        }
+        if (rby < 0) {
+          rby = (int)h - 1;
+        }
+        ltx = MAX(0, MIN(ltx, (int)w - 1));
+        lty = MAX(0, MIN(lty, (int)h - 1));
+        rbx = MAX(ltx, MIN(rbx, (int)w - 1));
+        rby = MAX(lty, MIN(rby, (int)h - 1));
+        double best = -1;
+        int step = (w * h > 800000) ? 2 : 1;
+        const uint8_t *T = (const uint8_t *)td.bytes;
+        double thr = (double)fuzzy / 100.0;
+        for (int y = lty; y + (int)th - 1 <= rby; y += step) {
+          for (int x = ltx; x + (int)tw - 1 <= rbx; x += step) {
+            double sum = 0;
+            double n = 0;
+            for (size_t ty = 0; ty < th; ty += 2) {
+              const uint8_t *sr =
+                  pix + (size_t)(y + (int)ty) * bpr + (size_t)x * 4;
+              const uint8_t *tr = T + ty * tbpr;
+              for (size_t tx = 0; tx < tw; tx += 2) {
+                int dr = (int)sr[tx * 4 + 0] - (int)tr[tx * 4 + 0];
+                int dg = (int)sr[tx * 4 + 1] - (int)tr[tx * 4 + 1];
+                int db = (int)sr[tx * 4 + 2] - (int)tr[tx * 4 + 2];
+                sum += 1.0 - (abs(dr) + abs(dg) + abs(db)) / (3.0 * 255.0);
+                n += 1.0;
+              }
+            }
+            double sc = (n > 0) ? (sum / n) : 0;
+            if (sc > best) {
+              best = sc;
+              if (sc >= thr) {
+                hx = x;
+                hy = y;
+              }
+            }
+          }
+        }
+        (void)best;
+      }
+    }
+    if (map && mapLen > 0) {
+      ZiYanFrameShmUnmap(map, mapLen);
+    }
+    // 工作集坐标 → 逻辑坐标
+    if (hx >= 0 && wsScale > 1) {
+      hx *= wsScale;
+      hy *= wsScale;
+    }
+    NSString *repBody =
+        (hx >= 0)
+            ? [NSString stringWithFormat:
+                           @"{\"ok\":true,\"x\":%d,\"y\":%d,\"via\":\"daemon_"
+                           @"findImage\",\"gen\":%u,\"scale\":%d}",
+                       hx, hy, sFrontGeneration, wsScale]
+            : @"{\"ok\":false,\"x\":-1,\"y\":-1,\"err\":\"image_miss\"}";
+    NSString *rep =
+        [NSString stringWithFormat:@"%@\nok\n%@\n", nonce ?: @"0", repBody];
+    [rep writeToFile:repPath
+          atomically:NO
+            encoding:NSUTF8StringEncoding
+               error:nil];
+    chmod(repPath.fileSystemRepresentation, 0666);
+    [@"daemon\n" writeToFile:ZiYanVarFile(@".ziyan_find_via")
+                  atomically:NO
+                    encoding:NSUTF8StringEncoding
+                       error:nil];
+    return;
+  }
+
+  // 203：OCR ROI — 从当前工作集裁小图 → ziyan_ocr（禁全屏 dump）
+  if ([op isEqualToString:@"ocrRoi"] && lines.count >= 6) {
+    int ltx = [lines[1] intValue], lty = [lines[2] intValue];
+    int rbx = [lines[3] intValue], rby = [lines[4] intValue];
+    NSString *nonce = lines[5];
+    if (!ZiYanShmBidMatchesFront()) {
+      CapSM_AsyncNudgeCapture(@"ocrRoi_front_mismatch");
+      NSString *repBody =
+          @"{\"ok\":false,\"text\":\"\",\"err\":\"VISION_STALE\",\"via\":"
+          @"\"daemon_ocrRoi\"}";
+      NSString *rep =
+          [NSString stringWithFormat:@"%@\nok\n%@\n", nonce ?: @"0", repBody];
+      [rep writeToFile:repPath
+            atomically:NO
+              encoding:NSUTF8StringEncoding
+                 error:nil];
+      chmod(repPath.fileSystemRepresentation, 0666);
+      return;
+    }
+    const ZiYanFrameShmHeader *hdr = NULL;
+    const uint8_t *pix = NULL;
+    size_t mapLen = 0;
+    void *map = NULL;
+    BOOL mapped = ZiYanFrameResidentMapRead(&hdr, &pix, &mapLen, &map);
+    if (!mapped) {
+      mapped = ZiYanFrameShmMapRead(&hdr, &pix, &mapLen, &map);
+    }
+    NSString *repBody =
+        @"{\"ok\":false,\"text\":\"\",\"err\":\"no_frame\",\"via\":"
+        @"\"daemon_ocrRoi\"}";
+    if (mapped && hdr && pix) {
+      int wsScale = (int)(hdr->flags & 0xffu);
+      if (wsScale < 1) {
+        wsScale = 1;
+      }
+      int w = (int)hdr->width, h = (int)hdr->height, bpr = (int)hdr->bpr;
+      if (wsScale > 1) {
+        if (ltx >= 0) {
+          ltx /= wsScale;
+        }
+        if (lty >= 0) {
+          lty /= wsScale;
+        }
+        if (rbx >= 0) {
+          rbx /= wsScale;
+        }
+        if (rby >= 0) {
+          rby /= wsScale;
+        }
+      }
+      if (rbx < 0) {
+        rbx = w - 1;
+      }
+      if (rby < 0) {
+        rby = h - 1;
+      }
+      ltx = MAX(0, MIN(ltx, w - 1));
+      lty = MAX(0, MIN(lty, h - 1));
+      rbx = MAX(ltx + 1, MIN(rbx, w - 1));
+      rby = MAX(lty + 1, MIN(rby, h - 1));
+      int rw = rbx - ltx + 1;
+      int rh = rby - lty + 1;
+      // ROI 硬上限：避免超大 scratch
+      if (rw > 800) {
+        rw = 800;
+        rbx = ltx + rw - 1;
+      }
+      if (rh > 800) {
+        rh = 800;
+        rby = lty + rh - 1;
+      }
+      size_t rbpr = (size_t)rw * 4;
+      NSMutableData *roi = [NSMutableData dataWithLength:rbpr * (size_t)rh];
+      if (roi) {
+        uint8_t *dst = (uint8_t *)roi.mutableBytes;
+        for (int y = 0; y < rh; y++) {
+          memcpy(dst + (size_t)y * rbpr,
+                 pix + (size_t)(lty + y) * (size_t)bpr + (size_t)ltx * 4,
+                 rbpr);
+        }
+        CGColorSpaceRef cs = CGColorSpaceCreateDeviceRGB();
+        CGContextRef ctx = CGBitmapContextCreate(
+            dst, rw, rh, 8, rbpr, cs,
+            kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
+        CGImageRef cg = ctx ? CGBitmapContextCreateImage(ctx) : NULL;
+        NSString *tmp = ZiYanVarFile(@".ziyan_ocr_roi.png");
+        [[NSFileManager defaultManager] removeItemAtPath:tmp error:nil];
+        if (cg) {
+          NSMutableData *png = [NSMutableData data];
+          CGImageDestinationRef dest = CGImageDestinationCreateWithData(
+              (__bridge CFMutableDataRef)png, CFSTR("public.png"), 1, NULL);
+          if (dest) {
+            CGImageDestinationAddImage(dest, cg, NULL);
+            CGImageDestinationFinalize(dest);
+            CFRelease(dest);
+            [png writeToFile:tmp atomically:NO];
+            chmod(tmp.fileSystemRepresentation, 0666);
+          }
+          CGImageRelease(cg);
+        }
+        if (ctx) {
+          CGContextRelease(ctx);
+        }
+        if (cs) {
+          CGColorSpaceRelease(cs);
+        }
+        NSString *ocrBin = [ZiYanRuntimeBin()
+            stringByAppendingPathComponent:@"ziyan_ocr"];
+        NSString *outf = ZiYanVarFile(@".ziyan_ocr_out.json");
+        NSString *errf = ZiYanVarFile(@".ziyan_ocr_err.txt");
+        [[NSFileManager defaultManager] removeItemAtPath:outf error:nil];
+        [[NSFileManager defaultManager] removeItemAtPath:errf error:nil];
+        if ([[NSFileManager defaultManager] fileExistsAtPath:ocrBin] &&
+            [[NSFileManager defaultManager] fileExistsAtPath:tmp]) {
+          // iOS 禁 system()：posix_spawn + 重定向 stdout/stderr
+          pid_t opid = 0;
+          posix_spawn_file_actions_t fa;
+          posix_spawn_file_actions_init(&fa);
+          posix_spawn_file_actions_addopen(
+              &fa, STDOUT_FILENO, outf.fileSystemRepresentation,
+              O_WRONLY | O_CREAT | O_TRUNC, 0666);
+          posix_spawn_file_actions_addopen(
+              &fa, STDERR_FILENO, errf.fileSystemRepresentation,
+              O_WRONLY | O_CREAT | O_TRUNC, 0666);
+          const char *argv_ocr[] = {ocrBin.fileSystemRepresentation,
+                                    tmp.fileSystemRepresentation, "--json",
+                                    NULL};
+          int sp = posix_spawn(&opid, ocrBin.fileSystemRepresentation, &fa,
+                               NULL, (char *const *)argv_ocr, environ);
+          posix_spawn_file_actions_destroy(&fa);
+          if (sp == 0 && opid > 0) {
+            int st = 0;
+            waitpid(opid, &st, 0);
+          }
+          NSString *body =
+              [NSString stringWithContentsOfFile:outf
+                                        encoding:NSUTF8StringEncoding
+                                           error:nil];
+          if (body.length > 2) {
+            repBody = body;
+          } else {
+            repBody = @"{\"ok\":false,\"text\":\"\",\"err\":\"ocr_empty\","
+                      @"\"via\":\"daemon_ocrRoi\"}";
+          }
+        } else {
+          repBody = @"{\"ok\":false,\"text\":\"\",\"err\":\"missing_ziyan_"
+                    @"ocr\",\"via\":\"daemon_ocrRoi\"}";
+        }
+        [[NSFileManager defaultManager] removeItemAtPath:tmp error:nil];
+      }
+    }
+    if (map && mapLen > 0) {
+      ZiYanFrameShmUnmap(map, mapLen);
+    }
+    NSString *rep =
+        [NSString stringWithFormat:@"%@\nok\n%@\n", nonce ?: @"0", repBody];
+    [rep writeToFile:repPath
+          atomically:NO
+            encoding:NSUTF8StringEncoding
+               error:nil];
+    chmod(repPath.fileSystemRepresentation, 0666);
+    return;
+  }
+
+  // 找色/取色在 Daemon；其余（dump）还回文件队列（不进 SB 找色）
   if (![op isEqualToString:@"findMulti"] && ![op isEqualToString:@"getColor"] &&
       ![op isEqualToString:@"findColor"]) {
     [body writeToFile:reqPath
@@ -2392,20 +2802,28 @@ static void ServeLoop(void) {
   ZiYanEnsureVarDirectory();
   // 8-161-112：升级后 var 可能被旧 prerm 掏空 → 先补会话基线
   ZiYanSessionEnsureBaseline();
-  // 8-161-45：单实例锁，禁止双 serve 抢 color_req（.53 8s 假慢源之一）
+  // 8-161-45 / 202：进程生命周期级 flock；第二实例无论 launchd/wrap/orphan 立即退出
   {
     NSString *lockPath = ZiYanVarFile(@".ziyan_framecap_serve.lock");
     int lfd = open(lockPath.fileSystemRepresentation,
                    O_CREAT | O_RDWR, 0666);
-    if (lfd >= 0) {
-      if (flock(lfd, LOCK_EX | LOCK_NB) != 0) {
-        CapLog(@"framecap_serve_exit duplicate");
-        close(lfd);
-        return;
-      }
-      // 持锁至进程退出（不 close）
-      fcntl(lfd, F_SETFD, FD_CLOEXEC);
+    if (lfd < 0) {
+      CapLog(@"framecap_serve_exit lock_open_fail");
+      return;
     }
+    if (flock(lfd, LOCK_EX | LOCK_NB) != 0) {
+      CapLog(@"framecap_serve_exit duplicate");
+      close(lfd);
+      return;
+    }
+    fcntl(lfd, F_SETFD, FD_CLOEXEC);
+    sServeLockFd = lfd;
+    sServeLockGen = (long)time(NULL);
+    // 持锁至进程退出（不 close lfd）
+    NSString *owner = [NSString
+        stringWithFormat:@"pid=%d ts=%ld lock_generation=%ld\n", getpid(),
+                         sServeLockGen, sServeLockGen];
+    ZiYanWriteVarText(@".ziyan_framecap_owner", owner);
   }
   ZiYanFrameShmEnsureFile();
   CapLog(@"framecap_serve_start mode=daemon_keep+color_offload+embed_lua");

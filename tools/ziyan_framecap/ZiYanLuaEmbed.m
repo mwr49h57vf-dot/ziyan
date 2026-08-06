@@ -7,6 +7,8 @@
 #import "ZiYanControlShm.h"
 #import "ZiYanPaths.h"
 #import "ZiYanColorMatch.h"
+#import "ZiYanHIDOptimizer.h"
+#import "ZiYanOrientMap.h"
 #import "ziyan_ios_system.h"
 
 #include "lua.h"
@@ -14,6 +16,7 @@
 #include "lualib.h"
 
 #import <pthread.h>
+#import <malloc/malloc.h>
 #import <stdio.h>
 #import <stdlib.h>
 #import <string.h>
@@ -128,6 +131,80 @@ static const ZiYanFrameShmHeader *sStickyHdr = NULL;
 static const uint8_t *sStickyPix = NULL;
 static NSMutableData *sResFreeze = nil; // 常驻槽快照（keep/会话防 renew 撕像素）
 
+/// 201：生命周期审计（hot/cooldown/release）；仅一行覆盖写，禁风暴
+static void EmbedWriteLifecycle(NSString *state, NSString *detail) {
+  uint32_t seq = ZiYanFrameResidentPeekSeq();
+  if (seq < 1) {
+    seq = ZiYanFrameShmPeekSeq();
+  }
+  size_t bytes = 0;
+  NSString *rb =
+      [NSString stringWithContentsOfFile:ZiYanVarFile(@".ziyan_resident_bytes")
+                                encoding:NSUTF8StringEncoding
+                                   error:nil];
+  if (rb.length) {
+    bytes = (size_t)[rb longLongValue];
+  }
+  ZiYanWriteVarText(
+      @".ziyan_frame_lifecycle",
+      [NSString stringWithFormat:@"ts=%.0f state=%@ seq=%u bytes=%zu keep=%d %@\n",
+                                 NSDate.date.timeIntervalSince1970, state ?: @"-",
+                                 seq, bytes, ZiYanFrameKeepIsOn() ? 1 : 0,
+                                 detail ?: @""]);
+}
+
+/// 201：分类结果单行（脚本/门禁可读）；miss→pixel_miss
+static void EmbedWriteFindClass(NSString *cls, const ZiYanFrameShmHeader *hdr,
+                                double costMs) {
+  NSString *c = cls ?: @"unknown";
+  if ([c isEqualToString:@"miss"]) {
+    c = @"pixel_miss";
+  }
+  NSString *front = ZiYanFrameKeepReadFrontBid() ?: @"-";
+  NSString *shmBid = ZiYanFrameKeepReadShmBid() ?: @"-";
+  uint32_t seq = hdr ? hdr->seq : 0;
+  uint32_t w = hdr ? hdr->width : 0;
+  uint32_t h = hdr ? hdr->height : 0;
+  static NSString *sLastClass = nil;
+  static uint32_t sLastSeq = 0;
+  static NSTimeInterval sLastWrite = 0;
+  static unsigned long long sCalls = 0;
+  NSTimeInterval now = NSDate.date.timeIntervalSince1970;
+  sCalls++;
+  BOOL changed = ![sLastClass isEqualToString:c] || sLastSeq != seq;
+  BOOL sampled = (now - sLastWrite) >= 1.0;
+  if (!changed && !sampled) {
+    return;
+  }
+  sLastClass = [c copy];
+  sLastSeq = seq;
+  sLastWrite = now;
+  ZiYanWriteVarText(
+      @".ziyan_last_find",
+      [NSString
+          stringWithFormat:
+              @"ts=%.0f class=%@ seq=%u w=%u h=%u front=%@ shm_bid=%@ keep=%d "
+              @"cost_ms=%.1f\n",
+              now, c, seq, w, h, front, shmBid, ZiYanFrameKeepIsOn() ? 1 : 0,
+              costMs]);
+  // 状态变化/每秒采样才追加；超过 16KB 直接从当前样本重新开始。
+  NSString *ring = ZiYanVarFile(@".ziyan_find_class_ring");
+  NSString *line = [NSString
+      stringWithFormat:@"%.0f %@ seq=%u cost=%.1f n=%llu\n", now, c, seq,
+                       costMs, sCalls];
+  struct stat st;
+  const char *mode = "a";
+  if (stat(ring.fileSystemRepresentation, &st) == 0 && st.st_size > 16384) {
+    mode = "w";
+  }
+  FILE *f = fopen(ring.fileSystemRepresentation, mode);
+  if (f) {
+    fputs(line.UTF8String, f);
+    fclose(f);
+    chmod(ring.fileSystemRepresentation, 0666);
+  }
+}
+
 static void EmbedStickyDrop(void) {
   if (sStickyMap && sStickyMapLen > 0) {
     ZiYanFrameShmUnmap(sStickyMap, sStickyMapLen);
@@ -137,7 +214,10 @@ static void EmbedStickyDrop(void) {
   sStickySeq = 0;
   sStickyHdr = NULL;
   sStickyPix = NULL;
-  // sResFreeze 保留容量，对标触动 Δsize≈0；内容随下次粘性刷新
+  // 201：无 keep 时释放冻结副本（禁会话热路径长期双份大帧）
+  if (!ZiYanFrameKeepIsOn()) {
+    sResFreeze = nil;
+  }
 }
 
 static BOOL EmbedStickyMapRead(const ZiYanFrameShmHeader **hdr,
@@ -166,7 +246,8 @@ static BOOL EmbedStickyMapRead(const ZiYanFrameShmHeader **hdr,
   }
   EmbedStickyDrop();
 
-  // 174：热路径直读进程内常驻槽，再冻一份给 sticky（禁每圈 mmap 文件）
+  // 174/201：热路径直读常驻槽。
+  // keep 开：冻一份防 renew 撕像素；keep 关：零拷贝读 active 面（find 持锁扫描）。
   {
     const ZiYanFrameShmHeader *rh = NULL;
     const uint8_t *rp = NULL;
@@ -175,7 +256,7 @@ static BOOL EmbedStickyMapRead(const ZiYanFrameShmHeader **hdr,
     if (ZiYanFrameResidentMapRead(&rh, &rp, &rlen, &rmap) && rh && rp) {
       if (want > 0 && rh->seq != want) {
         // keep 锁旧 seq：常驻已前进 → 冷备文件 mmap
-      } else {
+      } else if (want > 0) {
         size_t pay = (size_t)rh->payload;
         size_t total = sizeof(ZiYanFrameShmHeader) + pay;
         if (pay >= 4 && total > sizeof(ZiYanFrameShmHeader)) {
@@ -203,6 +284,19 @@ static BOOL EmbedStickyMapRead(const ZiYanFrameShmHeader **hdr,
             return YES;
           }
         }
+      } else {
+        // 无 keep：直接指常驻 active（调用方须在持锁下完成扫描）
+        sStickyMap = NULL;
+        sStickyMapLen = 0;
+        sStickyHdr = rh;
+        sStickyPix = rp;
+        sStickySeq = rh->seq;
+        *hdr = rh;
+        *pix = rp;
+        *mapLen = 0;
+        *map = NULL;
+        *ownedSticky = YES;
+        return YES;
       }
     }
   }
@@ -324,6 +418,17 @@ static void EmbedForceRecapFrontSwitch(NSString *reason) {
 
 static void EmbedLogFindMeta(const ZiYanFrameShmHeader *hdr, NSString *result,
                              double costMs) {
+  static unsigned long long sCalls = 0;
+  static NSString *sLastResult = nil;
+  static NSTimeInterval sLastWrite = 0;
+  NSTimeInterval now = NSDate.date.timeIntervalSince1970;
+  sCalls++;
+  BOOL changed = ![sLastResult isEqualToString:(result ?: @"-")];
+  if (!changed && (now - sLastWrite) < 1.0 && (sCalls % 100ull) != 1ull) {
+    return;
+  }
+  sLastResult = [(result ?: @"-") copy];
+  sLastWrite = now;
   NSString *front = ZiYanFrameKeepReadFrontBid() ?: @"-";
   NSString *shmBid = ZiYanFrameKeepReadShmBid() ?: @"-";
   uint32_t seq = hdr ? hdr->seq : ZiYanFrameShmPeekSeq();
@@ -340,29 +445,25 @@ static void EmbedLogFindMeta(const ZiYanFrameShmHeader *hdr, NSString *result,
   NSString *line = [NSString
       stringWithFormat:
           @"ts=%.0f event=find_shm seq=%u provider=%u age_ms=%lld front=%@ "
-          @"shm_bid=%@ keep=%d locked_seq=%u result=%@ cost_ms=%.1f\n",
-          NSDate.date.timeIntervalSince1970 * 1000.0, seq, (unsigned)prov,
+          @"shm_bid=%@ keep=%d locked_seq=%u result=%@ cost_ms=%.1f n=%llu\n",
+          now * 1000.0, seq, (unsigned)prov,
           (long long)ageMs, front, shmBid, ZiYanFrameKeepIsOn() ? 1 : 0,
-          ZiYanFrameKeepLockedSeq(), result ?: @"-", costMs];
+          ZiYanFrameKeepLockedSeq(), result ?: @"-", costMs, sCalls];
   // 轻量追加（默认写 color_perf 旁路；trace 开时走 FrameTrace）
   ZiYanFrameTraceAuto(@"find_shm", @"embed",
                       [NSString stringWithFormat:@"p%u", (unsigned)prov],
                       result ?: @"-", costMs);
   NSString *path = ZiYanVarFile(@".ziyan_find_shm_log");
-  NSFileHandle *fh = [NSFileHandle fileHandleForWritingAtPath:path];
-  if (!fh) {
-    [@"\n" writeToFile:path atomically:NO encoding:NSUTF8StringEncoding
-                 error:nil];
-    chmod(path.fileSystemRepresentation, 0666);
-    fh = [NSFileHandle fileHandleForWritingAtPath:path];
+  struct stat st;
+  const char *mode = "a";
+  if (stat(path.fileSystemRepresentation, &st) == 0 && st.st_size > 131072) {
+    mode = "w";
   }
-  if (fh) {
-    @try {
-      [fh seekToEndOfFile];
-      [fh writeData:[line dataUsingEncoding:NSUTF8StringEncoding]];
-      [fh closeFile];
-    } @catch (__unused NSException *e) {
-    }
+  FILE *f = fopen(path.fileSystemRepresentation, mode);
+  if (f) {
+    fputs(line.UTF8String, f);
+    fclose(f);
+    chmod(path.fileSystemRepresentation, 0666);
   }
 }
 
@@ -371,6 +472,7 @@ static void EmbedLogFindMeta(const ZiYanFrameShmHeader *hdr, NSString *result,
 static NSString *EmbedFindMultiJSON(NSString *pointsJSON, int fuzzy, int x1,
                                     int y1, int x2, int y2) {
   NSTimeInterval t0 = NSDate.date.timeIntervalSince1970;
+  // 202：删除 .ziyan_force_front_mismatch 生产测试分支；前台错位只靠真实 front/shm
   ZiYanFramecapShmLock();
   size_t w = 0, h = 0, bpr = 0;
   BOOL keepOn = ZiYanFrameKeepIsOn();
@@ -413,6 +515,7 @@ static NSString *EmbedFindMultiJSON(NSString *pointsJSON, int fuzzy, int x1,
       EmbedForceRecapFrontSwitch(@"keep_front_mismatch");
       double costMs = (NSDate.date.timeIntervalSince1970 - t0) * 1000.0;
       EmbedLogFindMeta(NULL, @"frame_front_mismatch", costMs);
+      EmbedWriteFindClass(@"front_mismatch", NULL, costMs);
       EmbedNoteFindWallMs(costMs);
       return @"{\"ok\":false,\"x\":-1,\"y\":-1,\"err\":\"frame_front_mismatch\"}";
     }
@@ -463,15 +566,20 @@ static NSString *EmbedFindMultiJSON(NSString *pointsJSON, int fuzzy, int x1,
       EmbedAsyncNudgeCap(@"find_need_frame");
     }
     double costMs = (NSDate.date.timeIntervalSince1970 - t0) * 1000.0;
-    NSString *err = !hasPix ? @"empty_shm"
-                            : (released ? @"frame_released"
-                                        : (!bidOK ? @"frame_front_mismatch"
-                                                  : @"frame_stale"));
-    EmbedLogFindMeta(NULL, err, costMs);
+    NSString *err = !hasPix ? @"empty_frame"
+                            : (released ? @"empty_frame"
+                                        : (!bidOK ? @"front_mismatch"
+                                                  : @"stale_frame"));
+    NSString *jsonErr = !hasPix ? @"empty_shm"
+                                : (released ? @"frame_released"
+                                            : (!bidOK ? @"frame_front_mismatch"
+                                                      : @"frame_stale"));
+    EmbedLogFindMeta(NULL, jsonErr, costMs);
+    EmbedWriteFindClass(err, NULL, costMs);
     EmbedNoteFindWallMs(costMs);
     return [NSString
         stringWithFormat:@"{\"ok\":false,\"x\":-1,\"y\":-1,\"err\":\"%@\"}",
-                         err];
+                         jsonErr];
   }
   BOOL needNudge = stale || graceSoftBid; // 宽限/stale 仍扫时催帧
 
@@ -481,6 +589,7 @@ static NSString *EmbedFindMultiJSON(NSString *pointsJSON, int fuzzy, int x1,
     EmbedAsyncNudgeCap(@"map_fail");
     double costMs = (NSDate.date.timeIntervalSince1970 - t0) * 1000.0;
     EmbedLogFindMeta(NULL, @"map_fail", costMs);
+    EmbedWriteFindClass(@"empty_frame", NULL, costMs);
     EmbedNoteFindWallMs(costMs);
     return @"{\"ok\":false,\"x\":-1,\"y\":-1,\"err\":\"map_fail\"}";
   }
@@ -495,6 +604,7 @@ static NSString *EmbedFindMultiJSON(NSString *pointsJSON, int fuzzy, int x1,
     EmbedAsyncNudgeCap(@"locked_seq_mismatch");
     double costMs = (NSDate.date.timeIntervalSince1970 - t0) * 1000.0;
     EmbedLogFindMeta(hdr, @"locked_seq_mismatch", costMs);
+    EmbedWriteFindClass(@"stale_frame", hdr, costMs);
     EmbedNoteFindWallMs(costMs);
     return @"{\"ok\":false,\"x\":-1,\"y\":-1,\"err\":\"locked_seq_mismatch\"}";
   }
@@ -505,21 +615,26 @@ static NSString *EmbedFindMultiJSON(NSString *pointsJSON, int fuzzy, int x1,
   h = hdr->height;
   bpr = hdr->bpr;
   int scaleHint = EmbedScaleHint(w, h);
-  // 184-4：常驻/sticky 放锁再扫；文件 mmap 仍持锁短扫（禁解锁后用悬空 map）
+  // 201：keep 冻结副本可放锁再扫；无 keep 零拷贝常驻 / 文件 mmap 必须持锁短扫
   BOOL unmapFile = (!mapOwnedSticky && mapLen > 0 && map != NULL);
+  BOOL zeroCopyRes = (mapOwnedSticky && mapLen == 0 && !keepOn);
   NSString *rep = nil;
-  if (unmapFile) {
+  if (unmapFile || zeroCopyRes) {
     rep = ZiYanColorMatchFindMulti(pix, w, h, bpr, pointsJSON, fuzzy, x1, y1,
                                    x2, y2, scaleHint);
-    ZiYanFrameShmUnmap(map, mapLen);
+    if (unmapFile) {
+      ZiYanFrameShmUnmap(map, mapLen);
+    }
     ZiYanFramecapShmUnlock();
   } else {
     ZiYanFramecapShmUnlock();
     rep = ZiYanColorMatchFindMulti(pix, w, h, bpr, pointsJSON, fuzzy, x1, y1,
                                    x2, y2, scaleHint);
   }
-  // keep 关且无会话：可 drop sticky；禁每圈 Invalidate（阶段4：不因找色清槽）
-  if (!keepOn && !EmbedSessionResident()) {
+  // 无 keep：每找必卸指针+释冻结副本；keep 保留 locked 冻帧
+  if (!keepOn) {
+    EmbedStickyDrop();
+  } else if (!EmbedSessionResident()) {
     EmbedStickyDrop();
   }
   {
@@ -557,7 +672,9 @@ static NSString *EmbedFindMultiJSON(NSString *pointsJSON, int fuzzy, int x1,
     if (needNudge) {
       EmbedAsyncNudgeCap(miss ? @"find_miss_aged_nudge" : @"find_stale_nudge");
     }
-    EmbedLogFindMeta(hdr, miss ? @"miss" : @"hit", costMs);
+    NSString *cls = miss ? @"pixel_miss" : @"hit";
+    EmbedLogFindMeta(hdr, cls, costMs);
+    EmbedWriteFindClass(cls, hdr, costMs);
     EmbedNoteFindWallMs(costMs);
   }
   if (rep.length < 1) {
@@ -571,9 +688,16 @@ static int EmbedGetColorAt(int sx, int sy) {
   ZiYanFramecapShmLock();
   BOOL keepOn = ZiYanFrameKeepIsOn();
   BOOL bidOK = EmbedShmBidMatchesFront();
-  BOOL released = ZiYanFrameShmIsReleased();
   size_t w = 0, h = 0, bpr = 0;
-  BOOL hasPix = ZiYanFrameShmHasPixels(&w, &h, &bpr) && w >= 2;
+  // 201：与 find 同读源——常驻优先，文件 shm 冷备
+  BOOL hasRes = ZiYanFrameResidentHasPixels(&w, &h, &bpr);
+  BOOL hasShm = NO;
+  if (!hasRes) {
+    hasShm = ZiYanFrameShmHasPixels(&w, &h, &bpr) && w >= 2;
+  }
+  BOOL hasPix = hasRes || hasShm;
+  BOOL released =
+      hasRes ? ZiYanFrameResidentIsReleased() : ZiYanFrameShmIsReleased();
   if (keepOn) {
     NSString *lockBid = ZiYanFrameKeepLockedBid();
     NSString *front = ZiYanFrameKeepReadFrontBid();
@@ -583,6 +707,8 @@ static int EmbedGetColorAt(int sx, int sy) {
       EmbedForceRecapFrontSwitch(@"getcolor_front_mismatch");
       EmbedLogFindMeta(NULL, @"frame_front_mismatch",
                        (NSDate.date.timeIntervalSince1970 - t0) * 1000.0);
+      EmbedWriteFindClass(@"front_mismatch", NULL,
+                          (NSDate.date.timeIntervalSince1970 - t0) * 1000.0);
       return -1;
     }
   }
@@ -593,8 +719,11 @@ static int EmbedGetColorAt(int sx, int sy) {
     } else {
       EmbedAsyncNudgeCap(@"getcolor_need_frame");
     }
+    NSString *err = !hasPix ? @"empty_frame" : @"front_mismatch";
     EmbedLogFindMeta(NULL, !hasPix ? @"empty_shm" : @"frame_front_mismatch",
                      (NSDate.date.timeIntervalSince1970 - t0) * 1000.0);
+    EmbedWriteFindClass(err, NULL,
+                        (NSDate.date.timeIntervalSince1970 - t0) * 1000.0);
     return -1;
   }
   const ZiYanFrameShmHeader *hdr = NULL;
@@ -646,6 +775,7 @@ static void EmbedTouchBusinessPulse(void) {
 }
 
 static int l_find_multi(lua_State *L) {
+  static unsigned long long sFindCalls = 0;
   const char *json = luaL_checkstring(L, 1);
   int fuzzy = (int)luaL_optinteger(L, 2, 90);
   int x1 = (int)luaL_optinteger(L, 3, 0);
@@ -677,6 +807,14 @@ static int l_find_multi(lua_State *L) {
     lua_pushinteger(L, vx);
     lua_pushinteger(L, vy);
   }
+  sFindCalls++;
+  // 204：业务脚本常驻同一 Lua VM。每次小步 GC，低频完整回收并归还空闲堆页；
+  // 禁等脚本结束才释放热循环产生的短命表/字符串。
+  lua_gc(L, LUA_GCSTEP, 32);
+  if ((sFindCalls % 64ull) == 0ull) {
+    lua_gc(L, LUA_GCCOLLECT, 0);
+    malloc_zone_pressure_relief(NULL, 0);
+  }
   return 2;
 }
 
@@ -701,11 +839,15 @@ static int l_keep_screen(lua_State *L) {
     }
     if (ok) {
       EmbedStickyDrop(); // 下一找强制按 locked_seq 映射
+      EmbedWriteLifecycle(@"hot", @"keep_enable");
     }
     lua_pushboolean(L, ok ? 1 : 0);
   } else {
+    EmbedWriteLifecycle(@"cooldown", @"keep_disable");
     ZiYanFrameKeepDisable();
+    sResFreeze = nil;
     EmbedStickyDrop();
+    EmbedWriteLifecycle(@"release", @"keep_disable_done");
     lua_pushboolean(L, 1);
   }
   return 1;
@@ -725,6 +867,77 @@ static int l_msleep(lua_State *L) {
     }
   }
   return 0;
+}
+
+static void EmbedWriteNativeTouch(NSString *kind, int finger, double sx,
+                                  double sy, double nx, double ny, BOOL ok,
+                                  BOOL skipHand) {
+  ZiYanWriteVarText(
+      @".ziyan_touch_native",
+      [NSString
+          stringWithFormat:
+              @"ts=%.0f kind=%@ finger=%d logic=%.1f,%.1f hid=%.4f,%.4f "
+              @"front=%@ orient=%d hand=%d ok=%d\n",
+              NSDate.date.timeIntervalSince1970, kind ?: @"-", finger, sx, sy,
+              nx, ny, ZiYanFrameKeepReadFrontBid() ?: @"-",
+              ZiYanReadOrient().orient, skipHand ? 0 : 1, ok ? 1 : 0]);
+}
+
+/// embed 单宿主原生 HID；失败时 Lua 仍可回落 touch_req 冷路径。
+static int l_touch_phase(lua_State *L) {
+  const char *phase = luaL_checkstring(L, 1);
+  int finger = (int)luaL_optinteger(L, 2, 1);
+  double sx = (double)luaL_checknumber(L, 3);
+  double sy = (double)luaL_checknumber(L, 4);
+  if (finger < 1) {
+    finger = 1;
+  }
+  if (finger > 9) {
+    finger = 9;
+  }
+  double nx = 0, ny = 0;
+  ZiYanMapLogicToNorm(sx, sy, &nx, &ny);
+  BOOL skipHand = !EmbedFrontIsHome();
+  NSString *phaseString =
+      [NSString stringWithUTF8String:phase ?: "down"] ?: @"down";
+  BOOL ok = [[ZiYanHIDOptimizer shared]
+      injectNormPhase:phaseString
+               finger:finger
+                   nx:nx
+                   ny:ny
+             skipHand:skipHand];
+  EmbedWriteNativeTouch(phaseString, finger, sx, sy, nx, ny, ok, skipHand);
+  lua_pushboolean(L, ok ? 1 : 0);
+  return 1;
+}
+
+static int l_touch_tap(lua_State *L) {
+  int finger = (int)luaL_optinteger(L, 1, 1);
+  double sx = (double)luaL_checknumber(L, 2);
+  double sy = (double)luaL_checknumber(L, 3);
+  int holdMs = (int)luaL_optinteger(L, 4, 90);
+  if (finger < 1) {
+    finger = 1;
+  }
+  if (finger > 9) {
+    finger = 9;
+  }
+  double nx = 0, ny = 0;
+  ZiYanMapLogicToNorm(sx, sy, &nx, &ny);
+  BOOL skipHand = !EmbedFrontIsHome();
+  BOOL ok = [[ZiYanHIDOptimizer shared] injectTapNormX:nx
+                                                    y:ny
+                                               finger:finger
+                                               holdMs:holdMs
+                                             skipHand:skipHand];
+  EmbedWriteNativeTouch(@"tap", finger, sx, sy, nx, ny, ok, skipHand);
+  lua_pushboolean(L, ok ? 1 : 0);
+  return 1;
+}
+
+static int l_monotonic_ms(lua_State *L) {
+  lua_pushinteger(L, (lua_Integer)[ZiYanHIDOptimizer monoMs]);
+  return 1;
 }
 
 /// toast：文件 + ControlShm 双写，减少 SB 漏读导致的「toast 钝」
@@ -814,6 +1027,12 @@ static void RegisterNative(lua_State *L) {
   lua_setglobal(L, "ziyan_embed_msleep");
   lua_pushcfunction(L, l_toast);
   lua_setglobal(L, "ziyan_embed_toast");
+  lua_pushcfunction(L, l_touch_phase);
+  lua_setglobal(L, "ziyan_embed_touch_phase");
+  lua_pushcfunction(L, l_touch_tap);
+  lua_setglobal(L, "ziyan_embed_tap");
+  lua_pushcfunction(L, l_monotonic_ms);
+  lua_setglobal(L, "ziyan_embed_monotonic_ms");
   // 172+：对标 deb分析/chumo telib 同名 C 入口（自研实现，禁链 wnriakwyww）
   // _getColor / keepScreen / mSleep / toast 与破解版全局名对齐，供 telib 形脚本直调
   lua_pushcfunction(L, l_get_color);
@@ -844,10 +1063,13 @@ static void ClearEmbedMarkers(void) {
   NSFileManager *fm = [NSFileManager defaultManager];
   [fm removeItemAtPath:ZiYanVarFile(@".ziyan_lua_embedded") error:nil];
   [fm removeItemAtPath:ZiYanVarFile(@".ziyan_embed_alive") error:nil];
-  // 133：停脚本才卸粘性 map + 武装释帧（对标触动停业务收 surface）
+  // 133/201：停脚本才卸粘性 map + 武装释帧（对标触动停业务收 surface）
+  EmbedWriteLifecycle(@"cooldown", @"embed_stop");
+  sResFreeze = nil;
   EmbedStickyDrop();
   // 阶段4：停脚本统一回收 keep + shm
   ZiYanFrameKeepRecycle(YES);
+  EmbedWriteLifecycle(@"release", @"embed_stop_recycle");
 }
 
 static void WriteEmbedAlive(void) {
@@ -1123,5 +1345,7 @@ void ZiYanLuaEmbedPoll(void) {
                encoding:NSUTF8StringEncoding
                   error:nil];
     chmod(ZiYanVarFile(@".ziyan_lua_run.pid").fileSystemRepresentation, 0666);
+    // 直写 embed_go 也必须遵守产品启动契约；SB 只在 ZiYan 仍前台时消费。
+    ZiYanRequestAppMinimizeAfterScriptStart(@"lua_embed", script);
   }
 }

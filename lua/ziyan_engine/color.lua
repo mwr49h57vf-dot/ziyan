@@ -198,6 +198,7 @@ function M.install()
 
   -- TE: findMultiColorInRegionFuzzy(flatColors, fuzzy, ltx, lty, rbx, rby)
   -- TS: 由后续 cv.lua 接管（ScreenBridge）；此处仅包装 TE 扁平原生
+  -- 201：TS 字符串路径唯一边界=CV（逻辑坐标）；禁止本层再 Ori.rect/offset 双重变换
   wrap_once("findMultiColorInRegionFuzzy", function(native)
     return function(a, b, c, d, e, f, g, h)
       checkpoint()
@@ -207,11 +208,22 @@ function M.install()
             and type(_G.ZiYanCV_Native.findMultiColorInRegionFuzzy) == "function" then
           return _G.ZiYanCV_Native.findMultiColorInRegionFuzzy(a, b, c, d, e, f, g)
         end
-        -- cv 尚未装：解析但不旋转偏移，走原生
+        if type(_G.ZiYanCV) == "table"
+            and type(_G.ZiYanCV.findMultiColorInRegionFuzzy) == "function" then
+          return _G.ZiYanCV.findMultiColorInRegionFuzzy(a, b, c, d, e, f, g)
+        end
+        -- cv 尚未装：解析但不旋转偏移，走原生（ROI/偏点保持脚本逻辑坐标）
         local x1, y1, x2, y2 = d, e, f, g
         local flat = parse_ts_string(a, b, nil)
         local x, y = native(flat, c or 90, x1, y1, x2, y2)
         return x, y
+      end
+
+      -- TE 表参数：若 CV 已接管全局，原生已是 CV——禁再 phys 变换
+      if type(_G.ZiYanCV_Native) == "table"
+          and type(_G.ZiYanCV_Native.findMultiColorInRegionFuzzy) == "function"
+          and native == _G.ZiYanCV_Native.findMultiColorInRegionFuzzy then
+        return native(a, b, c, d, e, f, g)
       end
 
       local Ori = O()

@@ -453,23 +453,61 @@ local function ocr_req(op, extra)
     return obj
   end
 
-  -- 8-161-95：OCR 结果缓存 5s（旧 12s 过长占内存；对齐触动短复用）
+  -- 203：硬 gate + ≥350ms；缓存键含 daemon front_generation/seq
+  local gate_ok = true
+  local front_bid = ""
+  local front_gen, frame_seq = 0, 0
+  pcall(function()
+    local cv = package.loaded["ziyan_engine.cv"]
+    if type(cv) == "table" and type(cv.vision_gate) == "function" then
+      local ok, snap = cv.vision_gate("ocr")
+      gate_ok = ok and true or false
+      if type(snap) == "table" then
+        front_bid = tostring(snap.front_bid or "")
+        front_gen = tonumber(snap.front_generation) or 0
+        frame_seq = tonumber(snap.seq) or 0
+      end
+    end
+  end)
+  if not gate_ok then
+    return {
+      ok = false, text = "", error = "VISION_STALE", via = "fg_gate",
+      region = { x, y, x1, y1 },
+    }
+  end
+  local OCR_MIN_MS = 350
   local OCR_CACHE_MS = 5000
   local ocr_cache = _G.__ZIYAN_OCR_CACHE
   if not ocr_cache then
-    ocr_cache = { t = 0, region = {}, result = nil }
+    ocr_cache = { t = 0, region = {}, result = nil, front = "", gen = -1, seq = -1 }
     _G.__ZIYAN_OCR_CACHE = ocr_cache
   end
   local now_ms = os.time() * 1000 + math.floor((os.clock() % 1) * 1000)
+  local last_ocr_t = tonumber(_G.__ZIYAN_OCR_LAST_MS) or 0
+  if last_ocr_t > 0 and (now_ms - last_ocr_t) < OCR_MIN_MS then
+    local wait_ms = OCR_MIN_MS - (now_ms - last_ocr_t)
+    if wait_ms > 0 and wait_ms < 400 then
+      if type(mSleep) == "function" then
+        pcall(mSleep, wait_ms)
+      elseif type(ziyan_embed_msleep) == "function" then
+        pcall(ziyan_embed_msleep, wait_ms)
+      end
+      now_ms = os.time() * 1000 + math.floor((os.clock() % 1) * 1000)
+    end
+  end
   local region_match = (#ocr_cache.region == 4 and
                         ocr_cache.region[1] == x and ocr_cache.region[2] == y and
-                        ocr_cache.region[3] == x1 and ocr_cache.region[4] == y1)
+                        ocr_cache.region[3] == x1 and ocr_cache.region[4] == y1 and
+                        tostring(ocr_cache.front or "") == front_bid and
+                        tonumber(ocr_cache.gen or -2) == front_gen and
+                        tonumber(ocr_cache.seq or -2) == frame_seq)
   if region_match and ocr_cache.result and (now_ms - ocr_cache.t) < OCR_CACHE_MS then
     local cached = ocr_cache.result
     cached.cached = true
     cached.cache_age_ms = now_ms - ocr_cache.t
     return cached
   end
+  _G.__ZIYAN_OCR_LAST_MS = now_ms
 
   local function try_cli_ocr(img_path)
     local outf = ZIYAN_VAR .. "/.ziyan_ocr_out.json"
@@ -566,79 +604,81 @@ local function ocr_req(op, extra)
 
   cleanup_ocr_temps()
 
-  -- 识字默认禁止落盘截图：只用 SpringBoard Vision 区域识别
-  -- __ZIYAN_OCR_NO_SHOT ~= false 时启用（默认 true）
-  local no_shot = (_G.__ZIYAN_OCR_NO_SHOT ~= false)
-  local py = { ok = false, text = "", via = "sb_ocr" }
-  do
-    local sb = try_sb_ocr()
-    if sb then py = sb end
+  -- 203：默认走 daemon ocrRoi（当前帧 ROI），禁全屏 dump / 禁 SB Vision
+  local function try_daemon_ocr_roi()
+    local cv = package.loaded["ziyan_engine.cv"]
+    local n = tostring(os.time()) .. tostring(math.floor((os.clock() % 1) * 1e6))
+    local payload = table.concat({
+      "ocrRoi",
+      tostring(x or 0),
+      tostring(y or 0),
+      tostring(x1 or -1),
+      tostring(y1 or -1),
+      n,
+    }, "\n") .. "\n"
+    local var = ZIYAN_VAR or (_G.ZIYAN_VAR or "/usr/lib/ziyan/var")
+    local req = var .. "/.ziyan_color_req"
+    local rep = var .. "/.ziyan_color_rep"
+    pcall(os.remove, rep)
+    local wf = io.open(req, "w")
+    if not wf then
+      return { ok = false, text = "", error = "color_req_open", via = "daemon_ocrRoi" }
+    end
+    wf:write(payload)
+    wf:close()
+    local body = nil
+    local t0 = os.clock()
+    while (os.clock() - t0) < 6.0 do
+      local rf = io.open(rep, "r")
+      if rf then
+        local all = rf:read("*a") or ""
+        rf:close()
+        if all:find(n, 1, true) then
+          body = all
+          break
+        end
+      end
+      if type(mSleep) == "function" then
+        pcall(mSleep, 40)
+      end
+    end
+    if type(body) ~= "string" then
+      return { ok = false, text = "", error = "ocr_timeout", via = "daemon_ocrRoi" }
+    end
+    local json_part = body:match("\nok\n(.+)$") or body:match("\n(.+)$")
+    local obj = json_part and json_decode(json_part) or nil
+    if type(obj) ~= "table" then
+      return { ok = false, text = "", error = "ocr_bad_json", via = "daemon_ocrRoi" }
+    end
+    obj.via = obj.via or "daemon_ocrRoi"
+    obj.region = { x, y, x1, y1 }
+    return obj
   end
 
-  if not no_shot then
-    -- 显式允许截图时才走 CLI（旧路径，易 jetsam）
-    local py_text0 = (py and py.ok and tostring(py.text or "")) or ""
-    if is_rootless then
-      if py_text0 == "" or not has_cjk(py_text0) then
-        local cli = try_cli_ocr(nil)
-        if cli and cli.ok and tostring(cli.text or "") ~= "" then
-          if py_text0 == "" or has_cjk(tostring(cli.text or "")) then
-            py = cli
-          end
-        elseif py_text0 == "" then
-          py = cli or py
-        end
-      end
-    else
-      if py_text0 == "" then
-        py = try_cli_ocr(nil) or py
-      end
-      if tostring(py.text or "") == "" or not has_cjk(tostring(py.text or "")) then
-        local sb = try_sb_ocr()
-        if sb and sb.ok and tostring(sb.text or "") ~= "" then
-          if tostring(py.text or "") == "" or has_cjk(tostring(sb.text or "")) then
-            py = sb
-          end
-        end
-      end
+  local py = try_daemon_ocr_roi()
+  if (not py or tostring(py.text or "") == "") and type(OCR_BIN) == "string" and file_exists(OCR_BIN) then
+    -- 冷回退：仅当 daemon ROI 失败；仍禁止默认 SB Vision
+    local cli = try_cli_ocr(nil)
+    if cli and tostring(cli.text or "") ~= "" then
+      py = cli
+      py.via = tostring(py.via or "ziyan_ocr") .. "+cli_fallback"
     end
-    local py_text1 = (py and py.ok and tostring(py.text or "")) or ""
-    if py_text1 == "" then
-      local retry = retry_via_temp_dump("empty")
-      if retry and tostring(retry.text or "") ~= "" then
-        py = retry
-      elseif py_text1 == "" and retry then
-        py = retry
-      end
-    else
-      cleanup_ocr_temps()
-    end
-  else
-    -- no_shot：不锁帧、不 thrash keep（触动找字不靠 keep 开关风暴）
-    cleanup_ocr_temps()
-    py.via = tostring(py.via or "sb_ocr") .. "+no_shot"
+  end
+  cleanup_ocr_temps()
+  if type(py) ~= "table" then
+    py = { ok = false, text = "", error = "ocr_nil", via = "daemon_ocrRoi" }
   end
 
   local py_text = (py and py.ok and tostring(py.text or "")) or ""
-  -- 下方云/本地 OCR 兜底（不落盘全屏截图）
-  if false then
-    local reason = "empty"
-    local retry = retry_via_temp_dump(reason)
-    if retry and tostring(retry.text or "") ~= "" then
-      py = retry
-      py_text = tostring(retry.text or "")
-    elseif py_text == "" and retry then
-      py = retry
-      py.error = py.error or reason
-    end
-  else
-    cleanup_ocr_temps()
-  end
+  cleanup_ocr_temps()
 
-  -- 缓存本次 OCR 结果（5 秒），同区域请求复用，降低截屏/fork 频率
+  -- 缓存本次 OCR 结果（5 秒）；键含 front/gen/seq
   do
     local c = _G.__ZIYAN_OCR_CACHE
     if c then
+      c.front = front_bid
+      c.gen = front_gen
+      c.seq = frame_seq
       c.t = os.time() * 1000 + math.floor((os.clock() % 1) * 1000)
       c.region = { x, y, x1, y1 }
       c.result = py

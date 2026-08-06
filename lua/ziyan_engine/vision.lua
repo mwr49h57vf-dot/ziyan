@@ -7,11 +7,19 @@ local M = { module = "vision", version = "1.0.0" }
 local function defined(n) return type(_G[n]) == "function" end
 
 local function ensure_screen()
-  -- 仅 soft 对齐 init 朝向；禁止 keepScreen 开关风暴（占帧/升 CPU）
-  if defined("softSync") then
-    pcall(softSync)
-  elseif defined("screenSync") then
-    pcall(screenSync, _G.__ZIYAN_ORIENT or 1, _G.__ZIYAN_LAST_BID)
+  -- 202：统一走 ForegroundFrameGate（禁各模块分散 softSync 重复旋转）
+  pcall(function()
+    local cv = package.loaded["ziyan_engine.cv"] or package.loaded["ziyan_engine/cv"]
+    if type(cv) ~= "table" then
+      cv = require("ziyan_engine.cv")
+    end
+    if type(cv) == "table" and type(cv.ensure_foreground_frame) == "function" then
+      cv.ensure_foreground_frame()
+      return
+    end
+  end)
+  if type(_G.ZiYanFgGate) == "table" and type(_G.ZiYanFgGate.ensure_foreground_frame) == "function" then
+    pcall(_G.ZiYanFgGate.ensure_foreground_frame)
   end
 end
 

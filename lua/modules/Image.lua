@@ -37,9 +37,17 @@ function M.findColor(main, offset, sim, x1, y1, x2, y2)
   return M.findMultiColorInRegionFuzzy(main, offset, sim, x1, y1, x2, y2)
 end
 
---- 设计区域找图
+--- 设计区域找图（经 vision_gate → daemon 当前帧）
 function M.find(path, fuzzy, x1, y1, x2, y2)
   C.require_pipeline("vision")
+  pcall(function()
+    local cv = package.loaded["ziyan_engine.cv"]
+    if type(cv) == "table" and type(cv.vision_gate) == "function" then
+      cv.vision_gate("findImage")
+    elseif type(cv) == "table" and type(cv.ensure_foreground_frame) == "function" then
+      cv.ensure_foreground_frame()
+    end
+  end)
   local Coord = require("modules.Coordinate")
   local a, b, c, d
   if x1 and y1 and x2 and y2 then

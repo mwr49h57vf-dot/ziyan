@@ -67,7 +67,7 @@ ZiYan_副本/
 ├── Resources/                       # App 资源
 ├── probes/                          # 本地探测（仅 README；图可删）
 ├── packages/                        # deb（保留最新 2 产品版+保底 arm64；bash tools/cleanup_packages.sh）
-├── DOCS/_superseded_plans/          # 过时计划归档（排期以 FIVE_PHONE_SURPASS_PLAN.md 为准）
+├── DOCS/_superseded_plans/          # 过时计划归档（排期以 ROADMAP.md 为准）
 ├── tmp_shots/                       # 真机日志（可再生；SURPASS_TS/TS_OBS/SELF_ITERATE）
 ├── vendor/ref/                      # 学习参考 zip（如 TSColorPicker）
 └── .theos/                          # 构建中间产物（可 clean）

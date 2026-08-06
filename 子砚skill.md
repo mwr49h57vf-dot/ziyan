@@ -34,9 +34,10 @@ alwaysApply: true
   └── res/                   # 资源
 ```
 
-## 全机型兼容矩阵（iPhone 7 / 7 Plus / 8 / 8 Plus × iOS 13~17）
+## 全机型兼容矩阵（iPhone 7 / 7 Plus / 8 / 8 Plus × iOS 13 ～ 16.7.16）
 
-子砚必须支持以下 4 款机型 × 5 个系统版本 = 20 种组合。所有代码必须设备无关，禁止硬编码机型/分辨率。
+子砚必须支持以上 4 款机型 × iOS 13 ～ **16.7.16**（上限写死，扩展待用户通知）。
+所有代码必须设备无关，禁止硬编码机型/分辨率。
 
 ### 机型规格
 
@@ -912,20 +913,20 @@ echo "=== 负载 ==="; uptime
 5. 禁止 ANE/MLX 硬件加速，A11 只用 CPU int8
 6. OCR 间隔 ≥350ms
 7. 学习/AI 代码在 daemon 进程，不在 SB
-8. 禁止直接拷贝 TouchSprite 源码（抄袭架构可以，逐行复制不行）
-9. 所有文件 IPC 必须迁移到共享内存
+8. 允许抄触动的 API 名/参/语义与找色/合帧/keep/Home 等逻辑算法，实现落 `lua/`/`objc/`；仅禁止把触动 dylib / TSDaemon 链进包作运行依赖
+9. 热路径 IPC 优先共享内存；文件 IPC 仅用于低频控制位
 10. framecap 帧数据必须写内存不写文件
 
 ### 兼容性约束
 11. 所有代码必须设备无关，禁止 `if (device == "iPhone8,2")` 等硬编码
 12. 路径必须同时支持 rootful (`/usr/lib/ziyan/`) 和 rootless (`/var/jb/usr/lib/ziyan/`)
-13. 截图 API 必须同时支持 iOS 13-15 (`_UICreateScreenUIImage`) 和 iOS 16-17 (`UIGraphicsImageRenderer`)
+13. 截图 API 必须同时支持 iOS 13-15 (`_UICreateScreenUIImage`) 和 iOS 16.x (`UIGraphicsImageRenderer`)
 14. keepScreen 缓存必须区分 @2x (4MB/可缓存) 和 @3x (8MB/30s TTL)
 14b. **找色永远跟前台；keep 仅显式（191）**：像素=当前前台。`keepScreen(true)` 或 `.ziyan_auto_keep` 才锁帧。**禁止**会话默认 auto-keep / framecap hasColor 暗补锁（190 导致内存暴涨 SB 重启）。停脚本必拆 keep。
 15. 内存上限必须区分 2GB 设备 (≤80MB) 和 3GB 设备 (≤120MB)
 16. 部署包必须同时构建 rootful (`_iphoneos-arm.deb`) 和 rootless (`_iphoneos-arm64.deb`)
 17. 每次修改必须至少在 2 种设备上验证（1 台 @2x + 1 台 @3x，1 台 rootful + 1 台 rootless）
-18. iOS 17 触控必须使用 IOHID fallback 方案（IOHID 部分 API 已废弃）
+18. iOS 16.x 触控必须保留 IOHID fallback 方案（部分 API 已废弃）
 
 ---
 

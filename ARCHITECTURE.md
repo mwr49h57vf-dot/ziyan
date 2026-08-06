@@ -2,7 +2,7 @@
 
 **生效**：2026-07-31  
 **Agent 强制规则**：`.cursor/rules/surpass-ts-four-pillar.mdc`（`alwaysApply: true`）  
-**设备细则**：`DEVICE_RULES.md` · **目录**：`STRUCTURE.md` · **抄袭/整改**：`COPY_TS_REFORM_PLAN.md` · **五机门禁**：`FIVE_PHONE_SURPASS_PLAN.md`
+**排期与门禁**：`ROADMAP.md`（唯一真值源） · **设备细则**：`DEVICE_RULES.md` · **目录**：`STRUCTURE.md`
 
 ---
 
@@ -83,7 +83,7 @@ Desktop 业务脚本：`/Users/mac/Desktop/ios7.lua`、`ios8p.lua` → **只 scp
 |------|-----------|
 | 仓内语料 | `逆向学习/corpus/`（`repos/` `raw/` `text/` `priority/` `touchsprite_helpdoc/`） |
 | 触动真机日志 | `.149`/`.171` 拉取 → `tmp_shots/TS_OBS/<timestamp>/` |
-| 触动公开 | 手册/官网/开发者文档（原理学习）；实现必须自研重封装 |
+| 触动公开 | 手册/官网/开发者文档；允许抄 API 名/参/语义与逻辑算法，实现落 `lua/`/`objc/`，禁链触动二进制作运行依赖 |
 | 开源逆向 | corpus 内 GitHub 镜像 + 联网检索时优先免费开源 |
 | 模型 | Hugging Face 免费可用优先 |
 
@@ -91,9 +91,9 @@ Desktop 业务脚本：`/Users/mac/Desktop/ios7.lua`、`ios8p.lua` → **只 scp
 
 ## 5. 宣称「完全超越触动」门槛
 
-见 `FIVE_PHONE_SURPASS_PLAN.md` **G0** 与历史门槛归档 `DOCS/_superseded_plans/SURPASS_TS_PLAN.md` **G1–G6**。  
+见 `ROADMAP.md` **Z3**（唯一门禁真值源）。旧 `G0` / `G1–G6` 编号已作废。  
 硬指标优先：**SpringBoard 长稳**、**业务脚本执行效率**（找色/圈速/跟手）。  
-缺四机 VERDICT、缺 `.149`/`.171` 日志对照、缺长稳数据 → **禁止宣称超越**。
+缺四机 VERDICT、缺 `.149`/`.171` 同窗对照、缺 **Z2** 长稳数据 → **禁止宣称超越**。
 
 ---
 

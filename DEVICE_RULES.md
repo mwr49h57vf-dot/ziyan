@@ -1,13 +1,14 @@
 # ZiYan 设备规则（DEVICE_RULES）
 
-**生效日期**：2026-07-25
-**阶段**：7.6.3-R8.3.11（包锚点 8-42 · CRITICAL FIX · 总门禁不通过）
-**权威同步**：与 `GPT.txt` / `COPY_TS_REFORM_PLAN.md` / `FIVE_PHONE_SURPASS_PLAN.md` / `已正常功能参考.txt` / `历史问题全归档.txt` 保持一致（过时快照见 `DOCS/_superseded_plans/`）
+**生效日期**：2026-08-07
+**阶段**：Z1-MEM（包锚点 `0.0.92-8-161-205-A`）
+**权威同步**：排期与门禁真值以 **`ROADMAP.md`（Z0–Z3）** 为准。
+本文只保留设备角色与坐标/朝向管线规则；历史 `7.6.x-R*` / `总门禁` 编号已作废，
+过时快照见 `DOCS/_superseded_plans/`。
 
-> R8.3.11：包锚点 `0.0.92-8-42`；Engine 2.20.0。
-> **第一类 .149/.171 只读**；第二类双机同方案；禁止单机硬编码特判。
-> **锁定**：音量 / 找色 / 点击（见已正常功能参考.txt）；仅允许横屏 HID 单路径修复。
-> **总门禁未通过**：HID 短测 · SECURITY_AI · 断电 · HTML 全测 · 模型 · 3h 均未闭环；禁止长稳。
+> **第一类 `.149`/`.171` 只读**；第二类 `.53/.101/.112/.166` 双方案同构，禁止单机硬编码特判。
+> **锁定**：音量 / 找色 / 点击（见已正常功能参考.txt）。
+> **当前门禁状态见 `ROADMAP.md` 第 4 节**，不在本文重复维护。
 
 > **架构铁律（2026-07-31 起写死）**  
 > 1）兼容 **7/7P/8/8P × iOS 13～16.7.16**（后续扩展待告知） 
@@ -15,7 +16,7 @@
 > 3）**.53/.101/.112/.166 只做 ZiYan 项目测试**  
 > 4）综合性能须**完全超越触动**（尤其 **SB 稳定性**、**业务执行效率**）  
 > 5）**业务 API 可照搬照抄触动**；**CPU 越低越好**；**内存释放对照触动**（见下表 + `.cursor/rules/ziyan-api-cpu-mem.mdc`）  
-> 另：支柱（模仿+借鉴/照搬 API+自研实现+corpus+CPU/内存）。Agent：`surpass-ts-four-pillar.mdc` · `ziyan-api-cpu-mem.mdc` · `ARCHITECTURE.md` · `FIVE_PHONE_SURPASS_PLAN.md`。  
+> 另：支柱（模仿+可抄触动+落点自有树+corpus+CPU/内存）。Agent：`surpass-ts-four-pillar.mdc` · `ziyan-api-cpu-mem.mdc` · `ARCHITECTURE.md` · `ROADMAP.md`。  
 > 手动 `menu_run` 与助手路径同构（EnsureFramecapAlive + 目标 App 前台）。
 ---
 

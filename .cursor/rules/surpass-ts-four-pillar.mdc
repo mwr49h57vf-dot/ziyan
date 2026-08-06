@@ -46,7 +46,7 @@ alwaysApply: true
 
 | 维度 | 要求 |
 |------|------|
-| **SB 稳定性** | 长跑无自发 SB/backboardd 重启环；对标并超过 `.171` 触动侧稳态（见 `FIVE_PHONE_SURPASS_PLAN.md` G0 / 归档 G1） |
+| **SB 稳定性** | 长跑无自发 SB/backboardd 重启环；对标并超过 `.171` 触动侧稳态（见 `ROADMAP.md` Z2） |
 | **业务代码执行效率** | 找色/点击/圈速/跟手优于同脚本语义下的触动表现（换屏跟手、keep 吞吐等见 G2–G5） |
 
 宣称「完全超越」须：**四机 VERDICT + `.149`/`.171` 日志对照 + G1–G6**。无证据禁止宣称。
@@ -94,7 +94,7 @@ alwaysApply: true
 3. 禁默认杀 backboardd；dylib 热更才可单次杀 SB；纯 lua 禁杀 SB。
 4. 手动路径与助手路径同构（EnsureFramecapAlive + 目标 App 前台）。
 5. 兼容矩阵：7/7P/8/8P × iOS 13～16.7.16，改坐标/路径必须可移植；扩展机型/系统待用户告知。
-6. 超越门槛：`COPY_TS_REFORM_PLAN.md` 刀序 + `FIVE_PHONE_SURPASS_PLAN.md` G0 + 四机 VERDICT + TS 日志对照。
+6. 超越门槛：`ROADMAP.md` Z0→Z1→Z2 全绿 + 四机 VERDICT + TS 同窗对照（Z3）。
 
 ---
 
@@ -112,5 +112,5 @@ alwaysApply: true
 
 - 本规则 · `ziyan-api-cpu-mem.mdc`（Agent 必遵）
 - `ARCHITECTURE.md` · `STRUCTURE.md` · `DEVICE_RULES.md`
-- `COPY_TS_REFORM_PLAN.md` · `FIVE_PHONE_SURPASS_PLAN.md` · `api_spec/architecture.json`
+- `ROADMAP.md`（唯一门禁真值源）· `api_spec/architecture.json`
 - `逆向学习/corpus/` · `tmp_shots/TS_OBS/`（触动对照落盘）

@@ -222,6 +222,40 @@ static BOOL ZiYanSurfaceMostlyUniform(const uint8_t *base, size_t bpr, size_t w,
 }
 
 /// 综合健康门：非锁屏黑 / 整帧单色
+/// 相邻像素差判「这不是一张界面图」。
+/// 三台 rootful iPhone 7（.101/.112/.166）的 IOMFB 层拿回来的像素是竖条噪声与
+/// 壁纸碎片交替（tmp_shots/RECTIFY_TS_203/VISION_ASSET_*/full_*.png），9x9 邻域
+/// 81/81 全异色、R 通道 std 56~74；而 .53 走 CARender 的同类邻域 std 只有 0~2。
+/// 旧健康门只判纯黑与纯色，这种帧一路放行，找色偶尔蒙对、找图永远定位不到。
+/// 界面图任何位置的横向相邻差都很小，噪声则接近均匀随机（期望差约 85）。
+static BOOL ZiYanSurfaceLooksLikeNoise(const uint8_t *base, size_t bpr, size_t w,
+                                       size_t h) {
+  if (!base || w < 16 || h < 16) {
+    return NO;
+  }
+  size_t ystep = MAX((size_t)1, h / 24);
+  size_t xstep = MAX((size_t)1, w / 24);
+  uint64_t sum = 0;
+  size_t n = 0;
+  for (size_t y = 0; y < h; y += ystep) {
+    const uint8_t *row = base + y * bpr;
+    for (size_t x = 1; x < w; x += xstep) {
+      const uint8_t *p = row + x * 4;
+      const uint8_t *q = row + (x - 1) * 4;
+      sum += (uint64_t)(abs((int)p[0] - (int)q[0]) +
+                        abs((int)p[1] - (int)q[1]) +
+                        abs((int)p[2] - (int)q[2]));
+      n++;
+    }
+  }
+  if (n < 64) {
+    return NO;
+  }
+  // 三通道合计的平均相邻差。壁纸/图标界面实测远低于 30；均匀随机噪声约 255。
+  // 阈值 90 留足余量，避免把高对比游戏画面误判。
+  return (sum / n) > 90;
+}
+
 static BOOL ZiYanSurfaceUnhealthy(const uint8_t *base, size_t bpr, size_t w,
                                   size_t h, BOOL allowBlack,
                                   NSString **outWhy) {
@@ -238,6 +272,12 @@ static BOOL ZiYanSurfaceUnhealthy(const uint8_t *base, size_t bpr, size_t w,
     }
     if (outWhy) {
       *outWhy = @"uniform";
+    }
+    return YES;
+  }
+  if (ZiYanSurfaceLooksLikeNoise(base, bpr, w, h)) {
+    if (outWhy) {
+      *outWhy = @"noise";
     }
     return YES;
   }

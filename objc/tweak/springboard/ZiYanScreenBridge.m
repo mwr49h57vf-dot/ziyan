@@ -4420,6 +4420,31 @@ static NSString *ZiYanOCRJSONEscape(NSString *s) {
   }
   UIImage *tplImg = [UIImage imageWithContentsOfFile:path];
   size_t sw = self.pxW, sh = self.pxH, sbpr = self.pxBPR;
+
+  double SW = 1136, SH = 640;
+  [self logicSizeOutW:&SW outH:&SH];
+  // 模板是按逻辑分辨率截的（/snapshot 与 dumpScreen 都出逻辑尺寸图），而
+  // 匹配缓冲 self.pixelData 是 workset 降采样后的 pxW×pxH。.53 上逻辑
+  // 2208x1242 对 workset 1104x621，同一块图标在缓冲里只有一半大，模板不缩放
+  // 就永远匹配不上——Z1-ASSET 的 img=-1,-1 即此。区域坐标下面已按同一比例
+  // 映射，模板必须走相同比例。
+  if (tplImg && SW > 0 && SH > 0 && sw > 0 && sh > 0) {
+    double rx = (double)sw / SW;
+    double ry = (double)sh / SH;
+    if (fabs(rx - 1.0) > 0.01 || fabs(ry - 1.0) > 0.01) {
+      CGSize src = tplImg.size;
+      CGSize dst = CGSizeMake(MAX(2.0, round(src.width * rx)),
+                              MAX(2.0, round(src.height * ry)));
+      UIGraphicsBeginImageContextWithOptions(dst, YES, 1.0);
+      [tplImg drawInRect:CGRectMake(0, 0, dst.width, dst.height)];
+      UIImage *scaled = UIGraphicsGetImageFromCurrentImageContext();
+      UIGraphicsEndImageContext();
+      if (scaled) {
+        tplImg = scaled;
+      }
+    }
+  }
+
   size_t tw = 0, th = 0, tbpr = 0;
   NSData *tplData = [self rgbaBytesFromImage:tplImg
                                        width:&tw
@@ -4442,8 +4467,6 @@ static NSString *ZiYanOCRJSONEscape(NSString *s) {
                : @"{\"ok\":false,\"x\":-1,\"y\":-1}";
   }
 
-  double SW = 1136, SH = 640;
-  [self logicSizeOutW:&SW outH:&SH];
   if (rbx < 0)
     rbx = (int)SW - 1;
   if (rby < 0)

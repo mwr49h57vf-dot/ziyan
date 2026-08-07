@@ -645,6 +645,12 @@ static int BindPort(int port) {
   return fd;
 }
 
+static ZiYanSnapCaptureHook sCaptureHook = NULL;
+
+void ZiYanSnapshotHttpSetCaptureHook(ZiYanSnapCaptureHook hook) {
+  sCaptureHook = hook;
+}
+
 void ZiYanSnapshotHttpStart(void) {
   if (sListenFd >= 0) {
     return;
@@ -869,6 +875,10 @@ static void HandleClient(int cfd) {
   }
 
   if ([pathOnly isEqualToString:@"/snapshot"]) {
+    // 请求在飞期间挡住空闲回收：ServeLoop 刚合出的帧若被 idle_recycle 清掉，
+    // 本次编码仍会拿到空 shm 而回 503。ServeLoop 会在合帧成功后清 snap_http_want，
+    // 所以那个旗不足以覆盖整个请求周期，这里另立一个由本函数负责首尾的旗。
+    ZiYanWriteVarText(@".ziyan_snap_http_busy", @"1\n");
     int orient = -1;
     if (query.length) {
       for (NSString *part in [query componentsSeparatedByString:@"&"]) {
@@ -887,11 +897,15 @@ static void HandleClient(int cfd) {
     if (!ZiYanFrameShmHasPixels(NULL, NULL, NULL)) {
       ZiYanWriteVarText(@".ziyan_force_recap", @"1\n");
       ZiYanWriteVarText(@".ziyan_snap_http_want", @"1\n");
-      // 短暂等 ServeLoop 出帧
-      for (int i = 0; i < 15; i++) {
-        usleep(100000);
-        if (ZiYanFrameShmHasPixels(NULL, NULL, NULL)) {
-          break;
+      // 本函数由 ServeLoop 调用，等待只会饿死合帧线程：实测 .53 空闲下无论等
+      // 1.5s 还是 12s，请求都严格「失败/成功」交替——失败那次全程堵着循环，
+      // 帧总在它放弃之后才出来，被下一次请求捡走。Z1-ASSET 的 img=-1,-1 即此。
+      // 就地驱动合帧，最多三轮。
+      for (int i = 0; i < 3 && !ZiYanFrameShmHasPixels(NULL, NULL, NULL); i++) {
+        if (sCaptureHook) {
+          sCaptureHook();
+        } else {
+          usleep(200000);
         }
       }
     }
@@ -907,6 +921,9 @@ static void HandleClient(int cfd) {
                          "no_frame\n";
       SendAll(cfd, resp, strlen(resp));
       close(cfd);
+      [[NSFileManager defaultManager]
+        removeItemAtPath:ZiYanVarFile(@".ziyan_snap_http_busy")
+                   error:nil];
       return;
     }
     SnapLog([NSString stringWithFormat:@"snap_encode_ok %zux%zu png=%lu", w, h,
@@ -923,6 +940,9 @@ static void HandleClient(int cfd) {
     SendAll(cfd, hd.bytes, hd.length);
     SendAll(cfd, png.bytes, png.length);
     close(cfd);
+    [[NSFileManager defaultManager]
+        removeItemAtPath:ZiYanVarFile(@".ziyan_snap_http_busy")
+                   error:nil];
     return;
   }
 

@@ -230,9 +230,18 @@ static void loadSyms(void) {
         ok = YES;
       }
     }
-    if (!ok && HIDDispatch && self.client) {
-      HIDDispatch(self.client, toSend);
-      ok = YES;
+    // 不再把 IOHIDEventSystemClientDispatchEvent 记成成功。
+    // BKHIDSystemInterface 只存在于 SpringBoard/backboardd 进程；合帧守护里
+    // 的 embed 拿不到它，退到无特权 client dispatch 后事件到不了 UI，但旧代码
+    // 照样 ok=YES。于是 touch.lua 的 SB 中继回落永不触发，表现就是
+    // 「tap_ok=true 而画面毫无变化」（.101/.112/.166 三台 rootful 同症，
+    // pixel_diff=0.0000，tmp_shots/EMBED_NATIVE_HID_20260807_*）。
+    // 无 BK 路由时直接判失败，让调用方走带回执的 touch_req 中继。
+    if (!ok) {
+      static dispatch_once_t onceRoute;
+      dispatch_once(&onceRoute, ^{
+        ZiYanWriteVarText(@".ziyan_hid_route", @"route=relay reason=no_bk_inject\n");
+      });
     }
   } @catch (__unused NSException *ex) {
     ok = NO;

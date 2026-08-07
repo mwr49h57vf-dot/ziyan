@@ -152,6 +152,8 @@ static void PollKeepOffShmRelease(void) {
       access(ZiYanVarFile(@".ziyan_color_req").fileSystemRepresentation,
              F_OK) == 0 ||
       access(ZiYanVarFile(@".ziyan_color_req.daemon").fileSystemRepresentation,
+             F_OK) == 0 ||
+      access(ZiYanVarFile(@".ziyan_snap_http_busy").fileSystemRepresentation,
              F_OK) == 0;
   if (sessionHot) {
     return; // 运行中保留槽；不 rearm keep
@@ -2110,6 +2112,26 @@ static void PollColorReq(void) {
     return;
   }
   NSString *op = lines[0];
+  // 空闲时 cold_idle 会每 5s 拆槽，脚本进程（非 embed）的找色/找图/取色请求
+  // 落到守护时常常一帧都没有，于是直接回 -1 / image_miss。/snapshot 已有就地
+  // 催帧，像素类请求却没有，表现就是「快照有图但 getColor=-1、findImage 全 miss」。
+  // 本函数由 ServeLoop 调用，等待等不来帧，只能同线程就地合一帧。
+  // 只在真的无像素时触发，并留节流，避免请求风暴变成合帧风暴。
+  if ([op isEqualToString:@"findImage"] || [op isEqualToString:@"getColor"] ||
+      [op hasPrefix:@"find"] || [op isEqualToString:@"getText"]) {
+    static BOOL sEnsuring = NO;
+    static NSTimeInterval sLastEnsure = 0;
+    NSTimeInterval tEn = NSDate.date.timeIntervalSince1970;
+    BOOL noPix = !ZiYanFrameResidentHasPixels(NULL, NULL, NULL) &&
+                 !ZiYanFrameShmHasPixels(NULL, NULL, NULL);
+    if (noPix && !sEnsuring && (tEn - sLastEnsure) > 0.50) {
+      sEnsuring = YES;
+      sLastEnsure = tEn;
+      ZiYanWriteVarText(@".ziyan_force_recap", @"1\n");
+      (void)HandleOnce(@"color_req_need_frame");
+      sEnsuring = NO;
+    }
+  }
   // 8-161-84：桌面空 shm 不再硬 miss front_home——先中继截主屏再找（对齐触动）
   // 仍无像素才走下方 empty_shm 路径
   // 8-161-44：keepScreen 在 Daemon 完结（全零下 SB 不答 color_req）
@@ -2186,21 +2208,11 @@ static void PollColorReq(void) {
       bpr = hdr->bpr;
       mapped = YES;
     }
-    // 逻辑坐标 → 工作集坐标
-    if (wsScale > 1) {
-      if (ltx >= 0) {
-        ltx /= wsScale;
-      }
-      if (lty >= 0) {
-        lty /= wsScale;
-      }
-      if (rbx >= 0) {
-        rbx /= wsScale;
-      }
-      if (rby >= 0) {
-        rby /= wsScale;
-      }
-    }
+    // 区域与模板都留在逻辑坐标，只在读像素时才换算到工作集。
+    // 不能把模板缩到工作集再比：工作集是点采样（只保留每 scale 格的左上角），
+    // 逻辑 x=883 这种奇数位置在工作集网格上根本没有对应列，缩完的模板与帧
+    // 永远错半个像素，真值位置得分被壁纸盖过（.53 @3x scale=2 实测命中
+    // 930,452 而真值 883,496）。在逻辑坐标上逐点候选，相位自然被覆盖。
     // 模板 LRU：path+mtime，最多 4 条 / 总 ≤2MB
     typedef struct {
       NSString *path;
@@ -2241,30 +2253,25 @@ static void PollColorReq(void) {
         tw = cg ? CGImageGetWidth(cg) : 0;
         th = cg ? CGImageGetHeight(cg) : 0;
         if (cg && tw >= 2 && th >= 2) {
-          // 模板亦按工作集 scale 缩
-          size_t tw2 = tw / (size_t)MAX(wsScale, 1);
-          size_t th2 = th / (size_t)MAX(wsScale, 1);
-          if (tw2 < 2) {
-            tw2 = tw;
-          }
-          if (th2 < 2) {
-            th2 = th;
-          }
-          tbpr = tw2 * 4;
-          td = [NSMutableData dataWithLength:tbpr * th2];
+          // 模板亦按工作集 scale 缩。必须与工作集同法**点采样**：
+          // ZiYanFrameResidentRenew 取的是每 scale 格的左上角像素，不做平均。
+          // 若模板改用 CGContextDrawImage 直接画到缩小尺寸（平滑插值），细节多
+          // 的图块两者数值差得远，真值位置得分反被壁纸盖过 —— 实测 .53 @3x
+          // scale=2 下命中 930,450 而真值 883,496。
+          // 模板保持逻辑原尺寸，不预缩；缩放在打分时按 wsScale 折算。
+          tbpr = tw * 4;
+          td = [NSMutableData dataWithLength:tbpr * th];
           CGColorSpaceRef cs = CGColorSpaceCreateDeviceRGB();
           CGContextRef ctx = CGBitmapContextCreate(
-              td.mutableBytes, tw2, th2, 8, tbpr, cs,
+              td.mutableBytes, tw, th, 8, tbpr, cs,
               kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
           if (ctx) {
-            CGContextDrawImage(ctx, CGRectMake(0, 0, tw2, th2), cg);
+            CGContextDrawImage(ctx, CGRectMake(0, 0, tw, th), cg);
             CGContextRelease(ctx);
           }
           if (cs) {
             CGColorSpaceRelease(cs);
           }
-          tw = tw2;
-          th = th2;
           size_t add = td.length;
           // 腾出槽：LRU 或总字节超限
           int slot = -1;
@@ -2314,58 +2321,136 @@ static void PollColorReq(void) {
           sTplBytes += add;
         }
       }
-      if (td && tw >= 2 && th >= 2 && w >= tw && h >= th) {
+      // 逻辑画面尺寸 = 工作集 × scale
+      int ws = MAX(wsScale, 1);
+      int logicW = (int)w * ws, logicH = (int)h * ws;
+      if (td && tw >= 2 && th >= 2 && logicW >= (int)tw && logicH >= (int)th) {
         if (rbx < 0) {
-          rbx = (int)w - 1;
+          rbx = logicW - 1;
         }
         if (rby < 0) {
-          rby = (int)h - 1;
+          rby = logicH - 1;
         }
-        ltx = MAX(0, MIN(ltx, (int)w - 1));
-        lty = MAX(0, MIN(lty, (int)h - 1));
-        rbx = MAX(ltx, MIN(rbx, (int)w - 1));
-        rby = MAX(lty, MIN(rby, (int)h - 1));
+        ltx = MAX(0, MIN(ltx, logicW - 1));
+        lty = MAX(0, MIN(lty, logicH - 1));
+        rbx = MAX(ltx, MIN(rbx, logicW - 1));
+        rby = MAX(lty, MIN(rby, logicH - 1));
         double best = -1;
-        int step = (w * h > 800000) ? 2 : 1;
+        int step = 1;
         const uint8_t *T = (const uint8_t *)td.bytes;
         double thr = (double)fuzzy / 100.0;
-        for (int y = lty; y + (int)th - 1 <= rby; y += step) {
-          for (int x = ltx; x + (int)tw - 1 <= rbx; x += step) {
-            double sum = 0;
-            double n = 0;
-            for (size_t ty = 0; ty < th; ty += 2) {
-              const uint8_t *sr =
-                  pix + (size_t)(y + (int)ty) * bpr + (size_t)x * 4;
-              const uint8_t *tr = T + ty * tbpr;
-              for (size_t tx = 0; tx < tw; tx += 2) {
-                int dr = (int)sr[tx * 4 + 0] - (int)tr[tx * 4 + 0];
-                int dg = (int)sr[tx * 4 + 1] - (int)tr[tx * 4 + 1];
-                int db = (int)sr[tx * 4 + 2] - (int)tr[tx * 4 + 2];
-                sum += 1.0 - (abs(dr) + abs(dg) + abs(db)) / (3.0 * 255.0);
-                n += 1.0;
+        // 模板经 CGBitmapContext 出来恒为 RGBA，合帧缓冲却可能是 BGRA
+        // （ZiYanFramePixelFormatBGRA8888 = 0，IOSurface 常态）。取色走
+        // ZiYanColorMatchSetPixelFormat 认这个字段，找图这里原先直接按
+        // RGBA 索引，等于拿屏幕的 B 比模板的 R——红蓝互换后任何容差都不命中。
+        uint8_t pixFmt = (hdr && hdr->version >= 2)
+                             ? hdr->pixel_format
+                             : (uint8_t)ZiYanFramePixelFormatRGBA8888;
+        int sR = 0, sG = 1, sB = 2;
+        if (pixFmt == ZiYanFramePixelFormatBGRA8888) {
+          sR = 2;
+          sB = 0;
+        }
+        // 原实现逐点全比：.101 上 1136x640 配 48x48 模板是 64 万个落点 ×
+        // 576 采样点 ≈ 3.7 亿次比较，脚本 60s 超时都跑不完（表现是
+        // 「findImage 没反应」而非 miss）。
+        // 改粗扫 + 精修，而不是「命中即停」：阈值放宽时（fuzzy=90 → 0.90）
+        // 壁纸也能过线，先到先得会返回错位置（实测 .53 得 964,386，真值
+        // 883,496）。触动的 findImage 语义是取最佳匹配，这里必须保持。
+        // x/y 是逻辑坐标；模板按 ws 步长取样，一步对应工作集里一个真实像素。
+        size_t tstep = (size_t)ws * 2;
+        double (^scoreAt)(int, int) = ^double(int x, int y) {
+          double sum = 0, n = 0;
+          for (size_t ty = 0; ty < th; ty += tstep) {
+            size_t wy = (size_t)(y + (int)ty) / (size_t)ws;
+            if (wy >= h) {
+              break;
+            }
+            const uint8_t *sr = pix + wy * bpr;
+            const uint8_t *tr = T + ty * tbpr;
+            for (size_t tx = 0; tx < tw; tx += tstep) {
+              size_t wx = (size_t)(x + (int)tx) / (size_t)ws;
+              if (wx >= w) {
+                break;
+              }
+              const uint8_t *sp = sr + wx * 4;
+              int dr = (int)sp[sR] - (int)tr[tx * 4 + 0];
+              int dg = (int)sp[sG] - (int)tr[tx * 4 + 1];
+              int db = (int)sp[sB] - (int)tr[tx * 4 + 2];
+              sum += 1.0 - (abs(dr) + abs(dg) + abs(db)) / (3.0 * 255.0);
+              n += 1.0;
+            }
+          }
+          return (n > 0) ? (sum / n) : 0;
+        };
+
+        // 粗步长不能取 tw/4：真值峰很窄（.53 实测真值 0.9867，而壁纸上遍布
+        // 0.90~0.93 的伪峰），步长 12 时真值附近的格点得分挤不进候选表，
+        // 精修就永远到不了那块。按 tw/8 取步长、候选表放到 64。
+        int coarse = (int)(MIN(tw, th) / 8);
+        if (coarse < ws) {
+          coarse = ws;
+        }
+        if (coarse < step) {
+          coarse = step;
+        }
+        // 粗格只留单个最优点不够：真实匹配点常不落在粗格上，格点上的得分会
+        // 低于某块平滑壁纸，于是精修围着错误的峰展开（实测 .53 得 816,576 /
+        // 964,386，真值 883,496）。保留前 K 个粗候选各自精修再取全局最佳。
+        enum { ZY_TOPK = 64 };
+        double topS[ZY_TOPK];
+        int topX[ZY_TOPK], topY[ZY_TOPK];
+        int topN = 0;
+        for (int y = lty; y + (int)th - 1 <= rby; y += coarse) {
+          for (int x = ltx; x + (int)tw - 1 <= rbx; x += coarse) {
+            double sc = scoreAt(x, y);
+            if (topN < ZY_TOPK) {
+              topS[topN] = sc;
+              topX[topN] = x;
+              topY[topN] = y;
+              topN++;
+              continue;
+            }
+            int worst = 0;
+            for (int i = 1; i < ZY_TOPK; i++) {
+              if (topS[i] < topS[worst]) {
+                worst = i;
               }
             }
-            double sc = (n > 0) ? (sum / n) : 0;
-            if (sc > best) {
-              best = sc;
-              if (sc >= thr) {
-                hx = x;
-                hy = y;
+            if (sc > topS[worst]) {
+              topS[worst] = sc;
+              topX[worst] = x;
+              topY[worst] = y;
+            }
+          }
+        }
+        int bx = -1, by = -1;
+        for (int i = 0; i < topN; i++) {
+          int rx0 = MAX(ltx, topX[i] - coarse);
+          int rx1 = MIN(rbx - (int)tw + 1, topX[i] + coarse);
+          int ry0 = MAX(lty, topY[i] - coarse);
+          int ry1 = MIN(rby - (int)th + 1, topY[i] + coarse);
+          for (int y = ry0; y <= ry1; y++) {
+            for (int x = rx0; x <= rx1; x++) {
+              double sc = scoreAt(x, y);
+              if (sc > best) {
+                best = sc;
+                bx = x;
+                by = y;
               }
             }
           }
         }
-        (void)best;
+        if (bx >= 0 && best >= thr) {
+          hx = bx;
+          hy = by;
+        }
       }
     }
     if (map && mapLen > 0) {
       ZiYanFrameShmUnmap(map, mapLen);
     }
-    // 工作集坐标 → 逻辑坐标
-    if (hx >= 0 && wsScale > 1) {
-      hx *= wsScale;
-      hy *= wsScale;
-    }
+    // hx/hy 已是逻辑坐标（匹配在逻辑空间进行），无需再乘 wsScale
     NSString *repBody =
         (hx >= 0)
             ? [NSString stringWithFormat:
@@ -2797,6 +2882,12 @@ static void PollColorReq(void) {
   }
 }
 
+/// 给 /snapshot 用：HTTP 处理器与 ServeLoop 同线程，等待等不来帧，只能就地合。
+static void SnapDriveCapture(void) {
+  ZiYanWriteVarText(@".ziyan_force_recap", @"1\n");
+  (void)HandleOnce(@"snap_http");
+}
+
 static void ServeLoop(void) {
   sServeMode = YES;
   ZiYanEnsureVarDirectory();
@@ -2830,6 +2921,7 @@ static void ServeLoop(void) {
   // 184：文件 color_req 旁路线程（HOT20/RF 合帧不饿死找色）
   ZiYanColorOffloadStart();
   // 8-161-92：局域网取色 HTTP（对齐触动 50005 /status /snapshot，无 SSH）
+  ZiYanSnapshotHttpSetCaptureHook(SnapDriveCapture);
   ZiYanSnapshotHttpStart();
   // 8-161-88：启动即清粘滞 embed 旗（防空闲误判 hasColor）
   (void)ZiYanLuaEmbedIsRunning();
@@ -3149,7 +3241,12 @@ if ((hotFrameAged || sRetainCompositeDirty) &&
       // （对标触动 running 期 IOSurface 常驻，禁 rename 风暴）
       static NSTimeInterval sLastIdleShmClear = 0;
       NSTimeInterval nowR = NSDate.date.timeIntervalSince1970;
-      if (sessionCold && !DaemonKeepScreenOn() && !emptyShm &&
+      // 快照请求在飞时不得拆槽：否则 ServeLoop 刚合出的帧会在下一圈（约 100ms）
+      // 被清掉，HTTP 侧只能靠运气在编码前抢到，实测 .53 呈严格「失败/成功」交替。
+      BOOL snapBusy =
+          access(ZiYanVarFile(@".ziyan_snap_http_busy").fileSystemRepresentation,
+                 F_OK) == 0;
+      if (sessionCold && !DaemonKeepScreenOn() && !emptyShm && !snapBusy &&
           !ZiYanLuaEmbedIsRunning() && !ZiYanSessionWantsRun() &&
           (nowR - sLastIdleShmClear) > 5.0) {
         sLastIdleShmClear = nowR;

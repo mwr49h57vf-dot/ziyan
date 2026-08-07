@@ -22,23 +22,38 @@ import statistics
 
 
 def load(path):
-    """返回 [(ts, rss_kb), ...]"""
-    rows = []
+    """返回 ([(ts, rss_kb), ...], dropped)
+
+    采样偶发拿不到进程行会记 rss=0，这类点不是「RSS 降到 0」而是采样失败，
+    留在序列里会把 OLS 斜率整体拉偏，必须剔除。
+    """
+    rows, dropped = [], 0
     with open(path, errors="ignore") as fh:
         for line in fh:
+            ts = rss = None
             if line.startswith("SAMPLE "):
                 f = line.split()
                 if len(f) >= 3:
                     try:
-                        rows.append((int(f[1]), int(f[2])))
+                        ts, rss = int(f[1]), int(f[2])
                     except ValueError:
-                        pass
+                        continue
             elif "\t" in line:
                 f = line.rstrip("\n").split("\t")
                 # t  fc_n  fc_rss  sb_rss  keep  life
                 if len(f) >= 3 and f[0].isdigit() and f[2].isdigit():
-                    rows.append((int(f[0]), int(f[2])))
-    return rows
+                    ts, rss = int(f[0]), int(f[2])
+            if ts is None:
+                continue
+            rows.append((ts, rss))
+    # 稳健剔除：偏离序列中位数 50% 以上的点属采样故障（进程行没抓到），
+    # 不是真实 RSS 骤降。留着会让 OLS 斜率被少数坏点主导。
+    if rows:
+        med = statistics.median(r[1] for r in rows)
+        keep = [r for r in rows if r[1] >= med * 0.5]
+        dropped = len(rows) - len(keep)
+        rows = keep
+    return rows, dropped
 
 
 def median_estimator(rows, n=15):
@@ -72,7 +87,7 @@ def main(paths):
     print(f"{'file':<46} {'n':>5} {'win':>6} {'median/100s':>12} "
           f"{'ols/100s':>9} {'swing':>7}")
     for p in paths:
-        rows = load(p)
+        rows, dropped = load(p)
         if len(rows) < 8:
             print(f"{p:<46} (样本不足: {len(rows)})")
             continue
@@ -85,7 +100,7 @@ def main(paths):
         print(f"{name:<46} {len(rows):>5} {win:>5}s {per100:>+11.1f} "
               f"{ols:>+8.1f} {max(vals) - min(vals):>6}")
         print(f"{'':<46} base={base:.0f} end={end:.0f} delta={delta:+.0f}KB "
-              f"dt={dt:.0f}s min={min(vals)} max={max(vals)}")
+              f"dt={dt:.0f}s min={min(vals)} max={max(vals)} bad={dropped}")
     return 0
 
 

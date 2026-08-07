@@ -30,8 +30,28 @@ CROP_H="${ZY_ASSET_H:-48}"
 TOL="${ZY_ASSET_TOL:-12}"
 
 ssh_r() { sshpass -p "$PASS" ssh "${SSH_OPTS[@]}" "root@$1" "${@:2}"; }
-scp_to() { sshpass -p "$PASS" scp "${SSH_OPTS[@]}" "$1" "root@$2:$3"; }
 scp_from() { sshpass -p "$PASS" scp "${SSH_OPTS[@]}" "root@$1:$2" "$3"; }
+
+# 这些越狱机上 scp 会静默半失败（返回 1，文件时有时无），一次丢包就让
+# findImage 去找不存在的路径，稳定回 -1,-1，看起来和「找图坏了」一样。
+# 文本走 ssh stdin，二进制走 base64，落地后一律校验字节数。
+push_text() { # <local> <ip> <remote>
+  ssh_r "$2" "mkdir -p \"\$(dirname '$3')\" && cat > '$3'" <"$1"
+}
+push_bin() { # <local> <ip> <remote>
+  local n
+  for n in 1 2 3; do
+    if base64 <"$1" | ssh_r "$2" \
+        "mkdir -p \"\$(dirname '$3')\" && base64 -d > '$3'" 2>/dev/null; then
+      local got want
+      got=$(ssh_r "$2" "wc -c <'$3' 2>/dev/null" 2>/dev/null | tr -d ' \r\n')
+      want=$(wc -c <"$1" | tr -d ' ')
+      [ "${got:-0}" = "$want" ] && return 0
+    fi
+    sleep 1
+  done
+  return 1
+}
 
 command -v python3 >/dev/null 2>&1 || { echo "FATAL python3 required for crop"; exit 2; }
 python3 -c 'import PIL' 2>/dev/null || { echo "FATAL Pillow required: pip3 install Pillow"; exit 2; }
@@ -47,51 +67,33 @@ run_one() {
   local ZYCV=/private/var/mobile/Media/ZiYan/ZYCV
   echo "==== vision asset .$H ===="
 
-  # ---- 阶段 1：真机截当前整屏 ----
-  cat >"$OUT/shot_${H}.lua" <<'LUA'
-function main()
-  init(1)
-  local zycv = "/private/var/mobile/Media/ZiYan/ZYCV"
-  local dest = zycv .. "/_asset_full.png"
-  os.remove(dest)
-  local ok = false
-  if type(snapshot) == "function" then ok = snapshot(dest) end
-  local w, h = 0, 0
-  if type(getScreenSize) == "function" then
-    local a, b = getScreenSize()
-    w, h = tonumber(a) or 0, tonumber(b) or 0
-  end
-  local f = io.open(zycv .. "/_asset_shot_rep.txt", "w")
-  if f then
-    f:write(string.format("shot_ok=%s\nscreen=%d,%d\n", tostring(ok), w, h))
-    f:close()
-  end
-  mSleep(600)
-end
-LUA
-  scp_to "$OUT/shot_${H}.lua" "$IP" "$ZYCV/_asset_shot.lua"
-  ssh_r "$IP" "VAR='$VAR' BIN='$BIN' LUA='$LUA' JB='$JB' bash -s" <<'R' >"$OUT/stage1_${H}.txt" 2>&1
-set +e
-ZYCV=/private/var/mobile/Media/ZiYan/ZYCV
-rm -f "$ZYCV/_asset_full.png" "$ZYCV/_asset_shot_rep.txt" "$VAR/.ziyan_light"
-[ -n "$JB" ] && export DYLD_LIBRARY_PATH="$JB/usr/lib/ziyan/lib"
-timeout 25 "$BIN/lua5.3" "$LUA/ziyan_run.lua" "$ZYCV/_asset_shot.lua" 2>&1 | tail -5
-echo "--- shot rep ---"
-cat "$ZYCV/_asset_shot_rep.txt" 2>/dev/null
-echo "--- shot size ---"
-wc -c <"$ZYCV/_asset_full.png" 2>/dev/null || echo 0
-R
-  cat "$OUT/stage1_${H}.txt"
-  local SHOT_OK
-  SHOT_OK=$(grep -c 'shot_ok=true' "$OUT/stage1_${H}.txt" 2>/dev/null || echo 0)
-  if [ "$SHOT_OK" -eq 0 ]; then
-    echo "VERDICT_${H}=FAIL reason=snapshot_failed"
+  # ---- 阶段 1：取当前整屏 ----
+  # 走守护自己的 50005/50015 /snapshot，而不是脚本里的 snapshot()：
+  # 独立 lua5.3 进程没有原生 dumpScreen/snapshotScreen，screen.lua 的
+  # snapshot() 兜底只能返回 false。HTTP 端点取的是同一份 shm 帧，且
+  # 无需在被测机上跑脚本，不会污染本门禁真正要验的 findImage。
+  # 端口由设备侧在 50005/50015 里挑第一个能 bind 的，不能按 rootful/rootless
+  # 猜死（实测 .112/.166 都是 50005），以设备写的 .ziyan_snap_http_port 为准。
+  local PORT
+  PORT=$(ssh_r "$IP" "cat '$VAR/.ziyan_snap_http_port' 2>/dev/null" 2>/dev/null | tr -dc '0-9')
+  [ -z "$PORT" ] && PORT=50005
+  local SNAP_HTTP=0
+  local i
+  for i in 1 2 3; do
+    if curl -s -m 30 -o "$OUT/full_${H}.png" \
+         -w '%{http_code}' "http://$IP:$PORT/snapshot" 2>/dev/null | grep -q '^200$'; then
+      SNAP_HTTP=1
+      break
+    fi
+    sleep 2
+  done
+  if [ "$SNAP_HTTP" -ne 1 ]; then
+    echo "VERDICT_${H}=FAIL reason=snapshot_http_failed port=$PORT"
     return 1
   fi
+  echo "SNAPSHOT_HTTP=ok port=$PORT bytes=$(wc -c <"$OUT/full_${H}.png" | tr -d ' ')"
 
-  # ---- 阶段 2：取回整屏，Mac 侧裁块 ----
-  scp_from "$IP" "$ZYCV/_asset_full.png" "$OUT/full_${H}.png" || {
-    echo "VERDICT_${H}=FAIL reason=pull_snapshot_failed"; return 1; }
+  # ---- 阶段 2：Mac 侧裁块 ----
   local CROPINFO
   CROPINFO=$(python3 - "$OUT/full_${H}.png" "$OUT/crop_${H}.png" \
       "$CROP_FX" "$CROP_FY" "$CROP_W" "$CROP_H" <<'PY'
@@ -123,7 +125,14 @@ PY
   if [ "${UNIQ:-0}" -le 1 ]; then
     echo "WARN crop_is_uniform uniq=$UNIQ → 该位置是纯色，命中坐标不唯一"
   fi
-  scp_to "$OUT/crop_${H}.png" "$IP" "$ZYCV/_asset_crop.png"
+  # 必须确认模板真的落到设备：推送静默失败时 findImage 找的是不存在的路径，
+  # 会稳定回 -1,-1，看上去和「找图坏了」一模一样。
+  ssh_r "$IP" "mkdir -p '$ZYCV' && chmod 777 '$ZYCV'" >/dev/null 2>&1 || true
+  if ! push_bin "$OUT/crop_${H}.png" "$IP" "$ZYCV/_asset_crop.png"; then
+    echo "VERDICT_${H}=FAIL reason=template_push_failed"
+    return 1
+  fi
+  echo "TEMPLATE_ON_DEVICE=$(wc -c <"$OUT/crop_${H}.png" | tr -d ' ')B"
 
   # ---- 阶段 3：真机搜这块，并跑 OCR ROI ----
   cat >"$OUT/find_${H}.lua" <<LUA
@@ -142,22 +151,36 @@ function main()
   elseif type(findImage) == "function" then
     ix, iy = findImage(path, 90)
   end
+  -- 先落盘找图结果再碰 OCR：rootful 三机上 getText 会一直不返回（实测 .101
+  -- 85s 未回，.53 需 11s），放在同一个 write 之前会把整份报告拖没，
+  -- 找图明明有结果也读不到，门禁只能报 img=?,?。
+  local f = io.open(zycv .. "/_asset_find_rep.txt", "w")
+  if f then
+    f:write(string.format("img=%s,%s\nexpect=%d,%d\nscreen=%d,%d\n",
+      tostring(ix), tostring(iy), ${CX:-0}, ${CY:-0}, w, h))
+    f:close()
+  end
   local tx = ""
   if type(getText) == "function" then
     local r = getText(math.floor(w * 0.1), math.floor(h * 0.1),
                       math.floor(w * 0.9), math.floor(h * 0.6))
     tx = tostring(r or "")
   end
-  local f = io.open(zycv .. "/_asset_find_rep.txt", "w")
-  if f then
-    f:write(string.format("img=%s,%s\nexpect=%d,%d\nocr_len=%d\nscreen=%d,%d\n",
-      tostring(ix), tostring(iy), ${CX:-0}, ${CY:-0}, #tx, w, h))
-    f:close()
+  local g = io.open(zycv .. "/_asset_find_rep.txt", "a")
+  if g then
+    g:write(string.format("ocr_len=%d\n", #tx))
+    g:close()
   end
-  mSleep(600)
+  mSleep(300)
 end
 LUA
-  scp_to "$OUT/find_${H}.lua" "$IP" "$ZYCV/_asset_find.lua"
+  push_text "$OUT/find_${H}.lua" "$IP" "$ZYCV/_asset_find.lua"
+  local FIND_BYTES
+  FIND_BYTES=$(ssh_r "$IP" "wc -c <'$ZYCV/_asset_find.lua' 2>/dev/null" 2>/dev/null | tr -d ' \r\n')
+  if [ -z "$FIND_BYTES" ] || [ "$FIND_BYTES" -lt 50 ] 2>/dev/null; then
+    echo "VERDICT_${H}=FAIL reason=find_script_push_failed bytes=${FIND_BYTES:-0}"
+    return 1
+  fi
   ssh_r "$IP" "VAR='$VAR' BIN='$BIN' LUA='$LUA' JB='$JB' TOL='$TOL' bash -s" \
       <<'R' >"$OUT/stage3_${H}.txt" 2>&1
 set +e
@@ -185,8 +208,15 @@ R
 
   # ---- 判定 ----
   local GX GY FCN OCRLEN OK
-  GX=$(sed -n 's/^img=\(-\?[0-9]*\),.*/\1/p' "$OUT/stage3_${H}.txt" | head -1)
-  GY=$(sed -n 's/^img=-\?[0-9]*,\(-\?[0-9]*\).*/\1/p' "$OUT/stage3_${H}.txt" | head -1)
+  # 不能用 sed 的 \?：macOS 是 BSD sed，基本正则里 \? 不是量词，
+  # 匹配会整体失败，命中 884,496 也会被读成空值判成 miss。
+  local IMGLINE
+  IMGLINE=$(grep -m1 '^img=' "$OUT/stage3_${H}.txt" 2>/dev/null | tr -d '\r')
+  GX=""; GY=""
+  if [ -n "$IMGLINE" ]; then
+    GX=${IMGLINE#img=}; GX=${GX%%,*}
+    GY=${IMGLINE##*,}
+  fi
   OCRLEN=$(sed -n 's/^ocr_len=\([0-9]*\).*/\1/p' "$OUT/stage3_${H}.txt" | head -1)
   FCN=$(sed -n '/--- FC_N ---/{n;p;}' "$OUT/stage3_${H}.txt" | tr -dc '0-9')
   OK=1

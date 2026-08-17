@@ -313,6 +313,52 @@ local function wait_rep(want_nonce, timeout_s)
   return false, nil
 end
 
+local function wait_rep_wall(want_nonce, timeout_s)
+  timeout_s = tonumber(timeout_s) or 20
+  local t0 = os.time() or 0
+  local nl = string.char(10)
+  local function read_rep()
+    local f = io.open(COLOR_REP, "r")
+    if not f then return nil end
+    local body = f:read("*a") or ""
+    f:close()
+    return body
+  end
+  local function parse_nonce(body)
+    if type(body) ~= "string" or body == "" then return nil, nil end
+    local lines = {}
+    for line in string.gmatch(body .. nl, "([^" .. nl .. "]*)" .. nl) do
+      lines[#lines + 1] = line
+    end
+    if #lines >= 2 and lines[1] == want_nonce then
+      return (lines[2] == "ok"), (lines[3] or "")
+    end
+    return nil, nil
+  end
+  while ((os.time() or 0) - t0) <= timeout_s do
+    local ok, payload = parse_nonce(read_rep())
+    if ok ~= nil then
+      pcall(os.remove, COLOR_REP)
+      return ok, payload
+    end
+    -- 独立 lua 的 1ms 忙等会把 15s 找图等丢；用真实 sleep 让出 CPU
+    local bin = _G.ZIYAN_SLEEP or "/bin/sleep"
+    os.execute(string.format("%s 0.05", bin))
+  end
+  -- 超时仍尝试读最后一份 JSON（nonce 竞态时不把已命中当 miss）
+  local last = read_rep()
+  local ok, payload = parse_nonce(last)
+  if ok ~= nil then
+    pcall(os.remove, COLOR_REP)
+    return ok, payload
+  end
+  if type(last) == "string" and string.find(last, '"x"%s*:', 1) then
+    local json = last:match("(%b{})") or last
+    return true, json
+  end
+  return false, nil
+end
+
 --- 201：读 .ziyan_last_find → _G.__ZIYAN_LAST_FIND（分类：hit/pixel_miss/front_mismatch/...）
 local function load_last_find_class()
   local path = VAR .. "/.ziyan_last_find"
@@ -379,6 +425,7 @@ end
 --- 调 ScreenBridge；pts 为 [{c,dx,dy,b},...] 或旧扁平数字表
 function M.find_multi_flat(flat, fuzzy, x1, y1, x2, y2)
   if type(flat) ~= "table" or #flat < 1 then
+    M._last_find_via = "invalid_args"
     write_find_contract(flat, fuzzy, x1, y1, x2, y2, -1, -1)
     return -1, -1
   end
@@ -389,12 +436,14 @@ function M.find_multi_flat(flat, fuzzy, x1, y1, x2, y2)
     _ps_embed_find = _ps_embed_find + 1
     if (_ps_embed_find % 20) == 0 then flush_path_stats(false) end
     if type(_G.ziyan_embed_find_multi) ~= "function" then
+      M._last_find_via = "embed_missing"
       flush_path_stats(true)
       write_find_contract(flat, fuzzy, x1, y1, x2, y2, -1, -1)
       return -1, -1
     end
     local ok, vx, vy = pcall(_G.ziyan_embed_find_multi, json_encode_payload(flat),
       fuzzy or 90, x1 or 0, y1 or 0, x2 or -1, y2 or -1)
+    M._last_find_via = ok and "embed" or "embed_error"
     if ok and tonumber(vx) and vx >= 0 then
       write_find_contract(flat, fuzzy, x1, y1, x2, y2, vx, vy)
       return tonumber(vx), tonumber(vy)
@@ -404,6 +453,7 @@ function M.find_multi_flat(flat, fuzzy, x1, y1, x2, y2)
   end
 
   local n = nonce()
+  M._last_find_via = "color_req"
   local payload = table.concat({
     "findMulti",
     json_encode_payload(flat),
@@ -427,6 +477,13 @@ function M.find_multi_flat(flat, fuzzy, x1, y1, x2, y2)
   -- 8-161-74：锁帧热路径应答应 <50ms；0.25s 超时够用（触动圈节奏）
   local ok, body = wait_rep(n, 0.25)
   if not ok or not body or body == "" then
+    pcall(function()
+      local f = io.open(VAR .. "/.ziyan_last_find", "w")
+      if f then
+        f:write(string.format("ts=%d class=rep_timeout via=color_req\n", os.time() or 0))
+        f:close()
+      end
+    end)
     write_find_contract(flat, fuzzy, x1, y1, x2, y2, -1, -1)
     return -1, -1
   end
@@ -491,14 +548,17 @@ function M.get_color(x, y)
     _ps_embed_get = _ps_embed_get + 1
     if (_ps_embed_get % 20) == 0 then flush_path_stats(false) end
     if type(_G.ziyan_embed_get_color) ~= "function" then
+      M._last_get_via = "embed_missing"
       return -1
     end
     local ok, c = pcall(_G.ziyan_embed_get_color, x or 0, y or 0)
+    M._last_get_via = ok and "embed" or "embed_error"
     if ok and tonumber(c) and c >= 0 then
       return math.floor(tonumber(c)) % 0x1000000
     end
     return -1
   end
+  M._last_get_via = "color_req"
   _ps_color_req_get = _ps_color_req_get + 1
   local n = nonce()
   local payload = table.concat({
@@ -548,10 +608,8 @@ function M.find_image(path, fuzzy, x1, y1, x2, y2)
   if type(path) ~= "string" or path == "" then
     return -1, -1
   end
-  local gok = M.vision_gate("findImage")
-  if not gok then
-    return -1, -1
-  end
+  -- 触动：gate 只催帧/重申方向，不因包名拒找图
+  M.vision_gate("findImage")
   x1, y1, x2, y2 = normalize_region(x1, y1, x2, y2)
   local n = nonce()
   local payload = table.concat({
@@ -568,13 +626,22 @@ function M.find_image(path, fuzzy, x1, y1, x2, y2)
   if not write_color_req(payload) then
     return -1, -1
   end
-  local ok, body = wait_rep(n, 8.0)
+  -- 找图是全屏粗扫+精修，墙钟可超过 8s（.112 C98 实测 color_req 11462ms 命中）。
+  -- wait_rep 用 os.clock（CPU），独立 lua 睡眠轮询时 CPU 几乎不走，8s 预算对不上
+  -- 守护回执，脚本表现为「不写 rep / 假 miss」。这里用墙钟等 20s。
+  local ok, body = wait_rep_wall(n, 35)
   if not ok or not body or body == "" then
     return -1, -1
   end
   local obj = json_decode(body)
-  if type(obj) == "table" and obj.ok and tonumber(obj.x) and obj.x >= 0 then
+  if type(obj) == "table" and tonumber(obj.x) and obj.x >= 0 then
     return tonumber(obj.x), tonumber(obj.y)
+  end
+  -- 独立 lua5.3 常无 json 库；json_decode 失败时仍要从守护 JSON 抠坐标
+  local hx = tonumber(string.match(body, '"x"%s*:%s*([-%d]+)'))
+  local hy = tonumber(string.match(body, '"y"%s*:%s*([-%d]+)'))
+  if hx and hy and hx >= 0 then
+    return hx, hy
   end
   return -1, -1
 end
@@ -741,8 +808,8 @@ local function ipc_keep_screen(on)
     if type(_G.ziyan_embed_keep_screen) ~= "function" then
       return false
     end
-    local ok = pcall(_G.ziyan_embed_keep_screen, on and true or false)
-    return ok and true or false
+    local ok, native_ok = pcall(_G.ziyan_embed_keep_screen, on and true or false)
+    return ok and native_ok ~= false
   end
   -- 8-161-53：daemon 旗已在 → 信任，免重复 IPC（根治 keep 风暴）
   if on then
@@ -781,6 +848,11 @@ end
 
 function M.install()
   refresh_paths()
+  local install_vm_gen = tonumber(_G.ZIYAN_EMBED_VM_GEN) or 0
+  if tonumber(_G.__ZIYAN_CV_INSTALLED_VM_GEN) == install_vm_gen
+      and type(_G.ZiYanCV_Native) == "table" then
+    return _G.ZiYanCV_Native
+  end
   _G.ZiYanCV_Native = M
 
   if not _G.__ZIYAN_KEEP_SCREEN_FUNC then
@@ -1003,40 +1075,194 @@ function M.install()
       end
     end)
   end
-  -- 8-161-53：对齐触动 cycle CSV，供门禁「圈稳 / gap>2.5s=0」
-  local _cycle_last_c = nil
-  local function append_cycle_csv(find_ms, x, y)
-    pcall(function()
-      local path = VAR .. "/.ziyan_ts_cycle.csv"
-      local cnow = (os.clock() or 0) * 1000
-      local cycle_ms = 0
-      if _cycle_last_c then
-        cycle_ms = cnow - _cycle_last_c
+  -- C79 P2：API 统计必须是业务 Lua VM 的真实调用，不能用
+  -- daemon color_req 的回票冒充。find 复用原有 cycle CSV 的每次写入；
+  -- getColor 只在内存排队，由下一次 find 同一次 fopen 批量落盘。
+  local API_CSV_HEADER = table.concat({
+    "wall_ms", "find_ms", "cycle_ms", "x", "y", "hit", "front_bid",
+    "mono_ms", "api_seq", "op", "clock", "embed", "vm_gen", "via", "pattern_id",
+    "main", "fuzzy", "x1", "y1", "x2", "y2", "color", "point_count",
+    "dropped_get",
+  }, ",") .. "\n"
+  local _cycle_last_mono = nil
+  local _api_seq = 0
+  local _api_csv_header_checked = false
+  local _api_csv_force_vm_reset = _G.ZIYAN_EMBED and true or false
+  local _pending_get_samples = {}
+  local _pending_get_dropped = 0
+  local MAX_PENDING_GET_SAMPLES = 256
+  -- 单个 P2 30 分钟窗口也必须保留完整逐调用证据。旧 64KB 上限可能在
+  -- runner 的 20-sample 窗内轮转，造成 api_seq 已前进但前半行已丢失。
+  local API_CSV_MAX_BYTES = 8 * 1024 * 1024
+
+  -- api_seq 是当前 Lua VM 内序号。模块安装时必须截断上一 VM 的同头 CSV，
+  -- 否则 framecap PID 未变但业务 VM 重启后，旧最大序号会让门禁永久等待。
+  if _G.ZIYAN_EMBED then pcall(function()
+    local path = VAR .. "/.ziyan_ts_cycle.csv"
+    local af = io.open(path, "w")
+    if af then
+      af:write(API_CSV_HEADER)
+      af:close()
+      _api_csv_header_checked = true
+      _api_csv_force_vm_reset = false
+    end
+  end) end
+
+  local function api_mono_ms()
+    local fn = _G.ziyan_embed_monotonic_ms
+    if type(fn) == "function" then
+      local ok, v = pcall(fn)
+      v = tonumber(v)
+      if ok and v and v >= 0 then
+        return math.floor(v), "embed_mono"
       end
-      _cycle_last_c = cnow
+    end
+    -- 非 embed 冷路径仅作诊断回退；strict 门禁必须要求 embed_mono。
+    return math.floor((os.clock() or 0) * 1000), "cpu_fallback"
+  end
+
+  local function next_api_seq()
+    _api_seq = _api_seq + 1
+    return _api_seq
+  end
+
+  local function csv_atom(v)
+    return (tostring(v or ""):gsub("[,%c]", "_"))
+  end
+
+  local function stable_pattern_id(payload)
+    local h = 5381
+    payload = tostring(payload or "")
+    for i = 1, #payload do
+      h = (h * 33 + payload:byte(i)) % 2147483647
+    end
+    return string.format("p%08x", math.floor(h))
+  end
+
+  local function find_pattern_meta(a, b, c, d, e, f, g)
+    local flat, fuzzy, x1, y1, x2, y2
+    if type(b) == "string" then
+      flat = M.ts_to_points(a, b)
+      fuzzy = tonumber(c) or 90
+      x1, y1, x2, y2 = normalize_region(d, e, f, g)
+    else
+      flat = a
+      fuzzy = tonumber(b) or 90
+      -- 与 M.findMultiColorInRegionFuzzy 的 TE 表形保持完全一致：
+      -- 表形的 0,0,0,0 不在这一层自动展开为全屏。
+      x1, y1 = tonumber(c) or 0, tonumber(d) or 0
+      x2, y2 = tonumber(e), tonumber(f)
+      if x2 == nil then x2 = -1 end
+      if y2 == nil then y2 = -1 end
+    end
+    local ok, payload = pcall(json_encode_payload, flat)
+    if not ok then payload = "[]" end
+    local main = -1
+    local points = 0
+    if type(flat) == "table" then
+      points = #flat
+      if type(flat[1]) == "table" then
+        main = tonumber(flat[1].c or flat[1][1]) or -1
+      else
+        main = tonumber(flat[1]) or -1
+      end
+    end
+    local contract = table.concat({
+      payload, tostring(fuzzy), tostring(x1), tostring(y1), tostring(x2), tostring(y2),
+    }, "|")
+    return {
+      pattern_id = stable_pattern_id(contract),
+      main = math.floor(main), fuzzy = math.floor(fuzzy),
+      x1 = math.floor(x1), y1 = math.floor(y1),
+      x2 = math.floor(x2), y2 = math.floor(y2), points = points,
+    }
+  end
+
+  local function api_row(sample)
+    return string.format(
+      "%d,%.2f,%.2f,%d,%d,%d,%s,%d,%d,%s,%s,%d,%d,%s,%s,%d,%d,%d,%d,%d,%d,%d,%d,%d\n",
+      tonumber(sample.wall_ms) or ((os.time() or 0) * 1000),
+      tonumber(sample.duration_ms) or -1, tonumber(sample.cycle_ms) or 0,
+      tonumber(sample.x) or -1, tonumber(sample.y) or -1,
+      sample.ok and 1 or 0, csv_atom(sample.front_bid),
+      tonumber(sample.mono_ms) or -1, tonumber(sample.api_seq) or -1,
+      csv_atom(sample.op), csv_atom(sample.clock), sample.embed and 1 or 0,
+      tonumber(sample.vm_gen) or tonumber(_G.ZIYAN_EMBED_VM_GEN) or -1,
+      csv_atom(sample.via), csv_atom(sample.pattern_id),
+      tonumber(sample.main) or -1, tonumber(sample.fuzzy) or -1,
+      tonumber(sample.x1) or -1, tonumber(sample.y1) or -1,
+      tonumber(sample.x2) or -1, tonumber(sample.y2) or -1,
+      tonumber(sample.color) or -1, tonumber(sample.point_count) or 0,
+      tonumber(_pending_get_dropped) or 0)
+  end
+
+  local function queue_get_sample(sample)
+    if not _G.ZIYAN_EMBED then return end
+    if #_pending_get_samples >= MAX_PENDING_GET_SAMPLES then
+      _pending_get_dropped = _pending_get_dropped + 1
+      return
+    end
+    _pending_get_samples[#_pending_get_samples + 1] = sample
+  end
+
+  -- 8-161-53：前 7 列保持旧顺序；新列证明 op/入参/单调 wall/embed。
+  local function append_cycle_csv(find_ms, mono_end, clock_source, x, y, meta, via)
+    pcall(function()
+      -- 冷路径保留独立诊断文件，绝不能截断/污染业务 embed 的严格证据。
+      local path = _G.ZIYAN_EMBED and (VAR .. "/.ziyan_ts_cycle.csv")
+        or (VAR .. "/.ziyan_ts_cycle_cold.csv")
+      local cycle_ms = 0
+      if _cycle_last_mono and mono_end >= _cycle_last_mono then
+        cycle_ms = mono_end - _cycle_last_mono
+      end
+      _cycle_last_mono = mono_end
       local bid = _last_front_bid or ""
       local hit = (tonumber(x) and x >= 0) and 1 or 0
-      local af = io.open(path, "a")
-      if not af then
-        af = io.open(path, "w")
-        if af then
-          af:write("wall_ms,find_ms,cycle_ms,x,y,hit,front_bid\n")
+      local reset = _api_csv_force_vm_reset
+      if not reset and not _api_csv_header_checked then
+        _api_csv_header_checked = true
+        local rf = io.open(path, "r")
+        if rf then
+          local first = rf:read("*l") or ""
+          rf:close()
+          reset = (first .. "\n") ~= API_CSV_HEADER
+        else
+          reset = true
         end
       end
+      local af = io.open(path, reset and "w" or "a")
       if af then
-        -- 132：对标触动无历史找色落盘；64KB 即截断（旧 800KB 会一直涨）
+        if reset then
+          _api_csv_force_vm_reset = false
+          _api_csv_header_checked = true
+        end
+        -- 8MB 轮转覆盖完整 P2 长窗；api_seq 使 runner 可按窗口增量收集。
         local sz = af:seek("end") or 0
-        if sz > 65536 then
+        if reset or sz == 0 then
+          af:write(API_CSV_HEADER)
+        elseif sz > API_CSV_MAX_BYTES then
           af:close()
           af = io.open(path, "w")
-          if af then
-            af:write("wall_ms,find_ms,cycle_ms,x,y,hit,front_bid\n")
-          end
+          if af then af:write(API_CSV_HEADER) end
         end
       end
       if af then
-        af:write(string.format("%.0f,%.2f,%.2f,%d,%d,%d,%s\n",
-          (os.time() or 0) * 1000, find_ms or 0, cycle_ms, x or -1, y or -1, hit, bid))
+        -- getColor 不自行 fopen；借本次 find 已有写入批量落盘。
+        for _, sample in ipairs(_pending_get_samples) do
+          af:write(api_row(sample))
+        end
+        _pending_get_samples = {}
+        af:write(api_row({
+          wall_ms = (os.time() or 0) * 1000,
+          duration_ms = find_ms, cycle_ms = cycle_ms,
+          x = x, y = y, ok = hit == 1, front_bid = bid,
+          mono_ms = mono_end, api_seq = next_api_seq(), op = "find",
+          clock = clock_source, embed = _G.ZIYAN_EMBED and true or false,
+          via = via or "embed", pattern_id = meta.pattern_id,
+          main = meta.main, fuzzy = meta.fuzzy,
+          x1 = meta.x1, y1 = meta.y1, x2 = meta.x2, y2 = meta.y2,
+          color = -1, point_count = meta.points,
+        }))
         af:close()
       end
     end)
@@ -1120,31 +1346,239 @@ function M.install()
     end)
   end
 
+  -- 一次性同 VM shadow probe。runner 只写 request，真正消费者是下一个
+  -- 业务 find 调用所在的 Lua VM；回执与 nonce 绑定，daemon color_req
+  -- 无法生成该回执。默认每 20 次 find 才检查一次 request，不增加
+  -- 每 find 文件 I/O。
+  local PROBE_REQUEST = VAR .. "/.ziyan_embed_api_probe"
+  local PROBE_ACK_PREFIX = VAR .. "/.ziyan_embed_api_probe_ack."
+  local _probe_poll_count = 0
+  local _probe_running = false
+  local _probe_last_nonce = ""
+
+  local function read_probe_request()
+    local f = io.open(PROBE_REQUEST, "r")
+    if not f then return nil end
+    local body = f:read("*a") or ""
+    f:close()
+    local req = {}
+    for k, v in body:gmatch("([%w_]+)=([^\r\n]*)") do
+      req[k] = v
+    end
+    return req
+  end
+
+  local function read_embed_pid()
+    local f = io.open(VAR .. "/.ziyan_embed_alive", "r")
+    if not f then return -1 end
+    local body = f:read("*a") or ""
+    f:close()
+    return tonumber(body:match("pid=(%d+)")) or -1
+  end
+
+  local function write_probe_ack(nonce, fields)
+    local path = PROBE_ACK_PREFIX .. nonce
+    local tmp = path .. ".tmp"
+    local f = io.open(tmp, "w")
+    if not f then return false end
+    local order = {
+      "version", "nonce", "status", "mode", "embed", "embed_pid", "script",
+      "vm_gen", "vm_start_mono_ms", "clock", "x", "y", "color", "alt_color", "get_ms", "hit_ms",
+      "miss_ms", "total_ms", "hit_x", "hit_y", "miss_x", "miss_y",
+      "get_ok", "hit_ok", "miss_ok", "get_via", "hit_via", "miss_via",
+      "keep_was", "keep_temp",
+      "keep_restore_ok", "embed_get_delta", "embed_find_delta",
+      "color_req_get_delta", "color_req_find_delta", "front", "reason",
+    }
+    for _, key in ipairs(order) do
+      local value = fields[key]
+      if value ~= nil then
+        f:write(key, "=", tostring(value):gsub("[\r\n]", "_"), "\n")
+      end
+    end
+    f:close()
+    pcall(os.remove, path)
+    return os.rename(tmp, path) and true or false
+  end
+
+  local function current_keep_state()
+    if type(_G.isKeepScreen) == "function" then
+      local ok, on = pcall(_G.isKeepScreen)
+      if ok then return on and true or false end
+    end
+    return _G.__ZIYAN_KEEP_SCREEN == true
+  end
+
+  local function maybe_run_shadow_probe(default_x, default_y)
+    if not _G.ZIYAN_EMBED or _probe_running then return end
+    _probe_poll_count = _probe_poll_count + 1
+    if (_probe_poll_count % 20) ~= 0 then return end
+    local req = read_probe_request()
+    if not req then return end
+    pcall(os.remove, PROBE_REQUEST)
+
+    local nonce = tostring(req.nonce or "")
+    if tostring(req.version or "") ~= "1"
+        or #nonce < 1 or #nonce > 64
+        or not nonce:match("^[A-Za-z0-9][A-Za-z0-9_.-]*$")
+        or nonce == _probe_last_nonce then
+      local rf = io.open(VAR .. "/.ziyan_embed_api_probe_reject", "w")
+      if rf then
+        rf:write("status=reject\nreason=bad_or_replayed_request\n")
+        rf:close()
+      end
+      return
+    end
+    _probe_last_nonce = nonce
+    _probe_running = true
+
+    local px = math.floor(tonumber(req.x) or tonumber(default_x) or 0)
+    local py = math.floor(tonumber(req.y) or tonumber(default_y) or 0)
+    if px < 0 then px = 0 end
+    if py < 0 then py = 0 end
+    local keep_was = current_keep_state()
+    local keep_temp = false
+    local keep_ready = keep_was
+    if not keep_was then
+      keep_ready = ipc_keep_screen(true)
+      keep_temp = keep_ready and true or false
+    end
+
+    local ef0, eg0 = _ps_embed_find, _ps_embed_get
+    local cf0, cg0 = _ps_color_req_find, _ps_color_req_get
+    local total_t0, total_clock = api_mono_ms()
+    local color, alt = -1, -1
+    local gx, gy, mx, my = -1, -1, -1, -1
+    local get_ms, hit_ms, miss_ms = -1, -1, -1
+    local get_via, hit_via, miss_via = "not_run", "not_run", "not_run"
+    local reason = ""
+
+    if not keep_ready then
+      reason = "keep_enable_fail"
+    else
+      local t0, c0 = api_mono_ms()
+      local gok, gv = pcall(M.get_color, px, py)
+      local t1, c1 = api_mono_ms()
+      get_via = M._last_get_via or "unknown"
+      get_ms = (c0 == c1 and t1 >= t0) and (t1 - t0) or -1
+      color = gok and (tonumber(gv) or -1) or -1
+      if color < 0 or color > 0xFFFFFF then
+        reason = "getcolor_invalid"
+      else
+        color = math.floor(color) % 0x1000000
+        alt = 0xFFFFFF - color
+        local one = { { c = color, dx = 0, dy = 0, b = 0 } }
+        local h0, hc0 = api_mono_ms()
+        local hok, hx, hy = pcall(M.find_multi_flat, one, 100, px, py, px, py)
+        local h1, hc1 = api_mono_ms()
+        hit_via = M._last_find_via or "unknown"
+        hit_ms = (hc0 == hc1 and h1 >= h0) and (h1 - h0) or -1
+        if hok then gx, gy = tonumber(hx) or -1, tonumber(hy) or -1 end
+
+        local miss = { { c = alt, dx = 0, dy = 0, b = 0 } }
+        local m0, mc0 = api_mono_ms()
+        local mok, xx, yy = pcall(M.find_multi_flat, miss, 100, px, py, px, py)
+        local m1, mc1 = api_mono_ms()
+        miss_via = M._last_find_via or "unknown"
+        miss_ms = (mc0 == mc1 and m1 >= m0) and (m1 - m0) or -1
+        if mok then mx, my = tonumber(xx) or -1, tonumber(yy) or -1 end
+        if gx ~= px or gy ~= py then
+          reason = "exact_hit_mismatch"
+        elseif mx ~= -1 or my ~= -1 then
+          reason = "alternate_color_false_hit"
+        end
+      end
+    end
+
+    local keep_restore_ok = true
+    if keep_temp then
+      if type(_G.ziyan_embed_keep_screen) == "function" then
+        local rok, rv = pcall(_G.ziyan_embed_keep_screen, false)
+        keep_restore_ok = rok and rv ~= false
+      else
+        keep_restore_ok = ipc_keep_screen(false)
+      end
+      if not keep_restore_ok and reason == "" then
+        reason = "keep_restore_fail"
+      end
+    end
+    local total_t1, total_clock1 = api_mono_ms()
+    local total_ms = (total_clock == total_clock1 and total_t1 >= total_t0)
+      and (total_t1 - total_t0) or -1
+    local ef_delta, eg_delta = _ps_embed_find - ef0, _ps_embed_get - eg0
+    local cf_delta, cg_delta = _ps_color_req_find - cf0, _ps_color_req_get - cg0
+    local get_ok = color >= 0 and color <= 0xFFFFFF
+    local hit_ok = gx == px and gy == py
+    local miss_ok = mx == -1 and my == -1
+    if reason == "" and (eg_delta < 1 or ef_delta < 2) then
+      reason = "embed_counter_delta_missing"
+    end
+    if reason == "" and (cg_delta ~= 0 or cf_delta ~= 0) then
+      reason = "color_req_fallback_detected"
+    end
+    if reason == "" and (get_via ~= "embed" or hit_via ~= "embed"
+        or miss_via ~= "embed") then
+      reason = "native_embed_via_missing"
+    end
+    if reason == "" and total_clock ~= "embed_mono" then
+      reason = "non_monotonic_clock"
+    end
+    local status = (reason == "" and get_ok and hit_ok and miss_ok
+      and keep_restore_ok) and "ok" or "fail"
+    flush_path_stats(true)
+    write_probe_ack(nonce, {
+      version = 1, nonce = nonce, status = status, mode = "embed_vm_shadow",
+      embed = tostring(_G.ZIYAN_EMBED and true or false),
+      embed_pid = read_embed_pid(),
+      vm_gen = tonumber(_G.ZIYAN_EMBED_VM_GEN) or -1,
+      vm_start_mono_ms = tonumber(_G.ZIYAN_EMBED_VM_START_MONO_MS) or -1,
+      script = tostring(arg and arg[1] or ""), clock = total_clock,
+      x = px, y = py, color = color, alt_color = alt,
+      get_ms = get_ms, hit_ms = hit_ms, miss_ms = miss_ms, total_ms = total_ms,
+      hit_x = gx, hit_y = gy, miss_x = mx, miss_y = my,
+      get_ok = get_ok and 1 or 0, hit_ok = hit_ok and 1 or 0,
+      miss_ok = miss_ok and 1 or 0, keep_was = keep_was and 1 or 0,
+      get_via = get_via, hit_via = hit_via, miss_via = miss_via,
+      keep_temp = keep_temp and 1 or 0,
+      keep_restore_ok = keep_restore_ok and 1 or 0,
+      embed_get_delta = eg_delta, embed_find_delta = ef_delta,
+      color_req_get_delta = cg_delta, color_req_find_delta = cf_delta,
+      front = _last_front_bid or "", reason = reason,
+    })
+    _probe_running = false
+  end
+
   function findMultiColorInRegionFuzzy(a, b, c, d, e, f, g)
     if type(_G.__ZIYAN_wait_while_paused) == "function" then
       _G.__ZIYAN_wait_while_paused()
     end
-    -- 203：硬 gate；VISION_STALE → 兼容 miss（-1,-1），诊断在 .ziyan_vision_gate
-    local gok = M.vision_gate("findMulti")
-    if not gok then
-      maybe_miss_fuse(false)
-      return -1, -1
-    end
+    -- 触动：gate 只催帧/重申方向，不因包名拒找色
+    M.vision_gate("findMulti")
     invalidate_keep_if_front_changed()
     ensure_target_bid_file()
     -- auto-keepScreen：确保 find 前缓存已启用（首次 find 或 tap 后重新启用）
     ensure_keep_screen_on()
-    local _t0 = os.clock()
+    local meta = find_pattern_meta(a, b, c, d, e, f, g)
+    local _cpu_t0 = os.clock()
+    local _mono_t0, _clock0 = api_mono_ms()
     local rx, ry = M.findMultiColorInRegionFuzzy(a, b, c, d, e, f, g)
+    local _mono_t1, _clock1 = api_mono_ms()
     maybe_miss_fuse(tonumber(rx) and rx >= 0)
-    local _cpu_elapsed = (os.clock() - _t0) * 1000
-    append_cycle_csv(_cpu_elapsed, rx, ry)
+    local _cpu_elapsed = (os.clock() - _cpu_t0) * 1000
+    local _wall_elapsed = (_clock0 == _clock1 and _mono_t1 >= _mono_t0)
+      and (_mono_t1 - _mono_t0) or -1
+    local _clock_source = (_clock0 == _clock1) and _clock0 or "clock_changed"
+    append_cycle_csv(_wall_elapsed, _mono_t1, _clock_source, rx, ry, meta,
+      M._last_find_via or (_G.ZIYAN_EMBED and "embed_unknown" or "color_req"))
     _find_call_count = _find_call_count + 1
     _find_total_cpu_ms = _find_total_cpu_ms + _cpu_elapsed
-    -- 8-118：用 os.clock 累计单次 IPC 墙钟，避免 os.time 批跨 sleep 把 avg_wall 抬到 650～950
-    _find_total_ipc_ms = (_find_total_ipc_ms or 0) + _cpu_elapsed
+    -- wall 使用 embed 单调钟，CPU 仍独立保留 os.clock，禁混写为同一指标。
+    _find_total_ipc_ms = (_find_total_ipc_ms or 0) + math.max(0, _wall_elapsed)
     _find_batch_count = _find_batch_count + 1
-    -- 8-140/97：每 20 次或 ≥10s 写 color_perf + find_pulse（防误判 hung/stale）
+    -- 8-140/97：非 embed 每 20 次或 ≥10s 写 color_perf + find_pulse。
+    -- embed 的 native l_find_multi 每次调用都写单调 sCalls，且
+    -- EmbedNoteFindWallMs 写真实 wall；Lua 若再用不含 shadow 调用的计数覆盖，
+    -- 会把 pulse/perf 从 41 倒退到 40。embed 这里只刷旁路统计/API CSV。
     _find_last_perf_write = _find_last_perf_write or 0
     local _now_wall = os.time() or 0
     if _find_batch_count >= 20 or (_now_wall - _find_last_perf_write) >= 10 then
@@ -1154,19 +1588,21 @@ function M.install()
       end
       local avg_cpu_ms = _find_total_cpu_ms / math.max(1, _find_call_count)
       pcall(function()
-        local f = io.open(VAR .. "/.ziyan_color_perf", "w")
-        if f then
-          f:write(string.format(
-            "calls=%d avg_wall_ms=%.1f avg_cpu_ms=%.1f last_cpu_ms=%.1f keepScreen=%s\n",
-            _find_call_count, avg_ipc_ms, avg_cpu_ms, _cpu_elapsed,
-            tostring(_G.__ZIYAN_KEEP_SCREEN == true)))
-          f:close()
-        end
-        -- 独立脉冲：即使 color_perf 被其它组件覆盖，mtime 仍证明热找色
-        local p = io.open(VAR .. "/.ziyan_find_pulse", "w")
-        if p then
-          p:write(string.format("ts=%d n=%d\n", _now_wall, _find_call_count))
-          p:close()
+        if not _G.ZIYAN_EMBED then
+          local f = io.open(VAR .. "/.ziyan_color_perf", "w")
+          if f then
+            f:write(string.format(
+              "calls=%d avg_wall_ms=%.1f avg_cpu_ms=%.1f last_cpu_ms=%.1f keepScreen=%s\n",
+              _find_call_count, avg_ipc_ms, avg_cpu_ms, _cpu_elapsed,
+              tostring(_G.__ZIYAN_KEEP_SCREEN == true)))
+            f:close()
+          end
+          -- 冷路径独立脉冲；embed 热路径由 native 每次调用唯一写入。
+          local p = io.open(VAR .. "/.ziyan_find_pulse", "w")
+          if p then
+            p:write(string.format("ts=%d n=%d\n", _now_wall, _find_call_count))
+            p:close()
+          end
         end
         flush_path_stats(true)
       end)
@@ -1177,6 +1613,9 @@ function M.install()
         _find_batch_start_wall = os.time()
       end
     end
+    maybe_run_shadow_probe(
+      (tonumber(rx) and rx >= 0) and rx or meta.x1,
+      (tonumber(ry) and ry >= 0) and ry or meta.y1)
     return rx, ry
   end
 
@@ -1222,13 +1661,33 @@ function M.install()
     _G.__ZIYAN_CV_GETCOLOR = true
     local prev = getColor
     function getColor(x, y)
+      local sx, sy = math.floor(tonumber(x) or 0), math.floor(tonumber(y) or 0)
+      local mono0, clock0 = api_mono_ms()
       -- 190：取色同找色——跟前台 + 会话 keep
       M.ensure_foreground_frame()
       ensure_keep_screen_on()
-      local c = M.get_color(x, y)
-      if c and c >= 0 then return c end
-      if type(prev) == "function" then return prev(x, y) end
-      return -1
+      local c = M.get_color(sx, sy)
+      local via = M._last_get_via or "unknown"
+      if not c or c < 0 then
+        via = via .. "+fallback"
+        if type(prev) == "function" then c = prev(sx, sy) end
+      end
+      c = tonumber(c) or -1
+      local mono1, clock1 = api_mono_ms()
+      local duration = (clock0 == clock1 and mono1 >= mono0)
+        and (mono1 - mono0) or -1
+      queue_get_sample({
+        wall_ms = (os.time() or 0) * 1000,
+        duration_ms = duration, cycle_ms = 0,
+        x = sx, y = sy, ok = c >= 0, front_bid = _last_front_bid or "",
+        mono_ms = mono1, api_seq = next_api_seq(), op = "getColor",
+        clock = (clock0 == clock1) and clock0 or "clock_changed",
+        embed = _G.ZIYAN_EMBED and true or false, via = via,
+        pattern_id = "-", main = -1, fuzzy = -1,
+        x1 = sx, y1 = sy, x2 = sx, y2 = sy,
+        color = c, point_count = 1,
+      })
+      return c
     end
   end
 
@@ -1238,6 +1697,7 @@ function M.install()
     return p ~= nil
   end
 
+  _G.__ZIYAN_CV_INSTALLED_VM_GEN = install_vm_gen
   return M
 end
 

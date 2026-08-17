@@ -25,6 +25,9 @@
 # 修复规则：最多 3 轮；同方案不重复测；架构问题先出方案分析；禁无意义调参。
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# shellcheck source=zy_guard_no_auto_respring.sh
+. "$ROOT/tools/zy_guard_no_auto_respring.sh"
+zy_guard_block_unless_manual "$@"
 cd "$ROOT"
 export PATH="${HOME}/.local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin:/usr/local/bin:${PATH}"
 export THEOS="${THEOS:-$HOME/theos}"
@@ -144,6 +147,16 @@ cmd_deploy() {
   while IFS='|' read -r tag ip scheme _; do
     local deb; deb="$(latest_deb "$scheme")"
     echo "[deploy] .$tag $ip $scheme <- $(basename "$deb")"
+    # 完整包在解压时会临时复制 OCR 数据；仅够放 .deb 仍会在 dpkg 中途耗尽
+    # 根卷并留下半升级状态。iOS 精简系统未必带 awk，故用 shell 分列取 Available。
+    local disk
+    disk="$(ssh_r "$ip" 'set -- $(df -k / | tail -1); avail=$4; case "$avail" in ""|*[!0-9]*) echo DISK_BAD avail="$avail";; *) if [ "$avail" -ge 220000 ]; then echo DISK_OK avail_kb="$avail"; else echo DISK_LOW avail_kb="$avail" min_kb=220000; exit 42; fi;; esac' 2>&1)" || true
+    printf '%s\n' "$disk" | tee -a "$OUT/deploy_${tag}.log"
+    if ! printf '%s\n' "$disk" | grep -q 'DISK_OK'; then
+      echo "DEPLOY_BLOCK_LOW_DISK .$tag" | tee -a "$OUT/deploy_${tag}.log"
+      fail=1
+      continue
+    fi
     if ! scp_r "$deb" "$ip" /var/mobile/Media/ziyan_iter.deb; then
       echo "DEPLOY_SCP_FAIL .$tag"; fail=1; continue
     fi
@@ -171,26 +184,23 @@ chmod 666 "\$VAR/.ziyan_find_sb_banned" "\$VAR/.ziyan_bbframe_on" "\$VAR/.ziyan_
 if [ -f "\$DL/ZiYanBBFrame.plist.ziyan_off" ] && [ ! -f "\$DL/ZiYanBBFrame.plist" ]; then
   mv -f "\$DL/ZiYanBBFrame.plist.ziyan_off" "\$DL/ZiYanBBFrame.plist"
 fi
-[ -f "\$DL/ZiYanVol.plist" ] && mv -f "\$DL/ZiYanVol.plist" "\$DL/ZiYanVol.plist.ziyan_off"
+# zero_sb_full + sb_vol_thin 仍需 ZiYanVol：它是受控的音量/文件控制桥。
+# 禁用它会吞 .ziyan_open_app/.ziyan_go_home，.166 表现为前台卡住。
+if [ -f "\$DL/ZiYanVol.plist.ziyan_off" ] && [ ! -f "\$DL/ZiYanVol.plist" ]; then
+  mv -f "\$DL/ZiYanVol.plist.ziyan_off" "\$DL/ZiYanVol.plist"
+fi
 killall -9 ziyadaemond ziyan_framecap 2>/dev/null
-# 179-1：清僵锁/僵 pid；.101 曾 pagein 坏 inode → 强制换新二进制后再 bootstrap
+# 179-1：清僵锁/僵 pid；framecap 由 zydaemon 唯一监督，禁再 bootstrap 6MB launchd 槽位
 rm -f "\$VAR/.ziyan_framecap_serve.lock" "\$VAR/.ziyan_framecap_wrap.pid" 2>/dev/null
 rm -f /tmp/ziyan_framecap_179 /tmp/fc_signed 2>/dev/null
-"\$BIN/ziyadaemond" >/dev/null 2>&1 &
 LD=/Library/LaunchDaemons; [ -d /var/jb/Library/LaunchDaemons ] && LD=/var/jb/Library/LaunchDaemons
 launchctl bootout system "\$LD/com.ziyan.framecap.plist" >/dev/null 2>&1 || true
 launchctl unload "\$LD/com.ziyan.framecap.plist" >/dev/null 2>&1 || true
-launchctl bootstrap system "\$LD/com.ziyan.framecap.plist" >/dev/null 2>&1 \
-  || launchctl load -w "\$LD/com.ziyan.framecap.plist" >/dev/null 2>&1 || true
-# 204：禁 kickstart -k；仅由 launchd 拉起，禁止 orphan serve 与 launchd 竞态双开。
-launchctl kickstart system/com.ziyan.framecap 2>/dev/null \
-  || launchctl kickstart com.ziyan.framecap 2>/dev/null || true
-sleep 2
-if ! ps -A -o command= 2>/dev/null | grep -q '[z]iyan_framecap serve'; then
-  echo 1 >"\$VAR/.ziyan_watchdog_framecap_need"
-  chmod 666 "\$VAR/.ziyan_watchdog_framecap_need" 2>/dev/null || true
-  sleep 2
-fi
+# framecap 由 KeepAlive 的 zydaemon 子进程拉起；只写 need，不让 launchd 与其竞争。
+echo zydaemon >"\$VAR/.ziyan_framecap_owner_mode"
+echo 1 >"\$VAR/.ziyan_watchdog_framecap_need"
+chmod 666 "\$VAR/.ziyan_framecap_owner_mode" "\$VAR/.ziyan_watchdog_framecap_need" 2>/dev/null || true
+sleep 5
 FC_N=\$(ps -A -o command= 2>/dev/null | grep -F 'ziyan_framecap serve' | grep -vc grep | tr -dc '0-9')
 [ -n "\$FC_N" ] || FC_N=0
 if [ "\$FC_N" -ne 1 ]; then
@@ -199,7 +209,12 @@ if [ "\$FC_N" -ne 1 ]; then
 fi
 rm -f "\$VAR/.ziyan_force_recap" 2>/dev/null || true
 echo com.ziyan.ziyan > "\$VAR/.ziyan_open_app" 2>/dev/null || true
-command -v sbreload >/dev/null && sbreload || killall -9 SpringBoard
+if [ "${ZY_ALLOW_MANUAL_RESPRING:-0}" = 1 ]; then
+  command -v sbreload >/dev/null && sbreload || killall -9 SpringBoard
+else
+  echo BLOCKED_AUTO_SB_RESTART
+  exit 78
+fi
 echo DEPLOY_OK
 EOS
     then
@@ -281,8 +296,11 @@ if [ "$FC_ALIVE" = 1 ]; then
   echo "nonce=scripts_$$" >"$VAR/.ziyan_embed_go"
   chmod 666 "$VAR/.ziyan_embed_script" "$VAR/.ziyan_embed_go" 2>/dev/null
   ok=0
+  # 真机重启后 framecap 先完成一次冷帧（rootful UICreate）才会消费
+  # embed_go；5 秒超时会在 .112 上误走独立 Lua，随后 embed 又迟到成功，
+  # 形成两个业务循环同时找色。给启动状态机最多 12 秒，宁可显式超时也不双开。
   i=0
-  while [ $i -lt 50 ]; do
+  while [ $i -lt 120 ]; do
     i=$((i+1))
     sleep 0.1
     if [ -f "$VAR/.ziyan_lua_embedded" ] || grep -q 'ok=1' "$VAR/.ziyan_embed_ack" 2>/dev/null; then
@@ -295,10 +313,16 @@ if [ "$FC_ALIVE" = 1 ]; then
   done
   echo EMBED_TRY=1 ACK="$(cat "$VAR/.ziyan_embed_ack" 2>/dev/null | tr '\n' ' ')" FRONT="$(cat "$VAR/.ziyan_front_bid" 2>/dev/null)"
   if [ "$ok" = 1 ]; then
+    # 旧轮残留/迟到回退的独立 Lua 必须退出；framecap embed 是唯一业务宿主。
+    PIDS=$(ps -A -o pid=,command= 2>/dev/null | grep 'ziyan_run.lua' | grep "$SCRIPT" | grep -v grep | sed 's/^ *//' | cut -d' ' -f1)
+    for p in $PIDS; do kill -TERM "$p" 2>/dev/null; done
+    sleep 0.2
+    for p in $PIDS; do kill -0 "$p" 2>/dev/null && kill -9 "$p" 2>/dev/null; done
     echo LUA_N=embed BID=anyfront
     echo SCRIPT_LAUNCH_OK
     exit 0
   fi
+  echo EMBED_WAIT_TIMEOUT=12s
   echo EMBED_FALLBACK=1
 fi
 if [ "$SCHEME" = rootless ]; then
@@ -605,7 +629,7 @@ cmd_gap_carender() {
   mkdir -p "$OUT"
   local ip=192.168.31.53
   echo "[gap-carender] probe .53 with FrameRelay OFF + no_relay flag"
-  if ! ssh_r "$ip" 'bash -s' <<'EOS' 2>&1 | tee "$OUT/gap_carender_53.log"
+  if ! ssh_r "$ip" "ZY_ALLOW_MANUAL_RESPRING=${ZY_ALLOW_MANUAL_RESPRING:-0} bash -s" <<'EOS' 2>&1 | tee "$OUT/gap_carender_53.log"
 set +e
 VAR=/var/jb/usr/lib/ziyan/var
 DL=/var/jb/Library/MobileSubstrate/DynamicLibraries
@@ -615,7 +639,12 @@ if [ -f "$DL/ZiYanFrameRelay.plist" ]; then
   echo RELAY_FILTER=OFF
 fi
 echo 1 > "$VAR/.ziyan_no_relay"
-killall -9 SpringBoard 2>/dev/null
+if [ "${ZY_ALLOW_MANUAL_RESPRING:-0}" = 1 ]; then
+  killall -9 SpringBoard 2>/dev/null
+else
+  echo BLOCKED_AUTO_SB_RESTART
+  exit 78
+fi
 sleep 8
 killall -9 ziyan_framecap 2>/dev/null
 $BIN/ziyan_framecap serve >/dev/null 2>&1 &
@@ -630,7 +659,12 @@ if [ -f "$DL/ZiYanFrameRelay.plist.ziyan_off_test" ]; then
   echo RELAY_FILTER=RESTORED
 fi
 rm -f "$VAR/.ziyan_no_relay"
-killall -9 SpringBoard 2>/dev/null
+if [ "${ZY_ALLOW_MANUAL_RESPRING:-0}" = 1 ]; then
+  killall -9 SpringBoard 2>/dev/null
+else
+  echo BLOCKED_AUTO_SB_RESTART
+  exit 78
+fi
 echo PROBE_DONE
 EOS
   then

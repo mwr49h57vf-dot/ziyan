@@ -5,7 +5,15 @@
 local M = { name = "AutoInject", version = "1.0.0" }
 
 local function varDir()
-  return _G.ZIYAN_VAR or "/usr/lib/ziyan/var"
+  if type(_G.ZIYAN_VAR) == "string" and #_G.ZIYAN_VAR > 0 then
+    return _G.ZIYAN_VAR
+  end
+  local f = io.open("/var/jb/usr/lib/ziyan/var", "r")
+  if f then
+    f:close()
+    return "/var/jb/usr/lib/ziyan/var"
+  end
+  return "/usr/lib/ziyan/var"
 end
 
 local function readTrim(path)
@@ -29,10 +37,14 @@ function M.status()
 end
 
 function M.requestOpenApp(bundleId)
+  local bid = tostring(bundleId or ""):gsub("^%s+", ""):gsub("%s+$", "")
+  if bid == "" then
+    return false
+  end
   local v = varDir()
   local f = io.open(v .. "/.ziyan_open_app", "w")
   if not f then return false end
-  f:write(tostring(bundleId or "com.ziyan.ziyan") .. "\n")
+  f:write(bid .. "\n")
   f:close()
   return true
 end

@@ -251,4 +251,95 @@
   [host presentViewController:sheet animated:YES completion:nil];
 }
 
++ (BOOL)isExcludedUserApp:(NSString *)bid {
+  if (bid.length == 0) {
+    return YES;
+  }
+  if ([bid isEqualToString:@"com.ziyan.ziyan"] ||
+      [bid hasPrefix:@"com.ziyan."]) {
+    return YES;
+  }
+  if ([bid isEqualToString:@"com.example.manual"]) {
+    return YES;
+  }
+  return NO;
+}
+
++ (NSArray<ZiYanAppPick *> *)enumerateUserApps {
+  NSMutableArray<ZiYanAppPick *> *out = [NSMutableArray array];
+  for (ZiYanAppPick *p in [self enumerateApps]) {
+    if ([self isExcludedUserApp:p.bundleId]) {
+      continue;
+    }
+    [out addObject:p];
+  }
+  return out;
+}
+
++ (void)presentRealAppPickerFrom:(UIViewController *)host
+                      completion:(ZiYanAppSelectHandler)completion {
+  NSArray<ZiYanAppPick *> *apps = [self enumerateUserApps];
+  UIAlertController *sheet = [UIAlertController
+      alertControllerWithTitle:@"选择 Agent 游戏"
+                       message:nil
+                preferredStyle:UIAlertControllerStyleActionSheet];
+  NSUInteger limit = MIN(apps.count, (NSUInteger)80);
+  for (NSUInteger i = 0; i < limit; i++) {
+    ZiYanAppPick *p = apps[i];
+    NSString *title =
+        [NSString stringWithFormat:@"%@  (%@)", p.displayName, p.bundleId];
+    [sheet addAction:[UIAlertAction
+                         actionWithTitle:title
+                                   style:UIAlertActionStyleDefault
+                                 handler:^(__unused UIAlertAction *a) {
+                                   NSString *msg = [NSString
+                                       stringWithFormat:
+                                           @"当前选中：%@\n标识：%@",
+                                           p.displayName ?: @"",
+                                           p.bundleId ?: @""];
+                                   UIAlertController *cfm = [UIAlertController
+                                       alertControllerWithTitle:@"确认当前目标"
+                                                        message:msg
+                                                 preferredStyle:
+                                                     UIAlertControllerStyleAlert];
+                                   [cfm addAction:[UIAlertAction
+                                                      actionWithTitle:@"取消"
+                                                                style:
+                                                                    UIAlertActionStyleCancel
+                                                              handler:^(__unused
+                                                                            UIAlertAction
+                                                                                *x) {
+                                                                if (completion)
+                                                                  completion(nil);
+                                                              }]];
+                                   [cfm addAction:[UIAlertAction
+                                                      actionWithTitle:@"确认"
+                                                                style:
+                                                                    UIAlertActionStyleDefault
+                                                              handler:^(__unused
+                                                                            UIAlertAction
+                                                                                *x) {
+                                                                if (completion)
+                                                                  completion(p);
+                                                              }]];
+                                   [host presentViewController:cfm
+                                                      animated:YES
+                                                    completion:nil];
+                                 }]];
+  }
+  [sheet addAction:[UIAlertAction actionWithTitle:@"取消"
+                                            style:UIAlertActionStyleCancel
+                                          handler:^(__unused UIAlertAction *a) {
+                                            if (completion)
+                                              completion(nil);
+                                          }]];
+  if (sheet.popoverPresentationController) {
+    sheet.popoverPresentationController.sourceView = host.view;
+    sheet.popoverPresentationController.sourceRect =
+        CGRectMake(CGRectGetMidX(host.view.bounds),
+                   CGRectGetMaxY(host.view.bounds) - 60, 1, 1);
+  }
+  [host presentViewController:sheet animated:YES completion:nil];
+}
+
 @end

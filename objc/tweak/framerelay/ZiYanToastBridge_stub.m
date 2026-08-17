@@ -25,6 +25,15 @@
   (void)text;
   (void)seconds;
 }
+- (void)showToast:(NSString *)text
+          duration:(NSTimeInterval)seconds
+            orient:(NSInteger)orient {
+  (void)text;
+  (void)seconds;
+  (void)orient;
+}
+- (void)hideToastNow {
+}
 
 + (NSInteger)scriptOrient {
   return 0;

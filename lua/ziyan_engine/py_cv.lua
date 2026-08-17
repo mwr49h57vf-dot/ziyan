@@ -469,12 +469,7 @@ local function ocr_req(op, extra)
       end
     end
   end)
-  if not gate_ok then
-    return {
-      ok = false, text = "", error = "VISION_STALE", via = "fg_gate",
-      region = { x, y, x1, y1 },
-    }
-  end
+  -- 触动：OCR 扫当前画面。gate 失败不再直接 VISION_STALE。
   local OCR_MIN_MS = 350
   local OCR_CACHE_MS = 5000
   local ocr_cache = _G.__ZIYAN_OCR_CACHE
@@ -1269,42 +1264,123 @@ function M.install()
     return httpGet(url, timeout)
   end
 
+  -- embed 覆盖了 os.execute，但 libc io.popen 在 iOS 上会挂死 framecap。
+  -- 探测 curl 只能走 file_exists，禁止 command -v / popen。
+  local function ftp_curl_bin()
+    local cands = {
+      "/var/jb/usr/bin/curl",
+      "/usr/bin/curl",
+      "/usr/local/bin/curl",
+      "/bin/curl",
+    }
+    for i = 1, #cands do
+      if file_exists(cands[i]) then return cands[i] end
+    end
+    return nil
+  end
+
+  local function ftp_have_curl()
+    return ftp_curl_bin() ~= nil
+  end
+
+  local function ftp_python()
+    local cands = {
+      ZIYAN_ROOT .. "/bin/python3.7",
+      "/var/jb/usr/lib/ziyan/bin/python3.7",
+      "/usr/lib/ziyan/bin/python3.7",
+      "/usr/bin/python3",
+    }
+    for i = 1, #cands do
+      if file_exists(cands[i]) then return cands[i] end
+    end
+    return nil
+  end
+
+  local function ftp_via_py(op, host, user, password, a, b, port, timeout)
+    local py = ftp_python()
+    if not py then
+      return { ok = false, error = "CAPABILITY_MISSING", via = "no_curl_no_python" }
+    end
+    local helper = ZIYAN_VAR .. "/.ziyan_ftp_cli.py"
+    if not file_exists(helper) then
+      local hf = io.open(helper, "w")
+      if not hf then return { ok = false, error = "ftp_helper_write" } end
+      hf:write([[
+import sys, ftplib
+op, host, user, password, a, b, port, timeout = sys.argv[1:9]
+port = int(port); timeout = float(timeout)
+ftp = ftplib.FTP()
+ftp.connect(host, port, timeout=timeout)
+ftp.login(user, password)
+if op == "upload":
+    with open(a, "rb") as f: ftp.storbinary("STOR " + b, f)
+elif op == "download":
+    with open(b, "wb") as f: ftp.retrbinary("RETR " + a, f.write)
+elif op == "delete":
+    ftp.delete(a)
+elif op == "size":
+    print(ftp.size(a) or "")
+ftp.quit()
+]])
+      hf:close()
+    end
+    local cmd = string.format(
+      "'%s' '%s' '%s' '%s' '%s' '%s' '%s' '%s' '%s' '%s' >/dev/null 2>&1",
+      py, helper, op, tostring(host or ""), tostring(user or ""),
+      tostring(password or ""), tostring(a or ""), tostring(b or ""),
+      tostring(port or 21), tostring(timeout or 30))
+    local st = os.execute(cmd)
+    return { ok = (st == true or st == 0), via = "python_ftplib" }
+  end
+
   function FtpUpload(host, user, password, local_path, remote_path, port, timeout)
     port = port or 21
-    local cmd = string.format(
-      "curl -s --max-time %d -T '%s' --user '%s:%s' 'ftp://%s:%d/%s' >/dev/null 2>&1",
-      tonumber(timeout) or 30, tostring(local_path or ""),
-      tostring(user or ""), tostring(password or ""),
-      tostring(host or ""), port, tostring(remote_path or "")
-    )
-    local st = os.execute(cmd)
-    return { ok = (st == true or st == 0) }
+    timeout = tonumber(timeout) or 30
+    local curl = ftp_curl_bin()
+    if curl then
+      local cmd = string.format(
+        "'%s' -s --max-time %d -T '%s' --user '%s:%s' 'ftp://%s:%d/%s' >/dev/null 2>&1",
+        curl, timeout, tostring(local_path or ""),
+        tostring(user or ""), tostring(password or ""),
+        tostring(host or ""), port, tostring(remote_path or "")
+      )
+      local st = os.execute(cmd)
+      return { ok = (st == true or st == 0), via = "curl" }
+    end
+    return ftp_via_py("upload", host, user, password, local_path, remote_path, port, timeout)
   end
 
   function FtpDownload(host, user, password, remote_path, local_path, port, timeout)
     port = port or 21
-    local cmd = string.format(
-      "curl -s --max-time %d --user '%s:%s' 'ftp://%s:%d/%s' -o '%s' >/dev/null 2>&1",
-      tonumber(timeout) or 30,
-      tostring(user or ""), tostring(password or ""),
-      tostring(host or ""), port, tostring(remote_path or ""),
-      tostring(local_path or "")
-    )
-    local st = os.execute(cmd)
-    return { ok = (st == true or st == 0) }
+    timeout = tonumber(timeout) or 30
+    local curl = ftp_curl_bin()
+    if curl then
+      local cmd = string.format(
+        "'%s' -s --max-time %d --user '%s:%s' 'ftp://%s:%d/%s' -o '%s' >/dev/null 2>&1",
+        curl, timeout, tostring(user or ""), tostring(password or ""),
+        tostring(host or ""), port, tostring(remote_path or ""),
+        tostring(local_path or "")
+      )
+      local st = os.execute(cmd)
+      return { ok = (st == true or st == 0), via = "curl" }
+    end
+    return ftp_via_py("download", host, user, password, remote_path, local_path, port, timeout)
   end
 
   function FtpDelete(host, user, password, remote_path, port, timeout)
     port = port or 21
-    local cmd = string.format(
-      "curl -s --max-time %d --user '%s:%s' -Q 'DELE %s' 'ftp://%s:%d/' >/dev/null 2>&1",
-      tonumber(timeout) or 30,
-      tostring(user or ""), tostring(password or ""),
-      tostring(remote_path or ""),
-      tostring(host or ""), port
-    )
-    local st = os.execute(cmd)
-    return { ok = (st == true or st == 0) }
+    timeout = tonumber(timeout) or 30
+    local curl = ftp_curl_bin()
+    if curl then
+      local cmd = string.format(
+        "'%s' -s --max-time %d --user '%s:%s' -Q 'DELE %s' 'ftp://%s:%d/' >/dev/null 2>&1",
+        curl, timeout, tostring(user or ""), tostring(password or ""),
+        tostring(remote_path or ""), tostring(host or ""), port
+      )
+      local st = os.execute(cmd)
+      return { ok = (st == true or st == 0), via = "curl" }
+    end
+    return ftp_via_py("delete", host, user, password, remote_path, "", port, timeout)
   end
 
   function FtpRead(host, user, password, remote_path, port, timeout)
@@ -1323,26 +1399,29 @@ function M.install()
     timeout = tonumber(timeout) or 30
     local tmp = ZIYAN_VAR .. "/.ziyan_ftp_size.txt"
     pcall(os.remove, tmp)
-    local cmd = string.format(
-      "curl -sI --max-time %d --user '%s:%s' 'ftp://%s:%d/%s' 2>/dev/null | tr -d '\\r' > '%s'",
-      timeout, tostring(user or ""), tostring(password or ""),
-      tostring(host or ""), port, tostring(remote_path or ""), tmp
-    )
-    os.execute(cmd)
+    local curl = ftp_curl_bin()
     local remote_sz = nil
-    local hf = io.open(tmp, "r")
-    if hf then
-      for line in hf:lines() do
-        local n = line:match("[Cc]ontent%-[Ll]ength:%s*(%d+)")
-        if n then remote_sz = tonumber(n); break end
+    if curl then
+      local cmd = string.format(
+        "'%s' -sI --max-time %d --user '%s:%s' 'ftp://%s:%d/%s' 2>/dev/null | tr -d '\\r' > '%s'",
+        curl, timeout, tostring(user or ""), tostring(password or ""),
+        tostring(host or ""), port, tostring(remote_path or ""), tmp
+      )
+      os.execute(cmd)
+      local hf = io.open(tmp, "r")
+      if hf then
+        for line in hf:lines() do
+          local n = line:match("[Cc]ontent%-[Ll]ength:%s*(%d+)")
+          if n then remote_sz = tonumber(n); break end
+        end
+        hf:close()
       end
-      hf:close()
     end
-    if not remote_sz then
+    if not remote_sz and curl then
       -- SIZE 命令回退
       local cmd2 = string.format(
-        "curl -s --max-time %d --user '%s:%s' -Q 'SIZE %s' 'ftp://%s:%d/' 2>/dev/null | tr -cd '0-9' > '%s'",
-        timeout, tostring(user or ""), tostring(password or ""),
+        "'%s' -s --max-time %d --user '%s:%s' -Q 'SIZE %s' 'ftp://%s:%d/' 2>/dev/null | tr -cd '0-9' > '%s'",
+        curl, timeout, tostring(user or ""), tostring(password or ""),
         tostring(remote_path or ""), tostring(host or ""), port, tmp
       )
       os.execute(cmd2)
@@ -1350,6 +1429,24 @@ function M.install()
       if sf then
         remote_sz = tonumber(sf:read("*a") or "")
         sf:close()
+      end
+    end
+    if not remote_sz and not ftp_have_curl() then
+      local py = ftp_python()
+      if py then
+        ftp_via_py("size", host, user, password, remote_path, "", port, timeout)
+        local outf = ZIYAN_VAR .. "/.ziyan_ftp_size_py.txt"
+        local cmd3 = string.format(
+          "'%s' '%s' size '%s' '%s' '%s' '%s' '' '%s' '%s' > '%s' 2>/dev/null",
+          py, ZIYAN_VAR .. "/.ziyan_ftp_cli.py",
+          tostring(host or ""), tostring(user or ""), tostring(password or ""),
+          tostring(remote_path or ""), tostring(port), tostring(timeout), outf)
+        os.execute(cmd3)
+        local pf = io.open(outf, "r")
+        if pf then
+          remote_sz = tonumber(pf:read("*a") or "")
+          pf:close()
+        end
       end
     end
     local local_sz = 0
@@ -1470,11 +1567,33 @@ function M.install()
   file_move = FileMove
   file_list = FileList
 
+  -- 内存缓存是 ZiYan 自身业务状态，不应依赖设备侧 Python + plistlib。
+  -- rootless Python 曾误链 rootful libpython，部分 rootful 机又缺 libexpat，
+  -- 使完全相同的 MemoryWrite 在不同机器无故失败。新缓存优先纯 Lua JSON；
+  -- 旧 plist 仅作为迁移回退，确保已有数据不会被直接丢弃。
+  local function mem_cache_name(bid)
+    local s = tostring(bid or "default")
+    return (s:gsub("[^%w%._%-]", "_"))
+  end
+
+  local function mem_json_path(bid)
+    return ZIYAN_VAR .. "/memory/" .. mem_cache_name(bid) .. ".json"
+  end
+
   local function mem_plist_path(bid)
     return ZIYAN_VAR .. "/memory/" .. tostring(bid or "default") .. ".plist"
   end
 
   local function mem_cache_read(bid)
+    local jpath = mem_json_path(bid)
+    local jf = io.open(jpath, "r")
+    if jf then
+      local body = jf:read("*a") or ""
+      jf:close()
+      local ok, obj = pcall(json_decode, body)
+      if ok and type(obj) == "table" then return obj end
+    end
+    -- 兼容已存在的 plist；新写入不再依赖此路径。
     local path = mem_plist_path(bid)
     local f = io.open(path, "rb")
     if not f then return {} end
@@ -1494,16 +1613,16 @@ function M.install()
 
   local function mem_cache_write(bid, tbl)
     os.execute(string.format('mkdir -p "%s/memory"', ZIYAN_VAR))
-    local path = mem_plist_path(bid)
-    local tmpj = ZIYAN_VAR .. "/.ziyan_mem_cache_w.json"
+    local path = mem_json_path(bid)
+    local tmpj = path .. ".tmp"
     local f = io.open(tmpj, "w")
     if not f then return false end
     f:write(json_encode(tbl or {}))
     f:close()
-    local st = os.execute(string.format(
-      '/usr/lib/ziyan/bin/python3 -c "import plistlib,json,sys; d=json.load(open(sys.argv[1])); plistlib.dump(d, open(sys.argv[2],\'wb\'))" "%s" "%s" 2>/dev/null',
-      tmpj, path))
-    return st == true or st == 0
+    if os.rename(tmpj, path) then return true end
+    -- 同目录 rename 正常应为原子；异常时仍保留原缓存，清临时文件后返回失败。
+    pcall(os.remove, tmpj)
+    return false
   end
 
   function PlistRead(path)
@@ -1588,7 +1707,7 @@ function M.install()
       keys[#keys + 1] = tostring(k)
     end
     table.sort(keys)
-    return { ok = true, keys = keys, sources = { "cache_plist" }, path = mem_plist_path(bid) }
+    return { ok = true, keys = keys, sources = { "cache_json" }, path = mem_json_path(bid) }
   end
 
   function memory_keys(Bunid_str)

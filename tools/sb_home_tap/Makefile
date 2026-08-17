@@ -1,6 +1,7 @@
 TARGET := iphone:clang:latest:13.0
 ARCHS := arm64
-INSTALL_TARGET_PROCESSES = SpringBoard
+# Do not auto-kill SpringBoard after make install.
+INSTALL_TARGET_PROCESSES =
 include $(THEOS)/makefiles/common.mk
 TWEAK_NAME = ZiYanHomeTap
 ZiYanHomeTap_FILES = Tweak.m

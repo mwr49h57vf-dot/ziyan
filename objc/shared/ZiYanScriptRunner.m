@@ -270,6 +270,73 @@ static BOOL ZiYanArgsLookLikeZiYanLua(NSString *args) {
   return nil;
 }
 
++ (NSInteger)framecapServeCount {
+  pid_t child = 0;
+  FILE *fp = ZiYanPopenRead(
+      "ps -axo pid=,args= 2>/dev/null || ps -A -o pid=,command= 2>/dev/null",
+      &child);
+  if (!fp) {
+    return -1;
+  }
+  char line[512];
+  NSInteger n = 0;
+  while (fgets(line, sizeof(line), fp)) {
+    if (strstr(line, "ziyan_framecap") && strstr(line, " serve")) {
+      n++;
+    }
+  }
+  ZiYanPcloseRead(fp, child);
+  return n;
+}
+
++ (BOOL)framecapHeartbeatFresh {
+  return ZiYanFramecapHeartbeatFresh(12.0);
+}
+
+/// 控制面就绪：单实例 + 心跳。不含新鲜帧（idle/Home seq=0 也算就绪）。
+/// SpringBoard 里 `ps` 计数常为 0（fc_n=0）但进程与 alive 心跳仍在：
+/// 此时认 proc+hb，禁止再空等 2–5s，也禁止因此拉起第二实例。
++ (BOOL)framecapControlReady {
+  NSInteger n = [self framecapServeCount];
+  BOOL hb = [self framecapHeartbeatFresh];
+  if (n > 1) {
+    return NO;
+  }
+  if (n == 1) {
+    return hb;
+  }
+  return [self framecapProcessRunning] && hb;
+}
+
++ (void)writeEnsureHealthAck {
+  NSInteger n = [self framecapServeCount];
+  BOOL proc = [self framecapProcessRunning];
+  BOOL hb = [self framecapHeartbeatFresh];
+  int alive = (n >= 1 || proc) ? 1 : 0;
+  NSString *err = @"";
+  if (n > 1) {
+    err = @"ZY_E_FRAMECAP_DUP";
+  } else if (!alive || !hb) {
+    err = @"ZY_E_FRAMECAP_OFFLINE";
+  }
+  ZiYanWriteHealthAck(alive, hb ? 1 : 0, hb ? 1 : 0, (int)n, -1, @"-", -1, 0,
+                      err);
+}
+
++ (BOOL)waitFramecapControlReadyMs:(int)ms {
+  int steps = ms / 50;
+  if (steps < 1) {
+    steps = 1;
+  }
+  for (int i = 0; i < steps; i++) {
+    if ([self framecapControlReady]) {
+      return YES;
+    }
+    usleep(50000);
+  }
+  return [self framecapControlReady];
+}
+
 + (BOOL)framecapProcessRunning {
   pid_t fromAlive = [self framecapPidFromAlive];
   if (fromAlive > 1 && (kill(fromAlive, 0) == 0 || errno == EPERM)) {
@@ -295,20 +362,90 @@ static BOOL ZiYanArgsLookLikeZiYanLua(NSString *args) {
   return hit;
 }
 
-/// 8-161-68 / 202：EnsureFramecapAlive —— 已有 serve 禁止 spawn；禁 unload/load 活服务
+/// 8-161-68 / 202 / Day9：EnsureFramecapAlive
+/// 成功 = serve + alive 心跳(IPC) + FC_N=1。不以 PID 为就绪。
+/// 禁等待新鲜帧（idle/Home 无帧也必须能 Ensure；fresh 只写 health_ack）。
 /// 内存风险：禁在 SB 主线程长时间 busy-wait；调用方应在后台队列。
 + (BOOL)ensureFramecapAlive {
   ZiYanEnsureVarDirectory();
-  if ([self framecapProcessRunning]) {
+  NSInteger n0 = [self framecapServeCount];
+  BOOL proc0 = [self framecapProcessRunning];
+  BOOL hb0 = [self framecapHeartbeatFresh];
+  if (n0 > 1) {
+    [self writeEnsureHealthAck];
+    ZiYanWriteVarText(
+        @".ziyan_ensure_framecap_log",
+        [NSString stringWithFormat:
+                      @"ts=%.0f ok=0 via=dup fc_n=%ld hb=%d wait_ms=0\n",
+                      [[NSDate date] timeIntervalSince1970], (long)n0,
+                      hb0 ? 1 : 0]);
+    return NO;
+  }
+  // 同一启动 session：已有单实例且心跳新鲜则立即返回，不再叠第二次等待。
+  if ((n0 == 1 || proc0) && hb0) {
     [[NSFileManager defaultManager]
         removeItemAtPath:ZiYanVarFile(@".ziyan_watchdog_framecap_need")
                    error:nil];
+    [self writeEnsureHealthAck];
+    ZiYanWriteVarText(
+        @".ziyan_ensure_framecap_log",
+        [NSString stringWithFormat:
+                      @"ts=%.0f ok=1 via=already_ready fc_n=%ld proc=%d hb=1 "
+                      @"wait_ms=0\n",
+                      [[NSDate date] timeIntervalSince1970], (long)n0,
+                      proc0 ? 1 : 0]);
     return YES;
+  }
+  if (n0 >= 1 || proc0) {
+    [[NSFileManager defaultManager]
+        removeItemAtPath:ZiYanVarFile(@".ziyan_watchdog_framecap_need")
+                   error:nil];
+    NSTimeInterval tWait = [[NSDate date] timeIntervalSince1970];
+    (void)[self waitFramecapControlReadyMs:(n0 >= 1 ? 2000 : 5000)];
+    NSInteger n = [self framecapServeCount];
+    BOOL hb = [self framecapHeartbeatFresh];
+    BOOL ok = [self framecapControlReady] && n <= 1;
+    [self writeEnsureHealthAck];
+    ZiYanWriteVarText(
+        @".ziyan_ensure_framecap_log",
+        [NSString stringWithFormat:
+                      @"ts=%.0f ok=%d via=existing fc_n=%ld hb=%d wait_ms=%.0f\n",
+                      [[NSDate date] timeIntervalSince1970], ok ? 1 : 0,
+                      (long)n, hb ? 1 : 0,
+                      ([[NSDate date] timeIntervalSince1970] - tWait) * 1000.0]);
+    return ok;
   }
   // 清陈旧 alive，避免 find 路径误信死 pid
   [[NSFileManager defaultManager]
       removeItemAtPath:ZiYanVarFile(@".ziyan_framecap_alive")
                    error:nil];
+
+  NSString *ownerMode = [NSString
+      stringWithContentsOfFile:ZiYanVarFile(@".ziyan_framecap_owner_mode")
+                       encoding:NSUTF8StringEncoding
+                          error:nil];
+  BOOL zydaemonOwns = [ownerMode rangeOfString:@"zydaemon"].location !=
+                      NSNotFound;
+  // iOS 13 对 com.ziyan.framecap 槽位存在 6MB 启动限制；产品路径由
+  // zydaemon 拉子进程。菜单只写 need 并短等，不能再 kickstart 竞争出第二实例。
+  if (zydaemonOwns) {
+    ZiYanWriteVarText(@".ziyan_watchdog_framecap_need", @"1\n");
+    BOOL ok = [self waitFramecapControlReadyMs:5000];
+    if (ok) {
+      [[NSFileManager defaultManager]
+          removeItemAtPath:ZiYanVarFile(@".ziyan_watchdog_framecap_need")
+                     error:nil];
+    }
+    [self writeEnsureHealthAck];
+    ZiYanWriteVarText(
+        @".ziyan_ensure_framecap_log",
+        [NSString stringWithFormat:@"ts=%.0f ok=%d via=zydaemon hb=%d fc_n=%ld\n",
+                                   [[NSDate date] timeIntervalSince1970],
+                                   ok ? 1 : 0,
+                                   [self framecapHeartbeatFresh] ? 1 : 0,
+                                   (long)[self framecapServeCount]]);
+    return ok;
+  }
 
   NSString *plist = [self framecapLaunchPlistPath];
   NSString *launchctl = nil;
@@ -342,38 +479,40 @@ static BOOL ZiYanArgsLookLikeZiYanLua(NSString *args) {
   }
 
   // 203：只等 launchd；禁 posix_spawn serve（与 launchd/wrap 竞态 → FC_N=2）
-  for (int i = 0; i < 60; i++) {
-    if ([self framecapProcessRunning]) {
-      [[NSFileManager defaultManager]
-          removeItemAtPath:ZiYanVarFile(@".ziyan_watchdog_framecap_need")
-                     error:nil];
-      ZiYanWriteVarText(
-          @".ziyan_ensure_framecap_log",
-          [NSString stringWithFormat:@"ts=%.0f ok=1 via=kickstart\n",
-                                     [[NSDate date] timeIntervalSince1970]]);
-      return YES;
-    }
-    usleep(50000);
+  // Day9：等 serve+心跳，不等新鲜帧
+  if ([self waitFramecapControlReadyMs:3000]) {
+    [[NSFileManager defaultManager]
+        removeItemAtPath:ZiYanVarFile(@".ziyan_watchdog_framecap_need")
+                   error:nil];
+    [self writeEnsureHealthAck];
+    ZiYanWriteVarText(
+        @".ziyan_ensure_framecap_log",
+        [NSString stringWithFormat:@"ts=%.0f ok=1 via=kickstart fc_n=%ld\n",
+                                   [[NSDate date] timeIntervalSince1970],
+                                   (long)[self framecapServeCount]]);
+    return YES;
   }
   // 仍无：写 need，交给 zydaemon 低频 kickstart（禁本进程 orphan spawn）
   ZiYanWriteVarText(@".ziyan_watchdog_framecap_need", @"1\n");
-  for (int i = 0; i < 40; i++) {
-    if ([self framecapProcessRunning]) {
-      [[NSFileManager defaultManager]
-          removeItemAtPath:ZiYanVarFile(@".ziyan_watchdog_framecap_need")
-                     error:nil];
-      ZiYanWriteVarText(
-          @".ziyan_ensure_framecap_log",
-          [NSString stringWithFormat:@"ts=%.0f ok=1 via=watchdog_need\n",
-                                     [[NSDate date] timeIntervalSince1970]]);
-      return YES;
-    }
-    usleep(50000);
+  if ([self waitFramecapControlReadyMs:2000]) {
+    [[NSFileManager defaultManager]
+        removeItemAtPath:ZiYanVarFile(@".ziyan_watchdog_framecap_need")
+                   error:nil];
+    [self writeEnsureHealthAck];
+    ZiYanWriteVarText(
+        @".ziyan_ensure_framecap_log",
+        [NSString stringWithFormat:@"ts=%.0f ok=1 via=watchdog_need fc_n=%ld\n",
+                                   [[NSDate date] timeIntervalSince1970],
+                                   (long)[self framecapServeCount]]);
+    return YES;
   }
+  [self writeEnsureHealthAck];
   ZiYanWriteVarText(
       @".ziyan_ensure_framecap_log",
-      [NSString stringWithFormat:@"ts=%.0f ok=0 via=menu_run\n",
-                                 [[NSDate date] timeIntervalSince1970]]);
+      [NSString stringWithFormat:@"ts=%.0f ok=0 via=menu_run fc_n=%ld hb=%d\n",
+                                 [[NSDate date] timeIntervalSince1970],
+                                 (long)[self framecapServeCount],
+                                 [self framecapHeartbeatFresh] ? 1 : 0]);
   // 仍写 need，供 zydaemon 若在则二次护活
   ZiYanWriteVarText(@".ziyan_watchdog_framecap_need",
                     [NSString stringWithFormat:@"ts=%.0f\n",
@@ -757,7 +896,8 @@ static BOOL ZiYanArgsLookLikeZiYanLua(NSString *args) {
   [[NSFileManager defaultManager]
       removeItemAtPath:ZiYanVarFile(@".ziyan_script_session")
                  error:nil];
-  // 8-161-102：用户停止 → 会话 Idle
+  // Day10：stop_ack 由 framecap 在 KeepRecycle / 杀僵尸之后写。
+  // 这里抢写会在 keep 未拆、pid 未清时把合同写成假完成。
   ZiYanSessionClearToIdle();
   // 停脚本即关自动解锁请求
   [[NSFileManager defaultManager]
@@ -1518,7 +1658,7 @@ static BOOL ZiYanArgsLookLikeZiYanLua(NSString *args) {
     if (ob.length) {
       orient = (int)ob.integerValue;
     }
-    ZiYanSessionWrite(@"soft", path, orient);
+    ZiYanSessionWriteEx(@"soft", path, orient, @"", @"");
   }
   if ([self isEmbedLuaRunning]) {
     ZiYanRequestSoftStop();
@@ -1556,10 +1696,10 @@ static BOOL ZiYanArgsLookLikeZiYanLua(NSString *args) {
     return @{@"ok" : @NO, @"output" : @"write_embed_script_fail"};
   }
   chmod(ZiYanVarFile(@".ziyan_embed_script").fileSystemRepresentation, 0666);
+  NSString *rid = ZiYanNewRequestId();
   NSString *go =
-      [NSString stringWithFormat:@"nonce=%lld\n",
-                                 (long long)(NSDate.date.timeIntervalSince1970 *
-                                             1000)];
+      [NSString stringWithFormat:@"nonce=%@\nrequest_id=%@\nsession_id=%@\n",
+                                 rid, rid, rid];
   [go writeToFile:ZiYanVarFile(@".ziyan_embed_go")
        atomically:NO
          encoding:NSUTF8StringEncoding
@@ -1616,7 +1756,7 @@ static BOOL ZiYanArgsLookLikeZiYanLua(NSString *args) {
     if (ob.length) {
       orient = (int)ob.integerValue;
     }
-    ZiYanSessionWrite(@"running", path, orient);
+    ZiYanSessionWriteEx(@"running", path, orient, rid, rid);
   }
   return @{
     @"ok" : @YES,
@@ -1795,7 +1935,7 @@ static BOOL ZiYanArgsLookLikeZiYanLua(NSString *args) {
       ZiYanClearPaused();
       // 音量−运行信息窗口：运行中与结束后均保持拦截（仅「关闭程序」才清）
       ZiYanSetInterceptActive(YES);
-      // 8-161-68：先 EnsureFramecapAlive（禁只起 lua 无合帧 → 找色卡死）
+      // 已有健康 framecap 时 Ensure 立即 already_ready，禁止再叠 2–5s 空等
       (void)[self ensureFramecapAlive];
       // App/音量键统一：lua5.3 nohup 启动即返回（≤1s），不等脚本结束。
       // 不再走 TE 同步路径：避免僵尸引擎、以及「看起来没跑/不最小化」。
@@ -1838,7 +1978,12 @@ static BOOL ZiYanArgsLookLikeZiYanLua(NSString *args) {
     NSInteger code = [result[@"code"] integerValue];
     NSString *output = result[@"output"] ?: @"";
     if (ok && [ext isEqualToString:@"lua"]) {
-      ZiYanRequestAppMinimizeAfterScriptStart(@"script_runner", path);
+      NSString *pageArm = ZiYanVarFile(@".ziyan_page_entry_arm");
+      if ([[NSFileManager defaultManager] fileExistsAtPath:pageArm]) {
+        /* 页面入口自己在 launch 接受后再异步 go_home，避免双次 Home。 */
+      } else {
+        ZiYanRequestAppMinimizeAfterScriptStart(@"script_runner", path);
+      }
     }
 
     dispatch_async(dispatch_get_main_queue(), ^{

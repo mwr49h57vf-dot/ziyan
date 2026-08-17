@@ -3,6 +3,9 @@
 # 约束：不部署 ZiYan 到 .171；Desktop ios7/ios8p 仅 scp 不改。
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# shellcheck source=zy_guard_no_auto_respring.sh
+. "$ROOT/tools/zy_guard_no_auto_respring.sh"
+zy_guard_block_unless_manual "$@"
 cd "$ROOT"
 PASS=alpine
 STAMP="$(date '+%Y%m%d_%H%M%S')"
@@ -246,7 +249,7 @@ echo "[warm] 15s for game+AppTouch..."
 sleep 15
 
 # .166 若仍无 AppTouch：SB 重载 + 重开游戏（禁 backboardd）
-ssh_r 192.168.31.166 'bash -s' <<'EOS' | tee "$OUT/fixup_166_apptouch.txt"
+ssh_r 192.168.31.166 "ZY_ALLOW_MANUAL_RESPRING=${ZY_ALLOW_MANUAL_RESPRING:-0} bash -s" <<'EOS' | tee "$OUT/fixup_166_apptouch.txt"
 set +e
 VAR=/usr/lib/ziyan/var
 FG=$(cat "$VAR/.ziyan_app_fg" 2>/dev/null)
@@ -260,7 +263,12 @@ AGE=$((NOW-MT))
 echo "app_fg_age=$AGE"
 if [ ! -f "$VAR/.ziyan_app_fg" ] || [ "$AGE" -gt 5 ] || [ "$FRONT" = "com.apple.springboard" ]; then
   echo NEED_SB_AND_RELAUNCH
-  killall -9 SpringBoard
+  if [ "${ZY_ALLOW_MANUAL_RESPRING:-0}" = 1 ]; then
+    killall -9 SpringBoard
+  else
+    echo BLOCKED_AUTO_SB_RESTART
+    exit 78
+  fi
   sleep 6
   echo com.xztl.ios >"$VAR/.ziyan_open_app"
   # relaunch via lua helper if present

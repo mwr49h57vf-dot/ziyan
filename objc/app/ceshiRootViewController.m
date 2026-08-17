@@ -1,10 +1,14 @@
 #import "ceshiRootViewController.h"
+#import "AgentSessionController.h"
+#import "ZiYanHomeViewController.h"
+#import "AgentGameViewController.h"
+#import "AgentVersionStore.h"
+#import "ZiYanPageEntryMinimize.h"
 #import "ZiYanPaths.h"
 #import "ZiYanScriptRunner.h"
 #import "ZiYanEngine.h"
 #import "ZiYanAppSelector.h"
 #import "ZiYanScriptGenerator.h"
-#import "ZiYanScriptRecorder.h"
 #import "ZiYanDumpManager.h"
 #import <objc/message.h>
 #import <UIKit/UIKit.h>
@@ -20,8 +24,8 @@ extern char **environ;
 @property (nonatomic, assign) BOOL runTrigPolling;
 @property (nonatomic, assign) CFAbsoluteTime runTrigIgnoreSuspendUntil;
 @property (nonatomic, assign) BOOL runInFlight;
-/// 底栏：自动生成脚本 | 自动脱壳（不挤占顶栏 +/导入/播放）
-@property (nonatomic, strong) UIView *bottomActionBar;
+@property (nonatomic, assign) BOOL pageGoHomeRequested;
+@property (nonatomic, assign) BOOL uiCmdPolling;
 @property (nonatomic, assign) BOOL scriptgenBusy;
 @end
 
@@ -43,44 +47,47 @@ static void ZiYanWriteMinimizeLog(NSString *line) {
   [body writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:nil];
 }
 
-/// 运行成功后只最小化 ZiYan：SB 在确认 ZiYan 仍为前台后结束 App，保留脚本。
-/// App 侧 suspend 仅作无 SB 桥时的兜底；不按 Home，避免误切目标游戏。
+/// 非页面入口（录制回桌面 / 后台 trig）：只写一次最小化请求，不走页面规则，
+/// 不调用私有挂起，不重试。
 static void ZiYanMinimizeApp(void) {
-  UIApplication *app = UIApplication.sharedApplication;
   ZiYanWriteMinimizeLog(@"begin");
   BOOL requested = ZiYanRequestAppMinimizeAfterScriptStart(
       @"app_ui", ZiYanSelectedPathFromState());
   ZiYanWriteMinimizeLog(requested ? @"path=start_contract_req"
                                   : @"path=start_contract_req_fail");
+}
 
-  void (^pulse)(NSString *) = ^(NSString *tag) {
-    SEL sus = NSSelectorFromString(@"suspend");
-    if ([app respondsToSelector:sus]) {
-      ((void (*)(id, SEL))objc_msgSend)(app, sus);
-      ZiYanWriteMinimizeLog(
-          [NSString stringWithFormat:@"path=suspend_%@", tag ?: @"x"]);
-    } else {
-      ZiYanWriteMinimizeLog(
-          [NSString stringWithFormat:@"path=suspend_unavailable_%@", tag ?: @"x"]);
-    }
-  };
+/// 仅页面四入口：运行业务脚本 / 人工学习 / 演练 / 自动运行。
+/// 必须在 launch 已被接受之后调用。禁止阻塞启动链。
+/// 音量、菜单、后台 trig 禁止调用。不打开游戏、不判断游戏前台。
+static BOOL ZiYanPageEntryMinimizeOnce(NSString *entry) {
+  const char *name = entry.UTF8String;
+  if (!ZiYanPageEntryNameAllowed(name)) {
+    ZiYanWriteMinimizeLog([NSString
+        stringWithFormat:@"page_entry deny entry=%@", entry ?: @"?"]);
+    return NO;
+  }
+  UIApplication *app = UIApplication.sharedApplication;
+  int foreground = (app.applicationState == UIApplicationStateActive) ? 1 : 0;
+  int decision = ZiYanPageMinimizeDecide(1, foreground);
+  if (decision == ZY_PAGE_MIN_SKIP) {
+    ZiYanWriteMinimizeLog([NSString
+        stringWithFormat:@"page_entry skip_not_active entry=%@",
+                         entry ?: @"?"]);
+    return YES;
+  }
 
-  // 请求交给 SB；本地 suspend 最多补一次。
-  pulse(@"0");
-  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.45 * NSEC_PER_SEC)),
-                 dispatch_get_main_queue(), ^{
-                   UIApplicationState st = app.applicationState;
-                   ZiYanWriteMinimizeLog([NSString
-                       stringWithFormat:@"state_after_0.45=%ld", (long)st]);
-                   if (st == UIApplicationStateBackground) {
-                     ZiYanWriteMinimizeLog(@"path=background_ok");
-                     return;
-                   }
-                   ZiYanRequestAppMinimizeAfterScriptStart(
-                       @"app_ui_retry", ZiYanSelectedPathFromState());
-                   pulse(@"r0.45");
-                   ZiYanWriteMinimizeLog(@"path=start_contract_retry");
-                 });
+  ZiYanWriteMinimizeLog([NSString
+      stringWithFormat:@"page_entry minimize_once entry=%@", entry ?: @"?"]);
+  // 只请求 Home 回后台，禁止 minimize_req → FBS terminate / SIGTERM / suspend。
+  BOOL requested = ZiYanRequestAppMinimizeAfterScriptStart(
+      @"page_entry", ZiYanSelectedPathFromState());
+  ZiYanWriteMinimizeLog(requested ? @"page_entry background_home"
+                                  : @"page_entry background_home_fail");
+  if (requested) {
+    ZiYanWriteMinimizeLog(@"page_entry minimize_ok");
+  }
+  return YES;
 }
 
 @implementation ceshiRootViewController
@@ -89,201 +96,115 @@ static void ZiYanMinimizeApp(void) {
 	[super viewDidLoad];
 
 	self.filePaths = [NSMutableArray array];
-	self.title = @"我的脚本";
+	self.title = nil;
 	self.tableView.tableFooterView = [UIView new];
+	self.tableView.backgroundColor = [UIColor whiteColor];
 	self.tableView.rowHeight = 64.0;
 	self.tableView.allowsMultipleSelection = NO;
-
-	self.navigationItem.leftBarButtonItem =
-		[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd
-													  target:self
-													  action:@selector(addButtonTapped:)];
-	UIBarButtonItem *runItem =
-		[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemPlay
-													  target:self
-													  action:@selector(runButtonTapped:)];
-	UIBarButtonItem *importItem =
-		[[UIBarButtonItem alloc] initWithImage:[UIImage systemImageNamed:@"square.and.arrow.down"]
-										 style:UIBarButtonItemStylePlain
-										target:self
-										action:@selector(importButtonTapped:)];
-	if (!importItem.image) {
-		importItem =
-			[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemOrganize
-														  target:self
-														  action:@selector(importButtonTapped:)];
-	}
-	self.navigationItem.rightBarButtonItems = @[ runItem, importItem ];
 
 	self.refreshControl = [[UIRefreshControl alloc] init];
 	[self.refreshControl addTarget:self action:@selector(handlePullToRefresh:) forControlEvents:UIControlEventValueChanged];
 
 	[self setupEmptyState];
-	[self setupBottomActionBar];
 	[self ensureScriptsDirectory];
+	ZiYanClearStaleSelectedPath();
 	self.selectedFilePath = ZiYanSelectedPathFromState();
 	[self reloadScriptsFromDisk];
 	[self startRunTrigPoller];
-	// 远程验收：Media/ZiYan/.ziyan_ui_cmd（AppTouch 不注入本 App）
-	[self writeBottomBarLayoutProbe];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
   [super viewWillAppear:animated];
-  // UITableViewController：self.view==tableView，底栏必须挂导航容器才能贴底可见
-  [self attachBottomActionBar];
+  ZiYanClearStaleSelectedPath();
+  [self reloadScriptsFromDisk];
+  [self writeScriptListProbe];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
   [super viewDidAppear:animated];
-  self.bottomActionBar.hidden = NO;
-  [self attachBottomActionBar];
+  [self startUiCmdPoller];
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
   [super viewWillDisappear:animated];
-  // 压栈/离开「我的脚本」时隐藏，避免盖住其它页
-  if (self.navigationController.topViewController != self) {
-    self.bottomActionBar.hidden = YES;
-  }
+  [self stopUiCmdPoller];
 }
 
 - (void)viewDidLayoutSubviews {
   [super viewDidLayoutSubviews];
-  [self layoutBottomActionBar];
-  // 主线程 layout 时顺带扫 UI 指令，避免 afterDelay 在部分挂起态不回调
-  [self pollUiAutomationCmd];
 }
 
-/// 「我的脚本」底栏双钮：左黑「录制脚本」· 右红「自动脱壳」
-- (void)setupBottomActionBar {
-  if (self.bottomActionBar) {
-    return;
+- (ZiYanHomeViewController *)homeParent {
+  if ([self.parentViewController isKindOfClass:[ZiYanHomeViewController class]]) {
+    return (ZiYanHomeViewController *)self.parentViewController;
   }
-  UIView *bar = [[UIView alloc] initWithFrame:CGRectZero];
-  bar.backgroundColor = [UIColor whiteColor];
-  bar.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleTopMargin;
-  UIView *topLine = [[UIView alloc] initWithFrame:CGRectZero];
-  topLine.backgroundColor = [UIColor colorWithWhite:0.85 alpha:1.0];
-  topLine.tag = 901;
-  [bar addSubview:topLine];
-  UIView *midLine = [[UIView alloc] initWithFrame:CGRectZero];
-  midLine.backgroundColor = [UIColor colorWithWhite:0.85 alpha:1.0];
-  midLine.tag = 902;
-  [bar addSubview:midLine];
-
-  // Custom：System 钮在部分 iOS13 上标题色会被 tint 冲掉
-  UIButton *gen = [UIButton buttonWithType:UIButtonTypeCustom];
-  gen.tag = 910;
-  [gen setTitle:@"录制脚本" forState:UIControlStateNormal];
-  [gen setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-  [gen setTitleColor:[UIColor darkGrayColor] forState:UIControlStateHighlighted];
-  gen.titleLabel.font = [UIFont boldSystemFontOfSize:16.0];
-  gen.backgroundColor = [UIColor whiteColor];
-  [gen addTarget:self
-                action:@selector(recordScriptTapped:)
-      forControlEvents:UIControlEventTouchUpInside];
-  [bar addSubview:gen];
-
-  UIButton *dump = [UIButton buttonWithType:UIButtonTypeCustom];
-  dump.tag = 911;
-  [dump setTitle:@"自动脱壳" forState:UIControlStateNormal];
-  [dump setTitleColor:[UIColor colorWithRed:0.85 green:0.1 blue:0.1 alpha:1.0]
-              forState:UIControlStateNormal];
-  [dump setTitleColor:[UIColor colorWithRed:0.6 green:0.05 blue:0.05 alpha:1.0]
-              forState:UIControlStateHighlighted];
-  dump.titleLabel.font = [UIFont boldSystemFontOfSize:16.0];
-  dump.backgroundColor = [UIColor whiteColor];
-  [dump addTarget:self
-                action:@selector(autoDumpTapped:)
-      forControlEvents:UIControlEventTouchUpInside];
-  [bar addSubview:dump];
-
-  self.bottomActionBar = bar;
+  UIViewController *root = self.navigationController.viewControllers.firstObject;
+  if ([root isKindOfClass:[ZiYanHomeViewController class]]) {
+    return (ZiYanHomeViewController *)root;
+  }
+  return nil;
 }
 
-/// 挂到 UINavigationController.view（非 tableView），否则底栏随列表滚动/不可见
-- (void)attachBottomActionBar {
-  if (!self.bottomActionBar) {
-    [self setupBottomActionBar];
+- (AgentGameViewController *)ensureAgentPageShowingPicker:(BOOL)showPicker {
+  ZiYanHomeViewController *home = [self homeParent];
+  if (home) {
+    [home openAgentShowingPicker:showPicker];
+    UIViewController *top = self.navigationController.topViewController;
+    if ([top isKindOfClass:[AgentGameViewController class]]) {
+      return (AgentGameViewController *)top;
+    }
+    return nil;
   }
-  UIView *host = self.navigationController.view;
-  if (!host) {
-    host = self.view.window;
+  UIViewController *top = self.navigationController.topViewController;
+  if ([top isKindOfClass:[AgentGameViewController class]]) {
+    AgentGameViewController *vc = (AgentGameViewController *)top;
+    if (showPicker) {
+      [vc presentGamePicker];
+    }
+    return vc;
   }
-  if (!host) {
-    return;
-  }
-  if (self.bottomActionBar.superview != host) {
-    [self.bottomActionBar removeFromSuperview];
-    [host addSubview:self.bottomActionBar];
-  }
-  [host bringSubviewToFront:self.bottomActionBar];
-  self.bottomActionBar.hidden = NO;
-  [self layoutBottomActionBar];
-  [self writeBottomBarLayoutProbe];
+  AgentGameViewController *vc = [[AgentGameViewController alloc] init];
+  vc.openPickerOnAppear = showPicker;
+  vc.dumpHost = self;
+  [self.navigationController pushViewController:vc animated:YES];
+  return vc;
 }
 
-/// 写出底栏几何，供 .101 远程确认双钮可见（不依赖截图）
-- (void)writeBottomBarLayoutProbe {
-  UIView *bar = self.bottomActionBar;
-  CGRect f = bar.frame;
-  NSDictionary *info = @{
-    @"visible" : @(!bar.hidden && bar.superview != nil),
-    @"superview" : NSStringFromClass(bar.superview.class) ?: @"",
-    @"frame" : NSStringFromCGRect(f),
-    @"gen_title" : @"录制脚本",
-    @"dump_title" : @"自动脱壳",
-    @"ts" : @((long long)(NSDate.date.timeIntervalSince1970 * 1000.0)),
-  };
-  NSData *d = [NSJSONSerialization dataWithJSONObject:info options:0 error:nil];
-  NSString *media =
-      @"/private/var/mobile/Media/ZiYan/ZYCV/res/.ziyan_ui_bottom_bar.json";
-  [[NSFileManager defaultManager]
-      createDirectoryAtPath:media.stringByDeletingLastPathComponent
-      withIntermediateDirectories:YES
-                       attributes:nil
-                            error:nil];
-  [d writeToFile:media atomically:YES];
-  [d writeToFile:ZiYanVarFile(@".ziyan_ui_bottom_bar.json") atomically:YES];
-  [[NSFileManager defaultManager]
-      removeItemAtPath:@"/private/var/mobile/Media/ZiYan/.ziyan_ui_bottom_bar.json"
-                 error:nil];
+- (void)openAgentGamePage {
+  [self ensureAgentPageShowingPicker:NO];
 }
 
-- (void)layoutBottomActionBar {
-  if (!self.bottomActionBar || !self.bottomActionBar.superview) {
-    return;
+- (void)agentSelectProfileId:(NSString *)pid {
+  [AgentGameViewController selectProfileId:pid];
+  if (![AgentGameViewController knownProfiles][pid]) {
+    [self showSimpleAlert:@"未找到该游戏 Profile"];
   }
-  UIView *host = self.bottomActionBar.superview;
-  CGFloat safeBottom = 0;
-  if (@available(iOS 11.0, *)) {
-    safeBottom = host.safeAreaInsets.bottom;
-  }
-  CGFloat contentH = 52.0;
-  CGFloat barH = contentH + safeBottom;
-  CGRect bounds = host.bounds;
-  self.bottomActionBar.frame =
-      CGRectMake(0, CGRectGetHeight(bounds) - barH, CGRectGetWidth(bounds), barH);
-  CGFloat w = CGRectGetWidth(bounds);
-  UIView *topLine = [self.bottomActionBar viewWithTag:901];
-  topLine.frame = CGRectMake(0, 0, w, 1.0 / UIScreen.mainScreen.scale);
-  UIView *midLine = [self.bottomActionBar viewWithTag:902];
-  midLine.frame = CGRectMake(w * 0.5 - 0.5, 10, 1.0 / UIScreen.mainScreen.scale,
-                             contentH - 20);
-  UIButton *gen = (UIButton *)[self.bottomActionBar viewWithTag:910];
-  UIButton *dump = (UIButton *)[self.bottomActionBar viewWithTag:911];
-  gen.frame = CGRectMake(0, 0, w * 0.5, contentH);
-  dump.frame = CGRectMake(w * 0.5, 0, w * 0.5, contentH);
-  // 列表不被底栏遮挡（UITableViewController 用 additionalSafeAreaInsets）
-  if (@available(iOS 11.0, *)) {
-    self.additionalSafeAreaInsets = UIEdgeInsetsMake(0, 0, contentH, 0);
-  } else {
-    UIEdgeInsets inset = self.tableView.contentInset;
-    inset.bottom = barH;
-    self.tableView.contentInset = inset;
-    self.tableView.scrollIndicatorInsets = inset;
-  }
+}
+
+- (void)agentSelectGameTapped:(id)sender {
+  (void)sender;
+  [self ensureAgentPageShowingPicker:YES];
+}
+
+- (void)agentLearnTapped:(id)sender {
+  (void)sender;
+  AgentGameViewController *vc = [self ensureAgentPageShowingPicker:NO];
+  [vc learnTapped];
+}
+
+- (void)agentDrillTapped:(id)sender {
+  (void)sender;
+}
+
+- (void)agentAutoRunTapped:(id)sender {
+  (void)sender;
+  AgentGameViewController *vc = [self ensureAgentPageShowingPicker:NO];
+  [vc aiTapped];
+}
+
+- (void)agentStopTapped:(id)sender {
+  (void)sender;
+  [[self ensureAgentPageShowingPicker:NO] requestAgentStop];
 }
 
 - (NSString *)currentResProfile {
@@ -312,12 +233,46 @@ static void ZiYanMinimizeApp(void) {
   [self presentViewController:alert animated:YES completion:nil];
 }
 
-/// Media/ZiYan/.ziyan_ui_cmd 行协议（远程验收，等同点底栏并确认标识）:
-///   shot
-///   tap_gen / tap_dump          → 弹出选择器（人工/后续点选）
-///   gen\tbid\tname\tpath        → 跳过选择，直接生成
-///   dump\tbid\tname\tpath       → 跳过选择，直接脱壳
-///   autotest                    → R8.4.1 自动验收（生成+脱壳+硬锁抽检+Toast）
+/// Media/ZiYan/.ziyan_ui_cmd：首页只处理脚本列表与打开 Agent。
+/// 录制入口已删除；自动脱壳只走 Agent 页选择确认。
+- (void)writeScriptListProbe {
+  NSMutableArray *names = [NSMutableArray array];
+  for (NSString *p in self.filePaths) {
+    [names addObject:p.lastPathComponent ?: @""];
+  }
+  NSString *sel = self.selectedFilePath ?: ZiYanSelectedPathFromState() ?: @"";
+  NSString *raw = ZiYanRawSelectedPathFromState() ?: @"";
+  BOOL exists = sel.length > 0 &&
+                [[NSFileManager defaultManager] fileExistsAtPath:sel];
+  NSDictionary *info = @{
+    @"script_count" : @(self.filePaths.count),
+    @"basenames" : names,
+    @"selectedPath" : sel,
+    @"raw_selectedPath" : raw,
+    @"selected_exists" : @(exists),
+    @"selected_is_internal" : @(ZiYanIsInternalTestScriptPath(raw)),
+  };
+  NSData *d = [NSJSONSerialization dataWithJSONObject:info options:0 error:nil];
+  [d writeToFile:ZiYanVarFile(@".ziyan_ui_script_list.json") atomically:YES];
+  [d writeToFile:@"/private/var/mobile/Media/ZiYan/ZYCV/res/.ziyan_ui_script_list.json"
+      atomically:YES];
+}
+
+- (void)writePagesProbe {
+  if ([self.parentViewController isKindOfClass:[ZiYanHomeViewController class]]) {
+    [(ZiYanHomeViewController *)self.parentViewController writeHomeLayoutProbe];
+  }
+}
+
+- (void)pollAgentListRequest {
+  NSString *path = ZiYanVarFile(@".ziyan_agent_list_req");
+  if (![[NSFileManager defaultManager] fileExistsAtPath:path]) {
+    return;
+  }
+  [[NSFileManager defaultManager] removeItemAtPath:path error:nil];
+  [self ensureAgentPageShowingPicker:YES];
+}
+
 - (void)pollUiAutomationCmd {
   NSFileManager *fm = [NSFileManager defaultManager];
   NSArray *paths = @[
@@ -338,16 +293,45 @@ static void ZiYanMinimizeApp(void) {
   NSString *raw = [NSString stringWithContentsOfFile:path
                                             encoding:NSUTF8StringEncoding
                                                error:nil] ?: @"";
-  // 清空指令（root 写的文件 App 可能删不掉：改 truncate）
-  for (NSString *p in paths) {
-    [@"\n" writeToFile:p atomically:YES encoding:NSUTF8StringEncoding error:nil];
-    [fm removeItemAtPath:p error:nil];
-  }
   NSString *line =
       [[raw componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]]
           firstObject] ?: @"";
   line = [line stringByTrimmingCharactersInSet:
                    [NSCharacterSet whitespaceAndNewlineCharacterSet]];
+  NSString *homeCmd = [[line componentsSeparatedByString:@"\t"] firstObject] ?: @"";
+  if ([homeCmd isEqualToString:@"learn_start"]) {
+    /* 77ddc2d7 Root 只 ACK 会吞掉 COMPLETED/recover_stale 上的 learn_start。 */
+    BOOL armed = [[AgentSessionController shared] beginLearnArmed];
+    for (NSString *p in paths) {
+      [@"\n" writeToFile:p atomically:YES encoding:NSUTF8StringEncoding error:nil];
+      [fm removeItemAtPath:p error:nil];
+    }
+    [[NSString stringWithFormat:@"ok %@\n", line]
+        writeToFile:ZiYanVarFile(@".ziyan_ui_cmd_ack")
+         atomically:YES
+           encoding:NSUTF8StringEncoding
+              error:nil];
+    NSString *consume = [NSString
+        stringWithFormat:@"ok\tlearn_start\tarmed=%d\tline=%@\n", armed ? 1 : 0,
+                         line];
+    [consume writeToFile:ZiYanVarFile(@".ziyan_learn_start_consume")
+              atomically:YES
+                encoding:NSUTF8StringEncoding
+                   error:nil];
+    return;
+  }
+  if ([homeCmd isEqualToString:@"learn_cancel"] ||
+      [homeCmd isEqualToString:@"learn_lock"] ||
+      [homeCmd isEqualToString:@"learn_vol"] ||
+      [homeCmd isEqualToString:@"learn_probe"]) {
+    /* Home 拥有这些命令。子页先删会让 iPhone 7 冷启动丢掉 learn_start。 */
+    return;
+  }
+  // 清空指令（root 写的文件 App 可能删不掉：改 truncate）
+  for (NSString *p in paths) {
+    [@"\n" writeToFile:p atomically:YES encoding:NSUTF8StringEncoding error:nil];
+    [fm removeItemAtPath:p error:nil];
+  }
   // 忽略已消费的空/占位
   if (line.length == 0) {
     return;
@@ -363,37 +347,89 @@ static void ZiYanMinimizeApp(void) {
     [self captureUiSnapshotToMedia];
     return;
   }
-  if ([cmd isEqualToString:@"tap_gen"]) {
-    [self autoGenerateScriptTapped:nil];
+  if ([cmd isEqualToString:@"tap_gen"] || [cmd isEqualToString:@"gen"]) {
     return;
   }
   if ([cmd isEqualToString:@"tap_dump"]) {
-    [self autoDumpTapped:nil];
+    AgentGameViewController *vc = [self ensureAgentPageShowingPicker:NO];
+    [vc dumpTapped];
     return;
   }
   if ([cmd isEqualToString:@"autotest"]) {
     [self runAutoAcceptanceTest];
     return;
   }
-  if (([cmd isEqualToString:@"gen"] || [cmd isEqualToString:@"dump"]) &&
-      parts.count >= 3) {
-    ZiYanAppPick *pick = [ZiYanAppPick new];
-    pick.bundleId = parts[1];
-    pick.displayName = parts[2];
-    pick.bundlePath = parts.count >= 4 ? parts[3] : nil;
-    // 远程指令：清 busy，避免上一次生成卡死导致脱壳空跑
-    self.scriptgenBusy = NO;
-    if ([cmd isEqualToString:@"gen"]) {
-      [self runGenerateForPick:pick];
-    } else {
-      [self runDumpForPick:pick];
+  if ([cmd isEqualToString:@"agent_select"] && parts.count >= 2) {
+    [self agentSelectProfileId:parts[1]];
+    return;
+  }
+  if ([cmd isEqualToString:@"agent_learn"]) {
+    [self agentLearnTapped:nil];
+    return;
+  }
+  if ([cmd isEqualToString:@"agent_drill"]) {
+    [self agentDrillTapped:nil];
+    return;
+  }
+  if ([cmd isEqualToString:@"agent_auto"]) {
+    [self agentAutoRunTapped:nil];
+    return;
+  }
+  if ([cmd isEqualToString:@"agent_stop"]) {
+    [self agentStopTapped:nil];
+    return;
+  }
+  if ([cmd isEqualToString:@"agent_probe"]) {
+    AgentGameViewController *vc = [self ensureAgentPageShowingPicker:NO];
+    [vc writeAgentPageProbe];
+    [self writePagesProbe];
+    return;
+  }
+  if ([cmd isEqualToString:@"open_agent"]) {
+    [self openAgentGamePage];
+    return;
+  }
+  if ([cmd isEqualToString:@"script_list_probe"]) {
+    [self reloadScriptsFromDisk];
+    [self writeScriptListProbe];
+    return;
+  }
+  if ([cmd isEqualToString:@"pages_probe"]) {
+    [self writePagesProbe];
+    return;
+  }
+  if ([cmd isEqualToString:@"select_basename"] && parts.count >= 2) {
+    NSString *want = parts[1];
+    for (NSString *p in self.filePaths) {
+      if ([p.lastPathComponent isEqualToString:want] &&
+          !ZiYanIsInternalTestScriptPath(p)) {
+        self.selectedFilePath = p;
+        ZiYanWriteSelectedPath(p);
+        [self.tableView reloadData];
+        [self writeScriptListProbe];
+        return;
+      }
     }
+    return;
+  }
+  if ([cmd isEqualToString:@"dump"] && parts.count >= 3) {
+    AgentGameViewController *vc = [self ensureAgentPageShowingPicker:NO];
+    [vc dumpTapped];
+    return;
+  }
+  if ([cmd isEqualToString:@"picker_cancel"]) {
+    AgentGameViewController *vc = [self ensureAgentPageShowingPicker:NO];
+    [vc automationCancelPicker];
+    return;
+  }
+  if ([cmd isEqualToString:@"picker_confirm_first"]) {
+    AgentGameViewController *vc = [self ensureAgentPageShowingPicker:NO];
+    [vc automationConfirmFirstApp];
+    return;
   }
 }
 
 - (void)captureUiSnapshotToMedia {
-  [self attachBottomActionBar];
-  [self writeBottomBarLayoutProbe];
   UIView *host = self.navigationController.view ?: self.view;
   if (!host) {
     return;
@@ -970,145 +1006,61 @@ static void ZiYanMinimizeApp(void) {
 
 - (void)recordScriptTapped:(id)sender {
   (void)sender;
-  if (self.scriptgenBusy) {
-    [self showSimpleAlert:@"正在执行中，请稍候"];
-    return;
-  }
-  if ([ZiYanScriptRecorder isRecording]) {
-    [self showSimpleAlert:@"正在录制中：再按音量「+」结束并保存"];
-    return;
-  }
-  __weak typeof(self) weakSelf = self;
-  // R8.4.12：选 App → 武装录制 → 开游 → 音量+ 起停（不改音量−菜单）
-  [ZiYanAppSelector presentFrom:self
-                        purpose:@"录制脚本"
-                     completion:^(ZiYanAppPick *_Nullable pick) {
-                       if (!pick) {
-                         return;
-                       }
-                       NSString *err = nil;
-                       if (![ZiYanScriptRecorder armWithBundleId:pick.bundleId
-                                                         appName:pick.displayName
-                                                           error:&err]) {
-                         [weakSelf showSimpleAlert:err ?: @"录制武装失败"];
-                         return;
-                       }
-                       [@"1\n" writeToFile:ZiYanVarFile(@".ziyan_unlock_req")
-                                atomically:NO
-                                  encoding:NSUTF8StringEncoding
-                                     error:nil];
-                       // App 内开目标游戏（LSApplicationWorkspace）
-                       if (pick.bundleId.length) {
-                         Class LS =
-                             NSClassFromString(@"LSApplicationWorkspace");
-                         if (LS) {
-                           id ws = ((id(*)(id, SEL))objc_msgSend)(
-                               (id)LS,
-                               NSSelectorFromString(@"defaultWorkspace"));
-                           SEL openSel =
-                               NSSelectorFromString(@"openApplicationWithBundleID:");
-                           if (ws && [ws respondsToSelector:openSel]) {
-                             ((BOOL(*)(id, SEL, id))objc_msgSend)(
-                                 ws, openSel, pick.bundleId);
-                           }
-                         }
-                       }
-                       [weakSelf
-                           postSbToast:
-                               [NSString
-                                   stringWithFormat:
-                                       @"已武装 %@ · 按音量+开始录制",
-                                   pick.displayName.length
-                                       ? pick.displayName
-                                       : (pick.bundleId ?: @"")]
-                                   durationMs:2800];
-                       [weakSelf
-                           showSimpleAlert:
-                               @"【录制脚本】\n"
-                                "1. 已打开目标 App\n"
-                                "2. 按音量「+」开始录制\n"
-                                "3. 在游戏内操作（点击会被记录）\n"
-                                "4. 再按音量「+」结束并保存到「我的脚本」\n"
-                                "（音量「−」仍为运行菜单，未改硬锁）"];
-                       // 回桌面：与 Play 同源 minimize
-                       dispatch_after(
-                           dispatch_time(DISPATCH_TIME_NOW,
-                                         (int64_t)(1.0 * NSEC_PER_SEC)),
-                           dispatch_get_main_queue(), ^{
-                             ZiYanMinimizeApp();
-                           });
-                     }];
 }
 
-/// 兼容旧入口名（自动化/自测仍可调）
 - (void)autoGenerateScriptTapped:(id)sender {
-  [self recordScriptTapped:sender];
+  (void)sender;
 }
 
 - (void)autoDumpTapped:(id)sender {
   (void)sender;
-  if (self.scriptgenBusy) {
-    [self showSimpleAlert:@"正在执行中，请稍候"];
-    return;
-  }
-  __weak typeof(self) weakSelf = self;
-  // 流程：人工选 App → 标识确认 → 三大模型脱壳分析+自我防御增强 → ZYCV/<App>
-  [ZiYanAppSelector presentFrom:self
-                        purpose:@"自动脱壳"
-                     completion:^(ZiYanAppPick *_Nullable pick) {
-                        if (!pick) {
-                          return;
-                        }
-                        weakSelf.scriptgenBusy = YES;
-                        dispatch_after(
-                            dispatch_time(DISPATCH_TIME_NOW,
-                                          (int64_t)(0.35 * NSEC_PER_SEC)),
-                            dispatch_get_main_queue(), ^{
-                              [weakSelf
-                                  showSimpleAlert:
-                                      [NSString
-                                          stringWithFormat:
-                                              @"已确认标识：%@\n开始脱壳分析与自我防御增强…",
-                                              pick.bundleId ?: @""]];
-                            });
-                        dispatch_async(dispatch_get_global_queue(
-                                           QOS_CLASS_USER_INITIATED, 0),
-                                       ^{
-                                         NSString *err = nil;
-                                         NSString *dir =
-                                             [ZiYanDumpManager dumpAndAnalyze:pick
-                                                                        error:&err];
-                                         dispatch_async(dispatch_get_main_queue(),
-                                                        ^{
-                                                          weakSelf.scriptgenBusy =
-                                                              NO;
-                                                          if (!dir.length) {
-                                                            [weakSelf
-                                                                showSimpleAlert:
-                                                                    err ?: @"脱壳失败"];
-                                                            return;
-                                                          }
-                                                          NSString *msg = [NSString
-                                                              stringWithFormat:
-                                                                  @"脱壳完成 · 分析报告已生成\n%@%@",
-                                                                  dir,
-                                                                  err
-                                                                      ? [NSString
-                                                                            stringWithFormat:
-                                                                                @"\n(%@)",
-                                                                                err]
-                                                                      : @""];
-                                                          [weakSelf showSimpleAlert:msg];
-                                                        });
-                                       });
-                      }];
 }
 
 - (void)dealloc {
   self.runTrigPolling = NO;
+  [self stopUiCmdPoller];
   [NSObject cancelPreviousPerformRequestsWithTarget:self
                                            selector:@selector(runTrigPollTick)
                                              object:nil];
+}
+
+- (void)startUiCmdPoller {
+  if (self.uiCmdPolling) {
+    return;
+  }
+  self.uiCmdPolling = YES;
+  [self scheduleNextUiCmdPoll];
+}
+
+- (void)stopUiCmdPoller {
+  self.uiCmdPolling = NO;
+  [NSObject cancelPreviousPerformRequestsWithTarget:self
+                                           selector:@selector(uiCmdPollTick)
+                                             object:nil];
+}
+
+- (void)scheduleNextUiCmdPoll {
+  if (!self.uiCmdPolling) {
+    return;
+  }
+  [NSObject cancelPreviousPerformRequestsWithTarget:self
+                                           selector:@selector(uiCmdPollTick)
+                                             object:nil];
+  [self performSelector:@selector(uiCmdPollTick) withObject:nil afterDelay:0.5];
+}
+
+- (void)uiCmdPollTick {
+  if (!self.uiCmdPolling ||
+      self.view.window == nil ||
+      UIApplication.sharedApplication.applicationState !=
+          UIApplicationStateActive) {
+    [self scheduleNextUiCmdPoll];
+    return;
+  }
+  [self pollUiAutomationCmd];
+  [self pollPageSelftestRequest];
+  [self pollAgentListRequest];
+  [self scheduleNextUiCmdPoll];
 }
 
 /// 自动验收：写 `.ziyan_app_run_trig` ≡ 点导航栏 Play（含 minimize）
@@ -1146,7 +1098,6 @@ static void ZiYanMinimizeApp(void) {
     NSString *stopPath = ZiYanVarFile(@".ziyan_app_stop_trig");
     NSString *suspendPath = ZiYanVarFile(@".ziyan_app_suspend_trig");
     NSFileManager *fm = [NSFileManager defaultManager];
-  [self pollUiAutomationCmd];
     if ([fm fileExistsAtPath:stopPath]) {
       [fm removeItemAtPath:stopPath error:nil];
         [ZiYanScriptRunner stopCurrentRun];
@@ -1197,7 +1148,86 @@ static void ZiYanMinimizeApp(void) {
     [self.tableView reloadData];
       }
       ZiYanWriteMinimizeLog(@"app_run_trig");
+  [self startSelectedScriptSkippingPageMinimize];
+}
+
+- (void)writePageSelftestLine:(NSString *)line {
+  ZiYanWriteMinimizeLog(line);
+  ZiYanEnsureVarDirectory();
+  NSString *path = ZiYanVarFile(@".ziyan_page_selftest_log");
+  NSString *prev =
+      [NSString stringWithContentsOfFile:path encoding:NSUTF8StringEncoding error:nil]
+          ?: @"";
+  NSString *body = [prev stringByAppendingFormat:@"%@\n", line ?: @""];
+  if (body.length > 4000) {
+    body = [body substringFromIndex:body.length - 4000];
+  }
+  [body writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:nil];
+  [body writeToFile:@"/private/var/mobile/Media/ZiYan/.ziyan_page_selftest_log"
+         atomically:YES
+           encoding:NSUTF8StringEncoding
+              error:nil];
+}
+
+- (void)pollPageSelftestRequest {
+#if !ZIYAN_PAGE_SELFTEST
+  return;
+#else
+  NSFileManager *fm = [NSFileManager defaultManager];
+  NSArray *paths = @[
+    ZiYanVarFile(@".ziyan_page_selftest_req"),
+    @"/private/var/mobile/Media/ZiYan/.ziyan_page_selftest_req",
+  ];
+  NSString *path = nil;
+  for (NSString *p in paths) {
+    if ([fm fileExistsAtPath:p]) {
+      path = p;
+      break;
+    }
+  }
+  if (!path) {
+    return;
+  }
+  if (UIApplication.sharedApplication.applicationState !=
+      UIApplicationStateActive) {
+    return;
+  }
+  NSString *raw = [NSString stringWithContentsOfFile:path
+                                            encoding:NSUTF8StringEncoding
+                                               error:nil] ?: @"";
+  for (NSString *p in paths) {
+    [fm removeItemAtPath:p error:nil];
+  }
+  NSString *nonce = @"";
+  for (NSString *line in [raw componentsSeparatedByCharactersInSet:
+                                  [NSCharacterSet newlineCharacterSet]]) {
+    NSString *t = [line
+        stringByTrimmingCharactersInSet:[NSCharacterSet
+                                            whitespaceAndNewlineCharacterSet]];
+    if ([t hasPrefix:@"nonce="]) {
+      nonce = [t substringFromIndex:6];
+    }
+  }
+  if (nonce.length == 0) {
+    [self writePageSelftestLine:@"PAGE_SELFTEST_IGNORE empty_nonce"];
+    return;
+  }
+  [self writePageSelftestLine:[NSString
+                                  stringWithFormat:@"PAGE_SELFTEST_ENTER nonce=%@",
+                                                   nonce]];
+  [self writePageSelftestLine:
+            [NSString stringWithFormat:@"PAGE_SELFTEST_RUN_BUTTON_PATH nonce=%@",
+                                       nonce]];
   [self runButtonTapped:nil];
+  [self writePageSelftestLine:[NSString
+                                  stringWithFormat:@"PAGE_SELFTEST_DONE nonce=%@",
+                                                   nonce]];
+  NSString *rep = [NSString stringWithFormat:@"ok nonce=%@\n", nonce];
+  [rep writeToFile:ZiYanVarFile(@".ziyan_page_selftest_rep")
+        atomically:YES
+          encoding:NSUTF8StringEncoding
+             error:nil];
+#endif
 }
 
 - (void)setupEmptyState {
@@ -1277,10 +1307,11 @@ static void ZiYanMinimizeApp(void) {
 - (void)reloadScriptsFromDisk {
 	[self ensureScriptsDirectory];
 	ZiYanEnsureScriptsDirectory();
+	ZiYanClearStaleSelectedPath();
 	NSFileManager *fm = [NSFileManager defaultManager];
 	NSError *error = nil;
 	NSMutableArray *paths = [NSMutableArray array];
-	// 根目录 + lua/（对齐触动 Media/TouchSprite/lua；兼容旧扁平布局）
+	// 只扫 Media/ZiYan 根目录与 lua/，不递归整个 Media。
 	NSArray<NSString *> *dirs = @[
 		ZiYanScriptsDirectory(),
 		ZiYanUserLuaDirectory(),
@@ -1294,7 +1325,8 @@ static void ZiYanMinimizeApp(void) {
 		NSString *full = [dir stringByAppendingPathComponent:name];
 		BOOL isDir = NO;
 		if ([fm fileExistsAtPath:full isDirectory:&isDir] && !isDir) {
-			if ([ZiYanScriptRunner isSupportedScriptPath:full]) {
+			if ([ZiYanScriptRunner isSupportedScriptPath:full] &&
+			    !ZiYanIsInternalTestScriptPath(full)) {
 				[paths addObject:full];
 				}
 			}
@@ -1303,7 +1335,7 @@ static void ZiYanMinimizeApp(void) {
 	[paths sortUsingSelector:@selector(localizedCaseInsensitiveCompare:)];
 	self.filePaths = paths;
 
-	// 与磁盘状态同步：无效勾选清除；有效勾选保留
+	// 与磁盘状态同步：无效/内部勾选清除；有效勾选保留
 	NSString *persisted = ZiYanSelectedPathFromState();
 	if (persisted.length > 0 && [self.filePaths containsObject:persisted] &&
 		[ZiYanScriptRunner isSupportedScriptPath:persisted]) {
@@ -1312,8 +1344,8 @@ static void ZiYanMinimizeApp(void) {
 			   ![self.filePaths containsObject:self.selectedFilePath]) {
 		self.selectedFilePath = nil;
 		ZiYanWriteSelectedPath(nil);
-	} else if (persisted.length > 0 &&
-			   ![self.filePaths containsObject:persisted]) {
+	} else if (ZiYanRawSelectedPathFromState().length > 0 &&
+			   persisted.length == 0) {
 		self.selectedFilePath = nil;
 		ZiYanWriteSelectedPath(nil);
 	}
@@ -1338,13 +1370,21 @@ static void ZiYanMinimizeApp(void) {
 	[self presentImporter];
 }
 
-- (void)runButtonTapped:(id)sender {
-	(void)sender;
-	if (self.runInFlight) {
-		return;
-	}
+- (void)showPageEntryMinimizeFailAlert {
+	UIAlertController *alert = [UIAlertController
+		alertControllerWithTitle:nil
+						 message:@"最小化失败，本次不运行"
+				  preferredStyle:UIAlertControllerStyleAlert];
+	[alert addAction:[UIAlertAction actionWithTitle:@"好"
+											  style:UIAlertActionStyleDefault
+											handler:nil]];
+	[self presentViewController:alert animated:YES completion:nil];
+}
+
+- (BOOL)prepareSelectedScriptPath:(NSString **)outPath {
 	NSString *path = self.selectedFilePath ?: ZiYanSelectedPathFromState();
 	if (path.length == 0 ||
+		ZiYanIsInternalTestScriptPath(path) ||
 		![ZiYanScriptRunner isSupportedScriptPath:path] ||
 		![[NSFileManager defaultManager] fileExistsAtPath:path]) {
 		UIAlertController *alert = [UIAlertController
@@ -1355,14 +1395,10 @@ static void ZiYanMinimizeApp(void) {
 												  style:UIAlertActionStyleDefault
 												handler:nil]];
 		[self presentViewController:alert animated:YES completion:nil];
-		return;
+		return NO;
 	}
-
-	// 启动前清残留 stop/pause；僵死 te_running 由 isRunning 自清
 	ZiYanClearStopFlag();
 	ZiYanClearPaused();
-
-	// 仅在「确有存活脚本进程」时视为运行中；勿因残留 flag 只停不启
 	if ([ZiYanScriptRunner isRunning]) {
 		pid_t live = [ZiYanScriptRunner currentRunPid];
 		if (live > 1) {
@@ -1377,15 +1413,20 @@ static void ZiYanMinimizeApp(void) {
 													  style:UIAlertActionStyleDefault
 													handler:nil]];
 			[self presentViewController:alert animated:YES completion:nil];
-			return;
+			return NO;
 		}
-		// 伪运行：清残留后继续启动
 		ZiYanSetTeRunning(NO);
 		ZiYanClearPaused();
 		ZiYanClearStopFlag();
 		ZiYanWriteMinimizeLog(@"run_stale_cleared");
 	}
+	if (outPath) {
+		*outPath = path;
+	}
+	return YES;
+}
 
+- (void)launchSelectedScriptAtPath:(NSString *)path {
 	self.runInFlight = YES;
 	ZiYanSetInterceptActive(YES);
 	ZiYanSetRunState(ZiYanRunStateRunning, 0);
@@ -1403,11 +1444,10 @@ static void ZiYanMinimizeApp(void) {
 			   NSTimeInterval dt =
 				   NSDate.date.timeIntervalSince1970 - t0;
 			   if (success) {
-				 // 启动成功立即 minimize（不等脚本结束 / 不拖 TE）
 				 ZiYanWriteMinimizeLog([NSString
 					 stringWithFormat:@"run_ok %@ dt=%.2f",
 									  path.lastPathComponent, dt]);
-				 ZiYanMinimizeApp();
+				 ZiYanWriteMinimizeLog(@"page_entry skip_post_minimize");
 				 ZiYanEnsureVarDirectory();
 				 NSString *cmd =
 					 [NSString stringWithFormat:@"toast\n已启动 %@\n1200",
@@ -1433,6 +1473,108 @@ static void ZiYanMinimizeApp(void) {
 			   [strongSelf presentViewController:alert animated:YES completion:nil];
 			 });
 		   }];
+}
+
+- (void)startSelectedScriptSkippingPageMinimize {
+	if (self.runInFlight) {
+		return;
+	}
+	NSString *path = nil;
+	if (![self prepareSelectedScriptPath:&path]) {
+		return;
+	}
+	[self launchSelectedScriptAtPath:path];
+}
+
+- (void)schedulePageEntryGoHomeAfterAccept:(NSString *)entry {
+	__weak typeof(self) weakSelf = self;
+	dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+		__block BOOL accepted = NO;
+		for (int i = 0; i < 80; i++) {
+			pid_t pid = [ZiYanScriptRunner currentRunPid];
+			if (pid > 1 || [ZiYanScriptRunner isRunning]) {
+				accepted = YES;
+				break;
+			}
+			NSString *ack =
+				[NSString stringWithContentsOfFile:ZiYanVarFile(@".ziyan_embed_ack")
+										  encoding:NSUTF8StringEncoding
+											 error:nil] ?: @"";
+			if ([ack containsString:@"accepted=1"] ||
+			    [ack containsString:@"ok=1"] ||
+			    [ack containsString:@"state=running"]) {
+				accepted = YES;
+				break;
+			}
+			NSString *log =
+				[NSString stringWithContentsOfFile:ZiYanVarFile(@".ziyan_minimize_log")
+										  encoding:NSUTF8StringEncoding
+											 error:nil] ?: @"";
+			if ([log rangeOfString:@"run_ok "].location != NSNotFound) {
+				accepted = YES;
+				break;
+			}
+			usleep(50000);
+		}
+		dispatch_async(dispatch_get_main_queue(), ^{
+			typeof(self) strongSelf = weakSelf;
+			if (!strongSelf) {
+				return;
+			}
+			[[NSFileManager defaultManager]
+				removeItemAtPath:ZiYanVarFile(@".ziyan_page_entry_arm")
+						   error:nil];
+			if (!ZiYanPageGoHomeAfterLaunchAccepted(accepted ? 1 : 0,
+													strongSelf.pageGoHomeRequested ? 1 : 0)) {
+				ZiYanWriteMinimizeLog(@"page_entry skip_go_home not_accepted");
+				return;
+			}
+			strongSelf.pageGoHomeRequested = YES;
+			if (!ZiYanPageEntryMinimizeOnce(entry)) {
+				ZiYanWriteMinimizeLog(@"page_entry abort_go_home");
+			}
+		});
+	});
+}
+
+- (void)startSelectedScriptFromPageEntry:(NSString *)entry {
+	if (self.runInFlight) {
+		return;
+	}
+	NSString *path = nil;
+	if (![self prepareSelectedScriptPath:&path]) {
+		return;
+	}
+	if (!ZiYanPageEntryNameAllowed(entry.UTF8String)) {
+		ZiYanWriteMinimizeLog([NSString
+			stringWithFormat:@"page_entry deny entry=%@", entry ?: @"?"]);
+		[self showPageEntryMinimizeFailAlert];
+		return;
+	}
+	self.pageGoHomeRequested = NO;
+	ZiYanWriteVarText(@".ziyan_page_entry_arm", @"1\n");
+	[self launchSelectedScriptAtPath:path];
+	[self schedulePageEntryGoHomeAfterAccept:entry];
+}
+
+- (void)runButtonTapped:(id)sender {
+	(void)sender;
+	[self startSelectedScriptFromPageEntry:@"run"];
+}
+
+- (void)learnButtonTapped:(id)sender {
+	(void)sender;
+	[self startSelectedScriptFromPageEntry:@"learn"];
+}
+
+- (void)drillButtonTapped:(id)sender {
+	(void)sender;
+	[self startSelectedScriptFromPageEntry:@"drill"];
+}
+
+- (void)autoRunButtonTapped:(id)sender {
+	(void)sender;
+	[self startSelectedScriptFromPageEntry:@"auto"];
 }
 
 - (void)presentImporter {
@@ -1489,7 +1631,14 @@ static void ZiYanMinimizeApp(void) {
 
 	NSString *path = self.filePaths[indexPath.row];
 	cell.textLabel.text = path.lastPathComponent;
-	if ([ZiYanScriptRunner isSupportedScriptPath:path]) {
+	if ([AgentVersionStore isQuarantinedPath:path] ||
+	    [path.lastPathComponent hasPrefix:@"SimNote_自研草稿"]) {
+		cell.detailTextLabel.text = @"无效测试制品 · 不可运行";
+	} else if ([path.lastPathComponent containsString:@"_学习草稿"]) {
+		cell.detailTextLabel.text = @"学习草稿 · 需要验证";
+	} else if ([path.lastPathComponent containsString:@"_自研草稿"]) {
+		cell.detailTextLabel.text = @"自研草稿 · 需要验证";
+	} else if ([ZiYanScriptRunner isSupportedScriptPath:path]) {
 		cell.detailTextLabel.text = [NSString stringWithFormat:@"%@ · 可执行", [ZiYanScriptRunner languageLabelForPath:path]];
 	} else {
 		cell.detailTextLabel.text = @"不支持运行的类型";
@@ -1501,7 +1650,8 @@ static void ZiYanMinimizeApp(void) {
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
 	NSString *path = self.filePaths[indexPath.row];
 	// 只能勾选可执行类型；不可执行类型点选无效
-	if (![ZiYanScriptRunner isSupportedScriptPath:path]) {
+	if (![ZiYanScriptRunner isSupportedScriptPath:path] ||
+	    ZiYanIsInternalTestScriptPath(path)) {
 		[tableView deselectRowAtIndexPath:indexPath animated:YES];
 		return;
 	}

@@ -1,15 +1,24 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
+#import <QuartzCore/QuartzCore.h>
 #import <dlfcn.h>
 #import <mach/mach_time.h>
 #import <objc/message.h>
 #import <objc/runtime.h>
+#import <fcntl.h>
+#import <errno.h>
 #import <math.h>
+#import <stdio.h>
 #import <stdlib.h>
+#import <string.h>
+#import <sys/stat.h>
 #import <unistd.h>
 #import "ZiYanPaths.h"
+#import "ZiYanInjectTrace.h"
 #import "ZiYanOrientMap.h"
 #import "ZiYanScriptRecorder.h"
+#import "ZiYanFrameShm.h"
+#import "AgentLearningInputBridge.h"
 
 /*
  * 注入目标游戏进程（可选兜底）。
@@ -49,9 +58,571 @@ enum {
 @property(nonatomic, assign) NSTimeInterval lastStamp;
 @property(nonatomic, strong) NSMutableDictionary<NSNumber *, UITouch *> *activeTouches;
 @property(nonatomic, strong) NSMutableDictionary<NSNumber *, NSValue *> *fingerLogic;
+@property(nonatomic, assign) BOOL frameCaptureInflight;
+@property(nonatomic, copy) NSString *pendingFrameNonce;
+@property(nonatomic, copy) NSString *pendingFrameBid;
+@property(nonatomic, strong) dispatch_queue_t frameEncodeQueue;
+@property(nonatomic, assign) NSTimeInterval lastActiveEvidenceStamp;
+- (void)beginFrameCaptureForNonce:(NSString *)nonce bid:(NSString *)wantedBid;
 @end
 
 @implementation ZiYanAppTouch
+
+static void ZYA_FrameTrace(NSString *stage, NSString *nonce, NSString *detail) {
+  // C-65.11-93：取消/ack 热路径禁用 NSString format（配合 framecap CF SIGTRAP）。
+  NSString *path = ZiYanVarFile(@".ziyan_app_frame_trace");
+  int fd = open(path.fileSystemRepresentation,
+                O_WRONLY | O_CREAT | O_APPEND, 0666);
+  if (fd < 0) return;
+  char line[384];
+  snprintf(line, sizeof(line),
+           "ts=%.3f side=app stage=%s nonce=%s %s\n",
+           NSDate.date.timeIntervalSince1970, stage.UTF8String ?: "-",
+           nonce.UTF8String ?: "-", detail.UTF8String ?: "");
+  (void)write(fd, line, strlen(line));
+  close(fd);
+}
+
+/// 以 rename 抢占正式请求路径；只有一个 Active App 能成功。
+/// 文件在 client 端已用 tmp+rename 完整发布，因此 claim 后不存在
+/// O_TRUNC 半包窗口，也不需要不可靠的 mtime 去重。
+static NSString *ZYA_ClaimFrameRequest(void) {
+  NSString *path = ZiYanVarFile(@".ziyan_app_frame_req");
+  NSString *claim =
+      [path stringByAppendingFormat:@".claim.%d", (int)getpid()];
+  unlink(claim.fileSystemRepresentation);
+  if (rename(path.fileSystemRepresentation, claim.fileSystemRepresentation) !=
+      0) {
+    return nil;
+  }
+  NSString *raw = [NSString stringWithContentsOfFile:claim
+                                             encoding:NSUTF8StringEncoding
+                                                error:nil];
+  unlink(claim.fileSystemRepresentation);
+  return raw;
+}
+
+/// Home 生命周期协议不复用 ZiYanWriteVarText：后者为了低开销使用
+/// O_TRUNC，读者可能看到半包。这里以同目录 tmp+rename 发布完整记录；ack
+/// 用 link() 抢占目标名，确保一次 Home 只会有一个 App 生命周期确认。
+static uint64_t ZYA_HomeProtocolSerial = 0;
+
+static NSDictionary<NSString *, NSString *> *ZYA_ParseProtocol(
+    NSString *body) {
+  if (body.length < 1) return nil;
+  NSMutableDictionary<NSString *, NSString *> *fields =
+      [NSMutableDictionary dictionary];
+  for (NSString *line in [body
+           componentsSeparatedByCharactersInSet:
+               NSCharacterSet.newlineCharacterSet]) {
+    if (line.length == 0) continue;
+    NSRange split = [line rangeOfString:@"="];
+    if (split.location == NSNotFound || split.location == 0) return nil;
+    NSString *key = [line substringToIndex:split.location];
+    NSString *value = [line substringFromIndex:split.location + 1];
+    if (fields[key] != nil || value.length == 0) return nil;
+    fields[key] = value;
+  }
+  return fields;
+}
+
+static BOOL ZYA_ParseMilliseconds(NSString *text, uint64_t *outValue) {
+  if (text.length < 1) return NO;
+  const char *raw = text.UTF8String;
+  if (!raw || raw[0] == '-') return NO;
+  errno = 0;
+  char *end = NULL;
+  unsigned long long value = strtoull(raw, &end, 10);
+  if (errno != 0 || !end || *end != '\0') return NO;
+  if (outValue) *outValue = (uint64_t)value;
+  return YES;
+}
+
+static uint64_t ZYA_MonotonicMilliseconds(void) {
+  static mach_timebase_info_data_t sTimebase;
+  static dispatch_once_t sOnce;
+  dispatch_once(&sOnce, ^{
+    (void)mach_timebase_info(&sTimebase);
+  });
+  uint64_t ticks = mach_continuous_time();
+  long double nanos =
+      ((long double)ticks * (long double)sTimebase.numer) /
+      (long double)sTimebase.denom;
+  return (uint64_t)(nanos / 1000000.0L);
+}
+
+static BOOL ZYA_IsSafeHomeNonce(NSString *nonce) {
+  if (nonce.length < 8 || nonce.length > 160) return NO;
+  NSCharacterSet *invalid = [[NSCharacterSet
+      characterSetWithCharactersInString:
+          @"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789._-"]
+      invertedSet];
+  return [nonce rangeOfCharacterFromSet:invalid].location == NSNotFound;
+}
+
+static NSString *ZYA_HomeProtocolName(NSString *prefix, NSString *nonce) {
+  if (prefix.length < 1 || !ZYA_IsSafeHomeNonce(nonce)) return nil;
+  return [prefix stringByAppendingFormat:@".%@", nonce];
+}
+
+static BOOL ZYA_WriteAll(int fd, const void *bytes, size_t length) {
+  const uint8_t *cursor = bytes;
+  while (length > 0) {
+    ssize_t wrote = write(fd, cursor, length);
+    if (wrote < 0) {
+      if (errno == EINTR) continue;
+      return NO;
+    }
+    if (wrote == 0) return NO;
+    cursor += wrote;
+    length -= (size_t)wrote;
+  }
+  return YES;
+}
+
+static BOOL ZYA_AtomicPublishProtocol(NSString *name, NSString *body,
+                                      BOOL onlyIfAbsent) {
+  ZiYanEnsureVarDirectory();
+  NSString *path = ZiYanVarFile(name);
+  uint64_t serial = ++ZYA_HomeProtocolSerial;
+  NSString *tmp = [path stringByAppendingFormat:@".tmp.%d.%llu", getpid(),
+                                                   (unsigned long long)serial];
+  int fd = open(tmp.fileSystemRepresentation, O_WRONLY | O_CREAT | O_EXCL,
+                0666);
+  if (fd < 0) return NO;
+  NSData *data = [(body ?: @"") dataUsingEncoding:NSUTF8StringEncoding];
+  BOOL ok = ZYA_WriteAll(fd, data.bytes, data.length);
+  if (ok && fsync(fd) != 0) ok = NO;
+  (void)fchmod(fd, 0666);
+  close(fd);
+  if (ok) {
+    if (onlyIfAbsent) {
+      // link 成功才拥有正式名字；失败说明本轮 ack 已由本/另一个回调发布。
+      ok = (link(tmp.fileSystemRepresentation, path.fileSystemRepresentation) ==
+            0);
+    } else {
+      ok = (rename(tmp.fileSystemRepresentation, path.fileSystemRepresentation) ==
+            0);
+    }
+  }
+  unlink(tmp.fileSystemRepresentation);
+  return ok;
+}
+
+static BOOL ZYA_LinkProtocolIfAbsent(NSString *sourceName,
+                                     NSString *targetName) {
+  if (sourceName.length < 1 || targetName.length < 1) return NO;
+  NSString *source = ZiYanVarFile(sourceName);
+  NSString *target = ZiYanVarFile(targetName);
+  return link(source.fileSystemRepresentation, target.fileSystemRepresentation) ==
+         0;
+}
+
+static NSDictionary<NSString *, NSString *> *ZYA_CurrentHomeIntentForBid(
+    NSString *bid, uint64_t eventMs, uint64_t eventMonoMs,
+    BOOL allowCancelWindow) {
+  NSString *body = [NSString
+      stringWithContentsOfFile:ZiYanVarFile(@".ziyan_home_intent")
+                      encoding:NSUTF8StringEncoding
+                         error:nil];
+  NSDictionary<NSString *, NSString *> *fields = ZYA_ParseProtocol(body);
+  NSString *nonce = fields[@"nonce"];
+  NSString *expectedBid = fields[@"expected_bid"];
+  NSString *version = fields[@"v"];
+  uint64_t tsMs = 0;
+  uint64_t intentMonoMs = 0;
+  uint64_t actionDeadlineMonoMs = 0;
+  uint64_t cancelValidUntilMonoMs = 0;
+  uint64_t epoch = 0;
+  if (![version isEqualToString:@"3"] || !ZYA_IsSafeHomeNonce(nonce) ||
+      ![expectedBid isEqualToString:bid] ||
+      !ZYA_ParseMilliseconds(fields[@"epoch"], &epoch) || epoch == 0 ||
+      !ZYA_ParseMilliseconds(fields[@"ts_ms"], &tsMs) ||
+      !ZYA_ParseMilliseconds(fields[@"intent_mono_ms"], &intentMonoMs) ||
+      !ZYA_ParseMilliseconds(fields[@"deadline_mono_ms"],
+                             &actionDeadlineMonoMs) ||
+      !ZYA_ParseMilliseconds(fields[@"cancel_valid_until_mono_ms"],
+                             &cancelValidUntilMonoMs)) {
+    return nil;
+  }
+  // 回调入口先冻结 eventMs，再读 intent。若一个更晚的新 Home 在回调执行期间
+  // 发布，它的 ts 会大于 eventMs，绝不能被旧 didBecomeActive/resign 误消费。
+  uint64_t deadlineMonoMs =
+      allowCancelWindow ? cancelValidUntilMonoMs : actionDeadlineMonoMs;
+  // 墙钟只记录诊断；协议先后仅用同一引导周期的单调时钟。
+  (void)eventMs;
+  (void)tsMs;
+  if (eventMonoMs == 0 || intentMonoMs > eventMonoMs ||
+      eventMonoMs > deadlineMonoMs ||
+      actionDeadlineMonoMs < intentMonoMs ||
+      cancelValidUntilMonoMs < actionDeadlineMonoMs) {
+    return nil;
+  }
+  return fields;
+}
+
+- (void)appWillResignActive:(NSNotification *)note {
+  (void)note;
+  uint64_t eventMs = (uint64_t)llround(
+      NSDate.date.timeIntervalSince1970 * 1000.0);
+  uint64_t eventMonoMs = ZYA_MonotonicMilliseconds();
+  NSString *bid = NSBundle.mainBundle.bundleIdentifier ?: @"";
+  NSDictionary<NSString *, NSString *> *intent =
+      ZYA_CurrentHomeIntentForBid(bid, eventMs, eventMonoMs, NO);
+  ZiYanFrameShmMarkStale();
+  ZiYanWriteVarText(@".ziyan_shm_front_bid", @"stale\n");
+  // 只确认“本 App、这一 nonce、这一 timestamp”的 Home。普通锁屏/切换不
+  // 能生成 ack；link 的原子抢占也保证同一请求不会被重复提交。
+  if (intent) {
+    NSString *nonce = intent[@"nonce"];
+    NSString *ackName =
+        ZYA_HomeProtocolName(@".ziyan_home_resign_ack", nonce);
+    NSString *ack = [NSString
+        stringWithFormat:
+            @"v=3\nnonce=%@\nepoch=%@\nexpected_bid=%@\nbid=%@\nintent_ts_ms=%@\nintent_mono_ms=%@\nts_ms=%llu\nevent_mono_ms=%llu\n",
+            nonce, intent[@"epoch"], intent[@"expected_bid"], bid,
+            intent[@"ts_ms"], intent[@"intent_mono_ms"],
+            (unsigned long long)eventMs,
+            (unsigned long long)eventMonoMs];
+    BOOL published = ZYA_AtomicPublishProtocol(ackName, ack, YES);
+    ZYA_FrameTrace(published ? @"will_resign_home_ack" : @"home_ack_exists",
+                   nonce, [NSString stringWithFormat:@"bid=%@", bid]);
+  }
+}
+
+- (void)appDidEnterBackground:(NSNotification *)note {
+  (void)note;
+  uint64_t eventMs = (uint64_t)llround(
+      NSDate.date.timeIntervalSince1970 * 1000.0);
+  uint64_t eventMonoMs = ZYA_MonotonicMilliseconds();
+  NSString *bid = NSBundle.mainBundle.bundleIdentifier ?: @"";
+  NSDictionary<NSString *, NSString *> *intent =
+      ZYA_CurrentHomeIntentForBid(bid, eventMs, eventMonoMs, NO);
+  if (!intent) return;
+  NSString *nonce = intent[@"nonce"];
+  NSString *ackName =
+      ZYA_HomeProtocolName(@".ziyan_home_background_ack", nonce);
+  NSString *ack = [NSString
+      stringWithFormat:
+          @"v=3\nnonce=%@\nepoch=%@\nexpected_bid=%@\nbid=%@\nintent_ts_ms=%@\nintent_mono_ms=%@\nts_ms=%llu\nevent_mono_ms=%llu\n",
+          nonce, intent[@"epoch"], intent[@"expected_bid"], bid,
+          intent[@"ts_ms"], intent[@"intent_mono_ms"],
+          (unsigned long long)eventMs,
+          (unsigned long long)eventMonoMs];
+  BOOL published = ZYA_AtomicPublishProtocol(ackName, ack, YES);
+  // didEnterBackground 只是 App 后台证据，不是“桌面已前台”。
+  // 锁屏或切换其他 App 也会触发此回调，因此禁止在 App 进程
+  // 写 com.apple.springboard 的伪 native evidence。
+  ZYA_FrameTrace(published ? @"did_background_home_ack"
+                           : @"background_ack_exists",
+                 nonce, [NSString stringWithFormat:@"bid=%@", bid]);
+}
+
+- (void)appDidBecomeActive:(NSNotification *)note {
+  (void)note;
+  uint64_t activeEventMs = (uint64_t)llround(
+      NSDate.date.timeIntervalSince1970 * 1000.0);
+  uint64_t activeEventMonoMs = ZYA_MonotonicMilliseconds();
+  NSString *bid = NSBundle.mainBundle.bundleIdentifier ?: @"";
+  if (bid.length < 1) return;
+  // 回调入口先冻结事件时间和 intent，再做任何 fsync/帧操作。
+  // 这样不会误取比本次 Active 事件更新的 Home 请求。
+  NSDictionary<NSString *, NSString *> *intent =
+      ZYA_CurrentHomeIntentForBid(bid, activeEventMs, activeEventMonoMs, YES);
+  NSString *nonce = intent[@"nonce"];
+  BOOL terminalWon = NO;
+  BOOL cancelPublished = NO;
+  if (nonce.length > 0) {
+    NSString *terminalName =
+        ZYA_HomeProtocolName(@".ziyan_home_terminal", nonce);
+    NSString *cancelName =
+        ZYA_HomeProtocolName(@".ziyan_home_cancel", nonce);
+    NSString *cancel = [NSString
+        stringWithFormat:
+            @"v=3\nnonce=%@\nepoch=%@\nexpected_bid=%@\nbid=%@\nintent_ts_ms=%@\nintent_mono_ms=%@\nts_ms=%llu\nevent_mono_ms=%llu\ndecision=active_cancel\nevent=did_become_active\n",
+            nonce, intent[@"epoch"], intent[@"expected_bid"], bid,
+            intent[@"ts_ms"], intent[@"intent_mono_ms"],
+            (unsigned long long)activeEventMs,
+            (unsigned long long)activeEventMonoMs];
+    // 先 create-only 保留最早 rebound，再 hard-link 同一 inode 抢
+    // terminal。若 home_commit 已先赢，cancel 文件仍保留供稳定窗锁存。
+    cancelPublished = ZYA_AtomicPublishProtocol(cancelName, cancel, YES);
+    terminalWon = ZYA_LinkProtocolIfAbsent(cancelName, terminalName);
+  }
+
+  // App 只发布 Active evidence，`.ziyan_front_bid` 改为由
+  // SpringBoard reducer 单写，禁止跨进程无代际覆盖。
+  ZiYanFrameShmMarkStale();
+  ZiYanWriteVarText(@".ziyan_shm_front_bid", @"stale\n");
+  ZiYanWriteVarText(@".ziyan_force_recap", @"1\n");
+  ZiYanWriteVarText(@".ziyan_frame_req", @"force=1\n");
+  NSString *activeEvidence = [NSString
+      stringWithFormat:
+          @"v=1\nts_ms=%llu\nevent_mono_ms=%llu\nbid=%@\nsource=app_did_become_active\nnonce=%@\n",
+          (unsigned long long)activeEventMs,
+          (unsigned long long)activeEventMonoMs, bid,
+          nonce.length > 0 ? nonce : @"-"];
+  (void)ZYA_AtomicPublishProtocol(@".ziyan_app_active_evidence",
+                                  activeEvidence, NO);
+  ZYA_FrameTrace(terminalWon ? @"became_active_terminal_cancel"
+                             : @"became_active",
+                 nonce ?: @"-",
+                 [NSString stringWithFormat:@"bid=%@ cancel_file=%d", bid,
+                                            cancelPublished ? 1 : 0]);
+}
+
+- (UIWindow *)visibleCaptureWindow {
+  UIApplication *app = UIApplication.sharedApplication;
+  UIWindow *win = app.keyWindow;
+  if (win && !win.hidden && win.alpha > 0.01 &&
+      win.bounds.size.width > 1 && win.bounds.size.height > 1) {
+    return win;
+  }
+  for (UIWindow *candidate in app.windows.reverseObjectEnumerator) {
+    if (!candidate.hidden && candidate.alpha > 0.01 &&
+        candidate.bounds.size.width > 1 && candidate.bounds.size.height > 1) {
+      return candidate;
+    }
+  }
+  return nil;
+}
+
+- (void)writeFrameAck:(NSString *)nonce
+                   ok:(BOOL)ok
+                  err:(NSString *)err
+               costMs:(double)costMs {
+  // C-65.11-93：ack 纯 C write，避免 atomically NSString 在 Active 翻转时踩 CF。
+  char rep[256];
+  snprintf(rep, sizeof(rep),
+           "nonce=%s\nok=%d\nerr=%s\ncost_ms=%.1f\nseq=%u\nprovider=%u\n",
+           nonce.UTF8String ?: "0", ok ? 1 : 0, err.UTF8String ?: "-", costMs,
+           ZiYanFrameShmPeekSeq(), (unsigned)ZiYanFrameShmPeekProvider());
+  NSString *path = ZiYanVarFile(@".ziyan_app_frame_ack");
+  int fd = open(path.fileSystemRepresentation,
+                O_WRONLY | O_CREAT | O_TRUNC, 0666);
+  if (fd >= 0) {
+    (void)write(fd, rep, strlen(rep));
+    close(fd);
+    chmod(path.fileSystemRepresentation, 0666);
+  }
+}
+
+- (void)finishFrameRequest:(NSString *)nonce
+                        ok:(BOOL)ok
+                       err:(NSString *)err
+                    costMs:(double)costMs {
+  [self writeFrameAck:nonce ok:ok err:err costMs:costMs];
+  char detail[96];
+  snprintf(detail, sizeof(detail), "ok=%d err=%s cost_ms=%.1f", ok ? 1 : 0,
+           err.UTF8String ?: "-", costMs);
+  ZYA_FrameTrace(@"ack", nonce, @(detail));
+  BOOL dropPending = (!ok && err.length > 0 &&
+                      ([err hasPrefix:@"app_not_active"] ||
+                       [err hasPrefix:@"front_changed"]));
+  NSString *nextNonce = nil;
+  NSString *nextBid = nil;
+  @synchronized(self) {
+    self.frameCaptureInflight = NO;
+    if (dropPending) {
+      // 未 Active / 前台已切：清空 coalesce，禁止立刻再开 draw（C92 CF 放大器）。
+      self.pendingFrameNonce = nil;
+      self.pendingFrameBid = nil;
+    } else {
+      nextNonce = self.pendingFrameNonce;
+      nextBid = self.pendingFrameBid;
+      self.pendingFrameNonce = nil;
+      self.pendingFrameBid = nil;
+      if (nextNonce.length && nextBid.length) {
+        self.frameCaptureInflight = YES;
+      }
+    }
+  }
+  if (nextNonce.length && nextBid.length) {
+    ZYA_FrameTrace(@"coalesce_start", nextNonce, nil);
+    [self beginFrameCaptureForNonce:nextNonce bid:nextBid];
+  }
+}
+
+/// 仅显式请求时取一帧。UIKit 工作留在主线程；像素转换和共享帧提交放后台。
+/// 单飞保证慢帧期间不会把 Unity 主线程排成长队。
+- (void)beginFrameCaptureForNonce:(NSString *)nonce bid:(NSString *)wantedBid {
+  NSString *nonceCopy = [nonce copy] ?: @"0";
+  NSTimeInterval begin = NSDate.date.timeIntervalSince1970;
+  dispatch_async(dispatch_get_main_queue(), ^{
+    @autoreleasepool {
+      ZYA_FrameTrace(@"main_begin", nonceCopy, nil);
+      UIApplication *app = UIApplication.sharedApplication;
+      if (app.applicationState != UIApplicationStateActive) {
+        [self finishFrameRequest:nonceCopy ok:NO err:@"app_not_active" costMs:0];
+        return;
+      }
+      UIWindow *win = [self visibleCaptureWindow];
+      CGSize size = win.bounds.size;
+      CGFloat scale = UIScreen.mainScreen.scale;
+      if (!win || size.width < 2 || size.height < 2 || scale <= 0) {
+        [self finishFrameRequest:nonceCopy ok:NO err:@"window_unavailable" costMs:0];
+        return;
+      }
+      UIGraphicsBeginImageContextWithOptions(size, YES, scale);
+      BOOL drawn = [win drawViewHierarchyInRect:win.bounds afterScreenUpdates:NO];
+      UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+      UIGraphicsEndImageContext();
+      ZYA_FrameTrace(@"draw_done", nonceCopy,
+                     [NSString stringWithFormat:@"drawn=%d", drawn ? 1 : 0]);
+      CGImageRef cg = image.CGImage;
+      if (!drawn || !cg) {
+        [self finishFrameRequest:nonceCopy ok:NO err:@"draw_failed" costMs:0];
+        return;
+      }
+      CGImageRetain(cg);
+      NSString *bid = NSBundle.mainBundle.bundleIdentifier ?: @"";
+      dispatch_async(self.frameEncodeQueue, ^{
+        @autoreleasepool {
+          size_t width = CGImageGetWidth(cg);
+          size_t height = CGImageGetHeight(cg);
+          size_t bpr = width * 4u;
+          NSMutableData *rgba = [NSMutableData dataWithLength:bpr * height];
+          CGColorSpaceRef cs = CGColorSpaceCreateDeviceRGB();
+          CGContextRef ctx = CGBitmapContextCreate(
+              rgba.mutableBytes, width, height, 8, bpr, cs,
+              kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
+          BOOL ok = NO;
+          NSString *err = @"rgba_context_failed";
+          if (ctx) {
+            // CGBitmapContext 的内存行序与现有 RGBA 读者一致。这里不能再翻转；
+            // 诊断已证明额外 CTM 会把逻辑 y=449 映到屏幕上方，标准色失配。
+            CGContextDrawImage(ctx, CGRectMake(0, 0, width, height), cg);
+            NSString *front = [NSString
+                stringWithContentsOfFile:ZiYanVarFile(@".ziyan_front_bid")
+                                encoding:NSUTF8StringEncoding
+                                   error:nil];
+            front = [[[front componentsSeparatedByCharactersInSet:
+                                NSCharacterSet.newlineCharacterSet] firstObject]
+                stringByTrimmingCharactersInSet:
+                    NSCharacterSet.whitespaceAndNewlineCharacterSet];
+            // draw开始时Active不够：用户可能在40ms绘制窗口内按Home。
+            // 提交前再核对系统前台epoch，禁止晚到App帧把Home stale重新写成Valid。
+            if ([front isEqualToString:bid]) {
+              ok = ZiYanFrameShmWriteEx(
+                  rgba.bytes, width, height, bpr, ZiYanFrameProviderAppWindow,
+                  0, ZiYanFrameShmHashFrontBid(bid), ZiYanFrameStatusValid);
+              err = ok ? @"-" : @"shm_write_failed";
+              ZYA_FrameTrace(@"shm_commit", nonceCopy,
+                             [NSString stringWithFormat:@"ok=%d seq=%u",
+                                                        ok ? 1 : 0,
+                                                        ZiYanFrameShmPeekSeq()]);
+            } else {
+              err = @"front_changed_before_commit";
+            }
+            CGContextRelease(ctx);
+          }
+          CGColorSpaceRelease(cs);
+          CGImageRelease(cg);
+          double cost = (NSDate.date.timeIntervalSince1970 - begin) * 1000.0;
+          [self finishFrameRequest:nonceCopy ok:ok err:err costMs:cost];
+        }
+      });
+    }
+  });
+}
+
+- (void)serviceAppFrameRequestIfNeeded {
+  UIApplicationState appState = UIApplicationStateBackground;
+  @try {
+    appState = UIApplication.sharedApplication.applicationState;
+  } @catch (__unused NSException *ex) {
+  }
+  // 后台注入进程不得抢走前台App的共享请求票。
+  if (appState != UIApplicationStateActive) return;
+
+  NSString *raw = ZYA_ClaimFrameRequest();
+  if (raw.length < 1) return;
+  NSString *nonce = nil;
+  NSString *wantedBid = nil;
+  for (NSString *line in [raw componentsSeparatedByCharactersInSet:
+                                NSCharacterSet.newlineCharacterSet]) {
+    if ([line hasPrefix:@"nonce="]) nonce = [line substringFromIndex:6];
+    if ([line hasPrefix:@"bid="]) wantedBid = [line substringFromIndex:4];
+  }
+  if (nonce.length < 1 || wantedBid.length < 1) {
+    ZYA_FrameTrace(@"claim_invalid", nonce, nil);
+    return;
+  }
+  ZYA_FrameTrace(@"claim", nonce, [NSString stringWithFormat:@"bid=%@", wantedBid]);
+  NSString *ownBid = NSBundle.mainBundle.bundleIdentifier ?: @"";
+  if (![wantedBid isEqualToString:ownBid]) {
+    [self writeFrameAck:nonce ok:NO err:@"wrong_app" costMs:0];
+    ZYA_FrameTrace(@"wrong_app", nonce,
+                   [NSString stringWithFormat:@"want=%@ own=%@", wantedBid,
+                                              ownBid]);
+    return;
+  }
+  @synchronized(self) {
+    if (self.frameCaptureInflight) {
+      // 不回 inflight 失败票；保留最新 nonce，当前帧完成后立即接力。
+      self.pendingFrameNonce = nonce;
+      self.pendingFrameBid = wantedBid;
+      ZYA_FrameTrace(@"coalesce", nonce, nil);
+      return;
+    }
+    self.frameCaptureInflight = YES;
+  }
+  [self beginFrameCaptureForNonce:nonce bid:wantedBid];
+}
+
+- (void)serviceCaptureDiagnosticIfNeeded {
+  NSString *req = [ZiYanVarDirectory()
+      stringByAppendingPathComponent:@".ziyan_app_capture_diag_req"];
+  if (![[NSFileManager defaultManager] fileExistsAtPath:req]) return;
+  [[NSFileManager defaultManager] removeItemAtPath:req error:nil];
+  dispatch_async(dispatch_get_main_queue(), ^{
+    @autoreleasepool {
+      UIApplication *app = UIApplication.sharedApplication;
+      if (app.applicationState != UIApplicationStateActive) return;
+      UIWindow *win = app.keyWindow;
+      if (!win) {
+        for (UIWindow *w in app.windows) if (!w.hidden && w.alpha > 0.01) { win = w; break; }
+      }
+      NSString *dir = @"/private/var/mobile/Media/ZiYan/app_capture_diag";
+      [[NSFileManager defaultManager] createDirectoryAtPath:dir
+                                withIntermediateDirectories:YES attributes:nil error:nil];
+      CGSize sz = win.bounds.size;
+      CGFloat scale = UIScreen.mainScreen.scale;
+      NSMutableString *rep = [NSMutableString stringWithFormat:
+          @"bid=%@ state=%ld window=%@ layer=%@ size=%.0fx%.0f scale=%.1f\n",
+          NSBundle.mainBundle.bundleIdentifier ?: @"-", (long)app.applicationState,
+          NSStringFromClass(win.class), NSStringFromClass(win.layer.class),
+          sz.width, sz.height, scale];
+      if (win && sz.width > 1 && sz.height > 1) {
+        NSTimeInterval t0 = NSDate.date.timeIntervalSince1970;
+        UIGraphicsBeginImageContextWithOptions(sz, NO, scale);
+        BOOL drawn = [win drawViewHierarchyInRect:win.bounds afterScreenUpdates:NO];
+        UIImage *a = UIGraphicsGetImageFromCurrentImageContext();
+        UIGraphicsEndImageContext();
+        NSData *ad = UIImagePNGRepresentation(a);
+        [ad writeToFile:[dir stringByAppendingPathComponent:@"draw.png"] atomically:YES];
+        [rep appendFormat:@"draw ok=%d bytes=%lu cost_ms=%.1f\n", drawn ? 1 : 0,
+                          (unsigned long)ad.length,
+                          (NSDate.date.timeIntervalSince1970-t0)*1000.0];
+        t0 = NSDate.date.timeIntervalSince1970;
+        UIGraphicsBeginImageContextWithOptions(sz, NO, scale);
+        CGContextRef ctx = UIGraphicsGetCurrentContext();
+        [win.layer renderInContext:ctx];
+        UIImage *b = UIGraphicsGetImageFromCurrentImageContext();
+        UIGraphicsEndImageContext();
+        NSData *bd = UIImagePNGRepresentation(b);
+        [bd writeToFile:[dir stringByAppendingPathComponent:@"layer.png"] atomically:YES];
+        [rep appendFormat:@"layer bytes=%lu cost_ms=%.1f\n", (unsigned long)bd.length,
+                          (NSDate.date.timeIntervalSince1970-t0)*1000.0];
+      }
+      [rep writeToFile:[dir stringByAppendingPathComponent:@"REPORT.txt"]
+             atomically:YES encoding:NSUTF8StringEncoding error:nil];
+      [@"1\n" writeToFile:[ZiYanVarDirectory()
+          stringByAppendingPathComponent:@".ziyan_app_capture_diag_ack"]
+             atomically:YES encoding:NSUTF8StringEncoding error:nil];
+    }
+  });
+}
 
 + (instancetype)shared {
   static ZiYanAppTouch *obj;
@@ -60,6 +631,8 @@ enum {
     obj = [[ZiYanAppTouch alloc] init];
     obj.activeTouches = [NSMutableDictionary dictionary];
     obj.fingerLogic = [NSMutableDictionary dictionary];
+    obj.frameEncodeQueue = dispatch_queue_create(
+        "com.ziyan.apptouch.frame", DISPATCH_QUEUE_SERIAL);
   });
   return obj;
 }
@@ -76,6 +649,24 @@ enum {
     ZYSetSenderID = dlsym(b, "IOHIDEventSetSenderID");
   });
   ZiYanEnsureScriptsDirectory();
+  static dispatch_once_t lifecycleObserversOnce;
+  dispatch_once(&lifecycleObserversOnce, ^{
+    [[NSNotificationCenter defaultCenter]
+        addObserver:self
+           selector:@selector(appWillResignActive:)
+               name:UIApplicationWillResignActiveNotification
+             object:nil];
+    [[NSNotificationCenter defaultCenter]
+        addObserver:self
+           selector:@selector(appDidEnterBackground:)
+               name:UIApplicationDidEnterBackgroundNotification
+             object:nil];
+    [[NSNotificationCenter defaultCenter]
+        addObserver:self
+           selector:@selector(appDidBecomeActive:)
+               name:UIApplicationDidBecomeActiveNotification
+             object:nil];
+  });
   // 134：启动不再写 app_alive（否则 BBTouch 永久让路 → 又走进程内 sync 冻 App）
   if (self.timer) {
     return;
@@ -92,7 +683,32 @@ enum {
   dispatch_resume(self.timer);
 }
 
+- (void)publishActiveEvidenceIfNeeded {
+  UIApplicationState st = UIApplicationStateBackground;
+  @try {
+    st = UIApplication.sharedApplication.applicationState;
+  } @catch (__unused NSException *ex) {
+    return;
+  }
+  NSTimeInterval now = NSDate.date.timeIntervalSince1970;
+  if (st != UIApplicationStateActive ||
+      now < self.lastActiveEvidenceStamp + 1.0) {
+    return;
+  }
+  self.lastActiveEvidenceStamp = now;
+  NSString *bid = NSBundle.mainBundle.bundleIdentifier ?: @"";
+  if (bid.length < 1) return;
+  NSString *body = [NSString
+      stringWithFormat:@"v=1\nts_ms=%llu\nevent_mono_ms=%llu\nbid=%@\nsource=app_active_heartbeat\nnonce=-\n",
+                       (unsigned long long)llround(now * 1000.0),
+                       (unsigned long long)ZYA_MonotonicMilliseconds(), bid];
+  (void)ZYA_AtomicPublishProtocol(@".ziyan_app_active_evidence", body, NO);
+}
+
 - (void)poll {
+  [self publishActiveEvidenceIfNeeded];
+  [self serviceAppFrameRequestIfNeeded];
+  [self serviceCaptureDiagnosticIfNeeded];
   // 134：默认不抢 req（对标 .171 / 触动：触控在 SB/HID，不进游戏主线程）。
   // 仅显式 .ziyan_prefer_app_touch 时才进程内注入。
   if (![[NSFileManager defaultManager]
@@ -387,7 +1003,41 @@ static void (*ZiYanOrigSendEvent)(id, SEL, UIEvent *) = NULL;
 static NSMutableDictionary *sRecDownAt; // finger -> NSNumber time
 static NSMutableDictionary *sRecDownXY; // finger -> NSValue CGPoint logic
 
+static NSMutableDictionary *sLearnDownXY;
+
 static void ZiYanHookedSendEvent(id self, SEL _cmd, UIEvent *event) {
+  if ([AgentLearningInputBridge learnArmed] && event) {
+    NSString *bid = [[NSBundle mainBundle] bundleIdentifier] ?: @"";
+    if (!sLearnDownXY) {
+      sLearnDownXY = [NSMutableDictionary dictionary];
+    }
+    NSSet *all = [event allTouches];
+    for (UITouch *touch in all) {
+      CGPoint p = [touch locationInView:nil];
+      NSNumber *fid = @(touch.hash);
+      if (touch.phase == UITouchPhaseBegan) {
+        sLearnDownXY[fid] = [NSValue valueWithCGPoint:p];
+      } else if (touch.phase == UITouchPhaseEnded ||
+                 touch.phase == UITouchPhaseCancelled) {
+        CGPoint a = p;
+        NSValue *v = sLearnDownXY[fid];
+        if (v) {
+          a = [v CGPointValue];
+        }
+        double dx = p.x - a.x;
+        double dy = p.y - a.y;
+        NSString *type =
+            (dx * dx + dy * dy > 576.0) ? @"swipe" : @"tap";
+        [AgentLearningInputBridge noteTapX:a.x
+                                         y:a.y
+                                      endX:p.x
+                                      endY:p.y
+                                      type:type
+                                processBid:bid];
+        [sLearnDownXY removeObjectForKey:fid];
+      }
+    }
+  }
   if ([ZiYanScriptRecorder isRecording] && event) {
     if (!sRecDownAt)
       sRecDownAt = [NSMutableDictionary dictionary];
@@ -448,6 +1098,8 @@ static void ZiYanInstallRecordTouchHook(void) {
 }
 
 __attribute__((constructor)) static void ZiYanAppTouchInit(void) {
+  ZiYanInjectTrace("ZiYanAppTouch", "ctor_enter");
+  ZiYanInjectTrace("ZiYanAppTouch", "ctor_exit");
   @autoreleasepool {
     // Filter 决定注入范围；排除 SpringBoard（桌面点触由 ScreenBridge）
     // 排除控制 App：否则后台 ZiYan.app 抢 touch_req 且 sent=0
@@ -462,6 +1114,7 @@ __attribute__((constructor)) static void ZiYanAppTouchInit(void) {
     dispatch_after(
         dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)),
         dispatch_get_main_queue(), ^{
+          ZiYanInjectTrace("ZiYanAppTouch", "late_start");
           [[ZiYanAppTouch shared] start];
           ZiYanInstallRecordTouchHook();
           Class memHook = NSClassFromString(@"ZiYanMemHook");

@@ -24,7 +24,16 @@ else
   done
   echo "MODE=framerelay_on"
 fi
-if [ "$1" = "--sbreload" ]; then
+allow=0
+for a in "$@"; do
+  [ "$a" = "--allow-manual-respring" ] && allow=1
+done
+if [ "$1" = "--sbreload" ] || [ "$allow" = 1 ]; then
+  if [ "$allow" != 1 ]; then
+    echo "BLOCKED_AUTO_SB_RESTART"
+    echo "legacy --sbreload is not enough; pass --allow-manual-respring"
+    exit 78
+  fi
   sbreload 2>/dev/null || /var/jb/usr/bin/sbreload 2>/dev/null || killall -9 SpringBoard
   echo SBRELOAD=1
 fi

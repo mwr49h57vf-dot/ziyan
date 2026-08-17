@@ -10,11 +10,15 @@ NS_ASSUME_NONNULL_BEGIN
 /// - 只持有 **ZiYan 自有** 缓冲（IOSurfaceCreate 或 heap），禁止 sticky 系统合成层句柄
 /// - renew = 双槽原子切换；同几何原地复用，禁止逐帧 malloc/free
 /// - find/getColor 直读本槽，不每圈 mmap 文件 shm
-/// - 文件 shm 仍作跨进程镜像（SB relay / HTTP snapshot）
+/// - 文件 shm 仍作跨进程镜像（SB relay）；HTTP /snapshot+/findtest
+///   与 Embed 共用下方 canonical current frame，禁止旁路新帧
 ///
 /// 内存风险：双槽总像素预算 ≤6MB（对标 .171 Dirty ~5744KB）；禁在 SB 进程启用
 
 void ZiYanFrameResidentRegisterHooks(void);
+
+/// 与 shm 下一笔同序；FillHdr 读完清回 RGBA。
+void ZiYanFrameResidentSetWritePixelFormat(uint8_t pixelFormat);
 
 BOOL ZiYanFrameResidentRenew(const void *pixels, size_t width, size_t height,
                              size_t bpr, uint8_t provider, uint8_t orient,
@@ -24,16 +28,32 @@ BOOL ZiYanFrameResidentRenew(const void *pixels, size_t width, size_t height,
 void ZiYanFrameResidentMarkStatus(uint8_t status, BOOL touchTs);
 void ZiYanFrameResidentClear(void);
 
-/// 成功时 *outMap=NULL、*outMapLen=0 → 调用方勿 munmap
+/// 成功时 *outMap 为带 generation 的唯一常驻槽读票、
+/// *outMapLen=0；调用方必须在读完 hdr/pixels 后恰好调用一次
+/// ZiYanFrameResidentUnmap。读票期间 writer 不会复用该槽；陈旧/
+/// 重复 Unmap 会被拒绝，不会误减其他读者。票仅是不透明 token，
+/// 禁止解引用或交给 munmap/ZiYanFrameShmUnmap。
 BOOL ZiYanFrameResidentMapRead(
     const ZiYanFrameShmHeader *_Nullable *_Nonnull outHdr,
     const uint8_t *_Nullable *_Nonnull outPixels, size_t *_Nonnull outMapLen,
     void *_Nullable *_Nonnull outMap);
+void ZiYanFrameResidentUnmap(void *_Nullable token, size_t mapLen);
+
+/// 读票诊断为无锁原子快照，供 /status 与 P2 门禁直接验证
+/// MapRead/Unmap 是否配对；不取 resident mutex，避免与 shm 锁序交叉。
+uint32_t ZiYanFrameResidentOutstandingTickets(void);
+uint64_t ZiYanFrameResidentTicketMapCount(void);
+uint64_t ZiYanFrameResidentTicketUnmapCount(void);
+uint64_t ZiYanFrameResidentWriterWaitCount(void);
+uint64_t ZiYanFrameResidentInvalidTicketUnmapCount(void);
+uint64_t ZiYanFrameResidentTicketExhaustCount(void);
 
 uint32_t ZiYanFrameResidentPeekSeq(void);
 BOOL ZiYanFrameResidentHasPixels(size_t *_Nullable outW, size_t *_Nullable outH,
                                  size_t *_Nullable outBPR);
 uint8_t ZiYanFrameResidentPeekStatus(void);
+uint8_t ZiYanFrameResidentPeekPixelFormat(void);
+uint64_t ZiYanFrameResidentPeekTsMs(void);
 BOOL ZiYanFrameResidentIsReleased(void);
 size_t ZiYanFrameResidentPayloadBytes(void);
 
@@ -44,5 +64,52 @@ BOOL ZiYanFrameResidentMirrorFromShm(void);
 /// Home/min 保 App 像素；回 App 后 unpin 才允许 screenRenew
 void ZiYanFrameResidentSetPinned(BOOL pinned);
 BOOL ZiYanFrameResidentIsPinned(void);
+
+/// 已提交当前帧令牌：HTTP /snapshot、/findtest 与 Embed getColor/find
+/// 必须携带同一组字段。front_bid 只是元数据，不是找色开关。
+typedef struct ZiYanCanonicalFrameToken {
+  uint32_t frame_seq;
+  uint32_t generation;
+  char front_bid[96];
+  uint8_t pixel_format;
+  uint32_t width;
+  uint32_t height;
+  uint32_t bpr;
+  uint64_t capture_ts_ms;
+  uint8_t status;
+  char source[24];
+  char frame_status[24];
+  char pixel_format_name[16];
+} ZiYanCanonicalFrameToken;
+
+NSString *ZiYanFrameStatusName(uint8_t status);
+NSString *ZiYanFramePixelFormatName(uint8_t fmt);
+
+void ZiYanCanonicalFrameTokenFill(
+    ZiYanCanonicalFrameToken *tok,
+    const ZiYanFrameShmHeader *_Nullable hdr, uint32_t generation,
+    NSString *_Nullable frontBid, const char *_Nullable source);
+
+/// 优先读已提交 resident；allowFileShm 时才冷备文件 shm（与 Embed keep 一致）。
+/// 成功时 *outResident=YES 必须 ZiYanFrameResidentUnmap，否则 ZiYanFrameShmUnmap。
+BOOL ZiYanCanonicalCurrentFrameMapRead(
+    BOOL allowFileShm, const ZiYanFrameShmHeader *_Nullable *_Nonnull outHdr,
+    const uint8_t *_Nullable *_Nonnull outPixels, size_t *_Nonnull outMapLen,
+    void *_Nullable *_Nonnull outMap, BOOL *_Nonnull outResident);
+void ZiYanCanonicalCurrentFrameUnmap(void *_Nullable map, size_t mapLen,
+                                     BOOL resident);
+
+/// 客户端携带的字段：只比较已给出的 frame_seq/generation/front_bid/pixel_format。
+BOOL ZiYanCanonicalFrameTokenMatchesRequest(
+    const ZiYanCanonicalFrameToken *cur, NSString *_Nullable frameSeq,
+    NSString *_Nullable generation, NSString *_Nullable frontBid,
+    NSString *_Nullable pixelFormat);
+
+NSDictionary *ZiYanCanonicalFrameTokenDictionary(
+    const ZiYanCanonicalFrameToken *tok);
+NSString *ZiYanCanonicalFrameJSONByAddingToken(
+    NSString *_Nullable json, const ZiYanCanonicalFrameToken *_Nullable tok);
+void ZiYanCanonicalFrameTokenWriteLast(
+    const ZiYanCanonicalFrameToken *_Nullable tok);
 
 NS_ASSUME_NONNULL_END

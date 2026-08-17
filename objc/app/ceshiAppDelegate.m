@@ -1,5 +1,7 @@
 #import "ceshiAppDelegate.h"
+#import "ZiYanHomeViewController.h"
 #import "ceshiRootViewController.h"
+#import "AgentSessionController.h"
 #import "ZiYanPaths.h"
 #import "ZiYanScriptRunner.h"
 #import "VolumeKeyMonitor.h"
@@ -208,6 +210,8 @@ static void ZiYanPresentFingerprintInfoIfReady(UIViewController *host) {
 
 	ZiYanEnsureScriptsDirectory();
 	ZiYanEnsureVarDirectory();
+	ZiYanClearStaleSelectedPath();
+	[[AgentSessionController shared] recoverStaleSession];
 	// 用户手动打开 = 清除「关闭程序」粘性，允许音量菜单保活逻辑重新生效
 	ZiYanSetAppUserClosed(NO);
 	// 打开 App：禁止自动起录/自动跑脚本（清残留 armed、recording、run_trig）
@@ -226,8 +230,8 @@ static void ZiYanPresentFingerprintInfoIfReady(UIViewController *host) {
 	}
 
 	self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
-	ceshiRootViewController *rootListVC = [[ceshiRootViewController alloc] initWithStyle:UITableViewStylePlain];
-	UINavigationController *navController = [[UINavigationController alloc] initWithRootViewController:rootListVC];
+	ZiYanHomeViewController *homeVC = [[ZiYanHomeViewController alloc] init];
+	UINavigationController *navController = [[UINavigationController alloc] initWithRootViewController:homeVC];
 	self.rootViewController = navController;
 	self.window.rootViewController = navController;
 	[self.window makeKeyAndVisible];
@@ -245,39 +249,18 @@ static void ZiYanPresentFingerprintInfoIfReady(UIViewController *host) {
 		// − / + 完全独立：互不抢答、不互为前提（回中由 VolumeKeyMonitor 保证）
 		OverlayWindow *ow = [OverlayWindow shared];
 		if (isVolumeUp) {
-			// 音量+：只录制，不关菜单、不碰 − 语义
 			[[ZiYanAppBridgeShm shared] sendVolumeKey:YES];
-			if ([ZiYanScriptRecorder isArmed] ||
-			    [ZiYanScriptRecorder isRecording]) {
-				NSString *saved = nil;
-				NSString *err = nil;
-				BOOL wasRec = [ZiYanScriptRecorder isRecording];
-				BOOL handled = [ZiYanScriptRecorder
-				    toggleFromVolumeUpSavedPath:&saved
-				                          error:&err];
-				if (handled) {
-					if (wasRec) {
-						NSString *msg =
-						    saved.length
-						        ? [NSString
-						              stringWithFormat:
-						                  @"录制已保存 %@",
-						                  saved.lastPathComponent]
-						        : (err.length
-						               ? [NSString
-						                     stringWithFormat:
-						                         @"录制结束(%@)",
-						                         err]
-						               : @"录制已结束");
-						[ow showToast:msg duration:2.4];
-					} else {
-						[ow showToast:@"开始录制 · 再按音量+结束"
-						     duration:2.0];
-					}
-				}
-			} else if (ZiYanZeroSbFull()) {
-				[ow showToast:@"请先点底栏「录制脚本」武装" duration:1.6];
+			AgentSessionController *sess = [AgentSessionController shared];
+			if ([sess acceptsVolumeStop]) {
+				[sess handleVolumeUp];
+				[ow showToast:[sess uiStateText] duration:1.6];
+				return;
 			}
+			[@"list=1\n" writeToFile:ZiYanVarFile(@".ziyan_agent_list_req")
+			              atomically:YES
+			                encoding:NSUTF8StringEncoding
+			                   error:nil];
+			[ow showToast:@"Agent 游戏" duration:1.6];
 			return;
 		}
 		// 音量−：thin → 交给 SBVolumeControl（不写 daemon/Overlay，防二次 claim）
@@ -431,11 +414,15 @@ static void ZiYanPresentFingerprintInfoIfReady(UIViewController *host) {
 	UIViewController *root = self.window.rootViewController;
 	if ([root isKindOfClass:[UINavigationController class]]) {
 		UIViewController *top = ((UINavigationController *)root).viewControllers.firstObject;
-		if ([top respondsToSelector:@selector(reloadScriptsFromDisk)]) {
+		if ([top isKindOfClass:[ZiYanHomeViewController class]]) {
+			ZiYanHomeViewController *home = (ZiYanHomeViewController *)top;
+			[home reloadScripts];
+			[home.scriptListVC pollRunSuspendTrigs];
+		} else if ([top respondsToSelector:@selector(reloadScriptsFromDisk)]) {
 			[(id)top reloadScriptsFromDisk];
-		}
-		if ([top respondsToSelector:@selector(pollRunSuspendTrigs)]) {
-			[(id)top pollRunSuspendTrigs];
+			if ([top respondsToSelector:@selector(pollRunSuspendTrigs)]) {
+				[(id)top pollRunSuspendTrigs];
+			}
 		}
 	}
 }

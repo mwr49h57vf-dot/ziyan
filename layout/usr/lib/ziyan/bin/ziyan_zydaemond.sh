@@ -10,6 +10,10 @@ export PATH="/var/jb/bin:/var/jb/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:${PATH}"
 
 ROOTLESS=0
 [ -d /var/jb/usr/lib/ziyan ] && ROOTLESS=1
+ROOT=/usr/lib/ziyan
+if [ "$ROOTLESS" = "1" ]; then
+  ROOT=/var/jb/usr/lib/ziyan
+fi
 
 if [ "$ROOTLESS" = "1" ]; then
   VAR=/var/jb/usr/lib/ziyan/var
@@ -31,6 +35,7 @@ HUNG="$VAR/.ziyan_lua_hung"
 LOG="$VAR/.ziyan_zydaemon_log"
 PIDF="$VAR/.ziyan_zydaemon.pid"
 ALIVE="$VAR/.ziyan_zydaemon_alive"
+LOCKDIR="$VAR/.ziyan_zydaemon.lock"
 SHM="$VAR/.ziyan_frame_shm"
 FRAMECAP_ALIVE="$VAR/.ziyan_framecap_alive"
 PAUSE="$VAR/.ziyan_paused"
@@ -46,11 +51,36 @@ cleanup() {
   code=$?
   trap - $signals
   rm -f "$PIDF" 2>/dev/null
+  rmdir "$LOCKDIR" 2>/dev/null || true
   exit $code
 }
 trap cleanup $signals
 
 mkdir -p "$VAR" 2>/dev/null
+# launchd KeepAlive can briefly start a second copy while the first one is
+# still unwinding.  Use an atomic mkdir lock (available on the minimal
+# rootful images) so only one daemon may own revive/framecap decisions.  A
+# SIGKILL/Jetsam bypasses cleanup(), however, so a lock is valid only if its
+# recorded PID is still alive; otherwise reclaim that stale lock once.
+if ! mkdir "$LOCKDIR" 2>/dev/null; then
+  existing=""
+  [ -f "$PIDF" ] && existing=$(cat "$PIDF" 2>/dev/null | head -1)
+  case "$existing" in
+    ''|*[!0-9]*) alive=0 ;;
+    *) kill -0 "$existing" 2>/dev/null && alive=1 || alive=0 ;;
+  esac
+  if [ "${alive:-0}" = "1" ]; then
+    echo "$(date '+%Y-%m-%d %H:%M:%S') zydaemon_duplicate_exit existing_pid=$existing" >>"$LOG" 2>/dev/null || true
+    exit 0
+  fi
+  rmdir "$LOCKDIR" 2>/dev/null || true
+  rm -f "$PIDF" 2>/dev/null || true
+  if ! mkdir "$LOCKDIR" 2>/dev/null; then
+    echo "$(date '+%Y-%m-%d %H:%M:%S') zydaemon_lock_reclaim_failed stale_pid=${existing:-unknown}" >>"$LOG" 2>/dev/null || true
+    exit 0
+  fi
+  echo "$(date '+%Y-%m-%d %H:%M:%S') zydaemon_stale_lock_reclaimed stale_pid=${existing:-unknown}" >>"$LOG" 2>/dev/null || true
+fi
 echo $$ >"$PIDF" 2>/dev/null
 
 log() {
@@ -82,17 +112,25 @@ ensure_shm() {
   fi
 }
 
-# 8-140：护 framecap KeepAlive；心跳文件 >45s 未刷新则 kickstart（不杀 SB）
-# 8-146：SB Watchdog 只写 .ziyan_watchdog_framecap_need；本函数消费并 kick
+# framecap 不能直接由 iOS 13 的 LaunchDaemon 槽位启动：该槽位在 dyld/Objective-C
+# 初始化前就有 6MB jetsam 上限。由 zydaemon 唯一拉起子进程，禁 launchd 竞争。
+framecap_heartbeat_fresh() {
+  ts=$(sed -n 's/^ts=\([0-9][0-9]*\).*/\1/p' "$FRAMECAP_ALIVE" 2>/dev/null | head -1 | tr -dc '0-9')
+  now_hb=$($DATE '+%s' 2>/dev/null || echo 0)
+  [ -n "$ts" ] && [ -n "$now_hb" ] && [ "$now_hb" -gt 0 ] && \
+    [ $((now_hb - ts)) -le 45 ] 2>/dev/null
+}
+
+# 8-140：护 framecap KeepAlive；心跳文件 >45s 未刷新则由本守护重启（不杀 SB）
+# 8-146：SB Watchdog 只写 .ziyan_watchdog_framecap_need；本函数消费。
 ensure_framecap() {
-  # 8-161-45 / 142：已有 framecap 则禁止再 kick（防 unload 杀热路径）
+  # 已有 framecap 时先去重；只有“明确请求 + 心跳过期”才重启。
   # 计数用 tr 压成单行，禁 grep -c||echo 双 0 导致误判死
   fc_n=$($PS -A -o command= 2>/dev/null | grep -F "ziyan_framecap serve" | grep -vc grep | tr -dc '0-9')
   [ -n "$fc_n" ] || fc_n=0
   need=0
   [ -f "$VAR/.ziyan_watchdog_framecap_need" ] && need=1
   if [ "$fc_n" -ge 1 ] 2>/dev/null; then
-    rm -f "$VAR/.ziyan_watchdog_framecap_need" 2>/dev/null
     if [ "$fc_n" -ge 2 ] 2>/dev/null; then
       keep=""
       for pid in $($PS -A -o pid=,command= 2>/dev/null | grep -F "ziyan_framecap serve" | grep -v grep | sed 's/^ *//' | cut -d' ' -f1); do
@@ -104,9 +142,26 @@ ensure_framecap() {
         fi
       done
     fi
-    return 0
+    if [ "$need" != "1" ] || framecap_heartbeat_fresh; then
+      rm -f "$VAR/.ziyan_watchdog_framecap_need" 2>/dev/null
+      return 0
+    fi
+    stale_pid=$($PS -A -o pid=,command= 2>/dev/null | grep -F "ziyan_framecap serve" | grep -v grep | head -1 | sed 's/^ *//' | cut -d' ' -f1)
+    case "$stale_pid" in
+      *[!0-9]*|"") log "framecap_stale_need_no_pid" ;;
+      *)
+        log "framecap_stale_restart pid=$stale_pid"
+        kill "$stale_pid" 2>/dev/null || true
+        $SLEEP 2
+        kill -0 "$stale_pid" 2>/dev/null && kill -9 "$stale_pid" 2>/dev/null || true
+        $SLEEP 1
+        ;;
+    esac
+    fc_n=$($PS -A -o command= 2>/dev/null | grep -F "ziyan_framecap serve" | grep -vc grep | tr -dc '0-9')
+    [ -n "$fc_n" ] || fc_n=0
+    [ "$fc_n" -ge 1 ] 2>/dev/null && return 0
   fi
-  # 进程不在 → kickstart（限频：常态 60s；need 时 15s；禁 unload 活杀）
+  # 进程不在 → 拉子进程（限频：常态 60s；need 时 15s）。
   now=$($DATE '+%s' 2>/dev/null || echo 0)
   lastf="$VAR/.ziyan_zydaemon_fc_kick"
   last=0
@@ -121,20 +176,28 @@ ensure_framecap() {
   fi
   echo "$now" >"$lastf" 2>/dev/null
   rm -f "$VAR/.ziyan_watchdog_framecap_need" 2>/dev/null
-  # 202：仅普通 kickstart（禁 -k）；fc_n>=1 已在上方 return，禁止 orphan nohup 与 launchd 竞态
-  if [ -f "$FRAMECAP_PLIST" ]; then
-    $LAUNCHCTL kickstart system/com.ziyan.framecap 2>/dev/null \
-      || $LAUNCHCTL kickstart com.ziyan.framecap 2>/dev/null \
-      || { $LAUNCHCTL load "$FRAMECAP_PLIST" 2>/dev/null; }
-    log "framecap_kickstart plist=$FRAMECAP_PLIST need=$need"
+  FCBIN="$ROOT/bin/ziyan_framecap"
+  FCBOOT="${FCBIN%/*}/ziyan_framecap_bootstrap"
+  if [ -x "$FCBIN" ]; then
+    rm -f "$VAR/.ziyan_framecap_serve.lock" "$VAR/.ziyan_framecap_wrap.pid" 2>/dev/null
+    if [ -x "$FCBOOT" ]; then
+      nohup "$FCBOOT" "$FCBIN" serve >>"$VAR/.ziyan_framecap_out" 2>>"$VAR/.ziyan_framecap_err" </dev/null &
+    else
+      nohup "$FCBIN" serve >>"$VAR/.ziyan_framecap_out" 2>>"$VAR/.ziyan_framecap_err" </dev/null &
+    fi
+    echo "pid=$! ts=$now owner=zydaemon" >"$VAR/.ziyan_framecap_owner" 2>/dev/null || true
+    echo "zydaemon" >"$VAR/.ziyan_framecap_owner_mode" 2>/dev/null || true
+    chmod 666 "$VAR/.ziyan_framecap_owner" "$VAR/.ziyan_framecap_owner_mode" 2>/dev/null || true
+    log "framecap_spawn_zydaemon pid=$! need=$need"
     $SLEEP 2
-  fi
-  fc_n2=$($PS -A -o command= 2>/dev/null | grep -F "ziyan_framecap serve" | grep -vc grep | tr -dc '0-9')
-  [ -n "$fc_n2" ] || fc_n2=0
-  if [ "$fc_n2" -lt 1 ] 2>/dev/null; then
-    # 不删 lock、不 orphan spawn；写 need 等下一轮 / wrap 自愈
-    echo 1 >"$VAR/.ziyan_watchdog_framecap_need" 2>/dev/null
-    log "framecap_kick_pending still_dead need_rewritten=1"
+    fc_n2=$($PS -A -o command= 2>/dev/null | grep -F "ziyan_framecap serve" | grep -vc grep | tr -dc '0-9')
+    [ -n "$fc_n2" ] || fc_n2=0
+    if [ "$fc_n2" -lt 1 ] 2>/dev/null; then
+      echo 1 >"$VAR/.ziyan_watchdog_framecap_need" 2>/dev/null
+      log "framecap_spawn_pending still_dead need_rewritten=1"
+    fi
+  else
+    log "framecap_spawn_skip missing_bin=$FCBIN"
   fi
 }
 
@@ -147,21 +210,68 @@ intent_active() {
 }
 
 script_path_from_intent() {
-  sed -n 's/^path=//p' "$INTENT" 2>/dev/null | head -1
+  raw=$(sed -n 's/^path=//p' "$INTENT" 2>/dev/null | head -1)
+  [ -n "$raw" ] || return 0
+  # Canonicalize /private/var and the historical lua/ mirror to one real
+  # Media/ZiYan file.  Keep the original only when no canonical copy exists.
+  case "$raw" in /private/var/*) raw="/var/${raw#/private/var/}" ;; esac
+  base=${raw##*/}
+  for candidate in "$MEDIA/$base" "$MEDIA/lua/$base" "$raw" "/private$raw"; do
+    if [ -f "$candidate" ]; then
+      printf '%s\n' "$candidate" >"$VAR/.ziyan_run_canonical" 2>/dev/null || true
+      chmod 666 "$VAR/.ziyan_run_canonical" 2>/dev/null || true
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+  printf '%s\n' "$raw"
+}
+
+# Missing script: one log + idle/stop, never revive-spin.
+retire_missing_intent() {
+  sp="$1"
+  base=$(basename "$sp")
+  mark="$VAR/.ziyan_intent_stale_missing"
+  prev=$(cat "$mark" 2>/dev/null | head -1)
+  if [ "$prev" != "$sp" ]; then
+    log "stale_intent_missing $sp"
+    printf '%s\n' "$sp" >"$mark" 2>/dev/null || true
+    chmod 666 "$mark" 2>/dev/null || true
+  fi
+  printf 'stop=1\nstate=idle\nreason=stale_intent_missing\npath=%s\n' "$sp" >"$INTENT" 2>/dev/null || true
+  chmod 666 "$INTENT" 2>/dev/null || true
+  printf 'state=idle\npath=\norient=-1\n' >"$VAR/.ziyan_session" 2>/dev/null || true
+  case "$base" in
+    _zy_page_entry_selftest.lua|_cursor_run_smoke.lua)
+      emb=$(cat "$VAR/.ziyan_embed_script" 2>/dev/null | head -1)
+      embbase=$(basename "$emb")
+      if [ "$embbase" = "$base" ]; then
+        rm -f "$VAR/.ziyan_embed_go" "$VAR/.ziyan_embed_script" \
+          "$VAR/.ziyan_embed_ack" "$VAR/.ziyan_lua_embedded" \
+          "$VAR/.ziyan_page_selftest_req" "$VAR/.ziyan_page_selftest_log" \
+          2>/dev/null || true
+      fi
+      ;;
+  esac
 }
 
 lua_running_for() {
   sp="$1"
   base=$(basename "$sp")
+  # 心跳格式会带其它数字，例如 "ts=... pid=..."、"ts=... n=..."。
+  # 只能捕获 ts 的首个整数；tr -dc 会把 pid/n 拼进去，得到未来时间戳，
+  # 从而把死掉的 embed/pulse 永久误判为存活，业务脚本不会被 revive。
+  read_ts() {
+    sed -n 's/^ts=\([0-9][0-9]*\).*/\1/p' "$1" 2>/dev/null | head -1
+  }
   # 8-161-101 Phase2：embed-in-framecap = 存活（对标 TSDaemon；无独立 lua 进程）
   if [ -f "$VAR/.ziyan_lua_embedded" ] || [ -f "$VAR/.ziyan_embed_alive" ]; then
     # embed_alive 过期则不当存活（避免假活挡 revive）
     if [ -f "$VAR/.ziyan_embed_alive" ]; then
-      ats=$(sed -n 's/^ts=//p' "$VAR/.ziyan_embed_alive" 2>/dev/null | head -1 | tr -dc '0-9')
+      ats=$(read_ts "$VAR/.ziyan_embed_alive")
       now=$($DATE '+%s' 2>/dev/null || echo 0)
-      if [ -n "$ats" ] && [ -n "$now" ] && [ "$now" -gt 0 ] && [ $((now - ats)) -gt 30 ]; then
-        : # stale → fall through to process check / miss
-      else
+      if [ -n "$ats" ] && [ -n "$now" ] && [ "$now" -gt 0 ] && \
+          [ "$now" -ge "$ats" ] 2>/dev/null && [ $((now - ats)) -le 30 ] 2>/dev/null; then
         echo "embed:$base"
         return 0
       fi
@@ -172,9 +282,10 @@ lua_running_for() {
   fi
   # 142：find_pulse 新鲜 = 业务热扫仍在（对标触动 f01；禁路径抖动误 revive）
   if [ -f "$VAR/.ziyan_find_pulse" ]; then
-    pts=$(sed -n 's/^ts=//p' "$VAR/.ziyan_find_pulse" 2>/dev/null | head -1 | tr -dc '0-9')
+    pts=$(read_ts "$VAR/.ziyan_find_pulse")
     now=$($DATE '+%s' 2>/dev/null || echo 0)
-    if [ -n "$pts" ] && [ -n "$now" ] && [ "$now" -gt 0 ] && [ $((now - pts)) -le 20 ]; then
+    if [ -n "$pts" ] && [ -n "$now" ] && [ "$now" -gt 0 ] && \
+        [ "$now" -ge "$pts" ] 2>/dev/null && [ $((now - pts)) -le 20 ] 2>/dev/null; then
       echo "pulse:$base"
       return 0
     fi
@@ -195,6 +306,10 @@ revive() {
   if [ -f "$MEDIA/$base" ]; then
     sp="$MEDIA/$base"
   fi
+  canonical=$(cat "$VAR/.ziyan_run_canonical" 2>/dev/null | head -1)
+  if [ -n "$canonical" ] && [ -f "$canonical" ] && [ "$(basename "$canonical")" = "$base" ]; then
+    sp="$canonical"
+  fi
   # 8-146：mem_cooldown 只约束 SB 截屏，不挡 lua 拉起（否则故障注入/守护 SLA 永远失败）
   if [ -f "$VAR/.ziyan_sb_mem_cooldown" ]; then
     log "revive_note mem_cooldown_present still_revive script=$base"
@@ -214,8 +329,15 @@ revive() {
     return 0
   fi
   if [ -f "$FRAMECAP_ALIVE" ]; then
+    # Do not enqueue another go while the same VM/request is still alive.
+    if lua_running_for "$sp" >/dev/null 2>&1; then
+      log "revive_skip already_alive script=$base"
+      return 0
+    fi
+    nonce="zydaemon_$$_$($DATE '+%s')"
     printf '%s\n' "$sp" >"$VAR/.ziyan_embed_script" 2>/dev/null
-    echo "nonce=zydaemon_$$" >"$VAR/.ziyan_embed_go" 2>/dev/null
+    printf 'nonce=%s\nrequest_id=%s\nsession_id=%s\n' "$nonce" "$nonce" "$nonce" >"$VAR/.ziyan_embed_go" 2>/dev/null
+    echo "nonce=$nonce script=$sp" >"$VAR/.ziyan_embed_last_go" 2>/dev/null
     chmod 666 "$VAR/.ziyan_embed_script" "$VAR/.ziyan_embed_go" 2>/dev/null || true
     log "revive_embed $base"
     return 0
@@ -358,6 +480,14 @@ while true; do
     $SLEEP 2
     continue
   fi
+  if [ ! -f "$SP" ]; then
+    retire_missing_intent "$SP"
+    STUCK=0
+    PREV_CALLS=""
+    $SLEEP 5
+    continue
+  fi
+  rm -f "$VAR/.ziyan_intent_stale_missing" 2>/dev/null || true
   LINE=$(lua_running_for "$SP")
   CALLS=$(color_calls)
   NEED=0

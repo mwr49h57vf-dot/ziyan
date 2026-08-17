@@ -10,8 +10,10 @@ NS_ASSUME_NONNULL_BEGIN
 /// 2) 马上释放系统 IOSurface/CGImage，不长期占用 backboardd（禁 sticky 系统句柄）
 /// 3) keepScreen / find = 复用自有常驻槽（174 双堆缓冲）；文件 shm 仅跨进程镜像
 ///
-/// 热路径：IOMobileFramebuffer → CARender（临时系统 Surface，拷完即 CFRelease）
-/// 冷备：SB `_UICreateScreenUIImage`（系统屏缓冲；禁 drawViewHierarchy）
+/// 热路径：守护 `+[UIWindow createScreenIOSurface]`（压缩面 Accelerator 解压后
+/// 立刻拷进自有 RGBA；系统 surface 用完即 CFRelease）。
+/// 冷备：IOMobileFramebuffer / CARender / `_UICreateScreenUIImage`。
+/// 游戏主线程 `drawViewHierarchy` 只在上述守护路径失败时回退。
 
 BOOL ZiYanFrameCaptureToShm(NSString *_Nullable *_Nullable outErr);
 
@@ -37,6 +39,11 @@ BOOL ZiYanFrameCaptureToShmGlobalEx(NSString *_Nullable *_Nullable outErr,
                                     uint8_t *_Nullable outProvider,
                                     uint8_t *_Nullable outStatus);
 
+/// 触动对齐：framecap 内 `createScreenIOSurface` → 自有 RGBA。
+/// 压缩面走 Accelerator；失败不覆盖已有帧。
+BOOL ZiYanFrameCaptureToShmScreenIOSurface(
+    NSString *_Nullable *_Nullable outErr, uint32_t frontHash);
+
 /// 8-161-121：锁屏/灭屏（notify lockstate 或 .ziyan_display_locked=1）
 BOOL ZiYanDisplayIsLocked(void);
 
@@ -45,8 +52,43 @@ BOOL ZiYanFramePixelsUnhealthy(const uint8_t *_Nonnull base, size_t bpr,
                                size_t w, size_t h, BOOL allowBlack,
                                NSString *_Nullable *_Nullable outWhy);
 
+/// 仅为受控 IOMFB Accelerator 路径识别“深色底 + 稀疏真实 UI”。完全黑帧、
+/// 单点噪声和非 IOMFB 调用方仍必须按常规健康门拒绝。
+BOOL ZiYanFramePixelsHaveSparseContent(const uint8_t *_Nonnull base,
+                                       size_t bpr, size_t w, size_t h);
+
+/// 常驻 framecap 的隔离 UICreate child 是否仍待收割。调用方必须在为真的短窗内
+/// 继续轮询采集函数，不能让通用节拍把 child 结果搁置成秒级旧帧。
+BOOL ZiYanUICreateChildPending(void);
+
+/// 只收割已经在飞的 UICreate child，绝不创建新 child。
+/// AppWindow 成为正确前台帧源后，HandleOnce 会在全局采集前早退；
+/// 若不在早退前显式 poll，切屏窗口中启动的 child 退出后会永久 zombie。
+/// 返回 YES 表示已无待收割 child；NO 表示仍在飞/等待内核退出。
+BOOL ZiYanUICreateChildPoll(NSString *_Nullable *_Nullable outStage);
+
 /// 已有 UIImage 时写入 shm（SB relay / 诊断）
 BOOL ZiYanFrameCaptureUIImageToShm(UIImage *img,
                                    NSString *_Nullable *_Nullable outErr);
+
+/// C-65.3：子进程入口 — 仅跑 UICreate 并落盘 dump（供 rootless framecap 隔离崩溃）
+/// 成功返回 0；失败非 0。dump: magic ZYUC + u32 w,h,bpr + BGRA/RGBA 像素。
+int ZiYanUICreateDumpMain(const char *outPath);
+
+/// A 探针：一次性抓取候选源像素。禁止写 FrameShm / Resident。
+/// source: uisurface | carender | uicreate | iomfb
+/// 成功时 *outPixels 为与生产相同朝向旋转后的缓冲；失败仍可能带回部分像素。
+BOOL ZiYanFrameCaptureProbeOnce(NSString *source,
+                                NSMutableData *_Nullable *_Nonnull outPixels,
+                                size_t *outW, size_t *outH, size_t *outBPR,
+                                uint8_t *outProvider, uint8_t *outPixFmt,
+                                uint8_t *outOrient,
+                                NSString *_Nullable *_Nullable outErr);
+
+/// 将已旋转的探针像素写入生产 shm（走既有 WriteEx，不再抓帧）。
+BOOL ZiYanFrameCapturePublishPixels(NSMutableData *pixels, size_t w, size_t h,
+                                    size_t bpr, uint8_t provider,
+                                    uint8_t pixFmt, uint32_t frontHash,
+                                    NSString *_Nullable *_Nullable outErr);
 
 NS_ASSUME_NONNULL_END

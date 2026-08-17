@@ -3,7 +3,7 @@
   默认时长：1 秒（1000ms），与触动 toast(,1) 一致。
   子砚写 .ziyan_cmd，由 SpringBoard ZiYanToastBridge 按 init(0/1/2) 显示。
   样式：透明黑底白字（见 ZiYanToastBridge showToast）。
-  每次 toast 前刷新 .ziyan_orient / session，避免开游后横屏错位。
+  方向只跟 init，不跟前台 App / 当前屏方向。
 ]]
 local ZIYAN_VAR = _G.ZIYAN_VAR
 if type(ZIYAN_VAR) ~= "string" or ZIYAN_VAR == "" then
@@ -50,56 +50,28 @@ local function read_file_orient()
   return o, lw, lh
 end
 
---- 开 toast 前与游戏屏对齐（softSync + 可选 gameSync，防开游后错位）
---- R8.4.3：未显式 init 时禁止把文件里的横屏降成 0（旁路 lua toast 曾搞坏 .166）
+--- 开 toast 前只重申 init。禁止 gameSync / getScreenSize 把当前 App 方向写进 toast。
 local function refresh_toast_orient()
-  pcall(function()
-    if type(softSync) == "function" then
-      softSync()
-    elseif type(ZiYanOrient) == "table" and type(ZiYanOrient.soft_sync) == "function" then
-      ZiYanOrient.soft_sync()
-    end
-  end)
-  local orient = tonumber(_G.__ZIYAN_ORIENT)
+  local orient = nil
+  if type(ZiYanOrient) == "table" and type(ZiYanOrient.pinned_orient) == "function" then
+    orient = tonumber(ZiYanOrient.pinned_orient())
+  end
   if orient == nil then
-    orient = tonumber(_G.__ZIYAN_TE_ORIENT)
+    orient = tonumber(_G.__ZIYAN_ORIENT) or tonumber(_G.__ZIYAN_TE_ORIENT)
   end
   local fo, flw, flh = read_file_orient()
-  if not _G.__ZIYAN_INIT_CALLED then
-    if (orient == nil or orient == 0) and (fo == 1 or fo == 2) then
-      orient = fo
-    end
-  end
   if orient == nil then
-    orient = fo or 1
+    orient = fo
   end
-  pcall(function()
-    local bid = _G.__ZIYAN_LAST_BID
-    if type(gameSync) == "function" and bid then
-      gameSync(orient, bid)
-    elseif type(syncGameScreen) == "function" and bid then
-      syncGameScreen(orient, bid)
-    end
-  end)
-  local lw, lh = 0, 0
-  if type(getScreenSize) == "function" then
-    lw, lh = getScreenSize()
+  if orient == nil or orient < 0 or orient > 2 then
+    orient = 0
   end
-  lw, lh = tonumber(lw) or 0, tonumber(lh) or 0
-  if lw < 2 or lh < 2 then
-    lw, lh = flw, flh
-  end
-  -- 未 init 且会话已是横屏：只刷新 session，不降级写 0
+  -- 未显式 init 时禁止把文件里的横屏降成 0
   if (not _G.__ZIYAN_INIT_CALLED) and orient == 0 and (fo == 1 or fo == 2) then
     orient = fo
-    if flw > 0 and flh > 0 then
-      lw, lh = flw, flh
-    end
   end
+  local lw, lh = flw, flh
   pcall(function()
-    if (not _G.__ZIYAN_INIT_CALLED) and orient == 0 and (fo == 1 or fo == 2) then
-      return
-    end
     local f = io.open(ORIENT_FILE, "w")
     if f then
       f:write(tostring(orient) .. "\n")

@@ -354,7 +354,7 @@ def main():
 5. 观察脚本执行和日志输出
 
 如果子砚 App 未在前台:
-   - rootful设备: killall SpringBoard (重启后自动加载)
+   - rootful设备: 禁止 killall SpringBoard（BLOCKED_AUTO_SB_RESTART）
    - rootless设备: open com.ziyan.ziyan (直接打开)
 """)
 

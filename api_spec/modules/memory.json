@@ -10,7 +10,7 @@
         "key"
       ],
       "returns": "string",
-      "note": "优先读缓存 plist",
+      "note": "优先读 JSON 缓存，兼容历史 plist",
       "status": "done",
       "aliases": []
     },

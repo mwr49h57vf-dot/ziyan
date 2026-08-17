@@ -1,0 +1,4 @@
+interface:
+  display_name: "ZiYan Verdict Loop"
+  short_description: "Run evidence-first ZiYan delivery cycles across four devices."
+  default_prompt: "Use $ziyan-verdict-loop to identify the current ZiYan blocker, make one safe change, and produce a device-backed verdict."

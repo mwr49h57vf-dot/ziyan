@@ -4,6 +4,8 @@
 #import <dispatch/dispatch.h>
 #import <math.h>
 #import <stdio.h>
+#import <stdlib.h>
+#import <string.h>
 #import <unistd.h>
 #if defined(__ARM_NEON) || defined(__ARM_NEON__)
 #include <arm_neon.h>
@@ -281,9 +283,236 @@ static void ZCM_scriptCanvas(size_t bufW, size_t bufH, double *outSW,
     *outSH = SH;
 }
 
+/// 合帧已旋进 init 画布：坐标即像素，禁止再 OrientMap / pad。
+static BOOL ZCM_canvasIsBuffer(size_t width, size_t height, size_t bpr,
+                               double *outSW, double *outSH) {
+  double SW = 0, SH = 0;
+  ZCM_scriptCanvas(width, height, &SW, &SH);
+  if (outSW) {
+    *outSW = SW;
+  }
+  if (outSH) {
+    *outSH = SH;
+  }
+  return width >= 2 && height >= 2 && width >= height && bpr >= width * 4 &&
+         fabs(SW - (double)width) < 0.5 && fabs(SH - (double)height) < 0.5;
+}
+
+/*
+ * 全屏 legacy find 在竖屏原始缓冲上要扫数十万候选点。旧代码每一个候选点都调用
+ * ZiYanMapLogicToBuffer；该函数为保证 tap 的实时方向，会读取 .ziyan_orient 和
+ * .ziyan_init_args。把这类文件 I/O / Foundation 分配放进像素循环，会使 .53 的
+ * 一次全屏 find 从实测 8--9 秒膨胀出来。
+ *
+ * 匹配的一次调用本来就必须使用同一份坐标系（脚本 init 在调用期间不应改变），因此
+ * 这里把 OrientMap 的完全相同公式固化为本次调用的只读快照。坐标取整、缩放、边界
+ * 裁剪均与 ZiYanMapLogicToBuffer 保持逐项一致；只去掉重复读文件，不改变 TS 的
+ * 扫描顺序、命中公式或返回逻辑坐标。
+ */
+typedef struct {
+  size_t bufW;
+  size_t bufH;
+  ZiYanOrientInfo orient;
+  double SW;
+  double SH;
+  BOOL bufLand;
+} ZCMLogicMapper;
+
+static inline ZCMLogicMapper ZCM_makeLogicMapper(size_t bufW, size_t bufH) {
+  ZiYanOrientInfo o = ZiYanReadOrient();
+  ZCMLogicMapper m = {
+      .bufW = bufW,
+      .bufH = bufH,
+      .orient = o,
+      .SW = o.lw > 1 ? o.lw : 1136.0,
+      .SH = o.lh > 1 ? o.lh : 640.0,
+      .bufLand = bufW >= bufH,
+  };
+  return m;
+}
+
+static inline void ZCM_mapLogicCached(const ZCMLogicMapper *m, int sx, int sy,
+                                      size_t *ox, size_t *oy) {
+  if (!m || m->bufW == 0 || m->bufH == 0) {
+    *ox = *oy = 0;
+    return;
+  }
+  double px = 0, py = 0;
+  if (m->bufLand) {
+    // 与 ZiYanMapLogicToBuffer 的横屏分支一致。
+    px = sx / m->SW * (double)m->bufW;
+    py = sy / m->SH * (double)m->bufH;
+  } else {
+    double pw = (double)m->bufW;
+    double ph = (double)m->bufH;
+    if (m->orient.orient == 0) {
+      double lw0 = (m->orient.lw >= m->orient.lh)
+                       ? fmin(m->orient.lw, m->orient.lh)
+                       : m->SW;
+      double lh0 = (m->orient.lw >= m->orient.lh)
+                       ? fmax(m->orient.lw, m->orient.lh)
+                       : m->SH;
+      if (lw0 < 2) {
+        lw0 = fmin(m->SW, m->SH);
+      }
+      if (lh0 < 2) {
+        lh0 = fmax(m->SW, m->SH);
+      }
+      px = sx / lw0 * pw;
+      py = sy / lh0 * ph;
+    } else if (m->orient.orient == 1) {
+      px = (1.0 - sy / m->SH) * pw;
+      py = sx / m->SW * ph;
+    } else {
+      px = sy / m->SH * pw;
+      py = (1.0 - sx / m->SW) * ph;
+    }
+  }
+  *ox = (size_t)fmax(0.0, fmin((double)m->bufW - 1.0, px));
+  *oy = (size_t)fmax(0.0, fmin((double)m->bufH - 1.0, py));
+}
+
 static void ZCM_logicToBuf(int sx, int sy, size_t bufW, size_t bufH, size_t *ox,
                            size_t *oy) {
-  ZiYanMapLogicToBuffer(sx, sy, bufW, bufH, ox, oy);
+  ZCMLogicMapper mapper = ZCM_makeLogicMapper(bufW, bufH);
+  ZCM_mapLogicCached(&mapper, sx, sy, ox, oy);
+}
+
+/*
+ * 脚本逻辑格到缓冲格的映射是可分离的仿射变换：横屏和 orient=0 为
+ * (px=f(x), py=f(y))，orient=1/2 为 (px=f(y), py=f(x))。全屏 strict find
+ * 会扫描约 2208×1242 个逻辑点；即使已缓存方向快照，逐点重复做浮点缩放/钳制
+ * 仍在游戏画面实测占 200ms+。本 LUT 保留原函数算出的每一个格点结果，仅把
+ * 同一个 x/y 的重复计算换成读取。越界偏点继续回退原函数，保持旧的边界钳制语义。
+ */
+typedef struct {
+  const ZCMLogicMapper *mapper;
+  size_t *xMap;
+  size_t *yMap;
+  int scriptW;
+  int scriptH;
+  BOOL transposed;
+} ZCMLogicMapLut;
+
+static void ZCM_logicLutInit(ZCMLogicMapLut *lut,
+                             const ZCMLogicMapper *mapper, double scriptSW,
+                             double scriptSH) {
+  if (!lut) {
+    return;
+  }
+  memset(lut, 0, sizeof(*lut));
+  // 即使因异常画布/内存不足不建表，调用方也要能回退到同一份方向快照。
+  lut->mapper = mapper;
+  if (!mapper || scriptSW < 1 || scriptSH < 1) {
+    return;
+  }
+  int sw = (int)ceil(scriptSW);
+  int sh = (int)ceil(scriptSH);
+  // 防御异常 orient 文件；正常 iOS 画布仅数千像素，绝不应走到此上限。
+  if (sw < 1 || sh < 1 || sw > 16384 || sh > 16384) {
+    return;
+  }
+  size_t *xm = calloc((size_t)sw, sizeof(*xm));
+  size_t *ym = calloc((size_t)sh, sizeof(*ym));
+  if (!xm || !ym) {
+    free(xm);
+    free(ym);
+    return;
+  }
+  BOOL transposed = !mapper->bufLand && mapper->orient.orient != 0;
+  for (int x = 0; x < sw; x++) {
+    size_t px = 0, py = 0;
+    ZCM_mapLogicCached(mapper, x, 0, &px, &py);
+    xm[x] = transposed ? py : px;
+  }
+  for (int y = 0; y < sh; y++) {
+    size_t px = 0, py = 0;
+    ZCM_mapLogicCached(mapper, 0, y, &px, &py);
+    ym[y] = transposed ? px : py;
+  }
+  lut->xMap = xm;
+  lut->yMap = ym;
+  lut->scriptW = sw;
+  lut->scriptH = sh;
+  lut->transposed = transposed;
+}
+
+static void ZCM_logicLutFree(ZCMLogicMapLut *lut) {
+  if (!lut) {
+    return;
+  }
+  free(lut->xMap);
+  free(lut->yMap);
+  memset(lut, 0, sizeof(*lut));
+}
+
+static inline void ZCM_mapLogicForFind(const ZCMLogicMapLut *lut, int sx,
+                                       int sy, size_t *ox, size_t *oy) {
+  if (lut && lut->xMap && lut->yMap && sx >= 0 && sy >= 0 &&
+      sx < lut->scriptW && sy < lut->scriptH) {
+    if (lut->transposed) {
+      *ox = lut->yMap[sy];
+      *oy = lut->xMap[sx];
+    } else {
+      *ox = lut->xMap[sx];
+      *oy = lut->yMap[sy];
+    }
+    return;
+  }
+  ZCM_mapLogicCached(lut ? lut->mapper : NULL, sx, sy, ox, oy);
+}
+
+/// Strict 路径的候选点校验。把偏点/边界逻辑集中到一个小函数，供
+/// 标量扫描和 NEON 主色初筛共用；这样加速只减少候选点数量，不改变
+/// TS-strict 的首命中、ROI 和相对偏点语义。
+static BOOL ZCM_strictCandidateMatches(const uint8_t *pixels, size_t width,
+                                       size_t height, size_t bpr,
+                                       NSArray *pts, int degree, int mainColor,
+                                       int mainBias, const ZCMLogicMapLut *lut,
+                                       BOOL oneToOne, int x, int y,
+                                       int origLtx, int origLty, int origRbx,
+                                       int origRby) {
+  if (x < origLtx || x > origRbx || y < origLty || y > origRby) {
+    return NO;
+  }
+  size_t px = 0, py = 0;
+  if (oneToOne) {
+    px = (size_t)x;
+    py = (size_t)y;
+  } else {
+    ZCM_mapLogicForFind(lut, x, y, &px, &py);
+  }
+  int got = ZCM_rawColor(pixels, width, height, bpr, px, py);
+  if (!ZCM_matches(got, mainColor, degree)) {
+    return NO;
+  }
+  if (mainBias > 0 && ZCM_similarity(got, mainColor, mainBias) < 0) {
+    return NO;
+  }
+  for (NSUInteger i = 1; i < pts.count; i++) {
+    NSDictionary *off = pts[i];
+    int oxs = x + [off[@"dx"] intValue];
+    int oys = y + [off[@"dy"] intValue];
+    size_t ox = 0, oy = 0;
+    if (oneToOne) {
+      if (oxs < 0 || oys < 0 || (size_t)oxs >= width ||
+          (size_t)oys >= height) {
+        return NO;
+      }
+      ox = (size_t)oxs;
+      oy = (size_t)oys;
+    } else {
+      ZCM_mapLogicForFind(lut, oxs, oys, &ox, &oy);
+    }
+    int tc = [off[@"c"] intValue];
+    int tb = [off[@"b"] intValue];
+    int gc = ZCM_rawColor(pixels, width, height, bpr, ox, oy);
+    if (!ZCM_matches(gc, tc, degree) ||
+        (tb > 0 && ZCM_similarity(gc, tc, tb) < 0)) {
+      return NO;
+    }
+  }
+  return YES;
 }
 
 int ZiYanColorMatchGetColor(const uint8_t *pixels, size_t width, size_t height,
@@ -291,8 +520,13 @@ int ZiYanColorMatchGetColor(const uint8_t *pixels, size_t width, size_t height,
   if (!pixels || width < 2 || height < 2) {
     return -1;
   }
+  if (ZCM_canvasIsBuffer(width, height, bpr, NULL, NULL)) {
+    if (sx < 0 || sy < 0 || (size_t)sx >= width || (size_t)sy >= height) {
+      return -1;
+    }
+    return ZCM_rawColor(pixels, width, height, bpr, (size_t)sx, (size_t)sy);
+  }
   size_t px = 0, py = 0;
-  // 8-161-82：逻辑坐标→缓冲（修 rootful 竖屏 shm + init(1) 横屏脚本）
   ZCM_logicToBuf(sx, sy, width, height, &px, &py);
   return ZCM_rawColor(pixels, width, height, bpr, px, py);
 }
@@ -302,7 +536,12 @@ NSString *ZiYanColorMatchFindMulti(const uint8_t *pixels, size_t width,
                                    NSString *pointsJSON, int fuzzy, int ltx,
                                    int lty, int rbx, int rby, int scaleHint) {
   double scriptSW = 0, scriptSH = 0;
-  ZCM_scriptCanvas(width, height, &scriptSW, &scriptSH);
+  BOOL oneToOne = ZCM_canvasIsBuffer(width, height, bpr, &scriptSW, &scriptSH);
+  ZCMLogicMapper logicMapper;
+  memset(&logicMapper, 0, sizeof(logicMapper));
+  if (!oneToOne) {
+    logicMapper = ZCM_makeLogicMapper(width, height);
+  }
   NSDictionary *fail = @{
     @"ok" : @NO,
     @"x" : @(-1),
@@ -378,6 +617,11 @@ NSString *ZiYanColorMatchFindMulti(const uint8_t *pixels, size_t width,
   lty = MAX(0, lty);
   rbx = MIN(rbx, (int)SW - 1);
   rby = MIN(rby, (int)SH - 1);
+  ZCMLogicMapLut logicLut;
+  memset(&logicLut, 0, sizeof(logicLut));
+  if (!oneToOne) {
+    ZCM_logicLutInit(&logicLut, &logicMapper, SW, SH);
+  }
 
   // ── 8-161-81/82/92 TS-strict：细条 pad + 脚本序首命中 + OrientMap 入缓冲
   if (ZCM_wantStrict(pts, ltx, lty, rbx, rby)) {
@@ -385,77 +629,69 @@ NSString *ZiYanColorMatchFindMulti(const uint8_t *pixels, size_t width,
     // 与 ScreenBridge R8.3 同公式扩边，避免 @2/@3 亚像素邻行 miss（仍首命中）。
     // 8-161-111：pad 仅扩搜索；锚点必须落在原始 ROI（.53 FIND2 曾报 x=754 而 ROI=757→假「登录」）
     int origLtx = ltx, origLty = lty, origRbx = rbx, origRby = rby;
-    int scale = scaleHint;
-    if (scale <= 0) {
-      scale = (width >= 1000 || height >= 1000) ? 3 : 2;
+    if (!oneToOne) {
+      int scale = scaleHint;
+      if (scale <= 0) {
+        scale = (width >= 1000 || height >= 1000) ? 3 : 2;
+      }
+      int padY = (scale >= 3) ? 3 : 2;
+      int padX = (scale >= 3) ? 3 : 2;
+      if (rby - lty <= 2) {
+        lty = MAX(0, lty - padY);
+        rby = MIN((int)SH - 1, rby + padY);
+      }
+      if (rbx - ltx <= 4) {
+        ltx = MAX(0, ltx - padX);
+        rbx = MIN((int)SW - 1, rbx + padX);
+      }
     }
-    int padY = (scale >= 3) ? 3 : 2;
-    int padX = (scale >= 3) ? 3 : 2;
-    if (rby - lty <= 2) {
-      lty = MAX(0, lty - padY);
-      rby = MIN((int)SH - 1, rby + padY);
-    }
-    if (rbx - ltx <= 4) {
-      ltx = MAX(0, ltx - padX);
-      rbx = MIN((int)SW - 1, rbx + padX);
-    }
-    BOOL bufLand = width >= height;
-    BOOL oneToOne = bufLand && (fabs(SW - (double)width) < 0.5) &&
-                    (fabs(SH - (double)height) < 0.5) && (bpr >= width * 4);
+    int tol = (255 * (100 - degree)) / 100;
+    // 全屏 strict find 是真实业务最重的基准：在 @2 横屏缓冲上可以用
+    // NEON 先筛掉 4 个像素中不可能命中的主色，再对少量候选执行完整
+    // 偏点校验。BGRA/旋转/非一比一场景仍走原标量路径，保证兼容性。
+    BOOL neonMain = ZCM_neonEnabled() && sZCMPixFmt == 1 && oneToOne &&
+                    mainBias == 0;
     for (int y = lty; y <= rby; y++) {
-      for (int x = ltx; x <= rbx; x++) {
-        size_t px = 0, py = 0;
-        if (oneToOne) {
-          px = (size_t)x;
-          py = (size_t)y;
-        } else {
-          ZCM_logicToBuf(x, y, width, height, &px, &py);
-        }
-        int got = ZCM_rawColor(pixels, width, height, bpr, px, py);
-        if (!ZCM_matches(got, mainColor, degree)) {
-          continue;
-        }
-        if (mainBias > 0) {
-          int ms = ZCM_similarity(got, mainColor, mainBias);
-          if (ms < 0) {
-            continue;
-          }
-        }
-        BOOL ok = YES;
-        for (NSUInteger i = 1; i < pts.count; i++) {
-          NSDictionary *off = pts[i];
-          int oxs = x + [off[@"dx"] intValue];
-          int oys = y + [off[@"dy"] intValue];
-          size_t ox = 0, oy = 0;
-          if (oneToOne) {
-            if (oxs < 0 || oys < 0 || (size_t)oxs >= width ||
-                (size_t)oys >= height) {
-              ok = NO;
-              break;
+      int x = ltx;
+#if defined(__ARM_NEON) || defined(__ARM_NEON__)
+      if (neonMain) {
+        const uint8_t *row = pixels + (size_t)y * bpr;
+        for (; x + 3 <= rbx; x += 4) {
+          uint8_t mask =
+              ZCM_neonMainRejectMask(row + (size_t)x * 4, mainColor, tol);
+          while (mask) {
+            int lane = __builtin_ctz((unsigned)mask);
+            mask &= (uint8_t)(mask - 1);
+            int cx = x + lane;
+            if (!ZCM_strictCandidateMatches(
+                    pixels, width, height, bpr, pts, degree, mainColor,
+                    mainBias, &logicLut, oneToOne, cx, y, origLtx, origLty,
+                    origRbx, origRby)) {
+              continue;
             }
-            ox = (size_t)oxs;
-            oy = (size_t)oys;
-          } else {
-            // 偏点在脚本空间；禁止缓冲空间加 dx/dy
-            ZCM_logicToBuf(oxs, oys, width, height, &ox, &oy);
-          }
-          int tc = [off[@"c"] intValue];
-          int tb = [off[@"b"] intValue];
-          int gc = ZCM_rawColor(pixels, width, height, bpr, ox, oy);
-          if (!ZCM_matches(gc, tc, degree)) {
-            ok = NO;
-            break;
-          }
-          if (tb > 0 && ZCM_similarity(gc, tc, tb) < 0) {
-            ok = NO;
-            break;
+            NSDictionary *rep = @{
+              @"ok" : @YES,
+              @"x" : @(cx),
+              @"y" : @(y),
+              @"score" : @100,
+              @"w" : @((int)lround(SW)),
+              @"h" : @((int)lround(SH)),
+              @"via" : @"ts_strict"
+            };
+            NSData *out = enc(rep);
+            ZCM_logicLutFree(&logicLut);
+            return out ? [[NSString alloc] initWithData:out
+                                             encoding:NSUTF8StringEncoding]
+                       : @"{\"ok\":true,\"x\":-1,\"y\":-1,\"via\":\"ts_strict\"}";
           }
         }
-        if (!ok) {
-          continue;
-        }
-        // 锚点必须在未 pad 的脚本 ROI 内（pad 只抗亚像素，禁止外溢假命中）
-        if (x < origLtx || x > origRbx || y < origLty || y > origRby) {
+      }
+#endif
+      for (; x <= rbx; x++) {
+        if (!ZCM_strictCandidateMatches(
+                pixels, width, height, bpr, pts, degree, mainColor, mainBias,
+                &logicLut, oneToOne, x, y, origLtx, origLty, origRbx,
+                origRby)) {
           continue;
         }
         NSDictionary *rep = @{
@@ -468,6 +704,7 @@ NSString *ZiYanColorMatchFindMulti(const uint8_t *pixels, size_t width,
           @"via" : @"ts_strict"
         };
         NSData *out = enc(rep);
+        ZCM_logicLutFree(&logicLut);
         return out
                    ? [[NSString alloc] initWithData:out
                                            encoding:NSUTF8StringEncoding]
@@ -477,6 +714,7 @@ NSString *ZiYanColorMatchFindMulti(const uint8_t *pixels, size_t width,
     NSMutableDictionary *miss = [fail mutableCopy];
     miss[@"via"] = @"ts_strict";
     NSData *o = enc(miss);
+    ZCM_logicLutFree(&logicLut);
     return o ? [[NSString alloc] initWithData:o encoding:NSUTF8StringEncoding]
              : @"{\"ok\":false,\"x\":-1,\"y\":-1,\"via\":\"ts_strict\"}";
   }
@@ -486,16 +724,18 @@ NSString *ZiYanColorMatchFindMulti(const uint8_t *pixels, size_t width,
   if (scale <= 0) {
     scale = (width >= 1000 || height >= 1000) ? 3 : 2;
   }
-  int padY = (scale >= 3) ? 3 : 2;
-  int padX = (scale >= 3) ? 3 : 2;
   int origLtx = ltx, origLty = lty, origRbx = rbx, origRby = rby;
-  if (rby - lty <= 2) {
-    lty = MAX(0, lty - padY);
-    rby = MIN((int)SH - 1, rby + padY);
-  }
-  if (rbx - ltx <= 4) {
-    ltx = MAX(0, ltx - padX);
-    rbx = MIN((int)SW - 1, rbx + padX);
+  if (!oneToOne) {
+    int padY = (scale >= 3) ? 3 : 2;
+    int padX = (scale >= 3) ? 3 : 2;
+    if (rby - lty <= 2) {
+      lty = MAX(0, lty - padY);
+      rby = MIN((int)SH - 1, rby + padY);
+    }
+    if (rbx - ltx <= 4) {
+      ltx = MAX(0, ltx - padX);
+      rbx = MIN((int)SW - 1, rbx + padX);
+    }
   }
 
   __block int bestScore = -1;
@@ -543,8 +783,12 @@ NSString *ZiYanColorMatchFindMulti(const uint8_t *pixels, size_t width,
         }
 #endif
         size_t px = 0, py = 0;
-        // 8-161-82：legacy 同样走逻辑→缓冲（禁 naive SW=bufW）
-        ZCM_logicToBuf(x, y, width, height, &px, &py);
+        if (oneToOne) {
+          px = (size_t)x;
+          py = (size_t)y;
+        } else {
+          ZCM_mapLogicForFind(&logicLut, x, y, &px, &py);
+        }
         int got = ZCM_rawColor(pixels, width, height, bpr, px, py);
         if (!ZCM_matches(got, mainColor, degree)) {
           // 邻域仅缓冲空间；命中坐标仍回报脚本 (x,y)，避免竖屏缓冲反向错位
@@ -567,8 +811,19 @@ NSString *ZiYanColorMatchFindMulti(const uint8_t *pixels, size_t width,
         for (NSUInteger i = 1; i < ptsLocal.count; i++) {
           NSDictionary *off = ptsLocal[i];
           size_t ox = 0, oy = 0;
-          ZCM_logicToBuf(hitX + [off[@"dx"] intValue],
-                         hitY + [off[@"dy"] intValue], width, height, &ox, &oy);
+          int oxs = hitX + [off[@"dx"] intValue];
+          int oys = hitY + [off[@"dy"] intValue];
+          if (oneToOne) {
+            if (oxs < 0 || oys < 0 || (size_t)oxs >= width ||
+                (size_t)oys >= height) {
+              ok = NO;
+              break;
+            }
+            ox = (size_t)oxs;
+            oy = (size_t)oys;
+          } else {
+            ZCM_mapLogicForFind(&logicLut, oxs, oys, &ox, &oy);
+          }
           int tc = [off[@"c"] intValue];
           int tb = [off[@"b"] intValue];
           int gc = ZCM_rawColor(pixels, width, height, bpr, ox, oy);
@@ -676,6 +931,7 @@ NSString *ZiYanColorMatchFindMulti(const uint8_t *pixels, size_t width,
     rep = fail;
   }
   NSData *out = enc(rep);
+  ZCM_logicLutFree(&logicLut);
   return out ? [[NSString alloc] initWithData:out encoding:NSUTF8StringEncoding]
              : @"{\"ok\":false,\"x\":-1,\"y\":-1,\"via\":\"daemon\"}";
 }
@@ -698,4 +954,3 @@ char *ZiYanColorMatchFindMultiC(const uint8_t *pixels, size_t width,
     return strdup(rep.UTF8String);
   }
 }
-

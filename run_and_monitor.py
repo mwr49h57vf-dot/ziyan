@@ -210,7 +210,7 @@ def generate_analysis_report(all_data: list):
 5. 运行 5-10 分钟后再次采集数据
 
 如果子砚 App 未在前台:
-- 通过 SSH 执行: killall SpringBoard (重启 SpringBoard)
+- 禁止通过 SSH 执行 killall SpringBoard（BLOCKED_AUTO_SB_RESTART）
 - 或在设备上手动点击子砚图标
 """)
     

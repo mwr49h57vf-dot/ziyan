@@ -46,5 +46,23 @@ int ZiYanFrameKeepTTLSec(void);
 /// 读 front / shm_bid 一行（供找色日志）
 NSString *_Nullable ZiYanFrameKeepReadFrontBid(void);
 NSString *_Nullable ZiYanFrameKeepReadShmBid(void);
+NSString *_Nullable ZiYanFrameKeepReadCapturedFront(void);
+
+/// 同一次 capture 的 bid 对：shm_front_bid 与 captured_front_bid 必须一起写。
+/// 同时写入 captured_generation = 当前 front_generation（原子封存）。
+void ZiYanFrameLeaseCommitFront(NSString *_Nullable bid);
+void ZiYanFrameLeaseInvalidateFront(void);
+
+uint32_t ZiYanFrameKeepReadFrontGeneration(void);
+uint32_t ZiYanFrameKeepReadCapturedGeneration(void);
+/// current_generation == captured_generation 且均非 0。
+BOOL ZiYanFrameKeepGenerationSealed(void);
+
+/// P0 Day3：与 /status 同源的派生 lease。find 只读此状态，不改匹配器。
+/// active / suspended / reacquiring
+NSString *ZiYanFrameLeaseState(uint32_t seq, long long ageMs, unsigned provider,
+                               NSString *_Nullable frontBid,
+                               NSString *_Nullable shmBid);
+NSString *ZiYanFrameLeaseStatePeek(void);
 
 NS_ASSUME_NONNULL_END

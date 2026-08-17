@@ -18,6 +18,13 @@
 static uint32_t sShmSeq = 1;
 static NSString *sPathOverride = nil;
 static ZiYanFrameResidentHooks sResidentHooks;
+static uint8_t sWritePixFmt = ZiYanFramePixelFormatRGBA8888;
+
+void ZiYanFrameShmSetWritePixelFormat(uint8_t pixelFormat) {
+  sWritePixFmt = (pixelFormat == ZiYanFramePixelFormatBGRA8888)
+                     ? ZiYanFramePixelFormatBGRA8888
+                     : ZiYanFramePixelFormatRGBA8888;
+}
 
 void ZiYanFrameShmSetPathOverrideForTest(NSString *path) {
   sPathOverride = [path copy];
@@ -339,8 +346,8 @@ static uint32_t ZFS_NextSeq(uint32_t prev) {
 static void ZFS_FillV2Meta(ZiYanFrameShmHeader *hdr, uint8_t provider,
                            uint8_t orient, uint32_t frontHash, uint8_t status) {
   hdr->version = 2;
-  // framecap Capture 写的是 R,G,B,A 字节序（已从 IOSurface BGRA 交换）
-  hdr->pixel_format = ZiYanFramePixelFormatRGBA8888;
+  hdr->pixel_format = sWritePixFmt;
+  sWritePixFmt = ZiYanFramePixelFormatRGBA8888;
   hdr->orient = orient;
   hdr->provider = provider;
   hdr->status = status;
@@ -610,6 +617,15 @@ uint32_t ZiYanFrameShmPeekSeq(void) {
     return 0;
   }
   return hdr.seq;
+}
+
+long long ZiYanFrameShmPeekAgeMs(void) {
+  ZiYanFrameShmHeader hdr;
+  if (!ZFS_PeekHeader(&hdr) || ZFS_IsWritingHdr(&hdr) || hdr.ts_ms == 0) {
+    return -1;
+  }
+  uint64_t now = (uint64_t)(NSDate.date.timeIntervalSince1970 * 1000.0);
+  return (now >= hdr.ts_ms) ? (long long)(now - hdr.ts_ms) : 0;
 }
 
 uint8_t ZiYanFrameShmPeekProvider(void) {

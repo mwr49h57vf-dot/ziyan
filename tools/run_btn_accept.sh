@@ -3,6 +3,9 @@
 # 触发：.ziyan_open_app 打开 App → .ziyan_app_run_trig（≡ runButtonTapped + minimize）
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# shellcheck source=zy_guard_no_auto_respring.sh
+. "$ROOT/tools/zy_guard_no_auto_respring.sh"
+zy_guard_block_unless_manual "$@"
 HOST="${THEOS_DEVICE_IP:-192.168.31.166}"
 PASS="${ZIYAN_SSH_PASS:-alpine}"
 SSH=(sshpass -p "$PASS" ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no -o ConnectTimeout=15 root@"$HOST")
@@ -48,7 +51,12 @@ cat > $VAR/.ziyan_state.plist <<PLIST
 PLIST
 cp -f $VAR/.ziyan_state.plist /private/var/mobile/Media/ZiYan/.ziyan_state.plist
 uicache -p /Applications/ZiYan.app >/dev/null 2>&1 || true
-ldrestart
+if [ "${ZY_ALLOW_MANUAL_RESPRING:-0}" = 1 ]; then
+  ldrestart
+else
+  echo BLOCKED_AUTO_SB_RESTART
+  exit 78
+fi
 REMOTE
 echo "wait ldrestart..."
 sleep 22

@@ -4,7 +4,7 @@
 > 以及历史 `G0` / `G1–G6` / `H1–H8` / `刀1–刀6` / `M-A~M-F` / `E1–E4` / `总门禁` / `7.6.x-R*`
 > 全部编号。旧文档已迁入 `DOCS/_superseded_plans/`，仅作历史查阅，**不得再作为排期或判据依据**。
 
-最后更新：2026-08-07
+最后更新：2026-08-15（CLOCK_SKEW：工作区/设备常显示 2026-08-16，不是额外进度日）
 
 ---
 
@@ -22,15 +22,15 @@
 ## 1. 阶段模型
 
 ```
-Z0 基线校准  →  Z1 对齐  →  Z2 长稳  →  Z3 超越
-   触动真值       不劣于触动    30min/3h     优于触动
+Z0 基线校准  →  Z1 对齐  →  Z2-30M 长稳  →  Z3 超越
+   触动真值       不劣于触动       30min        优于触动
 ```
 
 | 阶段 | 门禁 | 含义 |
 |---|---|---|
 | **Z0** | `Z0-GIT` `Z0-TS` `Z0-METRIC` | 回滚锚点、触动同协议真值、度量口径正确 |
 | **Z1** | `Z1-MEM` `Z1-VIS` `Z1-TOUCH` `Z1-ASSET` | 四机在同协议下不劣于触动 |
-| **Z2** | `Z2-30M` `Z2-3H` | 四机长稳，无 SB 重启环 |
+| **Z2** | `Z2-30M` | 四机 30 分钟长稳，无 SB 重启环 |
 | **Z3** | `Z3-SB` `Z3-PERF` | 稳定性与效率优于 `.171` |
 
 阶段之间是**硬依赖**：Z0 未完成则 Z1 的阈值无效；Z1 未全绿禁开 Z2；Z2 未全绿禁谈 Z3。
@@ -139,9 +139,9 @@ Z0 基线校准  →  Z1 对齐  →  Z2 长稳  →  Z3 超越
 
 工具：`bash tools/zy_vision_asset_gate.sh 101 53`，配合 `tests/vision_assets/`。
 
-### Z2-30M / Z2-3H · 长稳
+### Z2-30M · 长稳
 
-`ZY_E4_MIN=30`（后续 180）四机全绿，`SB_CHG=0` 且无重启环。
+`ZY_E4_MIN=30` 四机全绿，`SB_CHG=0` 且无重启环。三小时长稳不再是当前门禁。
 
 ### Z3 · 超越
 
@@ -156,12 +156,17 @@ Z0 基线校准  →  Z1 对齐  →  Z2 长稳  →  Z3 超越
 | `Z0-GIT` | **绿** | 5 个主题 commit，工作树干净 |
 | `Z0-TS` | **绿** | `tmp_shots/TS_OBS/20260807_022020/TS_RSS_SLOPE.md` |
 | `Z0-METRIC` | **绿** | `zy_e4_promo_gate.sh` 已归一化并绑定出处 |
-| `Z1-MEM` | **进行中** | 刀 A/B/C 逐刀验证中 |
-| `Z1-VIS` | **红 1/4** | 仅 `.53` PASS；`.112/.166` 待用户更新 Desktop 色点 |
-| `Z1-TOUCH` | **红** | `.101` 命中 `(396,195)` 但 `TOUCH_REP_OK=0` |
-| `Z1-ASSET` | **红** | `.53` `img=-1,-1`、`FC_N=2` |
-| `Z2-30M` / `Z2-3H` | **未跑** | 被 Z1 阻塞 |
-| `Z3-*` | **禁止宣称** | — |
+| `Z1-MEM` | **绿（本包四机 30min）** | 配对包 rootful `debug-10-24-5` / rootless `debug-10-24-6`。30min `tmp_shots/Z1_MEM_C98_20260815_134508/REPORT.md` 四机 PASS：FC_N=1 SB_CHG=0 embed_find>0 color_req=0。OLS/100s：`.53 -20.7` `.101 -7.1` `.112 -11.5` `.166 -2.7`。5min 通道检 `tmp_shots/Z1_MEM_C98_20260815_133703`。旧 C98 三机报告保留不删。不是 Z2。禁宣称超越 |
+| `Z1-VIS` | **绿（本包四机 RUN1）** | 同一次 `zy_dual_package.sh`：rootful `debug-10-24-5`、rootless `debug-10-24-6`。`RUN1_GATE_20260815_121431_all_72725` 四机 `TYPED=BUSINESS_PASS`，设备端 final 可回收。ios7 `(1010,294)` → `com.xztl.ios`；ios8p `(2011,284)` → `com.ljzbbadao.game`。`FC_N=1` `SB_CHG=0` 停后 ACTIVE=0。禁宣称超越 |
+| `Z1-TOUCH` | **绿（本包四机）** | `tmp_shots/Z1_TOUCH_20260815_144118`。rootful `(1080,320)`→Preferences；rootless `(2011,284)`→`com.ljzbbadao.game`。`FC_N=1` `ACTIVE=0` `KEEP=0` `SB_CHG=0`。设备端 final 可回收。未改找色坐标。禁宣称超越 |
+| `Z1-ASSET` | **绿（本包四机找图）** | `tmp_shots/Z1_ASSET_20260815_144305`。keep+shm 自证：rootful `454,256`；rootless `884,496`。`via_color_req_find=0` `FC_N=1`。lease 独立文件本包不存在（记 NOTE，未改 FrameLease）。禁宣称超越 |
+| `Z1-OCR` | **结论明确：准确率未齐（非稳定）** | 复验 `tmp_shots/Z1_OCR_20260815_155443_16691`；旧跑 `144523`/`144555`/`151708` 保留。中文/空结果可用；数字四机同错 `它？方还j5`；多行不稳。`.53` getText 超时。热更 ocr 二进制 iOS13 被杀已回滚。不得把门禁 VERDICT=PASS 写成 OCR 稳定。未阻断 find/touch |
+| `Z1-NET` | **绿（Lua Ftp* 四机）** | 复验 `tmp_shots/Z1_NET_20260815_153933`。旧 curl 夹具 `144633` 保留。`.53` via=curl；rootful via=python_ftplib。upload/download/read/delete 四机通。错误账号/超时/断网按预期失败。rootful `FtpIsUpdate` SIZE 未齐（记 NOTE，未伪造）。本地 `FC_N=1`。热更 `py_cv.lua` 去掉 embed `io.popen` |
+| `Z2-10M-PRELIM` | **四机 PASS（非最终 Z2）** | `tmp_shots/Z1_MEM_C98_20260815_144705`。`FC_N=1` `SB_CHG=0` embed>0 color_req=0。OLS 不上升。**不得写成最终 Z2 PASS**。已有 30min MEM 报告未删 |
+| `Z2-30M` | **绿（debug-10-25 四机正式 30min）** | `tmp_shots/P2_30M_C98_20260815_212152` 四机 30/30 PASS，SB/BB PID 不变，`via_color_req_find=0`，无空 open_app→ZiYan。设备 final 可回收。上次场景 FAIL `203524` 与更旧 `171114`/`161226`/`160605` 保留。debug-10-24 `175901` 仍有效但不能替代 10-25。未打最终包。禁宣称超越 |
+| `OPEN_APP_SKIP` | **绿（debug-10-25 四机定向）** | 空/空白 `.ziyan_open_app` 已改为 skip，不再默认 `com.ziyan.ziyan`。任意明确合法 Bundle ID 按原逻辑打开。测试游戏只是夹具。证据 `tmp_shots/OPEN_APP_SKIP_20260815_193315`（`.166` 同包 `192312`）。配对包 rootful `debug-10-25-1` / rootless `debug-10-25-2`。尚未完成最终发布包人工验收。禁宣称完全兼容或超越触动 |
+| `Z3-*` | **禁止宣称** | `.149/.171` 本窗密钥可达，只读。不可达时标 `OBSERVER_UNREACHABLE`，不得写成 ZiYan FAIL。`usb_play/lan_play=ERR` 是已停 forever 夹具 |
+| `AGENT_MVP` | **PARTIAL，未四机 PASS** | 证据 `tmp_shots/AGENT_MVP_4PHONE_20260815_1/VERDICT.md`。.112 续修 `tmp_shots/SB_RECOVERY_112_20260815/VERDICT.md`：10-31 约每 275s 换 PID；10-32-2 一次 sbreload 后 360s 稳定。现 .101/.112/.166=10-32-2，.53 仍 10-31-2。BB 合帧仍 deferred。禁宣称四机完成或超越 |
 
 已绿并需保持：RF 最小化+方向契约、找色契约 T1–T4、`FC_N=1`、`WORKSET≤6MB`、
 `SB_CHG=0`、前台永远跟帧（`lua/ziyan_engine/fg_gate.lua`）。

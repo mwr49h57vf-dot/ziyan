@@ -45,4 +45,4 @@ sshpass -p alpine scp -P 2222 packages/*iphoneos-arm64.deb mobile@127.0.0.1:/var
 sshpass -p alpine ssh -p 2222 mobile@127.0.0.1 'echo alpine | sudo -S dpkg -i /var/mobile/Media/*.deb'
 ```
 
-安装后建议 `killall SpringBoard`。冒烟：`lua5.3 …/ziyan_run.lua _ziyan_usb_smoke.lua` → `$JB/usr/lib/ziyan/var/.ziyan_usb_smoke.txt` 含 `round=1`。
+安装后只读状态，禁止自动 `killall SpringBoard` / `sbreload`。冒烟：`lua5.3 …/ziyan_run.lua _ziyan_usb_smoke.lua` → `$JB/usr/lib/ziyan/var/.ziyan_usb_smoke.txt` 含 `round=1`。

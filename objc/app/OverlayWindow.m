@@ -54,6 +54,10 @@ static inline UIWindowLevel ZiYanMenuWindowLevel(void) {
 @property(nonatomic, strong, nullable) dispatch_source_t frontKeepTimer;
 @property(nonatomic, assign) UIBackgroundTaskIdentifier menuBgTask;
 @property(nonatomic, assign) BOOL chromeHiddenForMenu;
+@property(nonatomic, assign) BOOL toastSuspended;
+@property(nonatomic, assign) NSUInteger toastEpoch;
+@property(nonatomic, copy, nullable) NSString *pendingToastText;
+@property(nonatomic, assign) NSTimeInterval pendingToastDuration;
 @end
 
 @implementation OverlayWindow
@@ -90,7 +94,29 @@ static inline UIWindowLevel ZiYanMenuWindowLevel(void) {
 }
 
 - (void)onAppLifecycleForMenu:(NSNotification *)note {
-  (void)note;
+  BOOL leaving = [note.name isEqualToString:UIApplicationWillResignActiveNotification] ||
+                [note.name isEqualToString:UIApplicationDidEnterBackgroundNotification];
+  BOOL returning = [note.name isEqualToString:UIApplicationDidBecomeActiveNotification];
+  if (leaving) {
+    self.toastSuspended = YES;
+    self.toastEpoch++;
+    self.win.hidden = YES;
+    self.label.alpha = 0;
+  } else if (returning) {
+    NSUInteger epoch = ++self.toastEpoch;
+    self.toastSuspended = YES;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.20 * NSEC_PER_SEC)),
+                   dispatch_get_main_queue(), ^{
+      if (epoch != self.toastEpoch) return;
+      self.toastSuspended = NO;
+      if (self.pendingToastText.length > 0) {
+        NSString *t = self.pendingToastText;
+        NSTimeInterval d = self.pendingToastDuration;
+        self.pendingToastText = nil;
+        [self showToast:t duration:d];
+      }
+    });
+  }
   if (!self.menuOpen) {
     return;
   }
@@ -424,7 +450,17 @@ static inline UIWindowLevel ZiYanMenuWindowLevel(void) {
   if (text.length == 0) {
     return;
   }
+  if (self.toastSuspended) {
+    self.pendingToastText = text;
+    self.pendingToastDuration = MAX(0.4, seconds);
+    return;
+  }
   dispatch_async(dispatch_get_main_queue(), ^{
+    if (self.toastSuspended) {
+      self.pendingToastText = text;
+      self.pendingToastDuration = MAX(0.4, seconds);
+      return;
+    }
     [self setupOverlay];
     if (!self.win) {
       return;
@@ -623,7 +659,7 @@ static inline UIWindowLevel ZiYanMenuWindowLevel(void) {
   NSInteger tag = sender.tag;
   [self dismissVolumeMenu];
   switch (tag) {
-  case 0: { // 运行
+  case 0: { // 音量菜单「运行」：禁止走页面 page_entry 最小化规则
     NSString *path = ZiYanSelectedPathFromState();
     if (path.length == 0) {
       [self showToast:@"未选中脚本" duration:1.4];

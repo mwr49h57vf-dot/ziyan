@@ -1,0 +1,98 @@
+---
+description: 完整超越触动精灵方案强制执行——架构、找色、守护、内存、触控和验收自动对齐
+alwaysApply: true
+---
+
+# 完整超越触动精灵方案：Cursor 强制执行规则
+
+## 1. 每次会话与每次相关改动的必读文件
+
+在任何架构、守护、framecap、Lua、找色、keepScreen、触控、音量、Toast、内存、OCR、启动链、部署或验收工作前，必须读取：
+
+1. 仓库根目录 `完整超越触动精灵方案.txt`
+2. `ROADMAP.md`（排期、门禁、阈值的唯一真值源）
+3. `ARCHITECTURE.md`
+4. `今日项目进度.txt`
+5. 与当前改动直接相关的源文件、最近 VERDICT 与 `.149/.171` 只读对照证据。
+
+不得仅根据单个代码片段、旧日志或口头印象推断系统行为。
+
+## 2. 文件优先级与冲突处理
+
+- `ROADMAP.md` 是门禁、阶段、阈值和“能否宣称完成”的唯一真值源。
+- `ARCHITECTURE.md` 是运行模型与设备分工真值源。
+- `完整超越触动精灵方案.txt` 是稳定性、会话、帧 lease、资源所有权和产品级验收增强方案。
+- 当方案与当前已验证实现冲突时，禁止直接大重构；必须采用方案第十二节的校正规则：保留单 framecap、embed 热路径、FC_N=1、现有 rootful/rootless 启动规避与四机门禁。
+- 任何疑似冲突必须记录为“待验证假设”，先跑最小门禁，不能靠猜测改写运行模型。
+
+## 3. 不可破坏的现有设计
+
+以下内容默认冻结，除非有四机证据证明替代方案更好且可回滚：
+
+1. `ziyan_framecap` 是唯一常驻帧宿主，`FC_N=1`。
+2. 常规 Lua/find/getColor/keepScreen 保持 framecap 内嵌热路径；禁止把常规找色退回 HTTP、同步截图或 `color_req` 热路径。
+3. 不新增与现有 `zydaemon` / `ziyadaemond` 竞争的第二生命周期守护；“supervisor”只能是对现有 owner 的协议与职责收敛。
+4. 前台永远跟帧；Home、锁屏、前台 bundle 改变后禁止把旧 App 帧伪装为当前帧。
+5. 不用 kill SpringBoard/backboardd 掩盖生命周期、内存或帧问题。
+6. `.149/.171` 只读；ZiYan 的部署、PASS/FAIL 和性能结论只来自 `.53/.101/.112/.166`。
+
+## 4. 自动问题分类：找色慢/卡屏/假死
+
+遇到找色效率下降、脚本久跑无响应、黑屏、旧帧、点击未生效时，必须依次分类，禁止先调 fuzzy、坐标或 force_recap：
+
+1. 帧生产：`provider`、`frame_seq`、`frame_age_ms` 是否推进；是否出现 relay/UICreate/black_backoff。
+2. 前台一致性：`front_bid`、`shm_bid`、keep lock bid、lease 状态是否一致。
+3. 锁竞争：记录 `lock_wait_ms`、`pixel_match_ms`、writer wait。
+4. 像素匹配：仅在帧新鲜且锁等待正常后，才优化 ROI、点序、模板、早停和 native matcher。
+5. 回收抖动：检查 Lua GC、autoreleasepool、冻结帧、模板 LRU、日志、OCR sidecar。
+6. 生命周期：检查 intent、embed_alive、find_pulse、framecap_alive、stop、keep 等状态是否残留或矛盾。
+
+业务 find 不得同步等待 SB relay、CARender 或 UICreate。捕帧不可用时，返回可诊断的 `reacquiring/unavailable`，不得继续扫描 stale/black/错前台帧。
+
+## 5. 会话、停止和内存合同
+
+所有启动入口必须最终统一为同一意图和会话语义：run -> preparing -> ready -> running -> paused/stopping -> idle，失败与恢复必须有明确状态和错误码。
+
+每次 STOP、异常退出、脚本结束后自动检查：
+
+- ACTIVE=0；
+- KEEP_AFTER_STOP=0；
+- 无遗留触控按下状态；
+- 无僵尸 runner/子进程；
+- framecap 仍为单实例或按 idle 策略受控；
+- Toast/Overlay 清理；
+- 帧、模板、Lua、OCR、日志资源回到合同范围。
+
+内存结论必须使用至少 30 分钟窗口 OLS 与停止后残留，不得仅用短窗口 RSS 波动判定泄漏。
+
+## 6. 自动执行流程
+
+对每个相关任务，Cursor 必须执行并记录：
+
+1. 读取第 1 节文件并提取当前约束；
+2. 写出本刀假设、影响层、回滚点、预期指标；
+3. 只修改一个可归因主题；
+4. 构建后执行 install-name 验证；
+5. 部署前执行现有清机门禁；
+6. 仅在 `.53/.101/.112/.166` 运行对应最小测试；
+7. 拉取 `.149/.171` 只读同窗证据（适用时）；
+8. 输出结构化 VERDICT：build、设备、session、帧指标、CPU/RSS、SB_CHG、失败码、回滚建议；
+9. 更新 `今日项目进度.txt` 与证据路径。
+
+若两次自研修改仍未解决同一问题，下一步必须转为 `.149/.171` 只读差分采证，不得继续盲改。
+
+## 7. 自动停止条件
+
+出现下列任一情况时，禁止继续叠加修改，必须回滚到最近已验证版本并先产出诊断：
+
+- FC_N > 1；
+- SpringBoard/backboardd 重启或重启环；
+- `via_color_req_find > 0` 的热路径倒退；
+- 新增持续 stale/black/relay_timeout/UICreate 循环；
+- 运行后 keep、session、触控或僵尸残留；
+- Z1-MEM/Z2 指标明显退化；
+- rootful/rootless 任一侧无法启动或安装名验证失败。
+
+## 8. 自动化边界
+
+Cursor 可自动读取、分析、构建、执行已有门禁、收集证据和提出/实施可回滚的小改动；但不得把“自动执行”写成未经真机证据的“完美完成”。四机 30 分钟长稳、真实业务交互和系统稳定性结论必须以四机实测 VERDICT 为准。

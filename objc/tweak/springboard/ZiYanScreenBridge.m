@@ -2426,6 +2426,97 @@ enum {
   }
 }
 
+- (void)publishHidObservationNonce:(NSString *)nonce
+                                 x:(double)x
+                                 y:(double)y
+                            okDown:(BOOL)okDown
+                              okUp:(BOOL)okUp {
+  if (!okDown || !okUp || nonce.length == 0) {
+    return;
+  }
+  NSString *bid =
+      [[NSString stringWithContentsOfFile:ZiYanVarFile(@".ziyan_front_bid")
+                                 encoding:NSUTF8StringEncoding
+                                    error:nil]
+          stringByTrimmingCharactersInSet:
+              [NSCharacterSet whitespaceAndNewlineCharacterSet]]
+          ?: @"";
+  NSString *hidErr =
+      [NSString stringWithContentsOfFile:ZiYanVarFile(@".ziyan_hid_err")
+                                encoding:NSUTF8StringEncoding
+                                   error:nil]
+          ?: @"";
+  NSString *errCode = @"0";
+  for (NSString *line in [hidErr componentsSeparatedByString:@"\n"]) {
+    if ([line hasPrefix:@"error_code="]) {
+      errCode = [line substringFromIndex:11];
+      break;
+    }
+  }
+  long long ts = (long long)([[NSDate date] timeIntervalSince1970] * 1000.0);
+  NSInteger seq0 =
+      [NSString stringWithContentsOfFile:ZiYanVarFile(@".ziyan_frame_seq")
+                                encoding:NSUTF8StringEncoding
+                                   error:nil]
+          .integerValue;
+  NSString *receipt = [NSString
+      stringWithFormat:
+          @"nonce=%@\nx=%.2f\ny=%.2f\nts=%lld\nok_down=%d\nok_up=%d\n"
+          @"error_code=%@\nprocess_bid=%@\nhidOk=1\n",
+          nonce, x, y, ts, 1, 1, errCode, bid];
+  (void)ZiYanWriteVarText(@".ziyan_injection_receipt", receipt);
+  NSString *bridgeLine = [NSString
+      stringWithFormat:
+          @"{\"type\":\"tap\",\"event_source\":\"synthetic_hid\","
+          @"\"source\":\"synthetic_hid\",\"nonce\":\"%@\","
+          @"\"process_bid\":\"%@\",\"x\":%.2f,\"y\":%.2f,"
+          @"\"frame_seq_before\":%ld,\"ts\":%lld}\n",
+          nonce, bid, x, y, (long)seq0, ts];
+  /* jsonl 给 Recorder consumeBridge；durable 副本不被 consume/clearTemps 删掉 */
+  (void)ZiYanWriteVarText(@".ziyan_agent_learn_bridge.jsonl", bridgeLine);
+  (void)ZiYanWriteVarText(@".ziyan_injection_bridge", bridgeLine);
+  NSString *evLine = [NSString
+      stringWithFormat:
+          @"{\"event_id\":\"ev_hid_%@\",\"nonce\":\"%@\",\"type\":\"tap\","
+          @"\"source\":\"synthetic_hid\",\"ts\":%lld}\n",
+          nonce, nonce, ts];
+  (void)ZiYanWriteVarText(@".ziyan_agent_learn_events.jsonl", evLine);
+  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.4 * NSEC_PER_SEC)),
+                 dispatch_get_main_queue(), ^{
+                   NSInteger seq1 =
+                       [NSString
+                           stringWithContentsOfFile:ZiYanVarFile(
+                                                        @".ziyan_frame_seq")
+                                           encoding:NSUTF8StringEncoding
+                                              error:nil]
+                           .integerValue;
+                   NSString *bid1 =
+                       [[NSString
+                           stringWithContentsOfFile:ZiYanVarFile(
+                                                        @".ziyan_front_bid")
+                                           encoding:NSUTF8StringEncoding
+                                              error:nil]
+                           stringByTrimmingCharactersInSet:
+                               [NSCharacterSet
+                                   whitespaceAndNewlineCharacterSet]]
+                           ?: bid;
+                   BOOL changed = (seq1 > seq0);
+                   long long ts1 =
+                       (long long)([[NSDate date] timeIntervalSince1970] *
+                                   1000.0);
+                   NSString *obs = [NSString
+                       stringWithFormat:
+                           @"{\"nonce\":\"%@\",\"process_bid\":\"%@\","
+                           @"\"frame_seq_before\":%ld,\"frame_seq_after\":%ld,"
+                           @"\"frame_ts\":%lld,\"x\":%.2f,\"y\":%.2f,"
+                           @"\"observation_result\":\"%@\","
+                           @"\"event_source\":\"synthetic_hid\"}\n",
+                           nonce, bid1, (long)seq0, (long)seq1, ts1, x, y,
+                           changed ? @"seq_changed" : @"no_visible_change"];
+                   (void)ZiYanWriteVarText(@".ziyan_observation_packet", obs);
+                 });
+}
+
 - (void)pollTouch {
   // 8-150：优先消费 ControlShm touch_req
   if (!ZiYanControlShmDisabled()) {
@@ -2457,6 +2548,13 @@ enum {
                                       x:(double)tx
                                       y:(double)ty];
         ok = okDown && okUp;
+        if (ok) {
+          [self publishHidObservationNonce:nonceStr
+                                         x:(double)tx
+                                         y:(double)ty
+                                    okDown:okDown
+                                      okUp:okUp];
+        }
       } else {
         NSString *phase = @"move";
         if (type == 2) {
@@ -2554,6 +2652,9 @@ enum {
     }
     BOOL ok = okDown && okUp;
     [self writeRep:[self touchRepPath] nonce:nonce ok:ok body:ok ? @"1" : @"0"];
+    if (ok) {
+      [self publishHidObservationNonce:nonce x:x y:y okDown:okDown okUp:okUp];
+    }
     return;
   }
   if (parts.count < 6 || ![parts[0] isEqualToString:@"touch"]) {

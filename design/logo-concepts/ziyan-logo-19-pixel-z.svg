@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+<defs>
+ <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#163fba"/><stop offset=".48" stop-color="#613bbf"/><stop offset="1" stop-color="#d0499e"/></linearGradient>
+ <linearGradient id="px" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffffff"/><stop offset=".45" stop-color="#9dffff"/><stop offset="1" stop-color="#d4a4ff"/></linearGradient>
+ <filter id="g"><feGaussianBlur stdDeviation="13" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<rect width="1024" height="1024" rx="230" fill="url(#bg)"/>
+<circle cx="180" cy="165" r="290" fill="#92ffff" opacity=".13"/><circle cx="860" cy="820" r="290" fill="#ffb0dd" opacity=".14"/>
+<g fill="#fff" opacity=".18"><circle cx="195" cy="430" r="8"/><circle cx="821" cy="320" r="7"/><circle cx="742" cy="760" r="10"/><circle cx="273" cy="723" r="6"/></g>
+<g fill="url(#px)" filter="url(#g)">
+ <!-- top stroke -->
+ <rect x="260" y="260" width="92" height="92" rx="22"/><rect x="374" y="260" width="92" height="92" rx="22"/><rect x="488" y="260" width="92" height="92" rx="22"/><rect x="602" y="260" width="92" height="92" rx="22"/>
+ <!-- descending diagonal -->
+ <rect x="602" y="374" width="92" height="92" rx="22"/><rect x="488" y="488" width="92" height="92" rx="22"/><rect x="374" y="602" width="92" height="92" rx="22"/>
+ <!-- bottom stroke -->
+ <rect x="260" y="716" width="92" height="92" rx="22"/><rect x="374" y="716" width="92" height="92" rx="22"/><rect x="488" y="716" width="92" height="92" rx="22"/><rect x="602" y="716" width="92" height="92" rx="22"/>
+</g>
+<g fill="none" stroke="#fff" stroke-opacity=".67" stroke-width="5"><rect x="260" y="260" width="92" height="92" rx="22"/><rect x="374" y="260" width="92" height="92" rx="22"/><rect x="488" y="260" width="92" height="92" rx="22"/><rect x="602" y="260" width="92" height="92" rx="22"/><rect x="602" y="374" width="92" height="92" rx="22"/><rect x="488" y="488" width="92" height="92" rx="22"/><rect x="374" y="602" width="92" height="92" rx="22"/><rect x="260" y="716" width="92" height="92" rx="22"/><rect x="374" y="716" width="92" height="92" rx="22"/><rect x="488" y="716" width="92" height="92" rx="22"/><rect x="602" y="716" width="92" height="92" rx="22"/></g>
+</svg>

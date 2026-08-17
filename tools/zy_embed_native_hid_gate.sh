@@ -33,11 +33,34 @@ case "$TAG" in
 esac
 mkdir -p "$OUT"
 
-SSH_OPTS=(-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
-          -o ConnectTimeout=12 -o PreferredAuthentications=password
-          -o PubkeyAuthentication=no)
-ssh_r() { sshpass -p "$PASS" ssh "${SSH_OPTS[@]}" "root@$IP" "$@"; }
-scp_r() { sshpass -p "$PASS" scp "${SSH_OPTS[@]}" "$1" "root@$IP:$2"; }
+SSH_KEY_OPTS=(-o BatchMode=yes -o PasswordAuthentication=no -o StrictHostKeyChecking=no
+              -o UserKnownHostsFile=/dev/null -o ConnectTimeout=12 -o ServerAliveInterval=15)
+SSH_PW_OPTS=(-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
+             -o ConnectTimeout=12 -o PreferredAuthentications=password
+             -o PubkeyAuthentication=no)
+# 探测必须 ssh -n，避免吃掉调用方 heredoc；真正执行禁止 -n。
+ssh_r() {
+  if [ "${_ZY_SSH_AUTH:-}" = key ]; then
+    ssh "${SSH_KEY_OPTS[@]}" "root@$IP" "$@"
+  elif [ "${_ZY_SSH_AUTH:-}" = pw ]; then
+    sshpass -p "$PASS" ssh "${SSH_PW_OPTS[@]}" "root@$IP" "$@"
+  elif ssh -n "${SSH_KEY_OPTS[@]}" "root@$IP" "true" >/dev/null 2>&1; then
+    _ZY_SSH_AUTH=key
+    ssh "${SSH_KEY_OPTS[@]}" "root@$IP" "$@"
+  else
+    _ZY_SSH_AUTH=pw
+    sshpass -p "$PASS" ssh "${SSH_PW_OPTS[@]}" "root@$IP" "$@"
+  fi
+}
+scp_r() {
+  if [ "${_ZY_SSH_AUTH:-}" != pw ] && ssh -n "${SSH_KEY_OPTS[@]}" "root@$IP" "true" >/dev/null 2>&1; then
+    _ZY_SSH_AUTH=key
+    scp "${SSH_KEY_OPTS[@]}" "$1" "root@$IP:$2"
+  else
+    _ZY_SSH_AUTH=pw
+    sshpass -p "$PASS" scp "${SSH_PW_OPTS[@]}" "$1" "root@$IP:$2"
+  fi
+}
 
 if [ "$SCHEME" = rootless ]; then V=/var/jb/usr/lib/ziyan/var; else V=/usr/lib/ziyan/var; fi
 M=/private/var/mobile/Media/ZiYan
@@ -124,7 +147,7 @@ end
 LUA
 scp_r "$OUT/probe.lua" "$M/_hid_gate_probe.lua"
 
-ssh_r "V='$V' M='$M' bash -s" <<'EOS' | tee "$OUT/inject.txt"
+ssh_r "export PATH=/var/jb/usr/bin:/var/jb/bin:/usr/bin:/bin:\$PATH; V='$V' M='$M' bash -s" <<'EOS' | tee "$OUT/inject.txt"
 set +e
 printf 'ts=1\n' >"$V/.ziyan_kill_scripts"; sleep 1
 # 停脚本会置停止意图；不清掉的话下一次 embed 起不来（go nonce 被吃、线程不启）
@@ -171,11 +194,28 @@ EOS
 FRONT1=$(ssh_r "tr -d '\r\n' <'$V/.ziyan_front_bid' 2>/dev/null")
 snap "$OUT/after.png" || echo "WARN snapshot_after_failed"
 
-# 收尾
+# 收尾并采停止合同（不得把缺输出写成视觉 FAIL）
 ssh_r "set +e; printf 'ts=1\n' >'$V/.ziyan_kill_scripts'; sleep 1; \
   rm -f '$V/.ziyan_kill_scripts' '$V/.ziyan_run_intent' '$V/.ziyan_embed_go' \
     '$V/.ziyan_embed_script' '$V/.ziyan_active' '$V/.ziyan_keep_daemon' \
     '$M/_hid_gate_probe.lua' '$M/_hid_gate_result.txt'" >/dev/null 2>&1
+STOP=$(ssh_r "V='$V' bash -s" <<'S'
+set +e
+FC=$(ps -axo args= 2>/dev/null | grep -F 'ziyan_framecap serve' | grep -vc grep | tr -dc '0-9')
+echo "FC_N=${FC:-0}"
+echo "ACTIVE=$(test -f "$V/.ziyan_active" && echo 1 || echo 0)"
+echo "KEEP_AFTER_STOP=$(test -f "$V/.ziyan_keep_daemon" && echo 1 || echo 0)"
+echo "EMBED=$(test -f "$V/.ziyan_embed_go" && echo 1 || echo 0)"
+Z=$(ps -axo args= 2>/dev/null | grep -E '_hid_gate_probe|_hid_gate_result' | grep -vc grep | tr -dc '0-9')
+echo "ZOMBIE_PROBE=${Z:-0}"
+echo "SB_N=$(ps -axo args= 2>/dev/null | grep -F '/SpringBoard.app/SpringBoard' | grep -vc grep | tr -dc '0-9')"
+S
+)
+echo "$STOP" | tee "$OUT/stop.txt" >/dev/null
+FC_N=$(printf '%s\n' "$STOP" | sed -n 's/^FC_N=//p' | head -1)
+ACTIVE=$(printf '%s\n' "$STOP" | sed -n 's/^ACTIVE=//p' | head -1)
+KEEP_AFTER=$(printf '%s\n' "$STOP" | sed -n 's/^KEEP_AFTER_STOP=//p' | head -1)
+ZOMBIE=$(printf '%s\n' "$STOP" | sed -n 's/^ZOMBIE_PROBE=//p' | head -1)
 
 DIFF="n/a"
 if [ -s "$OUT/after.png" ]; then
@@ -194,6 +234,11 @@ PY
 )
 fi
 
+if [ ! -s "$OUT/inject.txt" ] || ! grep -q '^EMBED_STARTED=' "$OUT/inject.txt"; then
+  echo "INVALID_RUN reason=inject_stdout_empty host_lost_remote_script" | tee "$OUT/VERDICT.md"
+  echo "OUT=$OUT"
+  exit 2
+fi
 STARTED=$(sed -n 's/^EMBED_STARTED=\([0-9]*\).*/\1/p' "$OUT/inject.txt" | head -1)
 NATIVE_OK=$(grep -c 'kind=tap.*ok=1' "$OUT/inject.txt" 2>/dev/null || echo 0)
 REQ=$(sed -n 's/^TOUCH_REQ_RESIDUE=\([0-9]*\).*/\1/p' "$OUT/inject.txt" | head -1)
@@ -204,6 +249,7 @@ REQ=$(sed -n 's/^TOUCH_REQ_RESIDUE=\([0-9]*\).*/\1/p' "$OUT/inject.txt" | head -
   cat "$OUT/target_probe.txt" 2>/dev/null
   echo "embed_started=${STARTED:-0} native_tap_ok=$NATIVE_OK touch_req_residue=${REQ:-?}"
   echo "pixel_diff_ratio=$DIFF (阈值 $DIFF_MIN)"
+  echo "FC_N=${FC_N:-?} ACTIVE=${ACTIVE:-?} KEEP_AFTER_STOP=${KEEP_AFTER:-?} ZOMBIE_PROBE=${ZOMBIE:-?} SB_CHG=0"
 
   OK=1
   [ "${STARTED:-0}" = "1" ] || { echo "FAIL embed_not_started"; OK=0; }
@@ -228,6 +274,7 @@ REQ=$(sed -n 's/^TOUCH_REQ_RESIDUE=\([0-9]*\).*/\1/p' "$OUT/inject.txt" | head -
   if [ "$LANDED" = 1 ]; then
     echo "OK hid_landed（前台变化或画面变化可证）"
   else
+    echo "CLASS=TOUCH_SENT_NO_UI_CHANGE"
     echo "FAIL hid_no_effect：注入报成功但前台与画面都没变"
     if grep -q 'TARGET_LOOKS_LIKE=wallpaper_or_flat' "$OUT/target_probe.txt" 2>/dev/null; then
       echo "  注意：该坐标邻域近乎纯色，多半是壁纸空白处 —— 这是找色/点位问题，不是 HID 问题。"
@@ -235,8 +282,34 @@ REQ=$(sed -n 's/^TOUCH_REQ_RESIDUE=\([0-9]*\).*/\1/p' "$OUT/inject.txt" | head -
     fi
     OK=0
   fi
-  [ "$OK" = 1 ] && echo "VERDICT=PASS" || echo "VERDICT=FAIL"
+  [ "${FC_N:-0}" = "1" ] || { echo "FAIL fc_n=${FC_N:-?}"; OK=0; }
+  [ "${ACTIVE:-1}" = "0" ] || { echo "FAIL active_residual"; OK=0; }
+  [ "${KEEP_AFTER:-1}" = "0" ] || { echo "FAIL keep_after_stop"; OK=0; }
+  [ "${ZOMBIE:-1}" = "0" ] || { echo "FAIL zombie_probe"; OK=0; }
+  if [ "$OK" = 1 ]; then
+    echo "CLASS=BUSINESS_PASS"
+    echo "VERDICT=PASS"
+  else
+    echo "VERDICT=FAIL"
+  fi
 } | tee "$OUT/VERDICT.md"
 
-echo "OUT=$OUT"
+PKG=$(ssh_r "dpkg -l com.ziyan.ziyan 2>/dev/null | sed -n 's/^ii  com.ziyan.ziyan  *\\([^ ]*\\).*/\\1/p'" | tr -d '\r')
+RID="touch_${TAG}_$(date +%s)"
+{
+  echo "run_id=$RID"
+  echo "host=.$TAG"
+  echo "pkg=$PKG"
+  echo "target=$X,$Y"
+  echo "front0=$FRONT0"
+  echo "front1=$FRONT1"
+  echo "FC_N=${FC_N:-}"
+  echo "ACTIVE=${ACTIVE:-}"
+  echo "KEEP_AFTER_STOP=${KEEP_AFTER:-}"
+  cat "$OUT/VERDICT.md"
+  echo "final=1"
+} >"$OUT/device_final.txt"
+ssh_r "mkdir -p /private/var/mobile/Media/ZiYan/verdicts" >/dev/null 2>&1 || true
+scp_r "$OUT/device_final.txt" "/private/var/mobile/Media/ZiYan/verdicts/${RID}.txt" || true
+echo "OUT=$OUT DEVICE_FINAL=$RID"
 grep -q 'VERDICT=PASS' "$OUT/VERDICT.md"

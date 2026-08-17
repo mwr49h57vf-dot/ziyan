@@ -1,0 +1,19 @@
+{
+  "profile_id": "agent_observe",
+  "bundle_id": "com.ziyan.ziyan",
+  "display_name": "观察回归",
+  "game_name": "子砚",
+  "pinyin_name": "ziyan",
+  "supported_orientations": [0, 1],
+  "reference_screen": { "w": 0, "h": 0, "note": "no absolute coordinates" },
+  "states": ["PRECHECK", "OBSERVING", "DECIDING", "VERIFYING", "STOPPED"],
+  "anchors": [
+    { "id": "front_self", "kind": "bundle", "bundle_id": "com.ziyan.ziyan" }
+  ],
+  "allowed_actions": [],
+  "forbidden_actions": ["tap", "login", "pay", "chat", "register"],
+  "timeout_budget": 60,
+  "retry_budget": 0,
+  "resource_budget": { "ocr": 0, "find_image": 0, "find_color": 0 },
+  "profile_version": "1"
+}

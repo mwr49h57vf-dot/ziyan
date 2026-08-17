@@ -16,6 +16,27 @@
 	<true/>
 	<key>com.apple.QuartzCore.global-capture</key>
 	<true/>
+	<!-- 这两条是「第三方 App 前台时 CARender 恒黑」的根因。
+	     对照 .171 的 TSDaemon entitlements（ldid -e）：它没有
+	     iokit-user-client-class，却有 secure-capture + displayable-context，
+	     所以它的 CARenderServerRenderDisplay 能拍到第三方 App 画面；
+	     子砚缺这两条，render 返回 KERN_SUCCESS 但内容全黑，
+	     于是塌到被节流的 SB 中继，帧龄 9~391s。 -->
+	<key>com.apple.QuartzCore.secure-capture</key>
+	<true/>
+	<key>com.apple.QuartzCore.displayable-context</key>
+	<true/>
+	<!-- HID：守护内原生注入需要这四条。缺失时 BKHIDSystemInterface 拿不到、
+	     无特权 client dispatch 到不了 UI，只能回落带回执的 SB 中继。
+	     同样出自 TSDaemon entitlements 对照。 -->
+	<key>com.apple.private.hid.client.event-dispatch</key>
+	<true/>
+	<key>com.apple.private.hid.client.event-filter</key>
+	<true/>
+	<key>com.apple.private.hid.manager.client</key>
+	<true/>
+	<key>com.apple.private.hid.client.service-protected</key>
+	<true/>
 	<!-- Phase A：对齐非 SB 进程 IOSurface 创建权（学习开源思路，自研 entitlements） -->
 	<key>com.apple.private.IOSurface.protected-access</key>
 	<true/>

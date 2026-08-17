@@ -1,5 +1,5 @@
-#import "ZiYanScreenBridge.h"
 #import "ZiYanPaths.h"
+#import "ZiYanInjectTrace.h"
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import <objc/message.h>
@@ -12,8 +12,16 @@
 */
 
 static void ZiYanFrameRelayOpenApp(NSString *bundleId) {
+  bundleId = [bundleId
+      stringByTrimmingCharactersInSet:[NSCharacterSet
+                                          whitespaceAndNewlineCharacterSet]];
   if (bundleId.length == 0) {
-    bundleId = @"com.ziyan.ziyan";
+    ZiYanAppendOpenAppLog(@"open_app_skip_empty", @"relay_open", @"empty_arg");
+    return;
+  }
+  if (!ZiYanOpenAppBundleIdLooksLegal(bundleId)) {
+    ZiYanAppendOpenAppLog(@"open_app_invalid", @"relay_open", bundleId);
+    return;
   }
   // 8-161-67：已前台 / 2.5s 文件闸 → 跳过（防与 Vol 双路叠 launch）
   NSString *front =
@@ -49,7 +57,11 @@ static void ZiYanFrameRelayOpenApp(NSString *bundleId) {
   SEL launchSel =
       NSSelectorFromString(@"launchApplicationWithIdentifier:suspended:");
   if ([sbApp respondsToSelector:launchSel]) {
-    ((BOOL(*)(id, SEL, id, BOOL))objc_msgSend)(sbApp, launchSel, bundleId, NO);
+    BOOL ok = ((BOOL(*)(id, SEL, id, BOOL))objc_msgSend)(sbApp, launchSel,
+                                                         bundleId, NO);
+    if (!ok) {
+      ZiYanAppendOpenAppLog(@"launch_failed", @"relay_open", bundleId);
+    }
     return;
   }
   Class sbac = NSClassFromString(@"SBApplicationController");
@@ -78,31 +90,40 @@ static void ZiYanFrameRelayOpenApp(NSString *bundleId) {
     SEL act = NSSelectorFromString(@"activateApplication:");
     if ([uiCtrl respondsToSelector:act]) {
       ((void (*)(id, SEL, id))objc_msgSend)(uiCtrl, act, app);
+      return;
     }
   }
+  ZiYanAppendOpenAppLog(@"launch_failed", @"relay_open", bundleId);
+}
+
+/// ZiYanVol 是 ScreenBridge 的唯一实现者。不要在 FrameRelay 中静态引用该类：
+/// 两个 dylib 各自链接同名 ObjC 类会让 iOS 13 按装载顺序选中不确定的实例。
+/// FrameRelay 的 constructor 已延迟 12 秒，届时 Vol 已完成其 3 秒的薄桥启动。
+static NSString *ZiYanFrameRelayStartSharedScreenBridge(void) {
+  Class cls = NSClassFromString(@"ZiYanScreenBridge");
+  SEL sharedSel = NSSelectorFromString(@"shared");
+  SEL startSel = NSSelectorFromString(@"startInSpringBoard");
+  if (!cls || ![cls respondsToSelector:sharedSel]) {
+    return @"bridge_class_unavailable";
+  }
+  id bridge = ((id(*)(id, SEL))objc_msgSend)(cls, sharedSel);
+  if (!bridge || ![bridge respondsToSelector:startSel]) {
+    return @"bridge_instance_or_selector_unavailable";
+  }
+  ((void (*)(id, SEL))objc_msgSend)(bridge, startSel);
+  return @"bridge_start_called";
 }
 
 static void ZiYanFrameRelayPollOpenApp(void) {
-  NSFileManager *fm = [NSFileManager defaultManager];
-  NSString *openPath = ZiYanVarFile(@".ziyan_open_app");
-  if (![fm fileExistsAtPath:openPath]) {
-    return;
+  NSString *bid = nil;
+  if (ZiYanConsumeOpenAppFile(@"relay", &bid) && bid.length > 0) {
+    ZiYanFrameRelayOpenApp(bid);
   }
-  // 用户「关闭程序」粘性：吞掉 open_app，禁止自动重开
-  if (ZiYanIsAppUserClosed()) {
-    [fm removeItemAtPath:openPath error:nil];
-    return;
-  }
-  NSString *bid = [[NSString stringWithContentsOfFile:openPath
-                                             encoding:NSUTF8StringEncoding
-                                                error:nil]
-      stringByTrimmingCharactersInSet:[NSCharacterSet
-                                          whitespaceAndNewlineCharacterSet]];
-  [fm removeItemAtPath:openPath error:nil];
-  ZiYanFrameRelayOpenApp(bid.length ? bid : @"com.ziyan.ziyan");
 }
 
 __attribute__((constructor)) static void ZiYanFrameRelayInit(void) {
+  ZiYanInjectTrace("ZiYanFrameRelay", "ctor_enter");
+  ZiYanInjectTrace("ZiYanFrameRelay", "ctor_exit");
   @autoreleasepool {
     NSString *proc = [NSProcessInfo processInfo].processName ?: @"";
     if (![proc isEqualToString:@"SpringBoard"]) {
@@ -127,14 +148,45 @@ __attribute__((constructor)) static void ZiYanFrameRelayInit(void) {
               [[NSDate date] timeIntervalSince1970], getpid()];
       ZiYanWriteVarText(@".ziyan_hooks", body);
     }
+    // 冷启动：仅写旗；ScreenBridge 初始化推迟到 SB 起来 ≥12s，
+    // 避开下午崩溃簇「Launch 后 ≈10s SIGABRT」窗口。
+    // iOS 13 上在 Substrate constructor 内直接向 main queue 注册 delayed block
+    // 会在部分 ldrestart 路径静默丢失（仅构造标记更新、12 秒回调从不执行）。先由
+    // 全局队列完成计时并留下证据，再明确切回主队列做 UIKit/ScreenBridge 操作。
     dispatch_after(
-        dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.5 * NSEC_PER_SEC)),
-        dispatch_get_main_queue(), ^{
-          [[ZiYanScreenBridge shared] startInSpringBoard];
+        dispatch_time(DISPATCH_TIME_NOW, (int64_t)(12.0 * NSEC_PER_SEC)),
+        dispatch_get_global_queue(QOS_CLASS_UTILITY, 0), ^{
+          ZiYanInjectTrace("ZiYanFrameRelay", "late_start");
+          ZiYanWriteVarText(@".ziyan_frame_relay_bridge_state",
+                             [NSString stringWithFormat:@"ts=%.0f state=delay_fired\\n",
+                                                        NSDate.date.timeIntervalSince1970]);
+          dispatch_async(dispatch_get_main_queue(), ^{
+          @try {
+            // .112 P2 受控回归：仅初始化 relay 时 _UICreateScreenUIImage
+            // 持续产出 black（cap_diag=WRITE_REJECT），而完整 ScreenBridge
+            // 初始化后同一 API 能稳定交帧。保留 relay-only 实现供后续最小化
+            // 初始化拆分；当前先选择经过真机验证的完整初始化，不能以低唤醒换冻帧。
+            NSString *bridgeState = ZiYanFrameRelayStartSharedScreenBridge();
+            ZiYanWriteVarText(@".ziyan_frame_relay_bridge_state",
+                               [NSString stringWithFormat:@"ts=%.0f state=%@\\n",
+                                                          NSDate.date.timeIntervalSince1970,
+                                                          bridgeState]);
+            if (![bridgeState isEqualToString:@"bridge_start_called"]) {
+              NSLog(@"[ZiYanFrameRelay] shared ScreenBridge %@", bridgeState);
+              return;
+            }
+          } @catch (NSException *ex) {
+            NSLog(@"[ZiYanFrameRelay] start_exc %@", ex);
+            ZiYanWriteVarText(@".ziyan_frame_relay_bridge_state",
+                               [NSString stringWithFormat:@"ts=%.0f state=start_exception name=%@ reason=%@\\n",
+                                                          NSDate.date.timeIntervalSince1970,
+                                                          ex.name ?: @"-", ex.reason ?: @"-"]);
+            return;
+          }
           // 8-161-67：sb_vol_thin 时 VolTrig 已轮询 open_app——禁双路，
           // 否则同文件被 launch 两次 → SB/backboardd 崩溃环（对标触动单路）。
           if (ZiYanSbVolThin()) {
-            NSLog(@"[ZiYanFrameRelay] ScreenBridge only; open_app via Vol thin");
+            NSLog(@"[ZiYanFrameRelay] ScreenBridge initialized; open_app via Vol thin");
             return;
           }
           dispatch_source_t t = dispatch_source_create(
@@ -147,7 +199,10 @@ __attribute__((constructor)) static void ZiYanFrameRelayInit(void) {
             ZiYanFrameRelayPollOpenApp();
           });
           dispatch_resume(t);
-          NSLog(@"[ZiYanFrameRelay] ScreenBridge+open_app poll started");
+          ZiYanInjectTrace("ZiYanFrameRelay", "timer_start");
+          ZiYanInjectTrace("ZiYanFrameRelay", "file_poller_start");
+          NSLog(@"[ZiYanFrameRelay] relay+open_app poll started");
+          });
         });
   }
 }

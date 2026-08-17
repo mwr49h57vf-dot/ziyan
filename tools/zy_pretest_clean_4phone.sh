@@ -33,7 +33,8 @@ rm -f "$VAR/.ziyan_run_intent" "$VAR/.ziyan_embed_go" "$VAR/.ziyan_embed_script"
       "$VAR/.ziyan_color_req" "$VAR/.ziyan_color_req.daemon" \
       "$VAR/.ziyan_app_alive" "$VAR/.ziyan_prefer_app_touch" "$VAR/.ziyan_app_touch_ui" \
       "$VAR/.ziyan_allow_sb_relay" "$VAR/.ziyan_force_front_mismatch" \
-      "$VAR/.ziyan_app_minimize_req"
+      "$VAR/.ziyan_app_minimize_req" "$VAR/.ziyan_app_suspend_trig" \
+      "$VAR/.ziyan_app_run_trig" "$VAR/.ziyan_app_stop_trig"
 rm -f "$VAR/.ziyan_no_relay"   # 允许 SB UICreate 冷备（.53 IOMFB 拒权）
 echo 1 >"$VAR/.ziyan_bbframe_on"
 chmod 666 "$VAR/.ziyan_bbframe_on" 2>/dev/null
@@ -52,7 +53,7 @@ done
 ps -A -o pid=,command= 2>/dev/null | grep -iE 'xztl|ljzbbadao|ZiYan\.app|ceshi' | grep -v grep | while read -r p rest; do
   kill -9 "$p" 2>/dev/null
 done
-# 3) FC_N!=1 → 全清后 launchd 单次重建（禁「保留最新一个」）
+# 3) FC_N!=1 → 全清后由 zydaemon 单次重建（禁 6MB launchd 槽位）
 FC_PIDS=$(ps -A -o pid=,command= 2>/dev/null | grep 'ziyan_framecap serve' | grep -v grep | sed 's/^ *//' | cut -d' ' -f1)
 FC_N=$(echo "$FC_PIDS" | grep -c '[0-9]' || true)
 if [ "${FC_N:-0}" -ne 1 ]; then
@@ -62,11 +63,10 @@ if [ "${FC_N:-0}" -ne 1 ]; then
   rm -f "$VAR/.ziyan_framecap_serve.lock" "$VAR/.ziyan_framecap_wrap.pid" \
         "$VAR/.ziyan_framecap_owner" "$VAR/.ziyan_framecap_alive" 2>/dev/null
   sleep 1
-  # 普通 kickstart（禁 -k）
-  # 203：仅 launchd 单次 kickstart（禁 orphan nohup serve）
-  launchctl kickstart system/com.ziyan.framecap 2>/dev/null \
-    || launchctl kickstart com.ziyan.framecap 2>/dev/null || true
-  sleep 2
+  echo zydaemon >"$VAR/.ziyan_framecap_owner_mode"
+  echo 1 >"$VAR/.ziyan_watchdog_framecap_need"
+  chmod 666 "$VAR/.ziyan_framecap_owner_mode" "$VAR/.ziyan_watchdog_framecap_need" 2>/dev/null
+  sleep 4
 fi
 # 4) 僵尸收割：对 Z 态父发 SIGCHLD
 ps -A -o pid=,ppid=,state=,command= 2>/dev/null | while read -r z pp st rest; do
@@ -80,18 +80,46 @@ rm -f "$VAR/.ziyan_keep_daemon"
 sync 2>/dev/null
 sleep 2
 rm -f "$VAR/.ziyan_go_home" "$VAR/.ziyan_stop"
+# 必须确认真的回到桌面：只写一次旗、等 2s 就走，前台常常还停在上一次测试打开的
+# App。桌面脚本 ios7/ios8p 期望 SpringBoard 在前台，前台错位会让 embed 一路
+# bid_mismatch 催帧，30min 长跑被判 force_storm（实测 .166 FORCE_HITS=280，
+# 诊断 front=com.xztl.ios shm_bid=stale），把测试环境问题误报成代码缺陷。
+i=0
+while [ "$i" -lt 6 ]; do
+  FB=$(tr -d '\r\n' <"$VAR/.ziyan_front_bid" 2>/dev/null)
+  case "$FB" in *springboard*) break ;; esac
+  # 仅按 Home 不够：App 只是被切到后台，iOS 会把它再拉回前台
+  # （实测 .53 清场时已是 springboard，30min 长跑却又变回 com.ljzbbadao.game）。
+  # 桌面脚本必须在桌面上跑，这里把被测期间打开的 App 真正结束掉。
+  if [ -n "$FB" ]; then
+    for p in $(ps -axo pid=,args= 2>/dev/null | grep -F "/Applications" \
+                 | grep -v '[S]pringBoard' | sed 's/^ *//' | cut -d' ' -f1); do
+      BUNDLE=$(ps -p "$p" -o args= 2>/dev/null)
+      case "$BUNDLE" in
+        *"$FB"*) kill -9 "$p" 2>/dev/null ;;
+      esac
+    done
+    # 容器路径里不含 bundle id 的场景：按 SB 前台记录直接杀同名进程
+    killall -9 "${FB##*.}" 2>/dev/null || true
+  fi
+  echo 1 >"$VAR/.ziyan_go_home"
+  sleep 2
+  rm -f "$VAR/.ziyan_go_home"
+  i=$((i + 1))
+done
+echo "FRONT_AFTER_CLEAN=$(tr -d '\r\n' <"$VAR/.ziyan_front_bid" 2>/dev/null)"
 # 6) 确保 embed on、LIGHT 关、单例存活；清 find_sb_banned 免污染业务门禁
 rm -f "$VAR/.ziyan_light" "$VAR/.ziyan_embed_off" "$VAR/.ziyan_find_sb_banned"
 echo 1 >"$VAR/.ziyan_embed_on"
 chmod 666 "$VAR/.ziyan_embed_on" 2>/dev/null
-# FC_N==1 时不再 kick；仅当仍为 0 才普通 kick
+# FC_N==1 时不再触碰活实例；仅当仍为 0 才请求 zydaemon
 FC_N=$(ps -A -o command= 2>/dev/null | grep 'ziyan_framecap serve' | grep -v grep | wc -l | tr -d ' ')
 if [ "${FC_N:-0}" -eq 0 ]; then
-  launchctl kickstart system/com.ziyan.framecap 2>/dev/null \
-    || launchctl kickstart com.ziyan.framecap 2>/dev/null || true
-  sleep 1
+  echo zydaemon >"$VAR/.ziyan_framecap_owner_mode"
+  echo 1 >"$VAR/.ziyan_watchdog_framecap_need"
+  sleep 4
 fi
-# 若仍双开：全杀后单次 kick（不 -k）
+# 若仍双开：全杀后交给 zydaemon 重建
 FC_N=$(ps -A -o command= 2>/dev/null | grep 'ziyan_framecap serve' | grep -v grep | wc -l | tr -d ' ')
 if [ "${FC_N:-0}" -gt 1 ]; then
   ps -A -o pid=,command= 2>/dev/null | grep 'ziyan_framecap serve' | grep -v grep | sed 's/^ *//' | cut -d' ' -f1 | while read -r p; do
@@ -99,9 +127,9 @@ if [ "${FC_N:-0}" -gt 1 ]; then
   done
   rm -f "$VAR/.ziyan_framecap_serve.lock" "$VAR/.ziyan_framecap_wrap.pid" 2>/dev/null
   sleep 1
-  launchctl kickstart system/com.ziyan.framecap 2>/dev/null \
-    || launchctl kickstart com.ziyan.framecap 2>/dev/null || true
-  sleep 2
+  echo zydaemon >"$VAR/.ziyan_framecap_owner_mode"
+  echo 1 >"$VAR/.ziyan_watchdog_framecap_need"
+  sleep 4
 fi
 FC_N=$(ps -A -o command= 2>/dev/null | grep 'ziyan_framecap serve' | grep -v grep | wc -l | tr -d ' ')
 Z_N=$(ps -A -o state= 2>/dev/null | grep -c Z || true)

@@ -193,16 +193,132 @@ static inline BOOL ZiYanWriteVarText(NSString *name, NSString *body) {
   return ok;
 }
 
-/// 脚本确认启动后，请求 SpringBoard 仅在 ZiYan 仍为前台时结束 ZiYan App。
-/// 不按 Home、不结束脚本，也不影响已经切到游戏或桌面的前台。
+/// 统一可审计的 open_app 消费日志（Vol / FrameRelay 共用）。
+static inline void ZiYanAppendOpenAppLog(NSString *event, NSString *via,
+                                         NSString *_Nullable detail) {
+  if (event.length == 0) {
+    return;
+  }
+  ZiYanEnsureVarDirectory();
+  NSString *path = ZiYanVarFile(@".ziyan_open_app_log");
+  NSString *prev = [NSString stringWithContentsOfFile:path
+                                             encoding:NSUTF8StringEncoding
+                                                error:nil]
+                       ?: @"";
+  NSString *line = [NSString
+      stringWithFormat:@"ts=%.3f event=%@ via=%@ detail=%@\n",
+                       [[NSDate date] timeIntervalSince1970], event,
+                       via.length ? via : @"-",
+                       detail.length ? detail : @"-"];
+  NSString *body = [prev stringByAppendingString:line];
+  if (body.length > 8000) {
+    body = [body substringFromIndex:body.length - 8000];
+  }
+  [body writeToFile:path atomically:NO encoding:NSUTF8StringEncoding error:nil];
+  [[NSFileManager defaultManager]
+      setAttributes:@{NSFilePosixPermissions : @0666}
+       ofItemAtPath:path
+              error:nil];
+}
+
+/// 合法 Bundle ID：非空、常见 reverse-DNS，或 springboard 别名。
+/// 不写死任何测试游戏；com.ziyan.ziyan 与任意已安装 App 都算合法格式。
+static inline BOOL ZiYanOpenAppBundleIdLooksLegal(NSString *bid) {
+  if (bid.length == 0 || bid.length > 256) {
+    return NO;
+  }
+  if ([bid caseInsensitiveCompare:@"springboard"] == NSOrderedSame) {
+    return YES;
+  }
+  static NSRegularExpression *re;
+  static dispatch_once_t once;
+  dispatch_once(&once, ^{
+    re = [NSRegularExpression
+        regularExpressionWithPattern:@"^[A-Za-z][A-Za-z0-9-]*(\\.[A-Za-z0-9-]+)+$"
+                             options:0
+                               error:nil];
+  });
+  if (!re) {
+    return NO;
+  }
+  NSRange full = NSMakeRange(0, bid.length);
+  NSRange hit = [re rangeOfFirstMatchInString:bid options:0 range:full];
+  return hit.location == 0 && hit.length == bid.length;
+}
+
+/// 原子消费 .ziyan_open_app。文件不存在：不动作。
+/// 空/空白/读失败：清理并记 open_app_skip_empty。
+/// 非法格式：记 open_app_invalid。rename 抢占避免 Vol/FrameRelay 双 launch。
+/// 返回 YES 时 *outBid 为明确非空合法 Bundle，调用方按原逻辑打开。
+static inline BOOL ZiYanConsumeOpenAppFile(NSString *via,
+                                           NSString *_Nullable *_Nonnull outBid) {
+  *outBid = nil;
+  NSFileManager *fm = [NSFileManager defaultManager];
+  NSString *openPath = ZiYanVarFile(@".ziyan_open_app");
+  NSString *takingPath = ZiYanVarFile(@".ziyan_open_app.taking");
+  if (![fm fileExistsAtPath:openPath]) {
+    return NO;
+  }
+  if (access(ZiYanVarFile(@".ziyan_app_user_closed").fileSystemRepresentation,
+             F_OK) == 0) {
+    [fm removeItemAtPath:openPath error:nil];
+    [fm removeItemAtPath:takingPath error:nil];
+    return NO;
+  }
+  [fm removeItemAtPath:takingPath error:nil];
+  if (![fm moveItemAtPath:openPath toPath:takingPath error:nil]) {
+    return NO;
+  }
+  NSError *readErr = nil;
+  NSString *raw = [NSString stringWithContentsOfFile:takingPath
+                                            encoding:NSUTF8StringEncoding
+                                               error:&readErr];
+  [fm removeItemAtPath:takingPath error:nil];
+  if (readErr != nil || raw == nil) {
+    ZiYanAppendOpenAppLog(@"open_app_skip_empty", via, @"read_fail");
+    return NO;
+  }
+  NSString *bid = [raw stringByTrimmingCharactersInSet:
+                           [NSCharacterSet whitespaceAndNewlineCharacterSet]];
+  if (bid.length == 0) {
+    ZiYanAppendOpenAppLog(@"open_app_skip_empty", via, @"empty");
+    return NO;
+  }
+  if (!ZiYanOpenAppBundleIdLooksLegal(bid)) {
+    ZiYanAppendOpenAppLog(@"open_app_invalid", via, bid);
+    return NO;
+  }
+  *outBid = bid;
+  ZiYanAppendOpenAppLog(@"open_app_ready", via, bid);
+  return YES;
+}
+
+/// 页面/脚本启动后请求回到后台：只写一次 Home，不 terminate / SIGTERM / kill。
+/// SpringBoard 已有 `.ziyan_go_home` 状态机；禁止再走 `.ziyan_app_minimize_req`
+///（该文件会 FBS terminate + SIGTERM ZiYan，R3 .53 已证实进程在 run_ok 前被杀）。
 static inline BOOL ZiYanRequestAppMinimizeAfterScriptStart(
     NSString *_Nullable source, NSString *_Nullable scriptPath) {
-  NSString *body = [NSString
-      stringWithFormat:@"ts=%.3f\nsource=%@\npath=%@\n",
+  NSString *note = [NSString
+      stringWithFormat:@"1\nts=%.3f\nsource=%@\npath=%@\n",
                        [[NSDate date] timeIntervalSince1970],
                        source.length ? source : @"runner",
                        scriptPath.length ? scriptPath : @""];
-  return ZiYanWriteVarText(@".ziyan_app_minimize_req", body);
+  (void)ZiYanWriteVarText(@".ziyan_page_bg_req", note);
+  return ZiYanWriteVarText(@".ziyan_go_home", @"1\n");
+}
+
+/// SB 注入出生时刻。冷启动 12s 内不处理 unlock/open/minimize 文件，
+/// 避开 iOS 13 Launch≈10s SIGABRT 窗口（R3 .101 一次 sbreload 后两换 PID）。
+static inline BOOL ZiYanSbInjectTooYoung(void) {
+  NSString *raw =
+      [NSString stringWithContentsOfFile:ZiYanVarFile(@".ziyan_sb_born_ts")
+                                encoding:NSUTF8StringEncoding
+                                   error:nil];
+  double born = raw.doubleValue;
+  if (born < 100000.0) {
+    return NO;
+  }
+  return ([[NSDate date] timeIntervalSince1970] - born) < 12.0;
 }
 
 /// T5：ObjC ziyadaemond 已启动（决策层迁出）
@@ -415,8 +531,15 @@ static inline BOOL ZiYanIsSupportedExtension(NSString *ext) {
   return [set containsObject:ext.lowercaseString ?: @""];
 }
 
-/// 仅返回 App 中主动勾选的路径；未勾选不自动回退，避免误判“已选中”
-static inline NSString *_Nullable ZiYanSelectedPathFromState(void) {
+/// Cursor 内部自测 / Agent 运行时路径，不得当作用户已选业务脚本。
+static inline BOOL ZiYanIsInternalTestScriptPath(NSString *_Nullable path) {
+  NSString *base = path.lastPathComponent.lowercaseString;
+  return [base isEqualToString:@"_cursor_run_smoke.lua"] ||
+         [base isEqualToString:@"_zy_page_entry_selftest.lua"] ||
+         [base isEqualToString:@"ziyan_agent_run.lua"];
+}
+
+static inline NSString *_Nullable ZiYanRawSelectedPathFromState(void) {
   NSDictionary *dict =
       [NSDictionary dictionaryWithContentsOfFile:ZiYanStatePath()];
   if (!dict) {
@@ -429,6 +552,15 @@ static inline NSString *_Nullable ZiYanSelectedPathFromState(void) {
   if (![path isKindOfClass:[NSString class]] || path.length == 0) {
     return nil;
   }
+  return path;
+}
+
+/// 仅返回 App 中主动勾选的路径；未勾选不自动回退，避免误判“已选中”
+static inline NSString *_Nullable ZiYanSelectedPathFromState(void) {
+  NSString *path = ZiYanRawSelectedPathFromState();
+  if (path.length == 0 || ZiYanIsInternalTestScriptPath(path)) {
+    return nil;
+  }
   if (![[NSFileManager defaultManager] fileExistsAtPath:path]) {
     return nil;
   }
@@ -436,6 +568,9 @@ static inline NSString *_Nullable ZiYanSelectedPathFromState(void) {
 }
 
 static inline void ZiYanWriteSelectedPath(NSString *_Nullable path) {
+  if (ZiYanIsInternalTestScriptPath(path)) {
+    path = nil;
+  }
   NSMutableDictionary *state = ZiYanLoadState();
   state[@"selectedPath"] = path ?: @"";
   ZiYanSaveState(state);
@@ -444,6 +579,18 @@ static inline void ZiYanWriteSelectedPath(NSString *_Nullable path) {
   NSString *sel = ZiYanConfigFile(@"select.lua");
   NSString *body = path.length ? path : @"";
   [body writeToFile:sel atomically:YES encoding:NSUTF8StringEncoding error:nil];
+}
+
+/// 缺失或内部 smoke 路径立刻清空持久勾选，不写回 smoke。
+static inline void ZiYanClearStaleSelectedPath(void) {
+  NSString *raw = ZiYanRawSelectedPathFromState();
+  if (raw.length == 0) {
+    return;
+  }
+  if (ZiYanIsInternalTestScriptPath(raw) ||
+      ![[NSFileManager defaultManager] fileExistsAtPath:raw]) {
+    ZiYanWriteSelectedPath(nil);
+  }
 }
 
 static inline ZiYanRunState ZiYanGetRunState(void) {
@@ -547,23 +694,85 @@ static inline void ZiYanClearUserStopped(void) {
                  error:nil];
 }
 
-/// 8-161-102 Phase3：单一会话文件（对标 TSDaemon _runSession）
-/// state=idle|running|soft  path=  orient=  gen=
-static inline void ZiYanSessionWrite(NSString *state, NSString *path,
-                                     int orient) {
-  ZiYanEnsureVarDirectory();
+/// IPC 文本 `key=value` 一行。空 key/body 返回 @""。
+static inline NSString *ZiYanIpcKv(NSString *body, NSString *key) {
+  if (body.length == 0 || key.length == 0) {
+    return @"";
+  }
+  NSString *prefix = [key stringByAppendingString:@"="];
+  for (NSString *raw in [body componentsSeparatedByCharactersInSet:
+                                 [NSCharacterSet newlineCharacterSet]]) {
+    NSString *ln = [raw
+        stringByTrimmingCharactersInSet:[NSCharacterSet
+                                            whitespaceAndNewlineCharacterSet]];
+    if ([ln hasPrefix:prefix]) {
+      return [ln substringFromIndex:prefix.length];
+    }
+  }
+  return @"";
+}
+
+static inline NSString *ZiYanNewRequestId(void) {
+  return [NSString
+      stringWithFormat:@"%lld",
+                       (long long)(NSDate.date.timeIntervalSince1970 * 1000.0)];
+}
+
+/// Day8：结构化 ACK。旧调用方只 grep ok=/state= 时不受影响。
+static inline void ZiYanWriteSessionAck(NSString *filename, NSString *requestId,
+                                        NSString *sessionId, NSString *accepted,
+                                        NSString *state, NSString *err,
+                                        NSString *nextHint, NSString *extra) {
   NSString *body = [NSString
-      stringWithFormat:@"state=%@\npath=%@\norient=%d\ngen=%.0f\n",
-                       state.length ? state : @"idle", path ?: @"", orient,
-                       [[NSDate date] timeIntervalSince1970]];
+      stringWithFormat:@"request_id=%@\nsession_id=%@\naccepted=%@\nstate=%@\n"
+                       @"err=%@\nnext=%@\nts=%.0f\n%@",
+                       requestId.length ? requestId : @"",
+                       sessionId.length ? sessionId : @"",
+                       accepted.length ? accepted : @"0",
+                       state.length ? state : @"", err.length ? err : @"",
+                       nextHint.length ? nextHint : @"",
+                       [[NSDate date] timeIntervalSince1970],
+                       extra.length ? extra : @""];
+  ZiYanWriteVarText(filename, body);
+}
+
+/// 8-161-102 Phase3：单一会话文件（对标 TSDaemon _runSession）
+/// state 仍只允许 idle|running|soft —— WantsRun 用 rangeOfString state=running。
+/// Day8 双写 session_id/request_id；禁止把 state 改成 READY/PREPARING。
+static inline void ZiYanSessionWriteEx(NSString *state, NSString *path,
+                                       int orient, NSString *requestId,
+                                       NSString *sessionId) {
+  ZiYanEnsureVarDirectory();
+  NSString *prev =
+      [NSString stringWithContentsOfFile:ZiYanVarFile(@".ziyan_session")
+                                encoding:NSUTF8StringEncoding
+                                   error:nil];
+  NSString *prevState = ZiYanIpcKv(prev, @"state");
+  NSString *sid = sessionId.length ? sessionId : ZiYanIpcKv(prev, @"session_id");
+  NSString *rid = requestId.length ? requestId : ZiYanIpcKv(prev, @"request_id");
+  BOOL goingIdle = !state.length || [state isEqualToString:@"idle"];
+  if (!goingIdle) {
+    if (rid.length == 0) {
+      rid = ZiYanNewRequestId();
+    }
+    if (sid.length == 0 || prevState.length == 0 ||
+        [prevState isEqualToString:@"idle"]) {
+      sid = rid;
+    }
+  }
+  NSString *st = state.length ? state : @"idle";
+  NSString *body = [NSString
+      stringWithFormat:@"state=%@\npath=%@\norient=%d\ngen=%.0f\n"
+                       @"session_id=%@\nrequest_id=%@\n",
+                       st, path ?: @"", orient,
+                       [[NSDate date] timeIntervalSince1970], sid, rid];
   ZiYanWriteVarText(@".ziyan_session", body);
-  // 简短 lifecycle（对标触动开始/结束运行）
   NSString *life = ZiYanVarFile(@".ziyan_lifecycle.log");
   NSString *line = [NSString
-      stringWithFormat:@"%.0f session_%@ path=%@ orient=%d\n",
-                       [[NSDate date] timeIntervalSince1970],
-                       state.length ? state : @"idle",
-                       [path lastPathComponent] ?: @"-", orient];
+      stringWithFormat:@"%.0f session_%@ path=%@ orient=%d sid=%@ rid=%@\n",
+                       [[NSDate date] timeIntervalSince1970], st,
+                       [path lastPathComponent] ?: @"-", orient,
+                       sid.length ? sid : @"-", rid.length ? rid : @"-"];
   NSFileHandle *fh = [NSFileHandle fileHandleForWritingAtPath:life];
   if (!fh) {
     [line writeToFile:life atomically:YES encoding:NSUTF8StringEncoding
@@ -576,8 +785,130 @@ static inline void ZiYanSessionWrite(NSString *state, NSString *path,
   chmod(life.fileSystemRepresentation, 0666);
 }
 
+static inline void ZiYanSessionWrite(NSString *state, NSString *path,
+                                     int orient) {
+  ZiYanSessionWriteEx(state, path, orient, @"", @"");
+}
+
 static inline void ZiYanSessionClearToIdle(void) {
   ZiYanSessionWrite(@"idle", @"", -1);
+}
+
+static inline void ZiYanWriteStopAckNow(NSString *err) {
+  NSString *sess =
+      [NSString stringWithContentsOfFile:ZiYanVarFile(@".ziyan_session")
+                                encoding:NSUTF8StringEncoding
+                                   error:nil];
+  NSString *sid = ZiYanIpcKv(sess, @"session_id");
+  NSString *rid = ZiYanIpcKv(sess, @"request_id");
+  if (sid.length == 0 || rid.length == 0) {
+    NSString *runAck =
+        [NSString stringWithContentsOfFile:ZiYanVarFile(@".ziyan_run_ack")
+                                  encoding:NSUTF8StringEncoding
+                                     error:nil];
+    if (sid.length == 0) {
+      sid = ZiYanIpcKv(runAck, @"session_id");
+    }
+    if (rid.length == 0) {
+      rid = ZiYanIpcKv(runAck, @"request_id");
+    }
+  }
+  NSFileManager *fm = [NSFileManager defaultManager];
+  BOOL keepAfter =
+      [fm fileExistsAtPath:ZiYanVarFile(@".ziyan_keep_daemon")];
+  BOOL pidfile =
+      [fm fileExistsAtPath:ZiYanVarFile(@".ziyan_lua_run.pid")];
+  BOOL embedFile =
+      [fm fileExistsAtPath:ZiYanVarFile(@".ziyan_embed_alive")];
+  BOOL sessRun =
+      [sess rangeOfString:@"state=running"].location != NSNotFound;
+  BOOL userStopped =
+      [fm fileExistsAtPath:ZiYanVarFile(@".ziyan_user_stopped")];
+  NSString *intent =
+      [NSString stringWithContentsOfFile:ZiYanVarFile(@".ziyan_run_intent")
+                                encoding:NSUTF8StringEncoding
+                                   error:nil];
+  BOOL intentStop =
+      intent.length > 0 &&
+      [intent rangeOfString:@"stop=1"].location != NSNotFound;
+  int wants =
+      (!userStopped && !intentStop && (sessRun || embedFile)) ? 1 : 0;
+  // ACTIVE 不能只看 WantsRun：user_stopped 会把它打成 0，但 pid 仍可能
+  // 指向活着的 framecap（embed 把 lua_run.pid 写成守护 pid）。
+  int active = (wants || sessRun || pidfile || embedFile) ? 1 : 0;
+  NSString *extra = [NSString
+      stringWithFormat:@"keep_after=%d\nactive=%d\nwants_run=%d\n"
+                       @"pidfile=%d\nembed_alive=%d\n",
+                       keepAfter ? 1 : 0, active, wants, pidfile ? 1 : 0,
+                       embedFile ? 1 : 0];
+  ZiYanWriteSessionAck(@".ziyan_stop_ack", rid, sid,
+                       (err.length || active || keepAfter) ? @"0" : @"1",
+                       @"idle",
+                       (err.length ? err
+                                   : (active ? @"ZY_E_STOP_TIMEOUT" : @"")),
+                       @"idle", extra);
+}
+
+/// Day9：framecap 心跳是否新鲜。只认 alive 文件 ts/mtime，不采帧、不等待。
+/// ServeLoop 约 5s 刷一次；12s 内视为 IPC 活。禁把 PID 当就绪。
+static inline BOOL ZiYanFramecapHeartbeatFresh(NSTimeInterval maxAge) {
+  if (maxAge < 1.0) {
+    maxAge = 12.0;
+  }
+  NSString *path = ZiYanVarFile(@".ziyan_framecap_alive");
+  NSString *body =
+      [NSString stringWithContentsOfFile:path
+                                encoding:NSUTF8StringEncoding
+                                   error:nil];
+  long ts = 0;
+  if (body.length > 3) {
+    const char *ppos = strstr(body.UTF8String, "ts=");
+    if (ppos) {
+      (void)sscanf(ppos, "ts=%ld", &ts);
+    }
+  }
+  NSTimeInterval now = [[NSDate date] timeIntervalSince1970];
+  if (ts > 0 && (now - (NSTimeInterval)ts) <= maxAge) {
+    return YES;
+  }
+  NSDictionary *attr =
+      [[NSFileManager defaultManager] attributesOfItemAtPath:path error:nil];
+  NSDate *mod = attr[NSFileModificationDate];
+  if ([mod isKindOfClass:[NSDate class]] &&
+      -[mod timeIntervalSinceNow] <= maxAge) {
+    return YES;
+  }
+  return NO;
+}
+
+/// Day9 health_ack。ok 不含 fresh：idle/Home seq=0 仍算控制面就绪。
+/// fresh=1 仅表示当前有可用新鲜帧；Ensure/Poll 不得为 fresh 阻塞。
+static inline void ZiYanWriteHealthAck(int alive, int heartbeat, int ipc,
+                                       int fcN, int fresh, NSString *lease,
+                                       long long ageMs, unsigned provider,
+                                       NSString *err) {
+  int ok = (alive && heartbeat && ipc && (fcN == 1 || fcN < 0)) ? 1 : 0;
+  NSString *e = err.length ? err : @"";
+  if (fcN > 1 && e.length == 0) {
+    e = @"ZY_E_FRAMECAP_DUP";
+    ok = 0;
+  }
+  if (!alive && e.length == 0) {
+    e = @"ZY_E_FRAMECAP_OFFLINE";
+  }
+  if (alive && !heartbeat && e.length == 0) {
+    e = @"ZY_E_FRAMECAP_OFFLINE";
+  }
+  NSString *freshErr = (fresh == 0) ? @"ZY_E_FRAME_STALE" : @"";
+  NSString *body = [NSString
+      stringWithFormat:
+          @"alive=%d\nheartbeat=%d\nipc=%d\nfc_n=%d\nfresh=%d\n"
+          @"lease_state=%@\nframe_age_ms=%lld\nframe_provider=%u\n"
+          @"ok=%d\nerr=%@\nfresh_err=%@\nts=%.0f\n",
+          alive ? 1 : 0, heartbeat ? 1 : 0, ipc ? 1 : 0, fcN, fresh,
+          lease.length ? lease : @"-", ageMs, provider, ok, e, freshErr,
+          [[NSDate date] timeIntervalSince1970]];
+  ZiYanWriteVarText(@".ziyan_health_ack", body);
 }
 
 /// 8-161-110 Phase1-R：是否仍要跑（对标 TSDaemon _runSession，禁粘滞假保活）
@@ -621,7 +952,8 @@ static inline void ZiYanClearEmbedSticky(void) {
          @".ziyan_embed_go", @".ziyan_embed_on", @".ziyan_embed_script",
          @".ziyan_embed_alive", @".ziyan_embed_ack", @".ziyan_lua_embedded",
          @".ziyan_script_session", @".ziyan_project_active",
-         @".ziyan_find_pulse", @".ziyan_te_running"
+         @".ziyan_find_pulse", @".ziyan_te_running", @".ziyan_ready_ack",
+         @".ziyan_lua_run.pid"
        ]) {
     [fm removeItemAtPath:ZiYanVarFile(n) error:nil];
   }

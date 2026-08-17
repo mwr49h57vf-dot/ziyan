@@ -1,42 +1,26 @@
-2026-08-06 触动证据驱动视觉重构（204-3）
+日期: 2026-08-17
 
-一句话：204-3 已修复 ZiYan 前台未最小化；本轮原始 Desktop RUN1 为 .53 通过、.101 命中后触控无界面变化、.112/.166 当前桌面视觉 miss，资源 E4 仍待复测。
+一句话状态: 本地 git 基线快照（工作树收口，不部署）。P2 两门保持 **PASS**。`COLOR_PICKER_CONTRACT=FAIL`，`P2_COLOR_CORE=BLOCKED`。抓色器同源帧设计/构建仍是 PASS_READY_FOR_DEPLOY，发布范围预检为脏树未归因，本基线只解决“可回滚”，不宣称合同通过。
 
-版本：四机统一 **0.0.92-8-161-204-3**（RF arm / .53 arm64）；回滚包保留 204-2、203-2 与 202-3。
+## 已收
+- P2：`tmp_shots/P2_HOME_COMMIT_NO_FINGERPRINT_4PHONE_20260817_190812/VERDICT.md`
+- 设计：`tmp_shots/COLOR_PICKER_SAME_FRAME_DESIGN_20260817_205327/VERDICT.md`
+- 构建：`tmp_shots/COLOR_PICKER_SAME_FRAME_BUILD_20260817_210115/VERDICT.md`
+- 发布范围预检：`tmp_shots/COLOR_PICKER_RELEASE_SCOPE_PRECHECK_20260817_212046/VERDICT.md`（`RELEASE_SCOPE=FAIL_UNATTRIBUTED_DIRTY_TREE`）
+- rootful `…-3+debug` SHA256 `3d3b8cd0da11872e3d02731634ab477340e9b9d7b1fb78effb49c16b03e8a694`
+- rootless `…-4+debug` SHA256 `0a65de892eec02a6683e54fbd68cb56a6deb1b8eb2abdc8a982eb981e3673408`
 
 ## 开机清单
-1. `bash tools/zy_pretest_clean_4phone.sh` → 期望 FC_N=1 + owner
-2. 确认包：四机 204-3；`FC_N=1` + `.ziyan_framecap_owner`
-3. Desktop 找色：`tools/zy_run1_script_logic_gate.sh`（禁与 E4 并行）
-4. 资源：`ZY_E4_MIN=5 bash tools/zy_e4_promo_gate.sh 101 53`（WORKSET≤6MB 已门禁）
-5. TS：`bash tools/zy_ts_obs_snapshot.sh` → `.149/.171`
-6. 图/OCR 资产：`bash tools/zy_vision_asset_gate.sh 101 53`
-7. rootful 最小化+方向：`bash tools/zy_rf_min_orient_gate.sh`
-
-## 冻结清单
-- 会话 auto-keep / hasColor→KeepEnable
-- RetainAppFrame 假对齐（已恒 NO，禁再开）
-- EnsureFramecapAlive / pretest orphan `nohup serve`
-- 未绿前宣称超越触动
-- 禁改 Desktop ios7/ios8p
+1. P2 已通过：禁止回退指纹/generation/provider Commit
+2. 禁止要求 Home r1=0；找色永远当前可见完整帧；front_bid 不是找色开关
+3. 不处理 OCR/Agent/网络/UI；不跑原始 main 触控循环
+4. 禁止自行部署四机，除非用户明确授权
+5. 本提交是本地回滚点，不是四机验收通过
 
 ## 未闭环
-- 204-1 E4：.101 +3376KB / .53 +2208KB（5min），其余门禁全绿；证据 `E4_PROMO_20260806_233323`
-- 204-2/204-3 已去掉 IOMFB/CARender 每帧整帧复制，并加 Lua GC + allocator relief；已部署四机，待重新清场复测
-- 原始 Desktop RUN1（`RUN1_GATE_20260807_004940`）：.53 `BUSINESS_PASS`；.101 `(396,195)` 命中后无底层 touch ok/无前台变化；.112/.166 `VISION_MISS`
-- .112/.166 本轮未命中色点，所以没有新点击坐标证据；不得把视觉 miss 误判为 init 点击坐标错误
-- .166 脚本停止后的 dig 为 `empty_shm`，仅作取证限制；业务循环中 `front=shm_bid` 且 seq 前进，无 stale 证据
-- 四机 30min：未晋级
-- 证据：`tmp_shots/RUN1_GATE_20260807_004940/RESULT_ANALYSIS.md` · `tmp_shots/RF_MIN_ORIENT_204_3/VERDICT.md` · `tmp_shots/RECTIFY_TS_204/VERDICT.md` · `E4_PROMO_20260806_233323`
+- COLOR_PICKER_CONTRACT=FAIL
+- P2_COLOR_CORE=BLOCKED
+- RELEASE_SCOPE 预检未通过（脏树已收为基线后，仍须授权才可部署验收）
 
-## 204-3 已闭环
-- ScriptRunner 与 framecap embed 在 Lua 启动确认后统一写 `.ziyan_app_minimize_req`
-- SpringBoard 仅在真实前台为 `com.ziyan.ziyan` 时结束 ZiYan App；不按 Home、不杀脚本
-- Lua `tap/touchDown` 在 ZiYan 仍前台时拒绝旧坐标并补发最小化请求
-- 删除桌面 140pt 最近图标与 ±36pt 偏移重试，禁止掩盖 init 坐标错误
-- `.101/.112/.166`：最小化 `app_n=0`、embed 保留；init 0/1/2 均落 `hid≈0.501,0.050~0.051`
-- 四机最终：204-3、FC_N=1、lua_n=0、embed=0、min_req=0
-- 本轮 RUN1 开始前四台前台均为 SpringBoard；收尾四台 `FC_N=1`、`LUA_N=0`、`ZIYAN_APP_N=0`，无 embed/minimize-request 残留
-
-## 助手默认首条
-读本文件 → 授权后 pretest_clean → 复跑 `ZY_E4_MIN=5 bash tools/zy_e4_promo_gate.sh 101 53`；未绿前禁开 30min。
+## 默认首条助手动作
+停止。等待授权部署。不得把 COLOR_PICKER_CONTRACT 或 P2_COLOR_CORE 写成 PASS。

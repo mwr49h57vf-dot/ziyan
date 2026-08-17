@@ -1,0 +1,489 @@
+子砚：完整超越触动精灵方案
+版本：2026-08-15
+定位：以“函数稳定性、守护进程、内存治理”为第一优先级；功能覆盖、性能、可观测性和安全回滚必须同时成立。
+
+---
+
+## 2026-08-15 真机对照后的执行补充（当前排期优先）
+
+本节以 `.149/.171` 的**只读**运行观察、`.53/.101/.112/.166` 的当前验收状态为准；若与下文较早的日程性表述冲突，以本节和 `ROADMAP.md` 为准。
+
+### 1. 已确认的事实，不再靠印象决策
+
+1. 触动精灵当前是“常驻 TSDaemon + App/辅助进程 + Media 配置/Lua/日志目录”的长期运行闭环。`.149` 的 TSDaemon 约 55MB RSS、`.171` 约 34MB RSS；两台瞬时 CPU 都可以很高。因此不能把“低瞬时 CPU”当成触动完整性或效率的唯一代理，必须看同语义任务的成功率、p50/p95、长窗 RSS、停止残留和 SpringBoard 稳定性。
+2. 触动的坐标行为继续作为外部语义：`init` 固定脚本画布；找色和触控不得随 SpringBoard、前台 App 或 safe area 改写坐标。ZiYan 的 Toast 已人工验收稳定，后续不得再以 Toast 改动触碰找色/触控/FrameLease 主链。
+3. ZiYan 当前核心业务已有有效证据：debug-10-24 的 `.112/.166` 都完成原 Desktop `ios7.lua` 的“找色 `(1010,294)` → 点击 → 离开 SpringBoard”并产出 `BUSINESS_PASS`。这说明固定 init 坐标主链可用，但不是四机兼容结论。
+4. `.53` 已恢复 SSH，当前观测时尚未安装 ZiYan 包、服务未运行；Cursor 正在恢复该机测试。`.101` 的 SSH 已恢复为密钥优先，曾有一轮业务门禁远端输出中断，测试脚本已按停止协议清干净；该轮没有有效业务 VERDICT，不能误判为视觉失败。
+5. API 目录当前是 99 项：done 53、partial 27、planned 19。核心 find/tap/多点找色已有基础，但“整体功能完整性”尚未成立；不能仅因一个业务脚本成功就声称可完全替代触动。
+
+### 2. 新的唯一执行顺序
+
+#### P0：先让验收通道可信（先于任何产品调参）
+
+目标：一次测试的结论必须即使 SSH 终端中断也可复核，避免 `.101` 这类“服务已运行、主机无日志”的假失败。
+
+- RUN1、触控、资源、内存门禁统一使用 `run_id`；设备端先原子落 `started`、阶段 ACK、`final verdict`，主机端无论实时 SSH 输出是否中断都在重连后拉取该 `run_id` 的最终文件。
+- `TRANSPORT_BLOCKED`、`VISION_MISS`、`VISION_STALE`、`TOUCH_SENT_NO_UI_CHANGE`、`RUNNER_ABORTED` 必须互斥分类；没有设备端 final verdict 的一律为 `INVALID_RUN`，不得记 PASS/FAIL。
+- 所有 `.53/.101/.112/.166` 均使用已完成的密钥优先 SSH；保留 `alpine` 密码回退，但不修改密码、不覆盖已有授权密钥。
+- 完成条件：人为中断一次主机 SSH 后，仍能从设备端取回完整结论和 stop-cleanup 状态。
+
+#### P1：恢复并锁定 `.53` rootless 基准
+
+Cursor 完成恢复后，先只做状态确认：包版本/哈希、rootless 路径、framecap 单实例、服务 IPC、空闲状态、脚本目录与 `ios8p.lua` 哈希。未满足则只修部署/启动链，不改视觉算法。
+
+随后执行与 rootful 同语义的最小四段验收：
+
+1. `init(1)` 固定画布下 getColor/findMultiColor 命中；
+2. 找色 → tap → 前台变化；
+3. stop 后 `state=idle`、`FC_N=1`、无 keep/embed/触控残留；
+4. 资源/找图路径不回退到 HTTP、同步截图或 `color_req` 热路径。
+
+`.53` 通过后才允许把它重新计入四机 Z1；不得为 @3x/rootless 写 IP 特判或坐标补丁。
+
+#### P2：关闭 Z1 的四机覆盖缺口
+
+1. `.101`：先用 P0 的可回收结论门禁重跑原 `ios7.lua`；若真实 `VISION_MISS` 才采帧、色值、ROI、frame_seq、front_bid、lease_state，连续两次证据一致后才允许改产品代码。
+2. `.112/.166`：在与 `.53/.101` 相同包、同脚本 SHA、同起始 Home 状态下复验，防止旧 PASS 与新包混用。
+3. 四机依次完成 `Z1-VIS`、`Z1-TOUCH`、`Z1-ASSET`、`Z1-MEM`。每项都必须有设备端 VERDICT；观察机 `.149/.171` 不得代替 ZiYan PASS。
+4. 完成条件：四机均有同版本、同协议证据，Z1 全绿；否则禁止启动 Z2。
+
+#### P3：把“函数数量”变成“函数可长期使用”
+
+按业务风险分层，而不是一次性堆完 99 项：
+
+- **L0（先验）**：init、getColor/findMultiColor、keepScreen、touchDown/Move/Up、tap/swipe、mSleep、toast、run/stop、音量触发、Home/App 控制。
+- **L1（业务常用）**：找图、截图/区域截图、OCR、文件、剪贴板、JSON、应用状态；逐项验证参数、返回值、错误语义、连续调用与 stop 后清理。
+- **L2（隔离验证）**：FTP/网络、云 OCR、加密、设备信息等。即便 API 标记 done，也必须做成功/超时/断网三态真机测试；网络失败不得影响 L0/L1、本地 find/tap 或守护进程。
+
+每个 partial/planned API 必须先补契约测试，再实现，再在至少 rootful + rootless 各一台真机通过；不允许仅把名字注册为“done”。
+
+#### P4：生命周期与内存长稳
+
+在 Z1 全绿后再跑四机 30 分钟：
+
+- 同时记录 frame_seq、frame_age_ms、lease_state、lock_wait_ms、pixel_match_ms、find p50/p95、tap verify、RSS OLS、峰值、WORKSET、FC_N、SB_CHG、stop residual；
+- run/stop 连续 100 次、异常退出一次、音量触发一次；每次都要求 session/ready/fresh/stop ACK 闭环；
+- 禁止以重启 SpringBoard、杀服务或清空数据作为“恢复成功”。
+
+#### P5：与触动的公平对照与最终结论
+
+对 `.149/.171` 继续只读，不复制其运行时或授权组件。使用同一类 Lua 业务语义、相同初始画面、相同时间窗比较：业务成功率、find p50/p95、tap verify 成功率、长窗 RSS OLS/摆幅、CPU 分位数、恢复时间、SB/backboardd 重启数、停止残留。
+
+只有四机 Z2 全绿且上述指标在同窗不劣于 `.171` 后，才进入 Z3；“超越”必须另外证明至少一项稳定性或效率优势，不能由单次找色或瞬时 CPU 得出。
+
+### 3. 明确禁止事项
+
+- 不因 `.101` 的日志通道问题改找色坐标、safe area、颜色阈值或触控映射。
+- 不因触动有常驻 TSDaemon 就给 ZiYan 新建第二个竞争守护；维持单 `ziyan_framecap`、`FC_N=1` 和 embed 热路径。
+- 不将网络、FTP、云 OCR、授权、更新放入 find/tap 的同步热路径。
+- 不把 `.53` SSH 恢复等同于 rootless 产品兼容；必须有本机业务与长稳证据。
+
+---
+
+零、两周冲刺执行版（本方案当前最高优先级）
+
+目标不是两周内堆完所有功能，而是在不破坏当前单 framecap/embed 成果的前提下，完成一套可审计的“稳定性与效率超越”验收候选版本。
+
+冲刺期间冻结：新 UI、大模型/OCR 扩展、网络/账号/更新、非必要 API、第二守护进程、全量重构。任何不直接降低“旧帧、卡屏、假死、生命周期残留、SB 风险”的改动一律延后。
+
+唯一优先级顺序：
+
+P0：帧新鲜度与卡屏。先确保业务永不静默扫描旧帧、黑帧或错前台帧。
+P1：运行生命周期。run/stop/异常恢复必须可确认、可清理、可再次运行。
+P2：四机自动验收。把定位、回归、内存、停止清理和对照证据串成一键门禁。
+P3：仅在 P0~P2 全绿后优化匹配耗时、OCR 和其它扩展。
+
+第一周：只解决帧链
+
+Day 1：冻结当前可回滚包；在 .53/.101/.112/.166 建立同字段仪表盘：frame_seq、frame_age_ms、provider、front_bid、shm_bid、lease_state、lock_wait_ms、pixel_match_ms、SB_CHG、FC_N。
+
+Day 2~3：将前台切换、Home、锁屏/解锁统一收敛到 FrameLeaseState：active -> suspended -> reacquiring -> active。旧帧必须失效；重获期间 find 返回可诊断状态，不得阻塞等待 relay/UICreate。
+
+Day 4：收紧热路径。find 只读已提交的新鲜 resident lease；SB relay/UICreate 只能走受控诊断/回退，不得进入业务 find 的同步路径。
+
+Day 5~7：四机跑 10 分钟定位窗和真实业务短回归。只按数据处理四类问题：帧老化、锁等待、匹配耗时、前台/keep 错位。每刀只改一个主题；两刀未解必须转 .149/.171 只读差分。
+
+第一周完成条件：不出现持续 relay_timeout、relay_sb_fail、反复 UICreate fork、seq 长时间不推进、业务期秒级 frame_age；业务脚本不再表现为“运行中但画面卡住”。
+
+第二周：只解决生命周期与验收
+
+Day 8~9：在现有 zydaemon/ziyadaemond 与 ScriptRunner 上补齐 request_id、session_id、ready ACK、fresh-frame ACK、stop ACK；不新建竞争 supervisor，不把常规 Lua 拆出 framecap。
+
+Day 10：实现并验证停止合同：ACTIVE=0、KEEP_AFTER_STOP=0、触控结束、无僵尸、FC_N=1、Toast/Overlay 清理、资源回归 idle。
+
+Day 11：run/stop 100 次、音量受控触发、runner/embed 异常恢复；framecap 必须保持或按 idle 策略受控，禁止重启 SpringBoard 作为恢复手段。
+
+Day 12~14：并行跑四机 30 分钟门禁；同窗拉取 .149/.171 只读证据，统一输出 VERDICT。三小时长稳不作为当前门禁。
+
+第二周完成条件：Z1 红项解除或明确外部阻塞；服务/停止/恢复门禁全绿；30 分钟窗口无 SB 重启环、无 FC_N>1、无停止残留；同语义脚本下给出找色 P50/P95、tap verify 成功率、RSS OLS、恢复时间与触动对照。
+
+冲刺决策规则：
+
+1. 任何 P0 回归（旧帧、黑帧、SB 重启、热路径退回 color_req）立即停止后续优化，回滚到最近基线。
+2. 任何不能由仪表盘证实的“感觉变慢”不得修改算法；先分类再动刀。
+3. 两周结束时只按四机 VERDICT 宣布结论：全绿才可称“已具备超越证据”；未全绿则输出剩余缺口，不用短测代替长稳。
+
+一、先给结论
+
+子砚不应继续把“能跑一次”当成完成。要真正超过触动精灵，产品应达到：
+
+1. 脚本、守护进程、SpringBoard 注入三者任一退出，都不会拖垮另外两者；
+2. 守护进程只负责帧、视觉、调度和受控触控，不把网络、授权、UI、脚本解释器塞进同一不可恢复进程；
+3. Lua 每次运行都有会话、资源预算、取消令牌、超时、清理顺序和可追踪结果；
+4. 内存长期斜率、峰值、抖动、停止后的残留均可量化，且四机在 30 分钟门禁下稳定；
+5. 每个“运行”动作都能回答：脚本是否已接受、framecap 是否在线、当前帧是否新鲜、触控是否发送、前台是否发生预期变化；
+6. 没有任何单个旧 API、网络失败、消息格式错误或音量键事件可以让整个自动化能力静默失效。
+
+这不是把触动精灵做得更复杂，而是把它的单体式风险拆成可隔离、可恢复、可量化的运行系统。
+
+二、从本次 TouchSprite 兼容过程得到的硬性教训
+
+1. 单守护进程承担太多职责是最大风险。
+   实测中，旧网络服务启动失败会让 TSDaemon 整体退出；本地 Lua、音量键和触控链随之失效。子砚必须保证网络/账号/更新等可选能力失败时，本地脚本执行核心仍可工作。
+
+2. 旧 IPC 不能把“发送成功”当成“业务成功”。
+   音量桥向 CFMessagePort 发送成功，只代表消息送达；若服务没有选中的脚本、脚本上下文不完整、守护进程随后退出，用户仍会看到“按了没反应”。子砚必须返回带 session_id 的业务确认，而不是仅返回 IPC 状态码。
+
+3. 服务启动必须是幂等、可观察、可恢复的。
+   旧启动器依赖旧参数、旧 ps 格式和阻塞调用，iOS 16 上会造成重复启动、App watchdog 或服务未真正就绪。子砚的 EnsureFramecapAlive 必须是唯一启动入口，必须确认“进程存活 + IPC 可用 + 首帧可用”后才允许脚本进入运行态。
+
+4. 失败必须局部化。
+   一个 CFMessagePort、一个网络端口、一个可选插件加载失败，都只能降级对应模块，绝不能 crash、exit 或把服务状态误写成已停止。
+
+5. “停止”是一级功能，不是 killall。
+   脚本停止后必须取消等待、解除 keep、释放图像与 IOSurface、关闭临时文件、退出触控序列、清空 Toast/Overlay、回收子进程；否则长跑后会变成内存、CPU 或 SpringBoard 稳定性问题。
+
+三、目标架构：四进程、单宿主、强边界
+
+建议固定为下列模型，不再增加无边界的常驻注入模块：
+
+  App UI / 音量菜单
+        │  只发送意图：run / pause / resume / stop / status
+        ▼
+  SpringBoard 薄层（ZiYanVol、ZiYanFrameRelay）
+        │  不解释 Lua，不保存大图，不循环找色
+        ▼
+  ziyan-supervisor（新：唯一生命周期管理者）
+        │
+        ├── ziyan_framecap（唯一帧宿主，FC_N=1）
+        │       └── 共享帧、嵌入式找色、keep、帧新鲜度
+        │
+        ├── ziyan-runner（每会话 Lua worker，可重启）
+        │       └── Lua VM、脚本 API、取消令牌、资源预算
+        │
+        └── 可选 sidecar（网络/登录/更新/OCR 重任务）
+                └── 崩溃或失败不得影响 framecap 与本地 Lua
+
+各层职责必须写死：
+
+1. SpringBoard 薄层
+   只做按键捕获、最小 UI、IPC 调用和系统原行为透传。不能直接启动多个 runner，不能执行脚本，不能持有帧缓存。音量按键默认不改变系统音量行为；只有用户显式设置的手势才转换为 run/stop 意图。
+
+2. ziyan-supervisor
+   新增或明确为产品核心。它拥有 run intent 的状态机、子进程表、重试、熔断、日志关联和恢复策略。App 与音量层不得直接 fork framecap 或 runner。
+
+3. ziyan_framecap
+   继续作为唯一常驻帧宿主。保持当前“embed 热路径、FC_N=1、WORKSET <= 6MB、前台永远跟帧”的方向。它不能因为网络、Lua 异常或 UI 变化退出。
+
+4. ziyan-runner
+   每个运行会话拥有独立 Lua VM 或独立可销毁执行上下文。脚本泄漏、死循环、异常、原生模块崩溃优先只杀该会话；framecap 与 SpringBoard 必须继续存活。
+
+5. 可选 sidecar
+   OCR 大模型、网络请求、更新、登录、遥测都进入可禁用 sidecar。默认不阻断本地功能；失败只能产生 capability=degraded，不得把主服务置为 stopped。
+
+四、必须实现的会话状态机
+
+所有启动入口（App、音量、快捷动作、自动启动）必须走同一状态机：
+
+  IDLE
+    -> PREPARING（校验脚本、目标 App、权限、framecap）
+    -> READY（framecap IPC + 新鲜帧确认）
+    -> RUNNING（runner 已确认开始）
+    -> PAUSED（保留或释放帧由 API 明确决定）
+    -> STOPPING（广播取消、等待清理）
+    -> IDLE
+
+异常分支：
+
+  PREPARING/RUNNING -> DEGRADED（可选能力失败，但本地核心继续）
+  PREPARING/RUNNING -> FAILED（明确错误码、清理完成、可再次运行）
+  任意状态 -> RECOVERING（framecap/runner 意外退出，按策略恢复）
+
+每次请求必须返回：request_id、session_id、accepted/rejected、当前状态、错误码、下一步建议。禁止只返回“IPC 发送成功”。
+
+建议最小错误码：
+
+  ZY_E_FRAMECAP_OFFLINE       帧宿主未就绪
+  ZY_E_FRAME_STALE            帧超过新鲜度阈值
+  ZY_E_SCRIPT_NOT_FOUND       脚本不存在或不可读
+  ZY_E_SCRIPT_BUSY            已有会话占用且不允许并行
+  ZY_E_RUNNER_CRASHED         本会话 runner 崩溃
+  ZY_E_TOUCH_UNAVAILABLE      触控能力不可用
+  ZY_E_CAPABILITY_DEGRADED    可选模块失败，不影响本地执行
+  ZY_E_STOP_TIMEOUT           停止超时，进入强制清理
+
+五、守护进程稳定性方案
+
+1. 启动契约
+   EnsureFramecapAlive 不以 PID 为成功标准。必须依次确认：
+   - launchd/进程存在；
+   - IPC hello 成功；
+   - 返回 build_id、协议版本、capabilities；
+   - 在限定时间内获得新鲜帧；
+   - FC_N=1；
+   - 上一次异常会话残留已清理。
+
+2. 启动去重
+   supervisor 使用 pidfile + launchd label + IPC instance_uuid 三重去重。不得依赖 ps 输出格式或字符串 grep。若发现旧实例，先 IPC stop，再限时等待，最后才做受控终止。
+
+3. Watchdog 分层
+   - runner heartbeat：1~2 秒；丢失只重启 runner；
+   - framecap heartbeat：2~5 秒；丢失重启 framecap，并把当前会话转为 RECOVERING；
+   - SpringBoard 只观察状态，不负责连续重启；
+   - 采用指数退避和熔断，例如 5 分钟内连续 3 次失败则停止自动重启，提示用户并导出诊断包，防止重启风暴。
+
+4. crash containment
+   原生插件、OCR、网络、Lua C 扩展不得与 framecap 共享不可恢复进程。能放 sidecar 的一律放 sidecar。任何可选 dylib 加载均须“存在检查 + 版本检查 + 超时 + 失败降级”。
+
+5. 兼容层纪律
+   iOS 13~16 的差异封装在 capability probe 中，例如 SpringBoard selector、rootful/rootless 路径、触控后端、帧获取后端。业务 Lua 不允许直接判断系统版本或硬编码路径。
+
+六、内存治理：从“看 RSS”升级到“资源所有权系统”
+
+当前项目已取得关键基础：三机 30 分钟 OLS 约 +3.0 / +3.2 / +0.9 KB/100s，说明 framecap 主方向有效。下一步不是盲目继续压 RSS，而是建立完整内存合同。
+
+1. 每类资源都有 owner、上限、释放时机
+
+  资源                    owner              上限/规则                     释放时机
+  帧 IOSurface/像素缓冲    framecap           单宿主、固定池、禁止 append    换帧/stop/pressure
+  keepScreen 锁帧         session             每 session 最多 1 帧           unlock/stop/crash
+  模板/找色缓存           framecap            LRU + 字节上限                淘汰/会话结束
+  Lua userdata            runner              会话级 + 显式 __gc            VM 销毁
+  OCR 模型/中间张量       OCR sidecar         按需加载、空闲卸载            timeout/pressure
+  Toast/Overlay           SpringBoard 薄层    单例复用、同文案合并          stop/scene 变化
+  日志缓冲                各进程              环形 + 文件轮转               达上限即截断
+
+2. 内存压力四级策略
+   NORMAL：正常固定池和 LRU。
+   WARNING：停止预取，收缩模板缓存，执行 autoreleasepool drain。
+   CRITICAL：释放 keep（除非脚本声明不可释放）、卸载 OCR/大模型、拒绝新会话。
+   EMERGENCY：安全停止 runner，保留 framecap 最小服务，记录完整诊断；禁止通过杀 SpringBoard/backboardd “解决”。
+
+3. 必须记录的指标
+   - RSS、footprint、峰值、OLS slope（至少 30 分钟）；
+   - frame pool 个数/字节、keep 状态、模板 LRU、Lua heap、autorelease drain 次数；
+   - session 停止后 30 秒与 120 秒的残留；
+   - jetsam、SpringBoard/backboardd restart、FC_N、僵尸进程数；
+   - 每次 force/relay/toast 的频率，防止风暴。
+
+4. 停止后清理验收
+   STOP 完成必须满足：ACTIVE=0、KEEP_AFTER_STOP=0、runner=0、无僵尸、帧池回到 idle 基线、Toast/Overlay 清空。这个验证必须成为每次脚本测试的固定尾段。
+
+七、函数层如何稳定性超越 TouchSprite
+
+1. API 兼容而实现更可靠
+   保持 TouchSprite 常用 Lua API 语义：init、findColor/findMultiColor、keepScreen、touchDown/touchMove/touchUp、tap、mSleep、toast、pressHomeKey、截图/OCR/网络等；但全部走 ZiYan 的统一 SessionContext。
+
+2. 每个 API 必须具备
+   - 参数校验与明确错误；
+   - cancellation point；
+   - deadline/超时；
+   - 调用计数、耗时、分位数；
+   - 对 frame/session 的所有权声明；
+   - 不在 SpringBoard 主线程做重活。
+
+3. 找色/截图
+   继续坚持 embed 热路径，禁止把热路径退回 color_req 文件/HTTP/反复编码 PNG。每次 find 记录 frame_seq、frame_age_ms、ROI、耗时、命中置信度；这样能区分“找不到”“帧冻结”“坐标错误”“触控没生效”。
+
+4. 触控
+   触控操作必须为事务：TouchBegin -> Move* -> End，并由 runner 在 finally/异常处理内补发 End，禁止异常留下按住状态。点击后应支持可选 verify（前台 bundle、图像差异、指定颜色变化），避免“已发送触控”被误判为“业务成功”。
+
+5. 音量键
+   音量层只发 run intent，不能自己拼 Lua 参数、不能直接控制守护进程生命周期。supervisor 根据当前选中脚本和会话策略执行；系统音量原行为默认透传；重复按键使用防抖和会话状态判断。
+
+八、可观测性：用户能看懂，工程师能定位
+
+1. 用户状态页
+   显示：服务在线/离线、已选脚本、会话状态、最近错误、帧新鲜度、运行时长、停止按钮。不要只显示“启动服务”开关。
+
+2. 结构化日志
+   每行至少包括：timestamp、device、build_id、session_id、component、event、duration_ms、memory、error_code。日志按 session 聚合，支持一键导出诊断包。
+
+3. 黑盒回归记录
+   像本次 TouchSprite 问题一样，任何“按键无反应/服务自动关闭/网络失败/脚本未执行”都必须能在一次诊断中关联：输入事件 -> supervisor 接收 -> framecap ready -> runner start -> Lua API -> touch verify -> stop cleanup。
+
+九、验收路线：在现有 Z0~Z3 上补齐产品级门禁
+
+阶段 A：先完成现有 Z1 红项
+1. 解禁并完成 .53 的同协议验证；
+2. 等待/补齐 Desktop 色点，完成 .112/.166 的 Z1-VIS；
+3. 每刀继续遵守“一刀一验、失败两轮必看 .149/.171、观察机只读”。
+
+阶段 B：新增 S（Service）门禁
+S1 启动：四机连续 100 次 EnsureFramecapAlive，无重复实例、无 UI watchdog。
+S2 恢复：runner 异常退出后 framecap 保持在线；10 秒内可重新运行。
+S3 隔离：断网、网络 sidecar 崩溃、OCR sidecar 崩溃时，本地 find/tap 脚本仍可运行。
+S4 停止：100 次 run/stop 后 ACTIVE=0、KEEP=0、无僵尸、FC_N=1。
+S5 音量：100 次受控按键，不改变服务状态机、不发生 SB 重启、系统音量透传符合配置。
+
+阶段 C：新增 M（Memory）门禁
+M1：四机 30 分钟业务脚本，OLS 斜率不劣于触动长窗口基线；
+M2：四机 30 分钟业务脚本后，WORKSET、峰值、停止后残留均在合同内；
+M3：内存压力注入后可恢复，无 jetsam、无 SB/backboardd 重启环；
+M4：OCR/模板/keep 的重复开关不产生累计增长。
+
+阶段 D：新增 F（Function）门禁
+F1：常用 Lua API 对照手册的参数/返回/错误语义回归；
+F2：find -> tap -> verify 的真实业务闭环；
+F3：前台切换、Home、横竖屏、锁屏/解锁后不使用旧帧；
+F4：rootful/rootless、iPhone 7/7P/8/8P、iOS 13~16.7.16 双包兼容。
+
+阶段 E：才允许“超越触动”
+必须同时拥有：Z2 全绿、S1~S5 全绿、M1~M4 全绿、F1~F4 全绿、四机 VERDICT、.149/.171 同窗对照。比较必须采用同脚本语义、同设备状态、同时间窗，至少比较：SB 重启数、30 分钟业务成功率、找色 p50/p95、tap verify 成功率、RSS OLS、停止后残留、恢复时间。
+
+十、未来 10 个优先改造项（按顺序）
+
+1. 明确并落地 ziyan-supervisor，统一所有启动/停止入口；
+2. 将 runner 从 framecap 中隔离，建立 session_id、取消令牌和清理协议；
+3. 为 framecap 增加 hello/ready/fresh-frame 健康检查，替代“仅看 PID”；
+4. 完成 run intent 的 ACK/状态查询协议，音量键/App 不再直接 fork；
+5. 编写 run-stop 100 次回归门禁并接入四机；
+6. 写资源所有权表到代码与日志，特别是 keep、IOSurface、Lua userdata、OCR；
+7. 建立 memory pressure 演练与 sidecar 崩溃隔离测试；
+8. 完成 .53 与 .112/.166 的 Z1-VIS，解除 Z2 阻塞；
+9. 跑 Z2-30M，并把 OLS、峰值、stop residual 统一入报告；
+10. 以相同业务脚本对照 .149/.171，形成可审计的超越结论。
+
+十一、不可妥协的工程纪律
+
+1. 不把网络失败当成服务失败；
+2. 不把 IPC 成功当成脚本成功；
+3. 不把 PID 存在当成服务就绪；
+4. 不把短窗口 RSS 波动当作内存泄漏；
+5. 不用杀 SpringBoard/backboardd 掩盖生命周期缺陷；
+6. 不在观察机部署子砚，不把触动观察结果写成子砚 PASS；
+7. 不在业务 Lua 中写设备 IP、固定物理坐标、rootful/rootless 路径特判；
+8. 每次改启动链、帧、找色、触控、Toast、守护，都必须有回滚点和四机证据。
+
+最终目标不是“看起来比触动功能多”，而是让子砚成为一个即使网络断开、Lua 异常、按键重复、插件失败、系统前台切换、长跑数小时后，仍能解释自己状态、局部恢复、干净停止、稳定继续运行的自动化引擎。
+
+十二、与当前 ZiYan 项目的一致性审查与校正（2026-08-14）
+
+本方案的方向与现有 ARCHITECTURE.md、ROADMAP.md、DEVICE_RULES.md 一致：单 framecap 宿主、FC_N=1、embed 找色热路径、前台永远跟帧、四机门禁、rootful/rootless 双包、停止后清 keep、禁止 SB 重启风暴，均不得推翻。
+
+但下列文字只能作为“目标能力”，不能直接按字面重构，否则会使当前项目更差：
+
+1. “每会话独立 ziyan-runner 进程”不能替代当前 embed 主路径。
+   当前 tools/ziyan_framecap/ZiYanLuaEmbed.m 已把 Lua、find/getColor/keepScreen 放进 framecap 常驻进程，ROADMAP 明确要求热路径 via_embed_find>10、via_color_req_find=0。若把常规 Lua 全迁成独立进程，会重新引入 IPC、共享帧同步、启动延迟、内存副本和停止竞争，破坏已验证的性能/内存成果。
+   校正：普通业务 Lua 保持“framecap 内嵌 VM + 独立逻辑 SessionContext + 取消令牌 + VM generation”。只有 OCR/网络/模型推理、可能崩溃的原生扩展、长阻塞任务才使用可选 sidecar 进程。
+
+2. “ziyan-supervisor（新）”不能与现有 zydaemon 并存竞争。
+   当前 layout/usr/lib/ziyan/bin/ziyan_zydaemond.sh 已负责 intent、单例锁、framecap 心跳、去重、启动限频与脚本保活；tools/ziyadaemond 又承担 watchdog/恢复。另建一个平行 supervisor 会产生双重拉起、双重 kill、心跳互判和 FC_N>1 风险。
+   校正：把“supervisor”定义为现有 ZyDaemon/ziyadaemond 的统一演进名称和协议层，不新增第二个 KeepAlive 守护。先收敛职责与唯一 owner，再逐步把 shell 文件旗协议升级为带 instance_uuid/session_id 的 IPC 协议。
+
+3. “四进程”不是硬要求。
+   当前项目在 iOS 13 设备上已明确规避 LaunchDaemon 早期 jetsam 限制，并由 zydaemon 拉起 framecap。为进程数量而拆分会增加 iOS 13/16 rootful/rootless 的启动差异。
+   校正：固定“一个 framecap + 一个生命周期 owner”为硬要求；是否存在 runner/sidecar 由风险与实测决定。进程隔离必须先通过四机 CPU、RSS、恢复时间和 SB 稳定性门禁，不能凭架构美观上线。
+
+4. “网络/登录/更新 sidecar”仅是未来可选模块。
+   当前 ZiYan 的主要目标是本地自动化与视觉/触控；没有明确需求时不得先引入网络服务、账号体系或更新机制，避免扩大攻击面和常驻内存。
+
+5. 新状态机必须兼容已有文件协议。
+   .ziyan_run_intent、.ziyan_embed_alive、.ziyan_framecap_alive、.ziyan_stop、.ziyan_session_keep 等是现有运行链的一部分。迁移时须双写/双读、版本化、可回滚；禁止一次性删除旧旗文件。
+
+正确实施顺序：
+
+第一步：不改 embed 热路径，只给现有 ZyDaemon/ScriptRunner 增加 request_id、session_id、ready/fresh-frame ACK 和结构化状态。
+第二步：把“PID 存活”升级为“framecap alive + IPC/控制面 + 新鲜帧 + FC_N=1”健康判定，保留当前 iOS 13 启动规避策略。
+第三步：补 run/stop 100 次、runner/embed 异常恢复、停止后 keep/僵尸清理门禁；先在 .53/.101/.112/.166 实测。
+第四步：仅把 OCR、网络、模型或高风险扩展移到 sidecar；每一项都需证明不会拉高 CPU/RSS 或破坏 Z1-MEM、Z2。
+
+因此，本方案不会要求推翻 ZiYan 当前已取得的 30 分钟内存成果。它应作为现有架构的“收敛与验收增强方案”，而不是立即进行大规模进程拆分的重写方案。
+
+十三、找色效率差与业务久跑卡屏：归纳、根因和无冲突修复路线
+
+本节是对现有 ROADMAP、历史问题归档、TS171 差分记录和当前 framecap 热路径的归纳。结论：找色变慢、卡屏、假死通常不是单一颜色匹配算法错误；优先问题是“帧生产、帧所有权、前台切换、找色读取和回退链”之间发生阻塞或使用旧帧。
+
+1. 已知表现
+   - 找色耗时突然增大、同一业务脚本在不同机型差距过大；
+   - 脚本进程仍在、find 仍被调用，但画面停在旧状态，用户感受为卡屏或假死；
+   - 前台切换、Home、锁屏/解锁后，出现 relay_timeout、relay_sb_fail、UICreate 回退、black_backoff、seq=0 或 frame_age_ms 持续偏大；
+   - keepScreen 开启或会话热时，为避免误释放帧而保留像素，若前台已变更则可能放大旧帧风险；
+   - 长跑中 GC、autoreleasepool、模板/冻结帧和日志回收节奏不稳，会造成短时停顿；但不能把短时 RSS 波动直接误判为泄漏。
+
+2. 根因分层（必须按此顺序定位）
+
+   A. 帧生产链失稳：最优先
+      IOMFB/常驻 IOSurface 不可用后，如果业务热路径落入 SpringBoard relay、CARender、UICreate 或黑帧退避，可能出现秒级等待和旧帧。此时“找色慢”只是读取到 stale/black/错误前台帧后的外在表现。
+
+   B. 帧 lease 与前台状态不一致
+      当前 front_bid、shm_bid、seq、keep 锁帧和会话热状态同时参与判断。切换 App、回桌面、锁屏后若旧 lease 未立即失效，脚本可能继续扫描不属于当前前台的像素；若直接强制清帧，又可能造成短暂无帧。两者都不能用“继续扫旧帧”解决。
+
+   C. 读写锁竞争与过大 ROI
+      零拷贝 find 为性能而直接读取常驻像素。若大区域/复杂多点匹配在共享帧锁内持续过久，写帧会等待；写帧等待又提高 frame_age，造成“找色越慢、画面越旧”的正反馈。应量化 lock_wait_ms 与 pixel_match_ms，不能只记录总耗时。
+
+   D. keepScreen 生命周期
+      keepScreen 的正确语义是同一逻辑步骤内稳定读取同一帧，不是跨前台变化永久持有旧画面。前台 bundle 改变、显式 stop、会话异常、帧压力时必须有明确解除或转入 reacquiring 的规则。
+
+   E. 运行状态旗标误判
+      .ziyan_run_intent、.ziyan_embed_alive、.ziyan_find_pulse、.ziyan_framecap_alive、.ziyan_stop、.ziyan_session_keep 等现有协议若发生延迟、残留或互相矛盾，可能出现“守护认为仍热、实际帧不可用”或“脚本应恢复却未恢复”。这是协议可观测性问题，不是单纯加重试能解决的问题。
+
+   F. 长跑回收造成抖动
+      当前 Z1-MEM 的 30 分钟 OLS 成果说明持续 RSS 增长已得到较好控制；后续重点是避免 Lua GC、autoreleasepool、冻结副本、模板缓存、日志轮转、OCR 资源在业务高峰同时回收，形成卡顿尖峰。
+
+3. 无冲突的修复原则
+
+   - 保留现有“单一 ziyan_framecap、FC_N=1、Lua embed、via_embed_find 热路径”的主设计；
+   - 不把常规 find 改回 color_req/HTTP/同步截图；ROADMAP 中 via_color_req_find=0 的要求不变；
+   - 不让业务 find 同步等待 SB relay、CARender 或 UICreate；UICreate 仅保留在受控诊断/回退路径，不能被反复 fork；
+   - 不为了消除旧帧而无差别清空 shm/keep；前台切换应使 lease 进入明确状态，而不是制造 seq=0；
+   - 不为“找色慢”盲调 fuzzy、坐标或 force_recap；必须先根据指标分类为帧老化、锁等待、像素匹配慢、前台错位或回收抖动；
+   - 不新建与 zydaemon/ziyadaemond 竞争的守护；状态协议和恢复逻辑应在现有唯一 owner 内演进。
+
+4. FrameLeaseState：对现有实现的收敛目标
+
+   在不推翻 ZiYanFrameResident、现有 shm/keep 与 embed 的基础上，为帧增加唯一逻辑状态：
+
+      active -> suspended -> reacquiring -> active
+
+   规则：
+   - active：front_bid 与 lease 对齐，seq 已提交，frame_age 在业务阈值内；find 可读；
+   - suspended：锁屏、Home、前台切换或明确不可捕获；立即禁止把旧 App 帧当作当前帧；
+   - reacquiring：只允许一次受限、去重的重获请求；find 返回可诊断的 frame_reacquiring/frame_unavailable，不阻塞等待；
+   - active 恢复：仅在新 seq、匹配 front_bid、状态有效后提交；
+   - keepScreen：只在 lockBid 与当前业务语义允许时持有；若前台已变化，返回 frame_front_mismatch 并请求重获，不能静默扫旧帧。
+
+5. 热路径性能改造顺序
+
+   第一步：为每次 find 统一记录以下字段：session_id、frame_seq、frame_age_ms、front_bid、shm_bid、provider、lease_state、keep、lock_wait_ms、pre_match_ms、pixel_match_ms、post_match_ms、result/error。
+
+   第二步：按数据分流。
+   - frame_age 大、provider=relay/UICreate、seq 无推进：修帧生产与重获，不动匹配算法；
+   - lock_wait_ms 大：缩短持锁区域；生产者/消费者使用版本化读票，避免像素扫描长占锁；
+   - pixel_match_ms 大：优化 ROI、坐标变换、模板预编译、点序、早停和 native matcher；
+   - keep/front 不匹配：修 lease/会话状态机，不调 fuzzy；
+   - 总耗时尖峰但上述均正常：检查 GC、autoreleasepool、日志、OCR 或其它 sidecar 回收。
+
+   第三步：只在四机上逐刀验证。每刀先跑 10 分钟定位窗，再跑 30 分钟；保留 .149/.171 只读同窗对照。任一刀造成 FC_N>1、SB 重启、via_color_req_find 回升、WORKSET 上升或 Z1-MEM 退化，立即回滚。
+
+6. 业务“假死”必须变成可见状态
+
+   脚本 UI 与日志不应只显示“运行中”。必须区分：
+   - RUNNING：新鲜帧与 find pulse 正常；
+   - WAITING_FRAME：前台切换或 lease reacquiring；
+   - STALE_FRAME：已有帧但超过阈值，禁止触控；
+   - MATCHING_SLOW：pixel_match_ms 超阈值；
+   - RECOVERING：framecap/会话恢复中；
+   - FAILED：给出明确错误码与最近诊断。
+
+   这样用户看到的是“正在重获画面”或“帧已过期，未执行触控”，而不是表面仍在运行、实际无响应。
+
+7. 本项验收门禁
+
+   P1 帧新鲜度：业务运行、前后台切换、Home、锁屏/解锁序列中，记录 frame_age P50/P95/最大值和恢复时间；不得持续出现秒级 stale。
+   P2 回退隔离：10 分钟定位窗内，业务 find 热路径不得出现 relay_timeout、relay_sb_fail、反复 UICreate fork 或 black_backoff 链式循环。
+   P3 锁竞争：记录 lock_wait_ms/pixel_match_ms；大 ROI/复杂多点脚本下写帧仍能推进，且不存在长时间 writer starvation。
+   P4 停止清理：run/stop 循环后 keep=0、lease 已释放或回到 idle、embed/runner 心跳清理、FC_N=1、无僵尸。
+   P5 长跑：四机 30 分钟；SB_CHG=0，Z1-MEM/Z2 指标不得因本项改造退化。
+
+本节与既有规划的关系：它强化 ARCHITECTURE.md 的“前台永远跟帧”、ROADMAP.md 的 embed 热路径与内存门禁、TS171 差分文档的 FrameLeaseState 方向；不要求拆掉现有 framecap，也不改变当前 rootful/rootless 启动链。

@@ -42,7 +42,7 @@ echo "---- vm_stat ----"
 vm_stat 2>/dev/null | head -12
 echo "---- iosurface_hint ----"
 # 无 Frida：仅从 vmmap/heap 线索粗看（可能无权限）
-PID=$(ps -axo pid,args 2>/dev/null | grep '[T]SDaemon -server' | head -1 | sed 's/^ *//' | cut -d' ' -f1)
+PID=$(ps -axo pid,args 2>/dev/null | grep '[T]SDaemon' | grep -- ' -server' | head -1 | sed 's/^ *//' | cut -d' ' -f1)
 echo "TSDaemon_pid=${PID:-0}"
 if [ -n "${PID:-}" ] && [ "$PID" != "0" ]; then
   # footprint 类：若有 malloc_history/vmmap
@@ -77,7 +77,7 @@ set +e
 # TSDaemon 会 fork 出短命子进程（同 argv、RSS 仅 2MB 量级），按名字 grep + head -1
 # 会随机抓到子进程导致样本跳变。只认带 -server 的常驻守护，并锁定 PID 采样。
 ts_pid() {
-  ps -axo pid,args 2>/dev/null | grep '[T]SDaemon -server' | head -1 | sed 's/^ *//' | cut -d' ' -f1
+  ps -axo pid,args 2>/dev/null | grep '[T]SDaemon' | grep -- ' -server' | head -1 | sed 's/^ *//' | cut -d' ' -f1
 }
 ts_rss() {
   ps -p "$1" -o rss= 2>/dev/null | tr -d ' '

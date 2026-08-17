@@ -10,12 +10,12 @@ local function NYI(name)
 end
 
 -- MemoryAccess(bid, key) -> string  [done]
---   优先读缓存 plist
+--   优先读项目自身 JSON 缓存（兼容读取历史 plist）
 -- 已实现：由 ziyan_engine 安装到 _G.MemoryAccess
 M.MemoryAccess = _G.MemoryAccess  -- 运行时绑定（契约侧只读）
 
 -- MemoryWrite(bid, key, value) -> bool  [done]
---   写缓存
+--   原子写项目自身 JSON 缓存
 -- 已实现：由 ziyan_engine 安装到 _G.MemoryWrite
 M.MemoryWrite = _G.MemoryWrite  -- 运行时绑定（契约侧只读）
 

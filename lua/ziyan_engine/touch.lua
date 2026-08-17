@@ -502,8 +502,9 @@ function M.install()
           gate_gen = tonumber(snap.front_generation) or 0
           gate_seq = tonumber(snap.seq) or 0
           gate_orient = tonumber(snap.init_orient) or gate_orient
+          -- 触动：触控不因包名/shm 错位拒点；颜色命中后照常点当前屏
           if okg == false and snap.err == "VISION_STALE" then
-            reject_stale = true
+            reject_stale = false
           end
         end
       end

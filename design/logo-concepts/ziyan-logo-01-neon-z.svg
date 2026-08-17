@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#163b72"/><stop offset=".55" stop-color="#31468f"/><stop offset="1" stop-color="#623b91"/></linearGradient>
+    <linearGradient id="z" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#55f6ff"/><stop offset=".5" stop-color="#6b7cff"/><stop offset="1" stop-color="#d14cff"/></linearGradient>
+    <filter id="g"><feGaussianBlur stdDeviation="18" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="1024" height="1024" rx="224" fill="url(#bg)"/>
+  <g fill="none" stroke="#5c6dff" stroke-width="8" opacity=".34"><path d="M120 306h136l46 46h112M904 306H768l-46 46H610M120 718h136l46-46h112M904 718H768l-46-46H610"/><circle cx="120" cy="306" r="13" fill="#55f6ff"/><circle cx="904" cy="718" r="13" fill="#d14cff"/></g>
+  <path d="M294 274h448l-55 109-242 258h266l-56 109H281l55-108 242-259H238z" fill="url(#z)" filter="url(#g)"/>
+  <path d="M294 274h448l-55 109-242 258h266l-56 109H281l55-108 242-259H238z" fill="none" stroke="#d6ffff" stroke-opacity=".75" stroke-width="7"/>
+  <text x="512" y="852" fill="#a7b8ff" font-family="ui-monospace,Menlo,monospace" font-size="36" text-anchor="middle" letter-spacing="11">ZIYAN // CORE</text>
+</svg>

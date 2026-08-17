@@ -9,7 +9,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PASS="${ZY_SSH_PASS:-alpine}"
 WANT="${1:-all}"
-STAMP="$(date '+%Y%m%d_%H%M%S')"
+STAMP="$(date '+%Y%m%d_%H%M%S')_${WANT}_$$"
 OUT="${ROOT}/tmp_shots/RUN1_GATE_${STAMP}"
 DESKTOP_IOS7="/Users/mac/Desktop/ios7.lua"
 DESKTOP_IOS8P="/Users/mac/Desktop/ios8p.lua"
@@ -17,8 +17,59 @@ mkdir -p "$OUT"
 SSH_OPTS=(-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=15
           -o PreferredAuthentications=password -o PubkeyAuthentication=no
           -o ServerAliveInterval=20 -o ServerAliveCountMax=6)
-ssh_r() { sshpass -p "$PASS" ssh "${SSH_OPTS[@]}" "root@$1" "${@:2}"; }
-scp_r() { sshpass -p "$PASS" scp "${SSH_OPTS[@]}" "$1" "root@$2:$3"; }
+SSH_KEY_OPTS=(-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=15
+              -o BatchMode=yes -o ServerAliveInterval=20 -o ServerAliveCountMax=6)
+SSH_AUTH_KIND=""
+
+# 测试机均已安装本机公钥。优先密钥可避免密码限流；密码只保留为兼容回退。
+# 认证通道不是产品能力，必须在门禁开始前固定下来，避免把 SSH 拒绝误记成业务 FAIL。
+init_ssh_auth() {
+  local ip="$1"
+  if ssh -n "${SSH_KEY_OPTS[@]}" "root@$ip" true >/dev/null 2>&1; then
+    SSH_AUTH_KIND=key
+  elif sshpass -p "$PASS" ssh "${SSH_OPTS[@]}" "root@$ip" true >/dev/null 2>&1; then
+    SSH_AUTH_KIND=password
+  else
+    echo "FATAL ssh_auth_failed ip=$ip" >&2
+    return 1
+  fi
+  echo "SSH_AUTH=$SSH_AUTH_KIND ip=$ip"
+}
+
+ssh_r() {
+  local ip="$1"; shift
+  if [ "$SSH_AUTH_KIND" = password ]; then
+    # 某些设备会短暂接受一次密码探测、随后拒绝密码登录（限流/sshd
+    # 策略），但已授权的本机密钥仍可用。认证不是产品结论：本次
+    # 操作必须回退密钥，不能把传输失败写成业务 FAIL。
+    sshpass -p "$PASS" ssh "${SSH_OPTS[@]}" "root@$ip" "$@" ||
+      ssh "${SSH_KEY_OPTS[@]}" "root@$ip" "$@"
+  else
+    # 禁止 -n：密钥路径若丢弃 stdin，heredoc 的 bash -s 会空跑，
+    # 主机只能写出 INVALID_RUN，并被误当成业务失败。
+    ssh "${SSH_KEY_OPTS[@]}" "root@$ip" "$@"
+  fi
+}
+
+scp_r() {
+  local src="$1" ip="$2" dst="$3"
+  if [ "$SSH_AUTH_KIND" = password ]; then
+    sshpass -p "$PASS" scp "${SSH_OPTS[@]}" "$src" "root@$ip:$dst" ||
+      scp "${SSH_KEY_OPTS[@]}" "$src" "root@$ip:$dst"
+  else
+    scp "${SSH_KEY_OPTS[@]}" "$src" "root@$ip:$dst"
+  fi
+}
+
+scp_from() {
+  local ip="$1" src="$2" dst="$3"
+  if [ "$SSH_AUTH_KIND" = password ]; then
+    sshpass -p "$PASS" scp "${SSH_OPTS[@]}" "root@$ip:$src" "$dst" ||
+      scp "${SSH_KEY_OPTS[@]}" "root@$ip:$src" "$dst"
+  else
+    scp "${SSH_KEY_OPTS[@]}" "root@$ip:$src" "$dst"
+  fi
+}
 
 [[ -f "$DESKTOP_IOS7" && -f "$DESKTOP_IOS8P" ]] || {
   echo "FATAL missing Desktop ios7/ios8p"; exit 2
@@ -42,14 +93,41 @@ run_one() {
   local sha="$SHA7"
   [[ "$script" == "ios8p.lua" ]] && sha="$SHA8"
   echo "[run1] .$tag $script (script logic: 找到目标+tap)"
-  if [[ "$script" == "ios8p.lua" ]]; then
-    scp_r "$DESKTOP_IOS8P" "$ip" /private/var/mobile/Media/ZiYan/ios8p.lua
-  else
-    scp_r "$DESKTOP_IOS7" "$ip" /private/var/mobile/Media/ZiYan/ios7.lua
+  # 传输/认证异常不属于视觉结果。必须落一份标准 gate 文件，既让
+  # 汇总正确记 FAIL，也避免 set -e 让整轮无证据中断。
+  if ! init_ssh_auth "$ip"; then
+    {
+      echo "META TAG=$tag SCRIPT=$script"
+      echo "TRANSPORT=AUTH_FAILED"
+      echo "VERDICT=FAIL_TRANSPORT"
+      echo "TYPED=TRANSPORT_BLOCKED"
+    } | tee "$OUT/gate_${tag}.txt"
+    return 0
   fi
-  bash "$ROOT/tools/zy_miss_fuse_emergency.sh" "$tag" 2>&1 | tee -a "$OUT/fuse_${tag}.txt" | tail -2
+  if [[ "$script" == "ios8p.lua" ]]; then
+    if ! scp_r "$DESKTOP_IOS8P" "$ip" /private/var/mobile/Media/ZiYan/ios8p.lua; then
+      {
+        echo "META TAG=$tag SCRIPT=$script"
+        echo "TRANSPORT=SCRIPT_COPY_FAILED"
+        echo "VERDICT=FAIL_TRANSPORT"
+        echo "TYPED=TRANSPORT_BLOCKED"
+      } | tee "$OUT/gate_${tag}.txt"
+      return 0
+    fi
+  else
+    if ! scp_r "$DESKTOP_IOS7" "$ip" /private/var/mobile/Media/ZiYan/ios7.lua; then
+      {
+        echo "META TAG=$tag SCRIPT=$script"
+        echo "TRANSPORT=SCRIPT_COPY_FAILED"
+        echo "VERDICT=FAIL_TRANSPORT"
+        echo "TYPED=TRANSPORT_BLOCKED"
+      } | tee "$OUT/gate_${tag}.txt"
+      return 0
+    fi
+  fi
+  bash "$ROOT/tools/zy_miss_fuse_emergency.sh" "$tag" 2>&1 | tee -a "$OUT/fuse_${tag}.txt" | tail -2 || true
 
-  ssh_r "$ip" "TAG=$tag SCHEME=$scheme SCRIPT=$script SHA=$sha bash -s" <<'EOS' | tee "$OUT/gate_${tag}.txt"
+  ssh_r "$ip" "export PATH=/var/jb/usr/bin:/var/jb/bin:/usr/bin:/bin:\$PATH; TAG=$tag SCHEME=$scheme SCRIPT=$script SHA=$sha bash -s" <<'EOS' | tee "$OUT/gate_${tag}.txt"
 set +e
 if [ "$SCHEME" = rootless ]; then
   VAR=/var/jb/usr/lib/ziyan/var
@@ -65,6 +143,43 @@ FIND_TAP=0
 CLICK=0
 NO_FIND=0
 LOGIN_SEEN=0
+START_TS=$(date +%s)
+SB0=$(ps -axo pid=,args= 2>/dev/null | while read -r pid args; do
+  case "$args" in */System/Library/CoreServices/SpringBoard.app/SpringBoard*) echo "$pid"; break ;; esac
+done)
+RID="run1_${TAG}_${START_TS}_$$"
+VD="$MEDIA/verdicts"
+FINAL="$VD/${RID}.txt"
+mkdir -p "$VD"
+persist() {
+  {
+    echo "run_id=$RID"
+    echo "host=.$TAG"
+    echo "scheme=$SCHEME"
+    echo "pkg=$VER"
+    echo "script=$SCRIPT"
+    echo "script_sha=$SHA"
+    echo "session_id=$RID"
+    echo "request_id=$RID"
+    echo "phase=$1"
+    echo "started_ts=$START_TS"
+    echo "updated_ts=$(date +%s)"
+    echo "FIND_TAP=$FIND_TAP"
+    echo "CLICK=$CLICK"
+    echo "FAIL=$FAIL"
+    echo "NO_FIND=$NO_FIND"
+    echo "LOGIN_SEEN=$LOGIN_SEEN"
+    [ -n "${2:-}" ] && echo "$2"
+  } >"$FINAL.tmp"
+  mv "$FINAL.tmp" "$FINAL"
+  chmod 666 "$FINAL" 2>/dev/null || true
+}
+persist started "TYPED=RUNNING"
+if [ "$SCRIPT" = "ios8p.lua" ]; then
+  TAP_X1=2011; TAP_X2=2013; TAP_Y1=283; TAP_Y2=290
+else
+  TAP_X1=1010; TAP_X2=1010; TAP_Y1=294; TAP_Y2=300
+fi
 pass() { echo "PASS $1"; }
 fail() { echo "FAIL $1"; FAIL=1; }
 
@@ -87,7 +202,7 @@ go_home() {
   return 1
 }
 
-echo "META VER=$VER SCRIPT=$SCRIPT RUN1=1 RULE=find_tap_typed_verdict"
+echo "META VER=$VER SCRIPT=$SCRIPT RUN1=1 RULE=find_tap_typed_verdict RUN_ID=$RID FINAL=$FINAL"
 mkdir -p "$VAR" "$MEDIA"
 REMOTE_SHA=""
 if command -v sha256sum >/dev/null 2>&1; then
@@ -103,7 +218,7 @@ rm -f "$VAR/.ziyan_open_app" "$VAR/.ziyan_embed_off" "$VAR/.ziyan_user_stopped" 
   "$VAR/.ziyan_find_sb_banned" "$VAR/.ziyan_light" "$VAR/.ziyan_force_front_mismatch" \
   "$VAR/.ziyan_app_alive" "$VAR/.ziyan_prefer_app_touch"
 rm -f "$VAR/.ziyan_toast_dump" "$VAR/.ziyan_toast_hist" \
-  "$VAR/.ziyan_verify_log" "$VAR/.ziyan_biz_tapped"
+  "$VAR/.ziyan_verify_log" "$VAR/.ziyan_biz_tapped" "$VAR/.ziyan_tap_gate"
 : >"$VAR/.ziyan_toast_dump"
 : >"$VAR/.ziyan_toast_hist"
 : >"$VAR/.ziyan_verify_log"
@@ -119,6 +234,31 @@ if [ "$FC0" -eq 0 ]; then
   sleep 1.2
 fi
 
+# A0：装包后 SB 可能锁屏。thin Home 对 lock state=1 直接 skip。
+# 解锁需要 session 标记，否则 unlock_req 被忽略。
+date +%s >"$VAR/.ziyan_project_active"
+chmod 666 "$VAR/.ziyan_project_active" 2>/dev/null
+rm -f "$VAR/.ziyan_unlock_rep"
+echo 1 >"$VAR/.ziyan_unlock_req"
+chmod 666 "$VAR/.ziyan_unlock_req" 2>/dev/null
+u=0
+while test "$u" -lt 30; do
+  if [ -s "$VAR/.ziyan_unlock_rep" ] && grep -q '^ok$' "$VAR/.ziyan_unlock_rep"; then
+    echo "A0_UNLOCK=ok t=$u"
+    break
+  fi
+  sleep 0.5
+  u=$((u+1))
+done
+[ "$u" -ge 30 ] && echo "A0_UNLOCK=timeout"
+rm -f "$VAR/.ziyan_unlock_req"
+# Home 期间挡住 zydaemon revive（intent 可能仍是上一轮 stop=0）
+echo 1 >"$VAR/.ziyan_user_stopped"
+chmod 666 "$VAR/.ziyan_user_stopped" 2>/dev/null
+printf 'stop=1\n' >"$VAR/.ziyan_run_intent"
+chmod 666 "$VAR/.ziyan_run_intent" 2>/dev/null
+rm -f "$VAR/.ziyan_open_app" "$VAR/.ziyan_embed_go"
+
 # A0 Home — 禁止 open_app；不绑定固定游戏 BID
 go_home 10
 FRONT0=$(tr -d '\r\n' <"$VAR/.ziyan_front_bid" 2>/dev/null)
@@ -130,39 +270,84 @@ echo "A0_SEQ=$SEQ0"
 
 for t in $(seq 1 20); do
   echo 1 >"$VAR/.ziyan_force_recap"; chmod 666 "$VAR/.ziyan_force_recap" 2>/dev/null
-  echo "nonce=run1_a0_$t" >"$VAR/.ziyan_frame_req"; chmod 666 "$VAR/.ziyan_frame_req"
+  # framecap 会原子消费该请求；chmod 与消费之间存在正常竞态，缺文件
+  # 不是帧失败也不应污染门禁输出。
+  echo "nonce=run1_a0_$t" >"$VAR/.ziyan_frame_req"; chmod 666 "$VAR/.ziyan_frame_req" 2>/dev/null || true
   sleep 1
   L=$(tail -1 "$VAR/.ziyan_framecap_log" 2>/dev/null)
   echo "$L" | grep -qE 'ok=1 via=' && { echo "A0_FRAME t=$t"; break; }
 done
 
 # A1 embed Desktop（脚本自己找色+tap）
-rm -f "$VAR/.ziyan_embed_ack" "$VAR/.ziyan_lua_embedded" "$VAR/.ziyan_embed_alive"
+# 启动 ACK ≠ 帧新鲜。旧实现 sleep 3 只看 lua_embedded；prewarm 最多 8s，
+# Home 释帧后会把已接受的脚本判 A1 FAIL，再一票否决 BUSINESS_PASS。
+rm -f "$VAR/.ziyan_embed_ack" "$VAR/.ziyan_lua_embedded" "$VAR/.ziyan_embed_alive" \
+  "$VAR/.ziyan_ready_ack" "$VAR/.ziyan_run_ack"
+# 新 run：先写 intent stop=0，再清 user_stopped。反过来 zydaemon 会 revive。
 printf 'path=%s/%s\nstop=0\n' "$MEDIA" "$SCRIPT" >"$VAR/.ziyan_run_intent"
+chmod 666 "$VAR/.ziyan_run_intent" 2>/dev/null
+rm -f "$VAR/.ziyan_user_stopped" "$VAR/.ziyan_stop" "$VAR/.ziyan_kill_scripts"
 printf '%s/%s\n' "$MEDIA" "$SCRIPT" >"$VAR/.ziyan_embed_script"
 printf '1\n' >"$VAR/.ziyan_embed_on"
 date +%s >"$VAR/.ziyan_project_active"
-echo "nonce=run1_${TAG}_$$" >"$VAR/.ziyan_embed_go"
+RID="run1_${TAG}_$$"
+printf 'nonce=%s\nrequest_id=%s\nsession_id=%s\n' "$RID" "$RID" "$RID" >"$VAR/.ziyan_embed_go"
 chmod 666 "$VAR/.ziyan_run_intent" "$VAR/.ziyan_embed_script" "$VAR/.ziyan_embed_on" \
   "$VAR/.ziyan_embed_go" "$VAR/.ziyan_project_active" 2>/dev/null
-sleep 3
 EMB=0
-[ -f "$VAR/.ziyan_lua_embedded" ] && EMB=1
-[ -f "$VAR/.ziyan_embed_alive" ] && EMB=1
+A1_HOW=""
+A1_T=0
+for t in $(seq 1 30); do
+  A1_T=$t
+  if [ -f "$VAR/.ziyan_lua_embedded" ]; then EMB=1; A1_HOW=lua_embedded; break; fi
+  if [ -f "$VAR/.ziyan_embed_alive" ]; then EMB=1; A1_HOW=embed_alive; break; fi
+  if grep -q 'ok=1' "$VAR/.ziyan_embed_ack" 2>/dev/null; then EMB=1; A1_HOW=embed_ack; break; fi
+  if grep -q 'accepted=1' "$VAR/.ziyan_run_ack" 2>/dev/null; then EMB=1; A1_HOW=run_ack; break; fi
+  if grep -q 'state=running' "$VAR/.ziyan_session" 2>/dev/null; then EMB=1; A1_HOW=session; break; fi
+  sleep 0.5
+done
+echo "A1_HOW=$A1_HOW t=$A1_T EMB=$EMB"
 [ "$EMB" = 1 ] && pass A1_embed || fail A1_embed
+persist a1_embed "A1_HOW=$A1_HOW EMB=$EMB"
 
 # A2 等「找到目标」/Verify — 不以「登录」为成功
 deadline=$(( $(date +%s) + 90 ))
 LAST=""
+tap_gate_is_current() {
+  local g ts x y
+  [ -f "$VAR/.ziyan_tap_gate" ] || return 1
+  g=$(tr '\n' ' ' <"$VAR/.ziyan_tap_gate" 2>/dev/null)
+  ts=$(sed -n 's/.*ts=\([0-9][0-9]*\).*/\1/p' <<<"$g" | head -1)
+  x=$(sed -n 's/.*x=\([0-9][0-9]*\).*/\1/p' <<<"$g" | head -1)
+  y=$(sed -n 's/.*y=\([0-9][0-9]*\).*/\1/p' <<<"$g" | head -1)
+  [ -n "$ts" ] && [ "$ts" -ge "$START_TS" ] 2>/dev/null && \
+    [ -n "$x" ] && [ -n "$y" ] && \
+    [ "$x" -ge "$TAP_X1" ] 2>/dev/null && [ "$x" -le "$TAP_X2" ] 2>/dev/null && \
+    [ "$y" -ge "$TAP_Y1" ] 2>/dev/null && [ "$y" -le "$TAP_Y2" ] 2>/dev/null
+}
 while [ "$(date +%s)" -lt "$deadline" ]; do
   T=$(grep '^text=' "$VAR/.ziyan_toast_dump" 2>/dev/null | tail -1 | sed 's/^text=//')
   [ -n "$T" ] && [ "$T" != "$LAST" ] && echo "TOAST=$T" && LAST=$T
   H=$(toast_hist)
+  # toast_hist 是滚动历史，脚本命中后紧接着切进 App 时可能已被下一条
+  # “searching” 覆盖；当前 toast_dump 则已经看到了业务脚本自己的 Verify 成功。
+  # 两者都属于同一轮、在本门禁清空后产生的证据，必须同等认定，随后仍由 A3
+  # 验证确实离开桌面，避免把单纯 toast 当业务成功。
+  echo "$T" | grep -qE '找到目标|tap success|iOS7 tap|iPhone8Plus tap' && FIND_TAP=1
+  echo "$T" | grep -q '登录' && LOGIN_SEEN=1
+  echo "$T" | grep -q '色点A未找到' && NO_FIND=1
   echo "$H" | grep -qE '找到目标' && FIND_TAP=1
   echo "$H" | grep -q '登录' && LOGIN_SEEN=1
   echo "$H" | grep -q '色点A未找到' && NO_FIND=1
   grep -qE 'tap success|iOS7 tap|iPhone8Plus tap' "$VAR/.ziyan_verify_log" 2>/dev/null && FIND_TAP=1
   [ -f "$VAR/.ziyan_biz_tapped" ] && FIND_TAP=1
+  # 即时 toast 与滚动历史均可能在 500ms 循环里被下一条 searching 覆盖；
+  # .ziyan_tap_gate 是触控层写出的结构化本轮证据。启动前已清除旧值，并要求
+  # 时间戳和坐标都落在该 Desktop 脚本的原始目标 ROI 内，之后仍由 A3 判前台变化。
+  if [ "$FIND_TAP" != 1 ] && tap_gate_is_current; then
+    echo "OBS_CURRENT_TAP_GATE=$(tr '\n' ' ' <"$VAR/.ziyan_tap_gate" 2>/dev/null)"
+    FIND_TAP=1
+  fi
   [ "$FIND_TAP" = 1 ] && break
   sleep 1
 done
@@ -213,6 +398,8 @@ fi
 LAST_CLASS=$(sed -n 's/.*class=\([^ ]*\).*/\1/p' "$VAR/.ziyan_last_find" 2>/dev/null | head -1)
 echo "LAST_FIND_CLASS=$LAST_CLASS TOUCH_REP_OK=$TOUCH_REP_OK"
 
+printf 'stop=1\n' >"$VAR/.ziyan_run_intent"
+echo 1 >"$VAR/.ziyan_user_stopped"
 printf 'ts=1\n' >"$VAR/.ziyan_kill_scripts"; chmod 666 "$VAR/.ziyan_kill_scripts" 2>/dev/null || true
 sleep 2
 rm -f "$VAR/.ziyan_active" "$VAR/.ziyan_keep_daemon" 2>/dev/null
@@ -220,33 +407,72 @@ rm -f "$VAR/.ziyan_active" "$VAR/.ziyan_keep_daemon" 2>/dev/null
 FRONT_END=$(tr -d '\r\n' <"$VAR/.ziyan_front_bid" 2>/dev/null)
 echo "FIND_TAP=$FIND_TAP CLICK=$CLICK FAIL=$FAIL FRONT_END=$FRONT_END"
 # 202 typed verdict：视觉 / 触控分离；不绑固定 GAME_BID
+TYPED=FAIL
+VLINE=FAIL
 if [ "$FIND_TAP" = 1 ] && [ "$CLICK" = 1 ] && [ "$FAIL" = 0 ]; then
-  echo "VERDICT=PASS"
-  echo "TYPED=BUSINESS_PASS"
+  VLINE=PASS
+  TYPED=BUSINESS_PASS
 elif [ "$FIND_TAP" = 1 ] && [ "$CLICK" = 0 ]; then
-  echo "VERDICT=FAIL_FIND_HIT_TOUCH"
-  if [ "$TOUCH_REP_OK" = 1 ]; then
-    echo "TYPED=TOUCH_SENT_NO_UI_CHANGE"
-  else
-    echo "TYPED=TOUCH_SENT_NO_UI_CHANGE"
-  fi
+  VLINE=FAIL_FIND_HIT_TOUCH
+  TYPED=TOUCH_SENT_NO_UI_CHANGE
   echo "NOTE=vision_hit_but_still_home; open touch/HID/icon only — do_not_change_find"
 elif [ "$FIND_TAP" = 0 ]; then
+  VLINE=FAIL_NO_FIND
   if echo "$LAST_CLASS" | grep -qiE 'front_mismatch|stale'; then
-    echo "VERDICT=FAIL_NO_FIND"
-    echo "TYPED=VISION_STALE"
+    TYPED=VISION_STALE
   else
-    echo "VERDICT=FAIL_NO_FIND"
-    echo "TYPED=VISION_MISS"
+    TYPED=VISION_MISS
   fi
   echo "LAST_FIND=$(tr '\n' ' ' <"$VAR/.ziyan_last_find" 2>/dev/null | tail -c 240)"
   echo "CONTRACT=$(tr '\n' ' ' <"$VAR/.ziyan_find_contract" 2>/dev/null | tail -c 240)"
-else
-  echo "VERDICT=FAIL"
-  echo "TYPED=FAIL"
 fi
+echo "VERDICT=$VLINE"
+echo "TYPED=$TYPED"
+SB1=$(ps -axo pid=,args= 2>/dev/null | while read -r pid args; do
+  case "$args" in */System/Library/CoreServices/SpringBoard.app/SpringBoard*) echo "$pid"; break ;; esac
+done)
+FC_N=$(ps -ax -o command= 2>/dev/null | grep -F 'ziyan_framecap serve' | grep -vc grep | tr -dc '0-9')
+KEEP=$(test -f "$VAR/.ziyan_keep_daemon" && echo 1 || echo 0)
+ACTIVE=$(test -f "$VAR/.ziyan_active" && echo 1 || echo 0)
+EMBED=$(test -f "$VAR/.ziyan_embed_alive" -o -f "$VAR/.ziyan_lua_embedded" && echo 1 || echo 0)
+SESS=$(tr '\n' ' ' <"$VAR/.ziyan_session" 2>/dev/null)
+SB_CHG=0
+[ -n "$SB0" ] && [ -n "$SB1" ] && [ "$SB0" != "$SB1" ] && SB_CHG=1
+echo "FC_N=$FC_N SB0=$SB0 SB1=$SB1 SB_CHG=$SB_CHG KEEP_AFTER=$KEEP ACTIVE=$ACTIVE EMBED=$EMBED SESSION=$SESS"
 echo "META end=$(date +%s)"
+persist final "VERDICT=$VLINE
+TYPED=$TYPED
+FC_N=$FC_N
+SB0=$SB0
+SB1=$SB1
+SB_CHG=$SB_CHG
+KEEP_AFTER_STOP=$KEEP
+ACTIVE=$ACTIVE
+EMBED=$EMBED
+SESSION=$SESS
+FRONT_END=$FRONT_END
+final=1"
 EOS
+
+  # 主机 SSH 输出只是便利数据。断线后重连拉设备端 final，不得把空输出写成 VISION_MISS。
+  mkdir -p "$OUT/device"
+  latest=$(ssh_r "$ip" "export PATH=/var/jb/usr/bin:/var/jb/bin:/usr/bin:/bin:\$PATH; bash -c 'ls -t /private/var/mobile/Media/ZiYan/verdicts/run1_${tag}_*.txt 2>/dev/null | head -1'" | tr -d '\r\n')
+  echo "DEVICE_FINAL_PATH=$latest" | tee "$OUT/device/${tag}_latest.path"
+  if [ -n "$latest" ]; then
+    scp_from "$ip" "$latest" "$OUT/device/${tag}_final.txt" 2>/dev/null || true
+  fi
+  if ! grep -qE '^TYPED=' "$OUT/gate_${tag}.txt" 2>/dev/null; then
+    if grep -q '^final=1' "$OUT/device/${tag}_final.txt" 2>/dev/null; then
+      echo "RECOVERED_FROM_DEVICE=1" >>"$OUT/gate_${tag}.txt"
+      cat "$OUT/device/${tag}_final.txt" >>"$OUT/gate_${tag}.txt"
+    else
+      {
+        echo "VERDICT=FAIL_TRANSPORT"
+        echo "TYPED=INVALID_RUN"
+        echo "NOTE=no_host_typed_and_no_device_final"
+      } >>"$OUT/gate_${tag}.txt"
+    fi
+  fi
 
   # FAIL 取证：Home 上色点A GC/FIND
   if ! grep -q 'VERDICT=PASS' "$OUT/gate_${tag}.txt" 2>/dev/null; then
@@ -292,7 +518,9 @@ case "$WANT" in
     run_one 112 192.168.31.112 rootful ios7.lua
     run_one 166 192.168.31.166 rootful ios7.lua
     ;;
-  53) run_one 53 192.168.31.53 rootless ios8p.lua ;;
+  53)
+    run_one 53 192.168.31.53 rootless ios8p.lua
+    ;;
   101) run_one 101 192.168.31.101 rootful ios7.lua ;;
   112) run_one 112 192.168.31.112 rootful ios7.lua ;;
   166) run_one 166 192.168.31.166 rootful ios7.lua ;;

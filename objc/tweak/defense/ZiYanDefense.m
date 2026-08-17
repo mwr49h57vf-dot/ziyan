@@ -1,6 +1,7 @@
 #import "ZiYanDefense.h"
 #import "ZiYanDefenseAI.h"
 #import "ZiYanPaths.h"
+#import "ZiYanInjectTrace.h"
 #import <dlfcn.h>
 #import <ifaddrs.h>
 #import <arpa/inet.h>
@@ -752,13 +753,22 @@ static void ZDRemoveHooksBestEffort(void) {
 @end
 
 __attribute__((constructor)) static void ZiYanDefenseCtor(void) {
+  ZiYanInjectTrace("ZiYanDefense", "ctor_enter");
+  ZiYanInjectTrace("ZiYanDefense", "ctor_exit");
   if (ZDIsSystemCriticalProcess()) {
     return;
   }
-  // 延迟到 runloop，避免过早 UIKit
-  dispatch_async(dispatch_get_main_queue(), ^{
-    [[ZiYanDefense shared] startIfAllowed];
-  });
+  // Filter 已收窄为仅 com.ziyan.ziyan。再延迟挂接，避开冷启动 10s 窗口。
+  dispatch_after(
+      dispatch_time(DISPATCH_TIME_NOW, (int64_t)(8.0 * NSEC_PER_SEC)),
+      dispatch_get_main_queue(), ^{
+        ZiYanInjectTrace("ZiYanDefense", "late_start");
+        @try {
+          [[ZiYanDefense shared] startIfAllowed];
+        } @catch (NSException *ex) {
+          ZDLog(@"start_exc %@", ex);
+        }
+      });
 }
 
 __attribute__((destructor)) static void ZiYanDefenseDtor(void) {

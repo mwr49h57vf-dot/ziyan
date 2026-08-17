@@ -4,7 +4,10 @@
 
 TARGET := iphone:clang:latest:13.0
 ARCHS := arm64
-INSTALL_TARGET_PROCESSES = SpringBoard ZiYan
+# Theos `make install` used to kill these processes. That is an automatic
+# SpringBoard restart and is forbidden. Leave empty; inject reload is a
+# separate human-authorized step.
+INSTALL_TARGET_PROCESSES =
 
 # 勿默认连局域网其它手机；USB 验收用 iproxy→127.0.0.1
 # THEOS_DEVICE_IP =
@@ -35,6 +38,15 @@ ZiYan_FILES = \
 	objc/app/main.m \
 	objc/app/ceshiAppDelegate.m \
 	objc/app/ceshiRootViewController.m \
+	objc/app/ZiYanHomeViewController.m \
+	objc/app/AgentGameViewController.m \
+	objc/app/AgentSessionController.m \
+	objc/app/AgentLearningRecorder.m \
+	objc/app/AgentLearningCompiler.m \
+	objc/app/AgentABCPackets.m \
+	objc/app/AgentAutonomousEngine.m \
+	objc/app/AgentVersionStore.m \
+	objc/shared/AgentLearningInputBridge.m \
 	objc/app/ZiYanAppSelector.m \
 	objc/app/ZiYanLLMSidecarClient.m \
 	objc/app/ZiYanScriptGenerator.m \
@@ -49,7 +61,12 @@ ZiYan_FILES = \
 	$(SHARED)
 ZiYan_FRAMEWORKS = UIKit CoreGraphics Vision AVFoundation MediaPlayer CoreLocation
 ZiYan_CFLAGS = -fobjc-arc $(INC)
-ZiYan_CODESIGN_FLAGS = -Sobjc/app/entitlements.plist
+ifneq ($(FINALPACKAGE),1)
+ZiYan_CFLAGS += -DZIYAN_PAGE_SELFTEST=1
+ZIYAN_INJECT_TRACE_CFLAGS = -DZIYAN_INJECT_TRACE=1
+endif
+# 绝对路径：rootless remap 时 cwd 可能不在仓库根，相对 -Sobjc/app/... 会 ldid errno=2
+ZiYan_CODESIGN_FLAGS = -S$(THEOS_PROJECT_DIR)/objc/app/entitlements.plist
 
 ZiYanVol_FILES = \
 	objc/tweak/springboard/Tweak.m \
@@ -68,26 +85,19 @@ ZiYanVol_FILES = \
 	$(SHARED)
 # 8-158 / T6 Step7：BootRecovery+Watchdog+Stats → stub；保留 ScreenBridge/Toast/Icon/Tweak（硬锁）
 # 完整 BootRecovery.m 仍留作对照，默认不编进 ZiYanVol
-ZiYanVol_CFLAGS = -fobjc-arc -Wno-deprecated-declarations $(INC) -DZIYAN_DAEMON_V2=1 -DZIYAN_T6_STEP7=1
+ZiYanVol_CFLAGS = -fobjc-arc -Wno-deprecated-declarations $(INC) -DZIYAN_DAEMON_V2=1 -DZIYAN_T6_STEP7=1 $(ZIYAN_INJECT_TRACE_CFLAGS)
 ZiYanVol_FRAMEWORKS = UIKit Foundation CoreFoundation MediaPlayer AVFoundation IOKit CoreGraphics QuartzCore Vision ImageIO IOSurface
 # NOTE: ZiYanVol_CFLAGS 已上移；勿重复定义
 ZiYanVol_INSTALL_PATH = /Library/MobileSubstrate/DynamicLibraries
 
 ZiYanVol_LDFLAGS = -install_name $(THEOS_PACKAGE_INSTALL_PREFIX)/Library/MobileSubstrate/DynamicLibraries/ZiYanVol.dylib -weak_framework IOSurface
 
-# 8-159：全零时用极薄合帧中继替代 ZiYanVol（仅 ScreenBridge；音量/图标不在此）
+# 8-159：极薄合帧中继。ScreenBridge 的唯一实现归 ZiYanVol；FrameRelay 只在
+# 延迟窗口后向该共享 bridge 发消息。此前两份 dylib 都编进同名 Objective-C 类，
+# iOS 13 重启后的类装载顺序不确定，会造成 relay 落到未初始化实例、截图黑帧。
 ZiYanFrameRelay_FILES = \
-	objc/tweak/framerelay/Tweak.m \
-	objc/tweak/framerelay/ZiYanToastBridge_stub.m \
-	objc/tweak/springboard/ZiYanScreenBridge.m \
-	objc/tweak/springboard/ZiYanBootRecovery_stub.m \
-	objc/tweak/springboard/ZiyanProcessWatchdog_stub.m \
-	objc/tweak/springboard/ZiYanSbRestartStats_stub.m \
-	objc/shared/ZiYanFrameShm.m \
-	objc/shared/ZiYanFrameCapture.m \
-	objc/shared/ZiYanScriptRecorder.m \
-	$(SHARED)
-ZiYanFrameRelay_CFLAGS = -fobjc-arc -Wno-deprecated-declarations $(INC) -DZIYAN_DAEMON_V2=1 -DZIYAN_FRAME_RELAY_ONLY=1
+	objc/tweak/framerelay/Tweak.m
+ZiYanFrameRelay_CFLAGS = -fobjc-arc -Wno-deprecated-declarations $(INC) -DZIYAN_DAEMON_V2=1 -DZIYAN_FRAME_RELAY_ONLY=1 $(ZIYAN_INJECT_TRACE_CFLAGS)
 ZiYanFrameRelay_FRAMEWORKS = UIKit Foundation CoreFoundation IOKit CoreGraphics QuartzCore Vision ImageIO IOSurface
 ZiYanFrameRelay_INSTALL_PATH = /Library/MobileSubstrate/DynamicLibraries
 ZiYanFrameRelay_LDFLAGS = -install_name $(THEOS_PACKAGE_INSTALL_PREFIX)/Library/MobileSubstrate/DynamicLibraries/ZiYanFrameRelay.dylib -weak_framework IOSurface
@@ -95,9 +105,11 @@ ZiYanFrameRelay_LDFLAGS = -install_name $(THEOS_PACKAGE_INSTALL_PREFIX)/Library/
 ZiYanAppTouch_FILES = \
 	objc/tweak/apptouch/ZiYanAppTouch.m \
 	objc/tweak/apptouch/ZiYanMemHook.m \
-	objc/shared/ZiYanScriptRecorder.m
-ZiYanAppTouch_FRAMEWORKS = Foundation UIKit IOKit
-ZiYanAppTouch_CFLAGS = -fobjc-arc -Wno-deprecated-declarations $(INC)
+	objc/shared/ZiYanScriptRecorder.m \
+	objc/shared/ZiYanFrameShm.m \
+	objc/shared/AgentLearningInputBridge.m
+ZiYanAppTouch_FRAMEWORKS = Foundation UIKit IOKit QuartzCore CoreGraphics
+ZiYanAppTouch_CFLAGS = -fobjc-arc -Wno-deprecated-declarations $(INC) $(ZIYAN_INJECT_TRACE_CFLAGS)
 ZiYanAppTouch_INSTALL_PATH = /Library/MobileSubstrate/DynamicLibraries
 
 # 临摹 TSEventTweak：全局 HID，桌面/未注入游戏时也能消费 touch_req（禁抢 AppTouch）
@@ -115,7 +127,7 @@ ZiYanBBFrame_FILES = \
 	objc/shared/ZiYanFrameCapture.m \
 	objc/shared/ZiYanFrameShm.m
 ZiYanBBFrame_FRAMEWORKS = Foundation CoreFoundation CoreGraphics IOKit QuartzCore IOSurface UIKit
-ZiYanBBFrame_CFLAGS = -fobjc-arc -Wno-deprecated-declarations $(INC)
+ZiYanBBFrame_CFLAGS = -fobjc-arc -Wno-deprecated-declarations $(INC) $(ZIYAN_INJECT_TRACE_CFLAGS)
 ZiYanBBFrame_INSTALL_PATH = /Library/MobileSubstrate/DynamicLibraries
 ZiYanBBFrame_LDFLAGS = -install_name $(THEOS_PACKAGE_INSTALL_PREFIX)/Library/MobileSubstrate/DynamicLibraries/ZiYanBBFrame.dylib -weak_framework IOSurface -weak_framework UIKit
 
@@ -124,35 +136,46 @@ ZiYanDefense_FILES = \
 	objc/tweak/defense/ZiYanDefenseAI.m
 ZiYanDefense_FRAMEWORKS = Foundation UIKit
 ZiYanDefense_LIBRARIES = substrate
-ZiYanDefense_CFLAGS = -fobjc-arc -Wno-deprecated-declarations $(INC)
+ZiYanDefense_CFLAGS = -fobjc-arc -Wno-deprecated-declarations $(INC) $(ZIYAN_INJECT_TRACE_CFLAGS)
 ZiYanDefense_INSTALL_PATH = /Library/MobileSubstrate/DynamicLibraries
 
 # USB/AFC 越狱路径伪装（爱思等）；仅 afcd/afc2d
 ZiYanFsCloak_FILES = objc/tweak/fscloak/ZiYanFsCloak.m
 ZiYanFsCloak_FRAMEWORKS = Foundation
 ZiYanFsCloak_LIBRARIES = substrate
-ZiYanFsCloak_CFLAGS = -fobjc-arc -Wno-deprecated-declarations $(INC)
+ZiYanFsCloak_CFLAGS = -fobjc-arc -Wno-deprecated-declarations $(INC) $(ZIYAN_INJECT_TRACE_CFLAGS)
 ZiYanFsCloak_INSTALL_PATH = /Library/MobileSubstrate/DynamicLibraries
 
 include $(THEOS_MAKE_PATH)/application.mk
 include $(THEOS_MAKE_PATH)/tweak.mk
 
-TOOL_NAME = ziyan_ocr ziyan_mem ziyan_framecap ziyan_scriptgen_smoke ziyanctl ziyadaemond ziyan_shm_selftest
-ziyan_ocr_FILES = tools/ziyan_ocr/main.m
-ziyan_ocr_FRAMEWORKS = Foundation UIKit Vision CoreGraphics ImageIO CoreImage
-ziyan_ocr_CFLAGS = -fobjc-arc -Wno-deprecated-declarations
+TOOL_NAME = ziyan_ocr ziyan_mem ziyan_framecap ziyan_framecap_bootstrap ziyan_scriptgen_smoke ziyanctl ziyadaemond ziyan_shm_selftest ziyan_iomfb_diag ziyan_a_probe
+ziyan_ocr_FILES = tools/ziyan_ocr/main.m tools/ziyan_ocr/ziyan_fontocr.m
+ziyan_ocr_FRAMEWORKS = Foundation UIKit Vision CoreGraphics ImageIO CoreImage CoreText
+ziyan_ocr_CFLAGS = -fobjc-arc -Wno-deprecated-declarations -Itools/ziyan_ocr
 ziyan_ocr_INSTALL_PATH = /usr/lib/ziyan/bin
+ifneq ($(wildcard vendor/tesseract-ios3/lib/libtesseract.a),)
+ziyan_ocr_FILES += tools/ziyan_ocr/ziyan_tess.m tools/ziyan_ocr/ziyan_tess_engine.c
+ziyan_ocr_CFLAGS += -DZIYAN_HAS_TESS=1 -Ivendor/tesseract-ios3/include/tesseract
+ziyan_ocr_LDFLAGS = -Lvendor/tesseract-ios3/lib -ltesseract -llept -lpng -ljpeg -ltiff -lc++ -lz
+endif
 
 ziyan_mem_FILES = tools/ziyan_mem/main.m
 ziyan_mem_FRAMEWORKS = Foundation
 ziyan_mem_CFLAGS = -fobjc-arc -Wno-deprecated-declarations
-ziyan_mem_CODESIGN_FLAGS = -Stools/ziyan_mem/entitlements.plist
+ziyan_mem_CODESIGN_FLAGS = -S$(THEOS_PROJECT_DIR)/tools/ziyan_mem/entitlements.plist
 ziyan_mem_INSTALL_PATH = /usr/lib/ziyan/bin
+
+ziyan_framecap_bootstrap_FILES = tools/ziyan_framecap_bootstrap/main.c
+ziyan_framecap_bootstrap_INSTALL_PATH = /usr/lib/ziyan/bin
+ziyan_framecap_bootstrap_CFLAGS = -Os -fvisibility=hidden
+ziyan_framecap_bootstrap_CODESIGN_FLAGS = -S$(THEOS_PROJECT_DIR)/tools/ziyan_framecap_bootstrap/entitlements.plist
 
 ziyan_framecap_FILES = \
 	tools/ziyan_framecap/main.m \
 	tools/ziyan_framecap/ZiYanLuaEmbed.m \
 	tools/ziyan_framecap/ZiYanSnapshotHttp.m \
+	tools/ziyan_framecap/ZiYanAppFrameClient.m \
 	tools/ziyan_framecap/ziyan_ios_system.c \
 	objc/shared/ZiYanFrameCapture.m \
 	objc/shared/ZiYanFrameShm.m \
@@ -202,12 +225,13 @@ ziyan_framecap_FRAMEWORKS = Foundation UIKit CoreGraphics QuartzCore IOSurface I
 # 8-148：BSD-3 Tencent/ncnn（vendor/ncnn-ios，禁 Vulkan/ANE）；C++ bridge 无 modules
 # 8-161-57：Lua 5.3.5 静态链进 framecap（禁 dylib：rootless 绝对路径/改 install_name 毁签）
 ziyan_framecap_CFLAGS = -fobjc-arc -Wno-deprecated-declarations -Iobjc/shared \
+	-Itools/ziyan_framecap \
 	-Itools/ziyan_ncnn_findcolor -Ivendor/lua-5.3.5/src -fvisibility=hidden \
 	-DLUA_COMPAT_5_2 -Wno-string-plus-int -Wno-unused-parameter
 ziyan_framecap_CCFLAGS = -std=c++14 -fno-modules -fvisibility=hidden \
 	-Ivendor/ncnn-ios/ncnn.framework/Headers \
 	-Itools/ziyan_ncnn_findcolor
-ziyan_framecap_CODESIGN_FLAGS = -Stools/ziyan_framecap/entitlements.plist
+ziyan_framecap_CODESIGN_FLAGS = -S$(THEOS_PROJECT_DIR)/tools/ziyan_framecap/entitlements.plist
 ziyan_framecap_INSTALL_PATH = /usr/lib/ziyan/bin
 # IOSurface 符号运行时 dlsym；弱链避免老 SDK 链接失败
 # ncnn/openmp 为静态 ar（LICENSE arm64）；链进 framecap，无需设备侧 Frameworks
@@ -222,6 +246,27 @@ ziyan_shm_selftest_FRAMEWORKS = Foundation
 ziyan_shm_selftest_CFLAGS = -fobjc-arc -Wno-deprecated-declarations -Iobjc/shared
 ziyan_shm_selftest_INSTALL_PATH = /usr/lib/ziyan/bin
 
+# IOMFB 逐层坐实诊断（取证工具，不参与运行路径）
+# 必须与 ziyan_framecap 同一份 entitlements：IOMobileFramebufferGetLayerDefaultSurface
+# 需要 iokit-user-client-class 里的 IOMobileFramebufferUserClient，否则层 0 直接回
+# 0xE00002C1（kIOReturnNotPrivileged），诊断结论与守护实际能力不符。
+ziyan_iomfb_diag_FILES = tools/ziyan_iomfb_diag/main.m
+ziyan_iomfb_diag_FRAMEWORKS = Foundation CoreGraphics ImageIO IOKit UIKit QuartzCore
+ziyan_iomfb_diag_CFLAGS = -fobjc-arc -Wno-deprecated-declarations -Iobjc/shared
+ziyan_iomfb_diag_CODESIGN_FLAGS = -S$(THEOS_PROJECT_DIR)/tools/ziyan_framecap/entitlements.plist
+ziyan_iomfb_diag_INSTALL_PATH = /usr/lib/ziyan/bin
+
+# A 探针：一次性候选源抓帧。禁止写生产 shm，不常驻，不替代 framecap。
+ziyan_a_probe_FILES = \
+	tools/ziyan_a_probe/main.m \
+	objc/shared/ZiYanFrameCapture.m \
+	objc/shared/ZiYanFrameShm.m
+ziyan_a_probe_FRAMEWORKS = Foundation UIKit CoreGraphics QuartzCore IOSurface ImageIO
+ziyan_a_probe_CFLAGS = -fobjc-arc -Wno-deprecated-declarations -Iobjc/shared
+ziyan_a_probe_CODESIGN_FLAGS = -S$(THEOS_PROJECT_DIR)/tools/ziyan_framecap/entitlements.plist
+ziyan_a_probe_INSTALL_PATH = /usr/lib/ziyan/bin
+ziyan_a_probe_LDFLAGS = -weak_framework IOSurface -weak_framework QuartzCore
+
 # 脚本生成/脱壳后端冒烟（.101 无可靠 UI 启动时用 CLI 验收）
 ziyan_scriptgen_smoke_FILES = \
 	tools/ziyan_scriptgen_smoke/main.m \
@@ -232,7 +277,7 @@ ziyan_scriptgen_smoke_FILES = \
 	objc/app/ZiYanDumpManager.m
 ziyan_scriptgen_smoke_FRAMEWORKS = Foundation UIKit Vision
 ziyan_scriptgen_smoke_CFLAGS = -fobjc-arc -Wno-deprecated-declarations -Iobjc/shared -Iobjc/app
-ziyan_scriptgen_smoke_CODESIGN_FLAGS = -Stools/ziyan_mem/entitlements.plist
+ziyan_scriptgen_smoke_CODESIGN_FLAGS = -S$(THEOS_PROJECT_DIR)/tools/ziyan_mem/entitlements.plist
 ziyan_scriptgen_smoke_INSTALL_PATH = /usr/lib/ziyan/bin
 
 # 8-150：ControlShm CLI（Lua/daemon 双写与心跳）
@@ -255,7 +300,22 @@ ziyadaemond_INSTALL_PATH = /usr/lib/ziyan/bin
 
 include $(THEOS_MAKE_PATH)/tool.mk
 
-.PHONY: stage-runtime package-rootless package-rootful clean-user-bins
+.PHONY: stage-runtime package-rootless package-rootful clean-user-bins validate-substrate-plists
+
+# Theos treats <TWEAK_NAME>.plist in the project root as the injection filter.
+# A clang static-analyzer plist is syntactically valid XML, so lint alone cannot
+# detect the destructive collision that disabled ZiYanAppTouch in C79.
+validate-substrate-plists:
+	@plutil -lint "$(CURDIR)/ZiYanAppTouch.plist" >/dev/null
+	@/usr/libexec/PlistBuddy -c 'Print :Filter:Bundles' "$(CURDIR)/ZiYanAppTouch.plist" 2>/dev/null | \
+		grep -Fq 'com.xztl.ios' || { \
+			echo "FAIL: ZiYanAppTouch.plist is not a Substrate Filter for com.xztl.ios" >&2; \
+			exit 2; \
+		}
+	@! grep -Fq '<key>clang_version</key>' "$(CURDIR)/ZiYanAppTouch.plist" || { \
+		echo "FAIL: ZiYanAppTouch.plist was overwritten by clang static-analyzer output" >&2; \
+		exit 2; \
+	}
 
 # 用户手动导入的可执行测试文件（Mach-O / .bin / .exe），每次 make 清空；不动 vendor/.theos
 clean-user-bins:
@@ -271,12 +331,7 @@ clean-user-bins:
 			\( -name '*.lua' -o -name '*.luac' -o -name '*.bin' -o -name '*.exe' \) \
 			! -name 'README.txt' -print -delete 2>/dev/null || true; \
 	fi
-	@if [ -d "$(CURDIR)/tmp_shots" ]; then \
-		find "$(CURDIR)/tmp_shots" -type f \( -name '*.bin' -o -name '*.exe' \
-			-o -name 'TSDaemon*' -o -name 'Hades' -o -name 'wnriakwyww' \
-			-o -name 'lua5.3' -o -name 'ziyan_ocr' -o -name 'ziyan_mem' \) \
-			-print -delete 2>/dev/null || true; \
-	fi
+	@# tmp_shots 是真机采样和 P2/P3/P6/P8 的证据库，构建不得删除其中任何文件。
 	@find "$(CURDIR)" -maxdepth 3 -type f \( -name '*.bin' -o -name '*.exe' \
 		-o -name 'TSDaemon' -o -name 'Hades' -o -name 'wnriakwyww' \
 		-o -name 'lua5.3' -o -name 'ziyan_ocr' -o -name 'ziyan_mem' \) \
@@ -290,7 +345,7 @@ clean-user-bins:
 		-exec sh -c 'file "$$1" | grep -qE "Mach-O|PE32|ELF" && rm -f "$$1" && echo "  rm $$1"' _ {} \; \
 		2>/dev/null || true
 
-before-all:: clean-user-bins
+before-all:: validate-substrate-plists clean-user-bins
 
 clean:: clean-user-bins
 
@@ -313,6 +368,8 @@ stage-runtime:
 	rsync -a vendor/bin/ "$$DEST/usr/lib/ziyan/bin/"; \
 	rsync -a --exclude='lua' vendor/lib/ "$$DEST/usr/lib/ziyan/lib/"; \
 	rsync -a --delete lua/ "$$DEST/usr/lib/ziyan/lib/lua/"; \
+	mkdir -p "$$DEST/usr/lib/ziyan/lib/lua/agent"; \
+	rsync -a Agent/ "$$DEST/usr/lib/ziyan/lib/lua/agent/"; \
 	chmod 755 "$$DEST/usr/lib/ziyan/bin/lua5.3" \
 		"$$DEST/usr/lib/ziyan/bin/python3.7" 2>/dev/null || true; \
 	ln -sfn lua5.3 "$$DEST/usr/lib/ziyan/bin/lua"; \
@@ -322,6 +379,17 @@ stage-runtime:
 	cp -f vendor/runtime/engine/wnriakwyww.dylib "$$DEST/usr/lib/ziyan/engine/wnriakwyww.dylib"; \
 	chmod 755 "$$DEST/usr/lib/ziyan/engine/wnriakwyww" \
 		"$$DEST/usr/lib/ziyan/engine/wnriakwyww.dylib"; \
+	# legacy engine links /bin/wnriakwyww.dylib. Rootful keeps that via postinst;
+	# rootless cannot write /bin, so rewrite both the executable load command and
+	# dylib install name to /var/jb/bin, then re-sign the modified artifacts. \
+	if [ -n "$(THEOS_PACKAGE_INSTALL_PREFIX)" ]; then \
+		install_name_tool -change /bin/wnriakwyww.dylib "$(THEOS_PACKAGE_INSTALL_PREFIX)/bin/wnriakwyww.dylib" \
+			"$$DEST/usr/lib/ziyan/engine/wnriakwyww"; \
+		install_name_tool -id "$(THEOS_PACKAGE_INSTALL_PREFIX)/bin/wnriakwyww.dylib" \
+			"$$DEST/usr/lib/ziyan/engine/wnriakwyww.dylib"; \
+		ldid -S "$$DEST/usr/lib/ziyan/engine/wnriakwyww"; \
+		ldid -S "$$DEST/usr/lib/ziyan/engine/wnriakwyww.dylib"; \
+	fi; \
 	rsync -a --delete vendor/runtime/data/ "$$DEST/usr/lib/ziyan/runtime/"; \
 	mkdir -p "$$DEST/usr/lib/ziyan/runtime/scripts" \
 		"$$DEST/usr/lib/ziyan/runtime/var/log" \
@@ -330,6 +398,12 @@ stage-runtime:
 	cp -f vendor/runtime/hook/ZiYanTEHook.plist "$$DEST/usr/lib/ziyan/hook/"; \
 	rsync -a --delete vendor/modules/ "$$DEST/usr/lib/ziyan/modules/"; \
 	rsync -a layout/usr/lib/ziyan/models/ "$$DEST/usr/lib/ziyan/models/" 2>/dev/null || true; \
+	mkdir -p "$$DEST/usr/lib/ziyan/tessdata/lstm/tessdata"; \
+	rsync -a layout/usr/lib/ziyan/tessdata/ "$$DEST/usr/lib/ziyan/tessdata/" 2>/dev/null || true; \
+	cp -f layout/usr/lib/ziyan/tessdata/_fast/chi_sim.traineddata \
+		"$$DEST/usr/lib/ziyan/tessdata/lstm/tessdata/chi_sim.traineddata" 2>/dev/null || true; \
+	cp -f layout/usr/lib/ziyan/tessdata/_fast/eng.traineddata \
+		"$$DEST/usr/lib/ziyan/tessdata/lstm/tessdata/eng.traineddata" 2>/dev/null || true; \
 	cp -f vendor/runtime/launch/com.ziyan.engine.plist \
 		"$$DEST/Library/LaunchDaemons/com.ziyan.engine.plist"; \
 	cp -f vendor/runtime/launch/com.ziyan.fscloak.plist \
@@ -346,10 +420,11 @@ stage-runtime:
 	chmod 755 "$$DEST/usr/lib/ziyan/bin/ziyan_scripthubd.sh"; \
 	cp -f vendor/runtime/launch/com.ziyan.zydaemon.plist \
 		"$$DEST/Library/LaunchDaemons/com.ziyan.zydaemon.plist"; \
-	cp -f vendor/runtime/bin/ziyan_zydaemond.sh \
+	: "framecap launch chain uses versioned layout, not stale vendor copies"; \
+	cp -f layout/usr/lib/ziyan/bin/ziyan_zydaemond.sh \
 		"$$DEST/usr/lib/ziyan/bin/ziyan_zydaemond.sh"; \
 	chmod 755 "$$DEST/usr/lib/ziyan/bin/ziyan_zydaemond.sh"; \
-	cp -f vendor/runtime/bin/ziyan_framecap_wrap.sh \
+	cp -f layout/usr/lib/ziyan/bin/ziyan_framecap_wrap.sh \
 		"$$DEST/usr/lib/ziyan/bin/ziyan_framecap_wrap.sh"; \
 	chmod 755 "$$DEST/usr/lib/ziyan/bin/ziyan_framecap_wrap.sh"; \
 	cp -f vendor/runtime/launch/com.ziyan.framecap.plist \

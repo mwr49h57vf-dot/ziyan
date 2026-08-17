@@ -4,15 +4,21 @@ NS_ASSUME_NONNULL_BEGIN
 
 /// 对齐触动 TSDaemon:50005 — 局域网取色器探测/截屏/找色测试（无 SSH）
 /// GET  /status  → 短文本（运行即 200）
-/// GET  /snapshot[?orient=0|1|2] → image/png + CORS
-/// POST /findtest → 本机 findMulti + toast(x:,y:)，JSON 回传坐标（对齐触动「测试」）
+/// GET  /health  → Day9 控制面 hello（进程心跳 + IPC；fresh 只报告不等待）
+/// GET  /snapshot[?orient=0|1|2] → 仅导出已 Commit 的 canonical current frame
+///   （resident，keep 时才冷备 shm）；无帧 HTTP 503 `frame_unavailable`。
+///   成功响应头带帧令牌。禁止 CARender/旁路新帧。
+/// POST /findtest → 只对同一 canonical frame 匹配；可选 frame_seq/令牌，
+///   不一致返回 frame_changed，不得换帧。JSON 带回完整令牌。
 /// POST /biztest  → ios7/ios8p 业务 if/else 分支仿真（FIND1→FIND2，同源 ColorMatch）
 void ZiYanSnapshotHttpStart(void);
 void ZiYanSnapshotHttpPoll(void);
+/// Day9：写 .ziyan_health_ack。不采帧、不 sleep、不重入 ServeLoop。
+void ZiYanSnapshotHttpWriteHealthAck(void);
 
-/// Poll 由 ServeLoop 在同一线程调用，所以请求处理期间 ServeLoop 不会推进。
-/// /snapshot 撞上空 shm 时不能自旋等待——那只会把唯一能合帧的线程堵住。
-/// 由 main.m 注册本钩子，让处理器就地驱动一次合帧。
+/// HTTP accept 在独立线程；Poll 仅由 ServeLoop 刷心跳。/snapshot 只写补帧意图
+/// 并短等 shm，不能从 HTTP 线程重入采帧。
+/// 保留该钩子供旧调用方兼容，新的 HTTP 路径不直接调用它。
 typedef void (*ZiYanSnapCaptureHook)(void);
 void ZiYanSnapshotHttpSetCaptureHook(ZiYanSnapCaptureHook hook);
 

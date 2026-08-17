@@ -2,6 +2,9 @@
 # 真机安装 + 跑 _ziyan_smoke.lua，把结果拉回本地
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# shellcheck source=zy_guard_no_auto_respring.sh
+. "$ROOT/tools/zy_guard_no_auto_respring.sh"
+zy_guard_block_unless_manual "$@"
 HOST="${THEOS_DEVICE_IP:-192.168.31.166}"
 PASS="${ZIYAN_SSH_PASS:-alpine}"
 DEB=$(ls -t "$ROOT"/packages/com.ziyan.ziyan_*.deb | head -1)
@@ -10,9 +13,14 @@ SCP=(sshpass -p "$PASS" scp -o StrictHostKeyChecking=no -o ConnectTimeout=12)
 
 echo "== install $DEB =="
 "${SCP[@]}" "$DEB" root@"$HOST":/tmp/ziyan.deb
-"${SSH[@]}" 'dpkg -i /tmp/ziyan.deb; sbreload >/dev/null 2>&1 || killall -9 SpringBoard >/dev/null 2>&1 || true'
-echo "wait respring..."
-sleep 8
+if [ "${ZY_ALLOW_MANUAL_RESPRING:-0}" = 1 ]; then
+  "${SSH[@]}" 'dpkg -i /tmp/ziyan.deb; sbreload >/dev/null 2>&1 || killall -9 SpringBoard >/dev/null 2>&1 || true'
+  echo "wait respring..."
+  sleep 8
+else
+  echo "BLOCKED_AUTO_SB_RESTART" >&2
+  exit 78
+fi
 
 echo "== probe engine + run smoke =="
 "${SSH[@]}" 'bash -s' <<'REMOTE'

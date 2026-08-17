@@ -1,5 +1,6 @@
 #import <Foundation/Foundation.h>
 #import "ZiYanPaths.h"
+#import "ZiYanInjectTrace.h"
 
 /*
  * ZiYanFsCloak — 8-67 停用（空壳）
@@ -13,6 +14,8 @@
  */
 
 __attribute__((constructor)) static void ZiYanFsCloakInit(void) {
+  ZiYanInjectTrace("ZiYanFsCloak", "ctor_enter");
+  ZiYanInjectTrace("ZiYanFsCloak", "ctor_exit");
   @autoreleasepool {
     // 故意不安装任何 Hook；Filter 亦指向不存在 Bundle
     ZiYanEnsureVarDirectory();

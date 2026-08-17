@@ -112,13 +112,15 @@ else
   w("T2=FAIL")
 end
 
--- T3：真实错位——把 shm_front_bid 写成假 App，Home 上应 front_mismatch（禁 force 钩子）
-local bak = nil
+-- T3：真实元数据错位。旧版伪造 shm_front_bid，framecap 会在同一轮内把它修回，
+-- Lua 因而读到上一条 pixel_miss。这里保留已捕获的 Home 帧，只短暂把 front_bid
+-- 改成假 App；生产路径实际比较 front/shm，调用后立刻恢复，不依赖测试后门。
+local front_bak = nil
 do
-  local f = io.open(VAR .. "/.ziyan_shm_front_bid", "r")
-  if f then bak = f:read("*a"); f:close() end
+  local f = io.open(VAR .. "/.ziyan_front_bid", "r")
+  if f then front_bak = f:read("*a"); f:close() end
 end
-local wf = io.open(VAR .. "/.ziyan_shm_front_bid", "w")
+local wf = io.open(VAR .. "/.ziyan_front_bid", "w")
 if wf then wf:write("com.ziyan.contract.fakeapp\\n"); wf:close() end
 local fx, fy = -1, -1
 if type(findMultiColorInRegionFuzzy) == "function" then
@@ -127,10 +129,10 @@ end
 last = read_last()
 w(string.format("T3_xy=%s,%s", tostring(fx), tostring(fy)))
 w("T3_last=" .. last)
-if bak then
-  local rf = io.open(VAR .. "/.ziyan_shm_front_bid", "w"); if rf then rf:write(bak); rf:close() end
+if front_bak then
+  local rf = io.open(VAR .. "/.ziyan_front_bid", "w"); if rf then rf:write(front_bak); rf:close() end
 else
-  pcall(os.remove, VAR .. "/.ziyan_shm_front_bid")
+  pcall(os.remove, VAR .. "/.ziyan_front_bid")
 end
 local rf2 = io.open(VAR .. "/.ziyan_force_recap", "w"); if rf2 then rf2:write("1\\n"); rf2:close() end
 if string.find(last, "front_mismatch") or string.find(last, "frame_front_mismatch")

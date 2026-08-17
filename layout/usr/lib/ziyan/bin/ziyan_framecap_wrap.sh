@@ -7,6 +7,7 @@ set +e
 ROOT="/usr/lib/ziyan"
 [ -d /var/jb/usr/lib/ziyan ] && ROOT="/var/jb/usr/lib/ziyan"
 BIN="$ROOT/bin/ziyan_framecap"
+BOOT="$ROOT/bin/ziyan_framecap_bootstrap"
 VAR="$ROOT/var"
 PIDF="$VAR/.ziyan_framecap_wrap.pid"
 LOCKF="$VAR/.ziyan_framecap_serve.lock"
@@ -76,4 +77,7 @@ fi
 echo "$$" >"$PIDF" 2>/dev/null || true
 chmod 666 "$PIDF" 2>/dev/null || true
 echo "$(date '+%Y-%m-%d %H:%M:%S') wrap_exec serve pid=$$" >>"$VAR/.ziyan_framecap_log" 2>/dev/null || true
+if [ -x "$BOOT" ]; then
+  exec "$BOOT" "$BIN" serve
+fi
 exec "$BIN" serve

@@ -40,6 +40,13 @@ static pid_t gCachedEnginePID = 0;
 
 + (BOOL)isEngineAvailable {
   NSFileManager *fm = [NSFileManager defaultManager];
+  // 8-161-205-C34：wnriakwyww 是遗留 HTTP 引擎，二进制本体已超过部分
+  // 越狱 launchd 对普通守护的 6MB jetsam 限额。现代业务脚本由 framecap
+  // 内嵌 Lua 执行，不依赖它；默认不允许它被 UI 的兼容路径反复拉起形成
+  // JETSAM 重启环。确有旧 HTTP API 兼容需求时，用户可显式创建此标志。
+  if (![fm fileExistsAtPath:ZiYanVarFile(@".ziyan_legacy_engine_enable")]) {
+    return NO;
+  }
   return [fm isExecutableFileAtPath:[self engineBinary]] &&
          [fm fileExistsAtPath:[self telibPath]];
 }

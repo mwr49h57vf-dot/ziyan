@@ -50,6 +50,12 @@ typedef NS_ENUM(uint8_t, ZiYanFrameProvider) {
   ZiYanFrameProviderSBRelay = 4,
   ZiYanFrameProviderSyntheticBlack = 5,
   ZiYanFrameProviderKeep = 6,
+  /// 守护进程内直接调 _UICreateScreenUIImage（不经 SpringBoard 中继）
+  ZiYanFrameProviderUICreate = 7,
+  /// 前台目标 App 进程内由可见 UIWindow 按需生成的正确内容帧
+  ZiYanFrameProviderAppWindow = 8,
+  /// 守护内 +[UIWindow createScreenIOSurface]（触动 TSDaemon 同名路径）
+  ZiYanFrameProviderScreenIOSurface = 9,
 };
 
 typedef NS_ENUM(uint8_t, ZiYanFrameStatus) {
@@ -70,6 +76,9 @@ static inline NSString *ZiYanFrameShmPath(void) {
 /// 同几何同 inode 覆写：先标 writing，再写像素，再原子提交 header（防半帧）
 BOOL ZiYanFrameShmWrite(const void *pixels, size_t width, size_t height,
                         size_t bpr);
+
+/// 下一笔 WriteEx / resident 的像素序。用完自动回到 RGBA。
+void ZiYanFrameShmSetWritePixelFormat(uint8_t pixelFormat);
 
 /// 扩展写：附带 provider/orient/front_hash/status（阶段3 调用方填充）
 BOOL ZiYanFrameShmWriteEx(const void *pixels, size_t width, size_t height,
@@ -108,6 +117,10 @@ void ZiYanFrameShmClearReleasedAndTouch(void);
 BOOL ZiYanFrameShmEnsureFile(void);
 
 uint32_t ZiYanFrameShmPeekSeq(void);
+
+/// 当前 shm 帧的年龄（毫秒）；无帧 / 正在写 / 无时间戳返回 -1。
+/// 节流判据必须能看到帧龄，否则冷备节流会一路把旧帧续命到几百秒。
+long long ZiYanFrameShmPeekAgeMs(void);
 
 /// 阶段2：读者可取元数据（无帧返回 0 / unknown）
 uint8_t ZiYanFrameShmPeekProvider(void);

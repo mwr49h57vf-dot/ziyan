@@ -21,6 +21,10 @@ typedef void (^ZiYanAppSelectHandler)(ZiYanAppPick *_Nullable pick);
          completion:(ZiYanAppSelectHandler)completion;
 + (void)presentFrom:(UIViewController *)host
           completion:(ZiYanAppSelectHandler)completion;
+/// 真实第三方 App：排除 ZiYan 与内部测试 Profile。确认框标题「确认当前目标」。
++ (NSArray<ZiYanAppPick *> *)enumerateUserApps;
++ (void)presentRealAppPickerFrom:(UIViewController *)host
+                      completion:(ZiYanAppSelectHandler)completion;
 @end
 
 NS_ASSUME_NONNULL_END

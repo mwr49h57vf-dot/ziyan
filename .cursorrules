@@ -21,7 +21,21 @@
 11. **全项目 CPU 占用越低越好**（禁 toast/force/relay/空转风暴；默认勿 auto-keep）
 12. **内存释放对照触动**（缓冲/Toast/截帧用完即释；停脚本清 keep；长跑不弱于 .171）
 
-规则文件：`.cursor/rules/ziyan-api-cpu-mem.mdc` · `surpass-ts-four-pillar.mdc`
+规则文件：`.cursor/rules/complete-surpass-plan.mdc` · `ziyan-api-cpu-mem.mdc` · `surpass-ts-four-pillar.mdc`
+
+## 错误报告自动处理（强制）
+
+当用户说“连接 SSH 或 USB，提取并自动处理 ZiYan 错误报告”或语义相同的话时，必须遵守 `.cursor/rules/错误报告自动处理.mdc` 与根目录 `错误报告处理说明.txt`：自动从手机中文路径导入完整报告到 `tmp_shots/智能体问题报告/待处理/`，更新 `DOCS/智能体问题索引.md`，并且一次只修复报告明确指向的一个问题主题。
+
+## 项目执行 Skill（优先）
+
+对任何 ZiYan 开发、兼容、部署、真机验收、API 补齐、守护/帧/找色/触控问题，优先使用项目内 `$ziyan-verdict-loop`（`.cursor/skills/ziyan-verdict-loop/SKILL.md`）。
+它负责先读当前状态、区分传输故障与产品故障、只做一刀可归因改动，并以设备端 VERDICT 结束循环；与旧 Skill 或旧日程冲突时，以 `ROADMAP.md` 和该 Skill 为准。
+
+## 完整超越方案（强制）
+涉及架构、守护、framecap、Lua、找色、keepScreen、触控、音量、Toast、内存、OCR、启动链、部署或验收前，必须先读取根目录 `完整超越触动精灵方案.txt`，并遵守 `.cursor/rules/complete-surpass-plan.mdc`。
+
+`ROADMAP.md` 仍是阶段与门禁唯一真值源；方案用于增强稳定性与自动化执行，不得推翻已验证的单 framecap、embed 热路径、FC_N=1 或现有 rootful/rootless 启动链。
 
 ## 设备
 - 53: root@192.168.31.53 alpine rootless iPhone8Plus iOS16
@@ -38,14 +52,16 @@ cd /Users/mac/Desktop/ZiYan_副本 && make clean-user-bins && make package && TH
 ```
 
 ## 部署
-```bash
-# rootful 设备
-sshpass -p alpine scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null packages/com.ziyan.ziyan_*_iphoneos-arm.deb root@192.168.31.$IP:/tmp/ziyan.deb
-sshpass -p alpine ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@192.168.31.$IP 'dpkg -i /tmp/ziyan.deb && killall -9 SpringBoard'
+默认只安装并读取状态。禁止把 sbreload / ldrestart / killall SpringBoard / killall backboardd 与 dpkg -i 写在同一条命令里。重载注入只能作为用户明确授权后的独立步骤。
 
-# rootless 设备
+```bash
+# rootful：只装包，读状态。不要重启 SpringBoard。
+sshpass -p alpine scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null packages/com.ziyan.ziyan_*_iphoneos-arm.deb root@192.168.31.$IP:/tmp/ziyan.deb
+sshpass -p alpine ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@192.168.31.$IP 'dpkg -i /tmp/ziyan.deb; echo INSTALL_STATUS; dpkg -s com.ziyan.ziyan | sed -n "s/^Version: //p"; cat /usr/lib/ziyan/var/.ziyan_inject_reload_pending 2>/dev/null'
+
+# rootless：只装包，读状态。不要重启 SpringBoard。
 sshpass -p alpine scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null packages/com.ziyan.ziyan_*_iphoneos-arm64.deb root@192.168.31.$IP:/tmp/ziyan.deb
-sshpass -p alpine ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@192.168.31.$IP 'dpkg -i /tmp/ziyan.deb && sbreload 2>/dev/null || killall -9 SpringBoard'
+sshpass -p alpine ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@192.168.31.$IP 'dpkg -i /tmp/ziyan.deb; echo INSTALL_STATUS; dpkg -s com.ziyan.ziyan | sed -n "s/^Version: //p"; cat /var/jb/usr/lib/ziyan/var/.ziyan_inject_reload_pending 2>/dev/null'
 ```
 
 ## 测试
@@ -61,4 +77,4 @@ sshpass -p alpine ssh -o StrictHostKeyChecking=no root@192.168.31.$IP 'DYLD_LIBR
 toast / mSleep / findMultiColorInRegionFuzzy / tap / keepScreen
 
 ## 迭代工作流
-修改代码 → 构建 → 部署 → 等待 SB 重启(10s) → 运行门禁测试 → 读结果 → 修正或提交
+修改代码 → 构建 → 仅在明确授权后部署（只装包，不重启 SB）→ 读取 INSTALL_STATUS / pending 标记 → 门禁测试。重载注入必须另一步、且仅在用户明确授权后进行。禁止用重启 SB/BB 做恢复。

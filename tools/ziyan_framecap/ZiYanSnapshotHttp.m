@@ -1,6 +1,7 @@
 #import "ZiYanSnapshotHttp.h"
 #import "ZiYanFrameShm.h"
-#import "ZiYanFrameCapture.h"
+#import "ZiYanFrameResident.h"
+#import "ZiYanFrameKeep.h"
 #import "ZiYanPaths.h"
 #import "ZiYanColorMatch.h"
 #import "ZiYanControlShm.h"
@@ -12,6 +13,7 @@
 #import <errno.h>
 #import <fcntl.h>
 #import <netinet/in.h>
+#import <pthread.h>
 #import <sys/socket.h>
 #import <unistd.h>
 
@@ -24,6 +26,13 @@
 
 static int sListenFd = -1;
 static int sPort = 0;
+static pthread_t sHttpThread;
+static volatile int sHttpThreadStarted = 0;
+
+static void HandleClient(int cfd);
+static void *SnapshotHttpThreadMain(void *unused);
+
+// P0 Day3：/status 与 find 共用 ZiYanFrameLeaseState，禁止两套派生。
 
 static void SnapLog(NSString *msg) {
   NSString *line =
@@ -99,12 +108,32 @@ static NSData *PNGFromMappedRGBA(const uint8_t *pix, size_t w, size_t h,
   return png;
 }
 
-static NSData *EncodeShmPNG(size_t *outW, size_t *outH) {
+static void FillHttpFrameToken(ZiYanCanonicalFrameToken *tok,
+                               const ZiYanFrameShmHeader *hdr,
+                               BOOL resident) {
+  NSString *bid = ZiYanFrameKeepReadCapturedFront();
+  if (bid.length < 1) {
+    bid = ZiYanFrameKeepReadShmBid();
+  }
+  ZiYanCanonicalFrameTokenFill(tok, hdr,
+                               ZiYanFrameKeepReadCapturedGeneration(), bid,
+                               resident ? "resident" : "shm");
+}
+
+static NSData *EncodeCanonicalPNG(size_t *outW, size_t *outH,
+                                  ZiYanCanonicalFrameToken *outTok) {
   const ZiYanFrameShmHeader *hdr = NULL;
   const uint8_t *pix = NULL;
   size_t mapLen = 0;
   void *map = NULL;
-  if (!ZiYanFrameShmMapRead(&hdr, &pix, &mapLen, &map) || !hdr || !pix) {
+  BOOL resident = NO;
+  BOOL allowShm = ZiYanFrameKeepIsOn();
+  if (!ZiYanCanonicalCurrentFrameMapRead(allowShm, &hdr, &pix, &mapLen, &map,
+                                         &resident) ||
+      !hdr || !pix) {
+    if (outTok) {
+      FillHttpFrameToken(outTok, NULL, NO);
+    }
     return nil;
   }
   size_t w = hdr->width, h = hdr->height, bpr = hdr->bpr;
@@ -114,9 +143,67 @@ static NSData *EncodeShmPNG(size_t *outW, size_t *outH) {
   if (outH) {
     *outH = h;
   }
-  NSData *png = PNGFromMappedRGBA(pix, w, h, bpr);
-  ZiYanFrameShmUnmap(map, mapLen);
+  if (outTok) {
+    FillHttpFrameToken(outTok, hdr, resident);
+  }
+  uint8_t fmt = hdr->version >= 2 ? hdr->pixel_format
+                                  : ZiYanFramePixelFormatRGBA8888;
+  NSData *png = nil;
+  if (fmt == ZiYanFramePixelFormatBGRA8888 && w >= 2 && h >= 2 &&
+      bpr >= w * 4) {
+    size_t nbytes = bpr * h;
+    uint8_t *rgba = (uint8_t *)malloc(nbytes);
+    if (rgba) {
+      memcpy(rgba, pix, nbytes);
+      for (size_t y = 0; y < h; y++) {
+        uint8_t *row = rgba + y * bpr;
+        for (size_t x = 0; x < w; x++) {
+          uint8_t b = row[x * 4 + 0];
+          uint8_t r = row[x * 4 + 2];
+          row[x * 4 + 0] = r;
+          row[x * 4 + 2] = b;
+        }
+      }
+      png = PNGFromMappedRGBA(rgba, w, h, bpr);
+      free(rgba);
+    }
+  } else {
+    png = PNGFromMappedRGBA(pix, w, h, bpr);
+  }
+  ZiYanCanonicalCurrentFrameUnmap(map, mapLen, resident);
   return png;
+}
+
+static NSString *FrameTokenHeaderBlock(const ZiYanCanonicalFrameToken *tok) {
+  NSDictionary *d = ZiYanCanonicalFrameTokenDictionary(tok);
+  NSData *jd = [NSJSONSerialization dataWithJSONObject:d options:0 error:nil];
+  NSString *json = jd ? [[NSString alloc] initWithData:jd
+                                              encoding:NSUTF8StringEncoding]
+                      : @"{}";
+  json = [json stringByReplacingOccurrencesOfString:@"\r" withString:@""];
+  json = [json stringByReplacingOccurrencesOfString:@"\n" withString:@""];
+  NSString *bid = tok ? @(tok->front_bid) : @"";
+  bid = [[bid componentsSeparatedByCharactersInSet:
+                  [NSCharacterSet newlineCharacterSet]] firstObject] ?: @"";
+  return [NSString
+      stringWithFormat:@"X-ZiYan-Frame-Seq: %u\r\n"
+                       @"X-ZiYan-Generation: %u\r\n"
+                       @"X-ZiYan-Front-Bid: %@\r\n"
+                       @"X-ZiYan-Pixel-Format: %s\r\n"
+                       @"X-ZiYan-Width: %u\r\n"
+                       @"X-ZiYan-Height: %u\r\n"
+                       @"X-ZiYan-Bpr: %u\r\n"
+                       @"X-ZiYan-Capture-Ts-Ms: %llu\r\n"
+                       @"X-ZiYan-Frame-Status: %s\r\n"
+                       @"X-ZiYan-Source: %s\r\n"
+                       @"X-ZiYan-Frame-Token: %@\r\n",
+                       tok ? tok->frame_seq : 0, tok ? tok->generation : 0, bid,
+                       tok ? tok->pixel_format_name : "",
+                       tok ? tok->width : 0, tok ? tok->height : 0,
+                       tok ? tok->bpr : 0,
+                       tok ? (unsigned long long)tok->capture_ts_ms : 0ull,
+                       tok ? tok->frame_status : "unavailable",
+                       tok ? tok->source : "none", json];
 }
 
 static void ApplyOrientQuery(int orient); // 前向声明（findtest 会先设方向）
@@ -144,7 +231,7 @@ static void PostFindToast(NSString *text, int ms) {
   rename(tmp.fileSystemRepresentation, cmd.fileSystemRepresentation);
   chmod(cmd.fileSystemRepresentation, 0666);
   ZiYanControlShmEnsure();
-  ZiYanControlShmWriteToast(text ?: @"", ms);
+  ZiYanControlShmWriteToastWithOrient(text ?: @"", ms, orient);
 }
 
 /// make_FMC 主色 + "dx|dy|0x.." → ColorMatch flat JSON 数组
@@ -215,42 +302,11 @@ static unsigned ParseColorToken(NSString *s) {
   return c & 0xffffff;
 }
 
-/// 在热 shm 上跑 findMulti，成功则 toast「x: , y: 」
+/// 只对已提交 canonical current frame 跑 findMulti。禁止 CARender/force 旁路。
 static NSString *RunFindTest(NSDictionary *p) {
   int orient = p[@"orient"] ? [p[@"orient"] intValue] : -1;
-  // 8-161-112：findtest 前必须有像素（升级后 shm=0 / empty_shm 假 miss）
   if (orient >= 0 && orient <= 2) {
     ApplyOrientQuery(orient);
-  }
-  ZiYanWriteVarText(@".ziyan_force_recap", @"1\n");
-  ZiYanWriteVarText(@".ziyan_snap_http_want", @"1\n");
-  ZiYanWriteVarText(@".ziyan_frame_req", @"force=1\n");
-  // 8-161-113：冷闲 ServeLoop 500ms + 释帧后，findtest 需更长等帧（禁首包 empty_shm）
-  for (int i = 0; i < 50; i++) {
-    usleep(100000);
-    if (ZiYanFrameShmHasPixels(NULL, NULL, NULL)) {
-      break;
-    }
-  }
-  // 8-161-115：与 embed 同源 — 仍空则 CARender 快截（抓色器测试不得 empty_shm 假失败）
-  if (!ZiYanFrameShmHasPixels(NULL, NULL, NULL)) {
-    NSString *capErr = nil;
-    (void)ZiYanFrameCaptureToShmCARenderOnly(&capErr);
-    if (capErr.length) {
-      SnapLog([NSString stringWithFormat:@"findtest carender %@", capErr]);
-    }
-  }
-  // 8-161-115b：CARender 黑屏(kr_or_black)时再等 ServeLoop 合帧
-  // （实测：findtest 过早 empty，随后 /snapshot 已能出 3MB 图）
-  if (!ZiYanFrameShmHasPixels(NULL, NULL, NULL)) {
-    ZiYanWriteVarText(@".ziyan_force_recap", @"1\n");
-    ZiYanWriteVarText(@".ziyan_frame_req", @"force=1\n");
-    for (int i = 0; i < 40; i++) {
-      usleep(100000);
-      if (ZiYanFrameShmHasPixels(NULL, NULL, NULL)) {
-        break;
-      }
-    }
   }
   unsigned mainC = ParseColorToken(p[@"main"] ?: @"0");
   NSString *offs = p[@"offs"] ?: @"";
@@ -262,7 +318,6 @@ static NSString *RunFindTest(NSDictionary *p) {
   int y1 = p[@"y1"] ? [p[@"y1"] intValue] : 0;
   int x2 = p[@"x2"] ? [p[@"x2"] intValue] : 0;
   int y2 = p[@"y2"] ? [p[@"y2"] intValue] : 0;
-  // 与 Lua/ColorMatch：0,0,0,0 → 全屏（用 -1 语义）
   int origX1 = x1, origY1 = y1, origX2 = x2, origY2 = y2;
   if (x1 == 0 && y1 == 0 && x2 == 0 && y2 == 0) {
     x2 = -1;
@@ -270,21 +325,50 @@ static NSString *RunFindTest(NSDictionary *p) {
   }
   BOOL doToast = !p[@"toast"] || [p[@"toast"] intValue] != 0;
 
-  NSString *ptsJSON = FlatPointsJSON(mainC, offs);
   const ZiYanFrameShmHeader *hdr = NULL;
   const uint8_t *pix = NULL;
   size_t mapLen = 0;
   void *map = NULL;
-  if (!ZiYanFrameShmMapRead(&hdr, &pix, &mapLen, &map) || !hdr || !pix) {
-    NSString *miss =
-        @"{\"ok\":false,\"x\":-1,\"y\":-1,\"err\":\"empty_shm\"}";
+  BOOL resident = NO;
+  BOOL allowShm = ZiYanFrameKeepIsOn();
+  ZiYanCanonicalFrameToken tok;
+  memset(&tok, 0, sizeof(tok));
+  if (!ZiYanCanonicalCurrentFrameMapRead(allowShm, &hdr, &pix, &mapLen, &map,
+                                         &resident) ||
+      !hdr || !pix) {
+    FillHttpFrameToken(&tok, NULL, NO);
+    ZiYanCanonicalFrameTokenWriteLast(&tok);
+    NSString *miss = ZiYanCanonicalFrameJSONByAddingToken(
+        @"{\"ok\":false,\"x\":-1,\"y\":-1,\"in_orig_roi\":false,"
+        @"\"err\":\"frame_unavailable\"}",
+        &tok);
     if (doToast) {
       PostFindToast(@"x:-1,y:-1", 1500);
     }
+    SnapLog(@"findtest frame_unavailable");
     return miss;
   }
+  FillHttpFrameToken(&tok, hdr, resident);
+  NSString *wantSeq = p[@"frame_seq"] ?: p[@"seq"];
+  NSString *wantGen = p[@"generation"];
+  NSString *wantBid = p[@"front_bid"];
+  NSString *wantFmt = p[@"pixel_format"];
+  if (!ZiYanCanonicalFrameTokenMatchesRequest(&tok, wantSeq, wantGen, wantBid,
+                                              wantFmt)) {
+    ZiYanCanonicalCurrentFrameUnmap(map, mapLen, resident);
+    ZiYanCanonicalFrameTokenWriteLast(&tok);
+    NSString *changed = ZiYanCanonicalFrameJSONByAddingToken(
+        @"{\"ok\":false,\"x\":-1,\"y\":-1,\"in_orig_roi\":false,"
+        @"\"err\":\"frame_changed\"}",
+        &tok);
+    if (doToast) {
+      PostFindToast(@"x:-1,y:-1", 1500);
+    }
+    SnapLog(@"findtest frame_changed");
+    return changed;
+  }
+
   size_t w = hdr->width, h = hdr->height, bpr = hdr->bpr;
-  // 8-161-102：scale 与抓色器/status 同源（native_wh），禁仅靠像素数猜
   int scaleHint = 2;
   {
     size_t sh = 0, lg = 0;
@@ -304,9 +388,13 @@ static NSString *RunFindTest(NSDictionary *p) {
       scaleHint = 3;
     }
   }
+  ZiYanColorMatchSetPixelFormat(hdr->version >= 2
+                                    ? hdr->pixel_format
+                                    : ZiYanFramePixelFormatRGBA8888);
+  NSString *ptsJSON = FlatPointsJSON(mainC, offs);
   NSString *rep = ZiYanColorMatchFindMulti(pix, w, h, bpr, ptsJSON, degree, x1,
                                            y1, x2, y2, scaleHint);
-  ZiYanFrameShmUnmap(map, mapLen);
+  ZiYanCanonicalCurrentFrameUnmap(map, mapLen, resident);
   if (rep.length == 0) {
     rep = @"{\"ok\":false,\"x\":-1,\"y\":-1,\"err\":\"match_fail\"}";
   }
@@ -318,48 +406,49 @@ static NSString *RunFindTest(NSDictionary *p) {
     fx = [obj[@"x"] intValue];
     fy = [obj[@"y"] intValue];
   }
-  // 8-161-103：回传是否落在未 pad 的原始 ROI（抓色器防假命中）
   BOOL inOrig = NO;
   if (fx >= 0 && fy >= 0) {
     int ox2 = origX2, oy2 = origY2;
     if (origX1 == 0 && origY1 == 0 && origX2 == 0 && origY2 == 0) {
-      inOrig = YES; // 全屏请求
+      inOrig = YES;
     } else {
       int a = MIN(origX1, ox2), b = MAX(origX1, ox2);
       int c = MIN(origY1, oy2), d = MAX(origY1, oy2);
       inOrig = (fx >= a && fx <= b && fy >= c && fy <= d);
     }
   }
-  if ([obj isKindOfClass:[NSDictionary class]]) {
-    NSMutableDictionary *md = [obj mutableCopy];
-    // 8-161-115：抓色器↔业务硬约束 — ok=true 必须落在未 pad 原始 ROI
-    // （防 pad 外溢假命中 → ios8p 假「登录」；与 ColorMatch 锚点约束双保险）
-    BOOL wasOk = [md[@"ok"] boolValue];
-    if (wasOk && !inOrig) {
-      md[@"ok"] = @NO;
-      md[@"x"] = @(-1);
-      md[@"y"] = @(-1);
-      md[@"err"] = @"hit_outside_orig_roi";
-      fx = -1;
-      fy = -1;
-    }
-    md[@"in_orig_roi"] = (inOrig && fx >= 0) ? @YES : @NO;
-    md[@"roi"] = @[ @(origX1), @(origY1), @(origX2), @(origY2) ];
-    md[@"scale"] = @(scaleHint);
-    NSData *jd2 =
-        [NSJSONSerialization dataWithJSONObject:md options:0 error:nil];
-    if (jd2) {
-      rep = [[NSString alloc] initWithData:jd2 encoding:NSUTF8StringEncoding];
-    }
+  NSMutableDictionary *md =
+      [obj isKindOfClass:[NSDictionary class]]
+          ? [obj mutableCopy]
+          : [NSMutableDictionary dictionaryWithDictionary:@{
+              @"ok" : @NO,
+              @"x" : @(-1),
+              @"y" : @(-1)
+            }];
+  BOOL wasOk = [md[@"ok"] boolValue];
+  if (wasOk && !inOrig) {
+    md[@"ok"] = @NO;
+    md[@"x"] = @(-1);
+    md[@"y"] = @(-1);
+    md[@"err"] = @"hit_outside_orig_roi";
+    fx = -1;
+    fy = -1;
   }
+  md[@"in_orig_roi"] = (inOrig && fx >= 0) ? @YES : @NO;
+  md[@"roi"] = @[ @(origX1), @(origY1), @(origX2), @(origY2) ];
+  md[@"scale"] = @(scaleHint);
+  [md addEntriesFromDictionary:ZiYanCanonicalFrameTokenDictionary(&tok)];
+  NSData *jd2 = [NSJSONSerialization dataWithJSONObject:md options:0 error:nil];
+  if (jd2) {
+    rep = [[NSString alloc] initWithData:jd2 encoding:NSUTF8StringEncoding];
+  }
+  ZiYanCanonicalFrameTokenWriteLast(&tok);
   if (doToast) {
-    // 对齐触动测试：设备上 toast 显示找色坐标
-    NSString *msg =
-        [NSString stringWithFormat:@"x:%d,y:%d", fx, fy];
+    NSString *msg = [NSString stringWithFormat:@"x:%d,y:%d", fx, fy];
     PostFindToast(msg, 2000);
   }
-  SnapLog([NSString stringWithFormat:@"findtest x=%d y=%d deg=%d in_orig=%d", fx,
-                                     fy, degree, inOrig ? 1 : 0]);
+  SnapLog([NSString stringWithFormat:@"findtest x=%d y=%d deg=%d in_orig=%d seq=%u",
+                                     fx, fy, degree, inOrig ? 1 : 0, tok.frame_seq]);
   return rep;
 }
 
@@ -446,7 +535,7 @@ static NSString *RunBizTest(NSDictionary *p) {
   NSMutableDictionary *f1q = [f1p mutableCopy];
   NSDictionary *find1 = ParseFindJSON(RunFindTest(f1q));
   // 第二次找色复用热帧：不再 force（toast=0 且已有像素）
-  // 仍走 RunFindTest（会 force），但 ColorMatch 同源；双次一致性由门禁对 find1 再 POST 校验
+  // 仍走 RunFindTest（canonical frame，禁止 force/CARender）；ColorMatch 同源
   NSDictionary *find2 = ParseFindJSON(RunFindTest([f2p mutableCopy]));
 
   BOOL ok1 = [find1[@"ok"] boolValue];
@@ -651,6 +740,20 @@ void ZiYanSnapshotHttpSetCaptureHook(ZiYanSnapCaptureHook hook) {
   sCaptureHook = hook;
 }
 
+void ZiYanSnapshotHttpWriteHealthAck(void) {
+  size_t w = 0, h = 0;
+  (void)ZiYanFrameShmHasPixels(&w, &h, NULL);
+  long long age = ZiYanFrameShmPeekAgeMs();
+  NSString *lease = ZiYanFrameLeaseStatePeek() ?: @"-";
+  unsigned pv = (unsigned)ZiYanFrameShmPeekProvider();
+  BOOL hb = ZiYanFramecapHeartbeatFresh(12.0);
+  BOOL shmFresh = ZiYanFrameShmIsFresh(3.0, NULL, NULL, NULL);
+  int fresh =
+      ([lease isEqualToString:@"active"] && shmFresh && w >= 2) ? 1 : 0;
+  // fc_n 由门外 ps 计数；本进程不能诚实声称全局唯一，写 -1。
+  ZiYanWriteHealthAck(1, hb ? 1 : 0, 1, -1, fresh, lease, age, pv, @"");
+}
+
 void ZiYanSnapshotHttpStart(void) {
   if (sListenFd >= 0) {
     return;
@@ -673,6 +776,15 @@ void ZiYanSnapshotHttpStart(void) {
   ZiYanWriteVarText(@".ziyan_snap_http_alive", @"1\n");
   SnapLog([NSString stringWithFormat:@"listen ok port=%d (TS-compat /status /snapshot)",
                                      sPort]);
+  // status 是健康/帧龄门禁，不能和 IOMFB/UICreate 串行地困在 ServeLoop。
+  // accept/编码放到单独线程；主循环仍是唯一采帧方。
+  if (pthread_create(&sHttpThread, NULL, SnapshotHttpThreadMain, NULL) == 0) {
+    pthread_detach(sHttpThread);
+    sHttpThreadStarted = 1;
+    SnapLog(@"http_worker_start");
+  } else {
+    SnapLog(@"http_worker_start_fail");
+  }
 }
 
 static void SendAll(int fd, const void *buf, size_t len) {
@@ -753,6 +865,29 @@ static void HandleClient(int cfd) {
     }
   }
 
+  if ([pathOnly isEqualToString:@"/health"]) {
+    ZiYanSnapshotHttpWriteHealthAck();
+    NSString *body =
+        [NSString stringWithContentsOfFile:ZiYanVarFile(@".ziyan_health_ack")
+                                  encoding:NSUTF8StringEncoding
+                                     error:nil];
+    if (body.length == 0) {
+      body = @"ok=0\nerr=ZY_E_FRAMECAP_OFFLINE\n";
+    }
+    NSData *bd = [body dataUsingEncoding:NSUTF8StringEncoding];
+    NSString *hdr = [NSString
+        stringWithFormat:@"HTTP/1.0 200 OK\r\n"
+                         @"Access-Control-Allow-Origin: *\r\n"
+                         @"Content-Type: text/plain; charset=utf-8\r\n"
+                         @"Content-Length: %lu\r\n\r\n",
+                         (unsigned long)bd.length];
+    NSData *hd = [hdr dataUsingEncoding:NSUTF8StringEncoding];
+    SendAll(cfd, hd.bytes, hd.length);
+    SendAll(cfd, bd.bytes, bd.length);
+    close(cfd);
+    return;
+  }
+
   if ([pathOnly isEqualToString:@"/status"] || [pathOnly isEqualToString:@"/"]) {
     size_t w = 0, h = 0;
     (void)ZiYanFrameShmHasPixels(&w, &h, NULL);
@@ -803,18 +938,94 @@ static void HandleClient(int cfd) {
     } else if ([sess rangeOfString:@"state=soft"].location != NSNotFound) {
       sessState = @"soft";
     }
+    NSString *sessId = ZiYanIpcKv(sess, @"session_id");
+    NSString *sessRid = ZiYanIpcKv(sess, @"request_id");
+    if (sessId.length == 0) {
+      sessId = @"-";
+    }
+    if (sessRid.length == 0) {
+      sessRid = @"-";
+    }
+    // 帧龄探针：门禁要判「找色读到的是不是新鲜帧」。
+    // 之前只有 embed 跑 find 时才把 age_ms 写进 .ziyan_find_shm_log，取证必须先在
+    // 设备上跑脚本，反而污染被测路径；而帧龄恰恰是本轮回归的唯一有效判据
+    //（实测 .166 帧龄 391s 却四机门禁全绿）。这里直读 shm 头，纯 curl 可取。
+    long long frameAgeMs = -1;
+    uint32_t frameSeq = 0;
+    unsigned framePv = 0, frameSt = 0;
+    {
+      const ZiYanFrameShmHeader *fh = NULL;
+      const uint8_t *fp = NULL;
+      size_t flen = 0;
+      void *fmap = NULL;
+      if (ZiYanFrameShmMapRead(&fh, &fp, &flen, &fmap) && fh) {
+        frameSeq = fh->seq;
+        framePv = (fh->version >= 2) ? fh->provider : 0;
+        frameSt = fh->status;
+        if (fh->ts_ms > 0) {
+          uint64_t nowMs = (uint64_t)(NSDate.date.timeIntervalSince1970 * 1000.0);
+          frameAgeMs = (nowMs >= fh->ts_ms) ? (long long)(nowMs - fh->ts_ms) : 0;
+        }
+      }
+      if (fmap) {
+        ZiYanFrameShmUnmap(fmap, flen);
+      }
+    }
+    NSString *frontBid = ZiYanFrameKeepReadFrontBid() ?: @"-";
+    NSString *shmBid = ZiYanFrameKeepReadShmBid() ?: @"-";
+    NSString *leaseState =
+        ZiYanFrameLeaseState(frameSeq, frameAgeMs, framePv, frontBid, shmBid);
+    ZiYanWriteVarText(
+        @".ziyan_lease_state",
+        [NSString stringWithFormat:@"state=%@\nseq=%u\nage_ms=%lld\n"
+                                   @"provider=%u\nfront=%@\nshm=%@\n",
+                                   leaseState, frameSeq, frameAgeMs, framePv,
+                                   frontBid, shmBid]);
+    uint32_t residentReaders = ZiYanFrameResidentOutstandingTickets();
+    uint64_t residentMaps = ZiYanFrameResidentTicketMapCount();
+    uint64_t residentUnmaps = ZiYanFrameResidentTicketUnmapCount();
+    uint64_t residentWriterWaits = ZiYanFrameResidentWriterWaitCount();
+    uint64_t residentInvalidUnmaps =
+        ZiYanFrameResidentInvalidTicketUnmapCount();
+    uint64_t residentTicketExhausts = ZiYanFrameResidentTicketExhaustCount();
     // 文本兼容旧抓色器 + JSON 行供门禁
     NSString *body = [NSString
         stringWithFormat:
             @"zy1\nengine=ZiYan\nport=%d\nw=%zu\nh=%zu\n"
             @"orient=%d\nlogic_w=%zu\nlogic_h=%zu\nscale=%d\n"
-            @"scheme=%@\nsession=%@\nwants_run=%d\n"
+            @"scheme=%@\nsession=%@\nsession_id=%@\nrequest_id=%@\nwants_run=%d\n"
+            @"frame_seq=%u\nframe_age_ms=%lld\nframe_provider=%u\n"
+            @"frame_status=%u\nfront_bid=%@\nshm_bid=%@\nlease_state=%@\n"
+            @"resident_readers=%u\nresident_ticket_maps=%llu\n"
+            @"resident_ticket_unmaps=%llu\nresident_writer_waits=%llu\n"
+            @"resident_invalid_unmaps=%llu\nresident_ticket_exhausts=%llu\n"
             @"{\"ok\":true,\"port\":%d,\"orient\":%d,\"logic_w\":%zu,\"logic_h\":%zu,"
-            @"\"scale\":%d,\"scheme\":\"%@\",\"session\":\"%@\",\"wants_run\":%s}\n",
+            @"\"scale\":%d,\"scheme\":\"%@\",\"session\":\"%@\",\"session_id\":\"%@\","
+            @"\"request_id\":\"%@\",\"wants_run\":%s,"
+            @"\"frame_seq\":%u,\"frame_age_ms\":%lld,\"frame_provider\":%u,"
+            @"\"frame_status\":%u,\"front_bid\":\"%@\",\"shm_bid\":\"%@\","
+            @"\"lease_state\":\"%@\","
+            @"\"resident_readers\":%u,\"resident_ticket_maps\":%llu,"
+            @"\"resident_ticket_unmaps\":%llu,\"resident_writer_waits\":%llu,"
+            @"\"resident_invalid_unmaps\":%llu,\"resident_ticket_exhausts\":%llu}\n",
             sPort, w, h, orient, logic_w, logic_h, scale,
-            rootless ? @"rootless" : @"rootful", sessState, want ? 1 : 0, sPort,
-            orient, logic_w, logic_h, scale, rootless ? @"rootless" : @"rootful",
-            sessState, want ? "true" : "false"];
+            rootless ? @"rootless" : @"rootful", sessState, sessId, sessRid, want ? 1 : 0,
+            frameSeq, frameAgeMs, framePv, frameSt, frontBid, shmBid, leaseState,
+            residentReaders,
+            (unsigned long long)residentMaps,
+            (unsigned long long)residentUnmaps,
+            (unsigned long long)residentWriterWaits,
+            (unsigned long long)residentInvalidUnmaps,
+            (unsigned long long)residentTicketExhausts,
+            sPort, orient, logic_w,
+            logic_h, scale, rootless ? @"rootless" : @"rootful", sessState, sessId,
+            sessRid, want ? "true" : "false", frameSeq, frameAgeMs, framePv, frameSt,
+            frontBid, shmBid, leaseState, residentReaders,
+            (unsigned long long)residentMaps,
+            (unsigned long long)residentUnmaps,
+            (unsigned long long)residentWriterWaits,
+            (unsigned long long)residentInvalidUnmaps,
+            (unsigned long long)residentTicketExhausts];
     NSData *bd = [body dataUsingEncoding:NSUTF8StringEncoding];
     NSString *hdr = [NSString
         stringWithFormat:@"HTTP/1.0 200 OK\r\n"
@@ -875,9 +1086,8 @@ static void HandleClient(int cfd) {
   }
 
   if ([pathOnly isEqualToString:@"/snapshot"]) {
-    // 请求在飞期间挡住空闲回收：ServeLoop 刚合出的帧若被 idle_recycle 清掉，
-    // 本次编码仍会拿到空 shm 而回 503。ServeLoop 会在合帧成功后清 snap_http_want，
-    // 所以那个旗不足以覆盖整个请求周期，这里另立一个由本函数负责首尾的旗。
+    // 只导出已 Commit 的 canonical current frame。不写 force_recap、
+    // 不 CARender、不等待旁路新帧。busy 旗只防 idle 回收读票窗口。
     ZiYanWriteVarText(@".ziyan_snap_http_busy", @"1\n");
     int orient = -1;
     if (query.length) {
@@ -888,54 +1098,52 @@ static void HandleClient(int cfd) {
         }
       }
     }
-    // 不在 HTTP 线程同步 UICreate（易 jetsam/Abort）；写 force 让 ServeLoop 补帧
     if (orient >= 0 && orient <= 2) {
       ApplyOrientQuery(orient);
-      ZiYanWriteVarText(@".ziyan_force_recap", @"1\n");
-      ZiYanWriteVarText(@".ziyan_snap_http_want", @"1\n");
-    }
-    if (!ZiYanFrameShmHasPixels(NULL, NULL, NULL)) {
-      ZiYanWriteVarText(@".ziyan_force_recap", @"1\n");
-      ZiYanWriteVarText(@".ziyan_snap_http_want", @"1\n");
-      // 本函数由 ServeLoop 调用，等待只会饿死合帧线程：实测 .53 空闲下无论等
-      // 1.5s 还是 12s，请求都严格「失败/成功」交替——失败那次全程堵着循环，
-      // 帧总在它放弃之后才出来，被下一次请求捡走。Z1-ASSET 的 img=-1,-1 即此。
-      // 就地驱动合帧，最多三轮。
-      for (int i = 0; i < 3 && !ZiYanFrameShmHasPixels(NULL, NULL, NULL); i++) {
-        if (sCaptureHook) {
-          sCaptureHook();
-        } else {
-          usleep(200000);
-        }
-      }
     }
     size_t w = 0, h = 0;
+    ZiYanCanonicalFrameToken tok;
+    memset(&tok, 0, sizeof(tok));
     SnapLog(@"snap_encode_begin");
-    NSData *png = EncodeShmPNG(&w, &h);
+    NSData *png = EncodeCanonicalPNG(&w, &h, &tok);
     if (!png.length) {
-      SnapLog(@"snap_encode_empty");
-      const char *resp = "HTTP/1.0 503 Unavailable\r\n"
-                         "Access-Control-Allow-Origin: *\r\n"
-                         "Content-Type: text/plain\r\n"
-                         "Content-Length: 9\r\n\r\n"
-                         "no_frame\n";
-      SendAll(cfd, resp, strlen(resp));
+      FillHttpFrameToken(&tok, NULL, NO);
+      ZiYanCanonicalFrameTokenWriteLast(&tok);
+      NSString *body = ZiYanCanonicalFrameJSONByAddingToken(
+          @"{\"ok\":false,\"err\":\"frame_unavailable\"}", &tok);
+      NSData *bd = [body dataUsingEncoding:NSUTF8StringEncoding];
+      SnapLog(@"snap_encode_empty frame_unavailable");
+      NSString *hdr = [NSString
+          stringWithFormat:@"HTTP/1.0 503 Unavailable\r\n"
+                           @"Access-Control-Allow-Origin: *\r\n"
+                           @"Content-Type: application/json; charset=utf-8\r\n"
+                           @"%@"
+                           @"Content-Length: %lu\r\n\r\n",
+                           FrameTokenHeaderBlock(&tok),
+                           (unsigned long)bd.length];
+      NSData *hd = [hdr dataUsingEncoding:NSUTF8StringEncoding];
+      SendAll(cfd, hd.bytes, hd.length);
+      SendAll(cfd, bd.bytes, bd.length);
       close(cfd);
       [[NSFileManager defaultManager]
-        removeItemAtPath:ZiYanVarFile(@".ziyan_snap_http_busy")
-                   error:nil];
+          removeItemAtPath:ZiYanVarFile(@".ziyan_snap_http_busy")
+                     error:nil];
       return;
     }
-    SnapLog([NSString stringWithFormat:@"snap_encode_ok %zux%zu png=%lu", w, h,
-                                       (unsigned long)png.length]);
+    ZiYanCanonicalFrameTokenWriteLast(&tok);
+    SnapLog([NSString stringWithFormat:@"snap_encode_ok %zux%zu png=%lu seq=%u",
+                                       w, h, (unsigned long)png.length,
+                                       tok.frame_seq]);
     NSString *hdr = [NSString
         stringWithFormat:@"HTTP/1.0 200 OK\r\n"
                          @"Access-Control-Allow-Origin: *\r\n"
                          @"Content-Type: image/png\r\n"
                          @"Width: %zu\r\n"
                          @"Height: %zu\r\n"
+                         @"%@"
                          @"Content-Length: %lu\r\n\r\n",
-                         w, h, (unsigned long)png.length];
+                         w, h, FrameTokenHeaderBlock(&tok),
+                         (unsigned long)png.length];
     NSData *hd = [hdr dataUsingEncoding:NSUTF8StringEncoding];
     SendAll(cfd, hd.bytes, hd.length);
     SendAll(cfd, png.bytes, png.length);
@@ -954,35 +1162,52 @@ static void HandleClient(int cfd) {
   close(cfd);
 }
 
-void ZiYanSnapshotHttpPoll(void) {
-  if (sListenFd < 0) {
-    return;
+static void ConfigureClientSocket(int cfd) {
+  int on = 1;
+#ifdef SO_NOSIGPIPE
+  setsockopt(cfd, SOL_SOCKET, SO_NOSIGPIPE, &on, sizeof(on));
+#endif
+  struct timeval tv;
+  tv.tv_sec = 20;
+  tv.tv_usec = 0;
+  setsockopt(cfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+  setsockopt(cfd, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv));
+  // 客户端必须阻塞发送完整 PNG（listen fd 才是 nonblock）。
+  int fl = fcntl(cfd, F_GETFL, 0);
+  if (fl >= 0) {
+    fcntl(cfd, F_SETFL, fl & ~O_NONBLOCK);
   }
-  for (int n = 0; n < 2; n++) {
+}
+
+static void *SnapshotHttpThreadMain(void *unused) {
+  (void)unused;
+  while (sListenFd >= 0) {
     struct sockaddr_in peer;
     socklen_t plen = sizeof(peer);
     int cfd = accept(sListenFd, (struct sockaddr *)&peer, &plen);
     if (cfd < 0) {
-      break;
+      if (errno == EINTR) {
+        continue;
+      }
+      // BindPort deliberately marks listener nonblocking; sleep prevents a
+      // cold HTTP worker from spinning while no client is connected.
+      usleep(10000);
+      continue;
     }
-    int on = 1;
-#ifdef SO_NOSIGPIPE
-    setsockopt(cfd, SOL_SOCKET, SO_NOSIGPIPE, &on, sizeof(on));
-#endif
-    struct timeval tv;
-    tv.tv_sec = 20;
-    tv.tv_usec = 0;
-    setsockopt(cfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
-    setsockopt(cfd, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv));
-    // 客户端必须阻塞发送完整 PNG（listen fd 才是 nonblock）
-    int fl = fcntl(cfd, F_GETFL, 0);
-    if (fl >= 0) {
-      fcntl(cfd, F_SETFL, fl & ~O_NONBLOCK);
-    }
+    ConfigureClientSocket(cfd);
     @autoreleasepool {
       HandleClient(cfd);
     }
   }
+  return NULL;
+}
+
+void ZiYanSnapshotHttpPoll(void) {
+  if (sListenFd < 0) {
+    return;
+  }
+  // Legacy callers still invoke Poll every ServeLoop tick. It is now strictly
+  // a heartbeat: capture latency must never prevent /status from being served.
   static NSTimeInterval sLastAlive = 0;
   NSTimeInterval now = NSDate.date.timeIntervalSince1970;
   if (now - sLastAlive > 2.0) {

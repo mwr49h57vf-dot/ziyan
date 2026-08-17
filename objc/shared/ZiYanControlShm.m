@@ -326,7 +326,30 @@ BOOL ZiYanControlShmReadTouchRep(BOOL *outOk, uint64_t *outNonce) {
   return YES;
 }
 
-BOOL ZiYanControlShmWriteToast(NSString *text, int durationMs) {
+// toast_cmd 只有一个生产者槽，seq_consumed 在 WRITTEN 状态下尚未承担消费
+// 回执职责。借其高位携带方向，既保持控制页 4096B ABI，也让未升级的守护/工具
+// 继续安全地使用原有 WriteToast/TakeToast 接口。
+#define ZIYAN_TOAST_ORIENT_TAG 0x5A000000u
+#define ZIYAN_TOAST_ORIENT_MASK 0xFF000000u
+#define ZIYAN_TOAST_ORIENT_VALUE_MASK 0x000000FFu
+
+static uint32_t ZiYanToastEncodeOrient(int orient) {
+  if (orient < 0 || orient > 2) {
+    return 0;
+  }
+  return ZIYAN_TOAST_ORIENT_TAG | (uint32_t)orient;
+}
+
+static int ZiYanToastDecodeOrient(uint32_t word) {
+  if ((word & ZIYAN_TOAST_ORIENT_MASK) != ZIYAN_TOAST_ORIENT_TAG) {
+    return -1;
+  }
+  uint32_t orient = word & ZIYAN_TOAST_ORIENT_VALUE_MASK;
+  return orient <= 2 ? (int)orient : -1;
+}
+
+BOOL ZiYanControlShmWriteToastWithOrient(NSString *text, int durationMs,
+                                         int orient) {
   if (!ZiYanControlShmEnsure()) {
     return NO;
   }
@@ -339,13 +362,20 @@ BOOL ZiYanControlShmWriteToast(NSString *text, int durationMs) {
   strncpy(h->toast_cmd.text, (text.UTF8String ?: ""),
           sizeof(h->toast_cmd.text) - 1);
   h->toast_cmd.duration_ms = durationMs;
+  // 在 state=WRITTEN 之前写全消息，消费者可取得与正文同一代次的 init 方向。
+  h->toast_cmd.seq_consumed = ZiYanToastEncodeOrient(orient);
   h->toast_cmd.state = ZIYAN_SHM_ST_WRITTEN;
   touchTs(h);
   msync(&h->toast_cmd, sizeof(h->toast_cmd), MS_ASYNC);
   return YES;
 }
 
-BOOL ZiYanControlShmTakeToast(NSString **outText, int *outDurationMs) {
+BOOL ZiYanControlShmWriteToast(NSString *text, int durationMs) {
+  return ZiYanControlShmWriteToastWithOrient(text, durationMs, -1);
+}
+
+BOOL ZiYanControlShmTakeToastWithOrient(NSString **outText, int *outDurationMs,
+                                        int *outOrient) {
   if (!ZiYanControlShmEnsure()) {
     return NO;
   }
@@ -359,10 +389,17 @@ BOOL ZiYanControlShmTakeToast(NSString **outText, int *outDurationMs) {
   if (outDurationMs) {
     *outDurationMs = h->toast_cmd.duration_ms;
   }
+  if (outOrient) {
+    *outOrient = ZiYanToastDecodeOrient(h->toast_cmd.seq_consumed);
+  }
   h->toast_cmd.seq_consumed = h->toast_cmd.seq;
   h->toast_cmd.state = ZIYAN_SHM_ST_CONSUMED;
   msync(&h->toast_cmd, sizeof(h->toast_cmd), MS_ASYNC);
   return YES;
+}
+
+BOOL ZiYanControlShmTakeToast(NSString **outText, int *outDurationMs) {
+  return ZiYanControlShmTakeToastWithOrient(outText, outDurationMs, NULL);
 }
 
 void ZiYanControlShmWriteHeartbeat(NSString *name) {

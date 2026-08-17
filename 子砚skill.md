@@ -112,21 +112,20 @@ make clean-user-bins && make package
 # rootless (iOS 15-17) — 必须先 rootful 再 rootless
 make clean-user-bins && make package && THEOS_PACKAGE_SCHEME=rootless make package
 
-# 部署 rootful (101/112/166)
+# 部署 rootful (101/112/166)：只装包，读状态。禁止串联重启 SB。
 sshpass -p alpine scp -o StrictHostKeyChecking=no \
   packages/com.ziyan.ziyan_*_iphoneos-arm.deb root@192.168.31.$IP:/tmp/ziyan.deb
 sshpass -p alpine ssh root@192.168.31.$IP \
-  'dpkg -i /tmp/ziyan.deb && killall -9 SpringBoard'
+  'dpkg -i /tmp/ziyan.deb; echo INSTALL_STATUS; dpkg -s com.ziyan.ziyan | sed -n "s/^Version: //p"; cat /usr/lib/ziyan/var/.ziyan_inject_reload_pending 2>/dev/null'
 
-# 部署 rootless (53)
+# 部署 rootless (53)：只装包，读状态。禁止串联重启 SB。
 sshpass -p alpine scp -o StrictHostKeyChecking=no \
   packages/com.ziyan.ziyan_*_iphoneos-arm64.deb root@192.168.31.53:/tmp/ziyan.deb
 sshpass -p alpine ssh root@192.168.31.53 \
-  'dpkg -i /tmp/ziyan.deb && (sbreload || killall -9 SpringBoard)'
-
-# 部署后必须等 10 秒
-sleep 10
+  'dpkg -i /tmp/ziyan.deb; echo INSTALL_STATUS; dpkg -s com.ziyan.ziyan | sed -n "s/^Version: //p"; cat /var/jb/usr/lib/ziyan/var/.ziyan_inject_reload_pending 2>/dev/null'
 ```
+
+重载注入必须由用户明确授权后单独执行，不得与 `dpkg -i` 写在同一条命令。禁止 `sbreload` / `ldrestart` / `killall SpringBoard` / `killall backboardd`。
 
 ### 运行 Lua 脚本（兼容 rootful + rootless）
 
@@ -879,14 +878,15 @@ make clean-user-bins && make package && THEOS_PACKAGE_SCHEME=rootless make packa
 
 ### 9.3 部署
 
+默认只安装并读取状态。禁止 `dpkg -i` 后自动 `killall SpringBoard` / `sbreload`。
+
 ```bash
-# rootful
+# rootful：只装包，读状态
 sshpass -p alpine scp -o StrictHostKeyChecking=no packages/com.ziyan.ziyan_*_iphoneos-arm.deb root@192.168.31.$IP:/tmp/ziyan.deb
-sshpass -p alpine ssh root@192.168.31.$IP 'dpkg -i /tmp/ziyan.deb && killall -9 SpringBoard'
-# rootless (53)
+sshpass -p alpine ssh root@192.168.31.$IP 'dpkg -i /tmp/ziyan.deb; echo INSTALL_STATUS; dpkg -s com.ziyan.ziyan | sed -n "s/^Version: //p"; cat /usr/lib/ziyan/var/.ziyan_inject_reload_pending 2>/dev/null'
+# rootless (53)：只装包，读状态
 sshpass -p alpine scp -o StrictHostKeyChecking=no packages/com.ziyan.ziyan_*_iphoneos-arm64.deb root@192.168.31.53:/tmp/ziyan.deb
-sshpass -p alpine ssh root@192.168.31.53 'dpkg -i /tmp/ziyan.deb && (sbreload || killall -9 SpringBoard)'
-sleep 10
+sshpass -p alpine ssh root@192.168.31.53 'dpkg -i /tmp/ziyan.deb; echo INSTALL_STATUS; dpkg -s com.ziyan.ziyan | sed -n "s/^Version: //p"; cat /var/jb/usr/lib/ziyan/var/.ziyan_inject_reload_pending 2>/dev/null'
 ```
 
 ### 9.4 健康检查

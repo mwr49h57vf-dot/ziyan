@@ -14,6 +14,10 @@ ZYCV="$DIR/ZYCV"
 
 mkdir -p "$DIR" "$DIR/lua" \
   "$ZYCV" "$ZYCV/config" "$ZYCV/log" "$ZYCV/tmp" "$ZYCV/res"
+mkdir -p "$DIR/Agent游戏/游戏配置" "$DIR/Agent游戏/人工学习" \
+  "$DIR/Agent游戏/学习数据" "$DIR/Agent游戏/运行记录" \
+  "$DIR/Agent游戏/错误报告" "$DIR/Agent游戏/生成脚本" \
+  "$DIR/Agent游戏/临时缓存"
 mkdir -p "$ROOT/bin" "$ROOT/lib" "$ROOT/engine" "$ROOT/var" \
   "$ROOT/runtime/scripts" "$ROOT/runtime/var/lib" \
   "$ROOT/runtime/var/log" "$ROOT/runtime/var/tmp" \
@@ -75,7 +79,18 @@ if [ -d "$SEED" ]; then
     cp -an "$SEED/knowledge/." "$DIR/knowledge/" 2>/dev/null || true
     chmod -R a+r "$DIR/knowledge" 2>/dev/null || true
   fi
+  # Agent GameProfile：必须落到真实 /private/.../Agent游戏，不能停在 rootless $JB/private
+  mkdir -p "$DIR/Agent游戏/游戏配置"
+  if [ -d "$SEED/Agent游戏/游戏配置" ]; then
+    cp -n "$SEED/Agent游戏/游戏配置/"*.json "$DIR/Agent游戏/游戏配置/" 2>/dev/null || true
+  fi
 fi
+if [ -d "${JB}/private/var/mobile/Media/ZiYan/Agent游戏/游戏配置" ]; then
+  mkdir -p "$DIR/Agent游戏/游戏配置"
+  cp -n "${JB}/private/var/mobile/Media/ZiYan/Agent游戏/游戏配置/"*.json \
+    "$DIR/Agent游戏/游戏配置/" 2>/dev/null || true
+fi
+chmod -R a+r "$DIR/Agent游戏" 2>/dev/null || true
 # 一次性迁移：根目录工程内部文件 → ZYCV/res（保留作者脚本）
 for f in "$DIR/"*; do
   [ -f "$f" ] || continue
@@ -204,6 +219,10 @@ if [ -f "$ROOT/engine/wnriakwyww" ]; then
 fi
 
 ln -sfn "${ROOT}/engine/wnriakwyww" "${JB}/bin/wnriakwyww" 2>/dev/null || true
+# 该遗留引擎二进制以绝对路径 /bin/wnriakwyww.dylib 链接其同名库；此前
+# postinst 漏建这个链接，rootful 机因此被 launchd 每约 10 秒拉起并 DYLD
+# SIGABRT。rootless 包已在 staging 改写到 ${JB}/bin，同一链接仍是其运行目标。
+ln -sfn "${ROOT}/engine/wnriakwyww.dylib" "${JB}/bin/wnriakwyww.dylib" 2>/dev/null || true
 ln -sfn "${ROOT}/runtime" "${JB}/var/touchelf" 2>/dev/null || true
 chmod 777 -R "$ROOT/runtime" 2>/dev/null || true
 
@@ -224,8 +243,7 @@ if [ -f "$LD/com.ziyan.engine.plist" ]; then
     launchctl load -w "$LD/com.ziyan.engine.plist" >/dev/null 2>&1 || true
 fi
 
-# 8-71：装包即杀 App + 清 AFC/会话残留 + 还原桌面隐藏 App
-killall -9 ZiYan 2>/dev/null || true
+# 8-71：清 AFC/会话残留 + 还原桌面隐藏 App。不得杀 ZiYan App / Lua，不得重启 SB。
 rm -f \
   "${JB}/Library/MobileSubstrate/DynamicLibraries/ZiYanFsCloak.dylib.disabled_867" \
   "${JB}/Library/MobileSubstrate/DynamicLibraries/ZiYanFsCloak.plist.disabled_867" \
@@ -433,8 +451,10 @@ if [ -x "$FRAMECAP_BIN" ] || [ -f "$FRAMECAP_WRAP" ]; then
 		<string>${FC_PATH}</string>
 	</dict>
 	<key>RunAtLoad</key>
-	<true/>
+	<false/>
 	<key>KeepAlive</key>
+	<false/>
+	<key>Disabled</key>
 	<true/>
 	<key>UserName</key>
 	<string>root</string>
@@ -465,8 +485,11 @@ EOF
   killall -9 ziyan_framecap >/dev/null 2>&1 || true
   launchctl bootout system "$LD/com.ziyan.framecap.plist" >/dev/null 2>&1 || true
   launchctl unload "$LD/com.ziyan.framecap.plist" >/dev/null 2>&1 || true
-  launchctl bootstrap system "$LD/com.ziyan.framecap.plist" >/dev/null 2>&1 || \
-    launchctl load -w "$LD/com.ziyan.framecap.plist" >/dev/null 2>&1 || true
+  # iOS 13 把这个 LaunchDaemon 槽位硬限到 6MB，dyld/ObjC 初始化前即会
+  # 被 jetsam；framecap 统一由已存活的 zydaemon 子进程监督，禁在此 bootstrap。
+  echo "zydaemon" >"${ROOT}/var/.ziyan_framecap_owner_mode" 2>/dev/null || true
+  chmod 666 "${ROOT}/var/.ziyan_framecap_owner_mode" 2>/dev/null || true
+  echo 1 >"${ROOT}/var/.ziyan_watchdog_framecap_need" 2>/dev/null || true
 fi
 
 APP="${JB}/Applications/ZiYan.app"
@@ -491,23 +514,41 @@ chmod 666 "$ROOT/var/.ziyan_orient" 2>/dev/null || true
 chown mobile:mobile "$ROOT/var/.ziyan_orient" 2>/dev/null || true
 chmod 666 "$ROOT/var/.ziyan_buf_wh" "$ROOT/var/.ziyan_native_wh" 2>/dev/null || true
 
+# Dopamine/Ellekit 从 /var/jb/usr/lib/TweakInject 装载。只写
+# MobileSubstrate/DynamicLibraries 时 SpringBoard 看不到 ZiYanVol，
+# Home/front_bid/Toast 会停在旧文件。BBFrame 默认不链进 TweakInject。
+if [ -n "$JB" ] && [ -d "${JB}/usr/lib/TweakInject" ]; then
+  TI="${JB}/usr/lib/TweakInject"
+  for name in ZiYanVol ZiYanFrameRelay ZiYanAppTouch ZiYanDefense ZiYanFsCloak; do
+    if [ -f "$MS/$name.dylib" ]; then
+      ln -sfn "$MS/$name.dylib" "$TI/$name.dylib"
+      ln -sfn "$MS/$name.plist" "$TI/$name.plist"
+    fi
+  done
+  if [ ! -f "$ROOT/var/.ziyan_bbframe_on" ]; then
+    rm -f "$TI/ZiYanBBFrame.dylib" "$TI/ZiYanBBFrame.plist"
+  fi
+  echo "TweakInject linked from $MS (BBFrame off)"
+fi
+
 echo "ZiYan installed ROOT=$ROOT JB=${JB:-/} (lua5.3 primary; TE optional)"
-# 触发一次自动解锁（无密码）；SB 起来后也会再解
+# 触发一次自动解锁（无密码）。不得因此重启 SpringBoard。
 touch "$ROOT/var/.ziyan_unlock_req" 2>/dev/null || true
 chmod 666 "$ROOT/var/.ziyan_unlock_req" 2>/dev/null || true
-echo "Please respring (sbreload / ldrestart). Auto-unlock (no passcode) after SB up."
-# 手测约束：重启 SB 前必须先完全关闭子砚 App（避免会话/图标状态污染）
-# 装包后需重载 SB；延后执行以免打断 dpkg/SSH
-nohup sh -c '
-  killall -9 ZiYan 2>/dev/null || true
-  killall -9 lua5.3 lua 2>/dev/null || true
-  rm -f /usr/lib/ziyan/var/.ziyan_app_session /var/jb/usr/lib/ziyan/var/.ziyan_app_session \
-    /var/mobile/Media/ZiYan/.ziyan_app_session \
-    /usr/lib/ziyan/var/.ziyan_app_heartbeat /var/jb/usr/lib/ziyan/var/.ziyan_app_heartbeat \
-    /var/mobile/Media/ZiYan/.ziyan_app_heartbeat \
-    /usr/lib/ziyan/var/.ziyan_jb_icons_hidden /var/jb/usr/lib/ziyan/var/.ziyan_jb_icons_hidden \
-    /var/mobile/Media/ZiYan/.ziyan_jb_icons_hidden 2>/dev/null || true
-  sleep 2
-  sbreload 2>/dev/null || killall -9 SpringBoard 2>/dev/null || true
-' >/dev/null 2>&1 &
+
+# 安装不得自动重启 SB/BB，不得杀 ZiYan/Lua，不得后台 nohup respring。
+# 注入重载必须由人工确认后的独立步骤完成。
+MARKER="$ROOT/var/.ziyan_inject_reload_pending"
+{
+  echo "status=pending_manual_inject_reload"
+  echo "created=$(date '+%Y-%m-%d %H:%M:%S %z' 2>/dev/null || echo unknown)"
+  echo "note=package_installed_no_auto_respring"
+} > "$MARKER" 2>/dev/null || true
+chmod 666 "$MARKER" 2>/dev/null || true
+
+echo "INSTALL_OK no_auto_respring=1"
+echo "This package does NOT restart SpringBoard."
+echo "Install must not restart SpringBoard or backboardd."
+echo "Any inject reload requires explicit human authorization as a separate step."
+echo "Pending marker: $MARKER"
 exit 0

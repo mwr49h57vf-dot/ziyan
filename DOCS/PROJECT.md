@@ -96,10 +96,9 @@ flowchart TB
 # 开发机（需 Theos）
 make package          # → packages/com.ziyan.ziyan_*.deb
 
-# 真机安装 + 冒烟
-bash tools/device_smoke.sh
-# 或
-ssh root@<IP> 'dpkg -i /tmp/ziyan.deb; sbreload'   # 截屏异常时优先 reboot，慎用反复 killall SB
+# 真机安装：只装包并读状态。device_smoke.sh 默认会被 BLOCKED_AUTO_SB_RESTART 拦住。
+# ssh root@<IP> 'dpkg -i /tmp/ziyan.deb; echo INSTALL_STATUS; cat /usr/lib/ziyan/var/.ziyan_inject_reload_pending'
+# 禁止与 sbreload / killall SpringBoard 串联。重载注入必须另一步、且仅人工授权。
 ```
 
 - **deployment**：`Makefile` → `iphone:clang:latest:13.0`，`ARCHS=arm64`
@@ -147,7 +146,7 @@ ssh root@<IP> 'dpkg -i /tmp/ziyan.deb; sbreload'   # 截屏异常时优先 reboo
 | `objc/_archive/ZiYanHID.*` | 未接入 Makefile，仅归档 |
 | `vendor/` 引擎二进制 | 构建 stage 强依赖；禁止自动删除 |
 | api_spec 一致性 | 部分标 `done` 的符号在 lua 文本未检出（如 `clipText`、`ZiYanCV.*`）；部分 `planned` 已在 lua 出现名字（如 `keyDown`）— **未擅自改契约状态** |
-| SpringBoard 截屏 | 反复 `killall -9 SpringBoard` 可能导致黑图，需 reboot 恢复 |
+| SpringBoard 截屏 | 禁止用 `killall SpringBoard` / `sbreload` 做恢复；反复杀 SB 还可能导致黑图 |
 | TE 守护 | 常不稳定；验收以 `lua5.3` + `ziyan_run.lua` 为准 |
 | AppTouch Filter | 由 plist 配置，源码不写死游戏 Bundle ID |
 

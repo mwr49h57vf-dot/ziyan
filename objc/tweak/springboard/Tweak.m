@@ -2124,8 +2124,181 @@ static void ZiYanRequestSpringBoardHome(void) {
   }
 }
 
+static void ZiYanOpenAppWriteGate(NSString *bid, int requestSubmitted,
+                                  int workspaceAccepted, int processExec,
+                                  int processStable, int launchIdOk,
+                                  int thinLsaw, NSString *reason) {
+  NSString *body = [NSString
+      stringWithFormat:
+          @"bid=%@\nrequest_submitted=%d\nworkspace_accepted=%d\n"
+          @"process_exec=%d\nprocess_stable=%d\nopen_app_verified=%d\n"
+          @"launch_id=%d\nthin_lsaw=%d\nreason=%@\nts=%.0f\n",
+          bid ?: @"", requestSubmitted, workspaceAccepted, processExec,
+          processStable, processStable, launchIdOk, thinLsaw,
+          reason.length ? reason : @"-", [[NSDate date] timeIntervalSince1970]];
+  (void)ZiYanWriteVarText(@".ziyan_open_app_gate", body);
+  (void)ZiYanWriteVarText(@".ziyan_open_app_verified",
+                          processStable ? @"1\n" : @"0\n");
+  ZiYanAppendMinimizeLog([NSString
+      stringWithFormat:
+          @"open_app_gate sub=%d ws=%d exec=%d stable=%d verified=%d reason=%@",
+          requestSubmitted, workspaceAccepted, processExec, processStable,
+          processStable, reason.length ? reason : @"-"]);
+}
+
+static BOOL ZiYanWorkspaceOpenApplicationBundle(NSString *bundleId) {
+  if (bundleId.length == 0) {
+    return NO;
+  }
+  Class wsCls = NSClassFromString(@"LSApplicationWorkspace");
+  SEL defSel = NSSelectorFromString(@"defaultWorkspace");
+  if (!wsCls || ![wsCls respondsToSelector:defSel]) {
+    ZiYanAppendMinimizeLog(@"open_app ws_no_class");
+    return NO;
+  }
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+  id ws = [wsCls performSelector:defSel];
+#pragma clang diagnostic pop
+  if (!ws) {
+    ZiYanAppendMinimizeLog(@"open_app ws_no_default");
+    return NO;
+  }
+  SEL instSel = NSSelectorFromString(@"applicationIsInstalled:");
+  int installed = -1;
+  if ([ws respondsToSelector:instSel]) {
+    installed = ((BOOL(*)(id, SEL, id))objc_msgSend)(ws, instSel, bundleId) ? 1
+                                                                           : 0;
+  }
+  NSError *openErr = nil;
+  BOOL ok = NO;
+  SEL errSel = NSSelectorFromString(@"openApplicationWithBundleID:error:");
+  if ([ws respondsToSelector:errSel]) {
+    ok = ((BOOL(*)(id, SEL, id, id *))objc_msgSend)(ws, errSel, bundleId,
+                                                    &openErr);
+  } else {
+    SEL sel = NSSelectorFromString(@"openApplicationWithBundleID:");
+    if (![ws respondsToSelector:sel]) {
+      ZiYanAppendMinimizeLog([NSString
+          stringWithFormat:@"open_app ws_no_sel installed=%d", installed]);
+      return NO;
+    }
+    ok = ((BOOL(*)(id, SEL, id))objc_msgSend)(ws, sel, bundleId);
+  }
+  ZiYanAppendMinimizeLog([NSString
+      stringWithFormat:@"open_app ws_detail bid=%@ ok=%d installed=%d err=%@",
+                       bundleId, ok ? 1 : 0, installed,
+                       openErr.localizedDescription ?: @"-"]);
+  return ok;
+}
+
+static void ZiYanOpenAppTrySBUIOnce(NSString *bundleId, NSString *why) {
+  Class sbac = NSClassFromString(@"SBApplicationController");
+  Class sbui = NSClassFromString(@"SBUIController");
+  id appCtrl = nil;
+  id uiCtrl = nil;
+  if (sbac) {
+    for (NSString *n in @[ @"sharedInstance", @"sharedInstanceIfExists" ]) {
+      SEL s = NSSelectorFromString(n);
+      if ([sbac respondsToSelector:s]) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+        appCtrl = [sbac performSelector:s];
+#pragma clang diagnostic pop
+        break;
+      }
+    }
+  }
+  if (sbui) {
+    for (NSString *n in @[ @"sharedInstance", @"sharedInstanceIfExists" ]) {
+      SEL s = NSSelectorFromString(n);
+      if ([sbui respondsToSelector:s]) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+        uiCtrl = [sbui performSelector:s];
+#pragma clang diagnostic pop
+        break;
+      }
+    }
+  }
+  SEL appSel = NSSelectorFromString(@"applicationWithBundleIdentifier:");
+  id app = nil;
+  if (appCtrl && [appCtrl respondsToSelector:appSel]) {
+    app = ((id(*)(id, SEL, id))objc_msgSend)(appCtrl, appSel, bundleId);
+  }
+  if (!app || !uiCtrl) {
+    ZiYanAppendMinimizeLog([NSString
+        stringWithFormat:@"open_app sbui_skip why=%@ app=%d ui=%d", why,
+                         app ? 1 : 0, uiCtrl ? 1 : 0]);
+    return;
+  }
+  for (NSString *n in @[
+         @"activateApplication:", @"activateApplicationAnimated:",
+         @"activateApplicationFromSwitcher:"
+       ]) {
+    SEL s = NSSelectorFromString(n);
+    if (![uiCtrl respondsToSelector:s]) {
+      continue;
+    }
+    ((void (*)(id, SEL, id))objc_msgSend)(uiCtrl, s, app);
+    ZiYanAppendMinimizeLog(
+        [NSString stringWithFormat:@"open_app SBUI %@ why=%@", n, why]);
+    return;
+  }
+  ZiYanAppendMinimizeLog(
+      [NSString stringWithFormat:@"open_app sbui_no_sel why=%@", why]);
+}
+
+static uint64_t gZiYanOpenAppGateEpoch = 0;
+
+static void ZiYanOpenAppScheduleProcessGate(NSString *bid, uint64_t epoch,
+                                            NSTimeInterval startedAt,
+                                            NSTimeInterval firstSeenAt,
+                                            int retried, int workspaceAccepted,
+                                            int launchIdOk, int thinLsaw) {
+  if (epoch != gZiYanOpenAppGateEpoch) {
+    return;
+  }
+  NSTimeInterval now = [[NSDate date] timeIntervalSince1970];
+  int alive = ZiYanBundleProcessAliveState(bid) == 1 ? 1 : 0;
+  NSTimeInterval seen = firstSeenAt;
+  if (alive) {
+    if (seen < 1) {
+      seen = now;
+    }
+  } else {
+    seen = 0;
+  }
+  int stable = (alive && seen > 1 && (now - seen) >= 5.0) ? 1 : 0;
+  if (stable) {
+    ZiYanOpenAppWriteGate(bid, 1, workspaceAccepted, 1, 1, launchIdOk, thinLsaw,
+                          @"process_stable");
+    return;
+  }
+  if (!alive && !retried && (now - startedAt) >= 1.0) {
+    ZiYanOpenAppTrySBUIOnce(bid, @"pid_retry_1s");
+    retried = 1;
+  }
+  if ((now - startedAt) >= 15.0) {
+    ZiYanOpenAppWriteGate(bid, 1, workspaceAccepted, alive, 0, launchIdOk,
+                          thinLsaw,
+                          alive ? @"exec_not_stable" : @"no_process");
+    return;
+  }
+  ZiYanOpenAppWriteGate(bid, 1, workspaceAccepted, alive, 0, launchIdOk,
+                        thinLsaw,
+                        alive ? @"exec_waiting_stable" : @"waiting_exec");
+  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)),
+                 dispatch_get_main_queue(), ^{
+                   ZiYanOpenAppScheduleProcessGate(bid, epoch, startedAt, seen,
+                                                   retried, workspaceAccepted,
+                                                   launchIdOk, thinLsaw);
+                 });
+}
+
 /// 自动打开 App（内容为 bundle id）
 /// 8-161-76：单路激活 + 3s 硬防抖；禁止多 API 连打 + 递归 retry（75 卡死四机）
+/// 四层门：launchId/AX 不得写成 open_app_verified；仅 PID 连续 5s。
 static void ZiYanOpenApplicationBundle(NSString *bundleId) {
   if (bundleId.length == 0) {
     bundleId = @"com.ziyan.ziyan";
@@ -2156,9 +2329,16 @@ static void ZiYanOpenApplicationBundle(NSString *bundleId) {
                                     error:nil]
           stringByTrimmingCharactersInSet:
               [NSCharacterSet whitespaceAndNewlineCharacterSet]];
+  ++gZiYanOpenAppGateEpoch;
+  const uint64_t openEpoch = gZiYanOpenAppGateEpoch;
   // 8-161-79：front 文件==bid 但进程已死时仍须激活（完全关闭后找不到的根因）
   if ([front isEqualToString:bundleId] &&
       ZiYanBundleProcessAliveState(bundleId) == 1) {
+    ZiYanAppendMinimizeLog(@"open_app already_alive_wait_stable");
+    NSTimeInterval gateStart = [[NSDate date] timeIntervalSince1970];
+    ZiYanOpenAppWriteGate(bundleId, 1, 0, 1, 0, 0, 0, @"already_exec");
+    ZiYanOpenAppScheduleProcessGate(bundleId, openEpoch, gateStart, gateStart,
+                                    1, 0, 0, 0);
     return;
   }
   if (sLastOpenBid && [sLastOpenBid isEqualToString:bundleId] &&
@@ -2170,94 +2350,36 @@ static void ZiYanOpenApplicationBundle(NSString *bundleId) {
   ZiYanWriteVarText(@".ziyan_open_app_last",
                     [NSString stringWithFormat:@"%.3f %@\n", now, bundleId]);
 
-  BOOL opened = NO;
+  int launchIdOk = 0;
+  int workspaceAccepted = 0;
 
-  // 优先 SBUI 真激活（比 launchIdentifier 假 ok 靠谱）
+  /* iOS 13.1：先提交 Workspace 再 launchId，否则 launchId=1 且 10s 内无 PID。 */
+  workspaceAccepted = ZiYanWorkspaceOpenApplicationBundle(bundleId) ? 1 : 0;
+  ZiYanAppendMinimizeLog([NSString
+      stringWithFormat:@"open_app LSAW=%@ ok=%d", bundleId, workspaceAccepted]);
+  ZiYanOpenAppTrySBUIOnce(bundleId, @"primary");
+
   {
-    Class sbac = NSClassFromString(@"SBApplicationController");
-    Class sbui = NSClassFromString(@"SBUIController");
-    id appCtrl = nil;
-    id uiCtrl = nil;
-    if (sbac) {
-      for (NSString *n in @[ @"sharedInstance", @"sharedInstanceIfExists" ]) {
-        SEL s = NSSelectorFromString(n);
-        if ([sbac respondsToSelector:s]) {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
-          appCtrl = [sbac performSelector:s];
-#pragma clang diagnostic pop
-          break;
-        }
-      }
-    }
-    if (sbui) {
-      for (NSString *n in @[ @"sharedInstance", @"sharedInstanceIfExists" ]) {
-        SEL s = NSSelectorFromString(n);
-        if ([sbui respondsToSelector:s]) {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
-          uiCtrl = [sbui performSelector:s];
-#pragma clang diagnostic pop
-          break;
-        }
-      }
-    }
-    SEL appSel = NSSelectorFromString(@"applicationWithBundleIdentifier:");
-    id app = nil;
-    if (appCtrl && [appCtrl respondsToSelector:appSel]) {
-      app = ((id(*)(id, SEL, id))objc_msgSend)(appCtrl, appSel, bundleId);
-    }
-    if (app && uiCtrl) {
-      for (NSString *n in @[
-             @"activateApplication:", @"activateApplicationAnimated:",
-             @"activateApplicationFromSwitcher:"
-           ]) {
-        SEL s = NSSelectorFromString(n);
-        if (![uiCtrl respondsToSelector:s]) {
-          continue;
-        }
-        ((void (*)(id, SEL, id))objc_msgSend)(uiCtrl, s, app);
-        opened = YES;
-        ZiYanAppendMinimizeLog(
-            [NSString stringWithFormat:@"open_app SBUI %@", n]);
-        break;
-      }
-    }
-  }
-
-  if (!opened) {
     id sbApp = [UIApplication sharedApplication];
     SEL launchSel =
         NSSelectorFromString(@"launchApplicationWithIdentifier:suspended:");
     if ([sbApp respondsToSelector:launchSel]) {
-      opened = ((BOOL(*)(id, SEL, id, BOOL))objc_msgSend)(sbApp, launchSel,
-                                                          bundleId, NO);
+      BOOL launchOk = ((BOOL(*)(id, SEL, id, BOOL))objc_msgSend)(
+          sbApp, launchSel, bundleId, NO);
+      launchIdOk = launchOk ? 1 : 0;
       ZiYanAppendMinimizeLog(
           [NSString stringWithFormat:@"open_app launchId=%@ ok=%d", bundleId,
-                                     opened ? 1 : 0]);
+                                     launchIdOk]);
     }
   }
-
-  if (!opened) {
-    Class wsCls = NSClassFromString(@"LSApplicationWorkspace");
-    SEL defSel = NSSelectorFromString(@"defaultWorkspace");
-    if (wsCls && [wsCls respondsToSelector:defSel]) {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
-      id ws = [wsCls performSelector:defSel];
-#pragma clang diagnostic pop
-      SEL sel = NSSelectorFromString(@"openApplicationWithBundleID:");
-      if (ws && [ws respondsToSelector:sel]) {
-        opened = ((BOOL(*)(id, SEL, id))objc_msgSend)(ws, sel, bundleId);
-        ZiYanAppendMinimizeLog([NSString
-            stringWithFormat:@"open_app LSAW=%@ ok=%d", bundleId,
-                             opened ? 1 : 0]);
-      }
-    }
-  }
-  if (!opened) {
-    ZiYanAppendMinimizeLog(@"open_app_failed");
-  }
+  /* launchId=1 只表示 request_submitted，不得当成 verified。 */
+  NSTimeInterval gateStart = [[NSDate date] timeIntervalSince1970];
+  int already = ZiYanBundleProcessAliveState(bundleId) == 1 ? 1 : 0;
+  ZiYanOpenAppWriteGate(bundleId, 1, workspaceAccepted, already, 0, launchIdOk,
+                        0, already ? @"submitted_exec" : @"submitted_no_exec");
+  ZiYanOpenAppScheduleProcessGate(bundleId, openEpoch, gateStart,
+                                  already ? gateStart : 0, 0, workspaceAccepted,
+                                  launchIdOk, 0);
 }
 
 /// 关闭指定 bundle：FBS terminate → SB pid kill → home → killall 可执行名

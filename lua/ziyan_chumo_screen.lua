@@ -11,7 +11,7 @@
     ZiYan：抓色器串格式 findMultiColorInRegionFuzzy(主色, "dx|dy|0x..", deg, ROI)
 ]]
 
-local M = { name = "ziyan_chumo_screen", version = "1.0.0" }
+local M = { name = "ziyan_chumo_screen", version = "1.1.0" }
 
 local function bit_band(a, b)
   if bit32 and bit32.band then return bit32.band(a, b) end
@@ -21,18 +21,6 @@ end
 local function bit_rshift(a, n)
   if bit32 and bit32.rshift then return bit32.rshift(a, n) end
   return a >> n
-end
-
-local function native_get_color(x, y)
-  if type(_G.ziyan_embed_get_color) == "function" then
-    local ok, c = pcall(_G.ziyan_embed_get_color, x, y)
-    if ok then return tonumber(c) or -1 end
-  end
-  if type(_G._getColor) == "function" and _G._getColor ~= native_get_color then
-    local ok, c = pcall(_G._getColor, x, y)
-    if ok then return tonumber(c) or -1 end
-  end
-  return -1
 end
 
 --- 触动 _findColor(json colors, fuzzy, ltx,lty,rbx,rby, all)
@@ -88,9 +76,46 @@ local function colors_to_main_offset(colors)
 end
 
 function M.install()
-  -- 抓色器/引擎已装好的实现（禁包装递归）
-  local orig_fmc = rawget(_G, "findMultiColorInRegionFuzzy")
-  local orig_keep = rawget(_G, "keepScreen")
+  if rawget(_G, "__ZIYAN_CHUMO_SCREEN") == M.version then
+    return true
+  end
+
+  -- 首次安装时冻结真正的引擎/原生入口。重复 install 或同 VM 热升级时
+  -- 必须复用这组入口，不能再次捕获本模块覆盖后的 getColor/_getColor，
+  -- 否则 pcall 会吞掉递归溢出并静默返回 -1。
+  local saved = rawget(_G, "__ZIYAN_CHUMO_NATIVE_ENTRYPOINTS")
+  if type(saved) ~= "table" then
+    saved = {
+      fmc = rawget(_G, "findMultiColorInRegionFuzzy"),
+      get = rawget(_G, "getColor"),
+      raw_get = rawget(_G, "_getColor"),
+      keep = rawget(_G, "keepScreen"),
+    }
+    rawset(_G, "__ZIYAN_CHUMO_NATIVE_ENTRYPOINTS", saved)
+  end
+  local orig_fmc = saved.fmc
+  local orig_get = saved.get
+  local orig_raw_get = saved.raw_get
+  local orig_keep = saved.keep
+
+  -- 先经过 engine getColor 包装：这条路径会统计真实 LuaEmbed
+  -- getColor 调用与单调 wall 延迟。只有 engine 未安装/异常时才直调 C
+  -- 入口；禁止回读覆盖后的 _G._getColor，否则会递归。
+  local function native_get_color(x, y)
+    if type(orig_get) == "function" then
+      local ok, c = pcall(orig_get, x, y)
+      if ok then return tonumber(c) or -1 end
+    end
+    if type(_G.ziyan_embed_get_color) == "function" then
+      local ok, c = pcall(_G.ziyan_embed_get_color, x, y)
+      if ok then return tonumber(c) or -1 end
+    end
+    if type(orig_raw_get) == "function" then
+      local ok, c = pcall(orig_raw_get, x, y)
+      if ok then return tonumber(c) or -1 end
+    end
+    return -1
+  end
 
   local function call_fmc(main, offset, fuzzy, x1, y1, x2, y2)
     if type(orig_fmc) == "function" then

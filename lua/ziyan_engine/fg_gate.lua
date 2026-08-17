@@ -1,7 +1,7 @@
---[[ ForegroundFrameGate — 找色/找图/找字/识字唯一前台入口（203）
-  像素：永远当前前台；方向：永远业务最后一次 init；不绑定游戏 BID。
+--[[ ForegroundFrameGate — 找色/找图/找字/识字入口
+  触动模型：对着当前屏幕像素找色，不看前台是哪个 App。
+  本门只重申 init 方向、切屏时催一帧；禁止用 shm_bid/包名判 VISION_STALE 拦住 matcher。
   front_generation：由 framecap 发布 .ziyan_front_generation（禁 Lua 自增假变量）。
-  返回值兼容业务 API；诊断写 .ziyan_vision_gate（旁路）。
 ]]
 local M = { module = "fg_gate", version = "203.1" }
 
@@ -134,22 +134,7 @@ function M.acquire(kind)
     ok = true,
     err = nil,
   }
-  local home = type(bid) == "string" and tostring(bid):lower():find("springboard", 1, true) ~= nil
-  if home then
-    local slow = tostring(shmBid):lower()
-    if slow ~= "" and slow ~= "stale" and slow ~= "-"
-        and slow ~= "com.apple.springboard"
-        and not slow:find("springboard", 1, true) then
-      snap.ok = false
-      snap.err = "VISION_STALE"
-    end
-  elseif type(bid) == "string" and #bid > 0 and type(shmBid) == "string" and #shmBid > 0 then
-    local slow = shmBid:lower()
-    if slow ~= "stale" and slow ~= "-" and shmBid ~= bid then
-      snap.ok = false
-      snap.err = "VISION_STALE"
-    end
-  end
+  -- 切屏只催帧，不因包名/shm 错位拒绝找色。颜色对上取色器就是命中。
   write_diag(string.format(
     "ts=%d kind=%s ok=%s err=%s front=%s shm=%s gen=%d orient=%d seq=%d scale=%d\n",
     os.time() or 0, kind, tostring(snap.ok), tostring(snap.err or "-"),

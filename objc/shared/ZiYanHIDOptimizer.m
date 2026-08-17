@@ -162,6 +162,8 @@ static void loadSyms(void) {
                skipHand:(BOOL)skipHand {
   loadSyms();
   if (!HIDCreateFinger) {
+    ZiYanWriteVarText(@".ziyan_hid_err",
+                      @"phase=?\nok=0\nerror_code=NO_CREATE_FINGER\nroute=none\n");
     return NO;
   }
   if (!self.client && HIDClientCreate) {
@@ -210,6 +212,8 @@ static void loadSyms(void) {
                              ny, 0, 0, 0, 0, 0, 0, inRange, down, 0);
   }
   if (!toSend) {
+    ZiYanWriteVarText(@".ziyan_hid_err",
+                      @"phase=?\nok=0\nerror_code=NO_EVENT\nroute=none\n");
     return NO;
   }
   if (HIDSetSender) {
@@ -219,32 +223,68 @@ static void loadSyms(void) {
     BKSSetDig(toSend, 0, 0, 0, NULL, 0, 0);
   }
   BOOL ok = NO;
+  const char *err = "NO_ROUTE";
+  const char *route = "none";
   @try {
     Class bk = NSClassFromString(@"BKHIDSystemInterface");
     if (bk) {
       id shared =
           ((id(*)(id, SEL))objc_msgSend)(bk, @selector(sharedInstance));
       SEL inj = @selector(injectHIDEvent:);
+      SEL inj2 = @selector(injectEvent:);
       if (shared && [shared respondsToSelector:inj]) {
         ((void (*)(id, SEL, IOHIDEventRef))objc_msgSend)(shared, inj, toSend);
         ok = YES;
+        err = "0";
+        route = "bk_injectHIDEvent";
+      } else if (shared && [shared respondsToSelector:inj2]) {
+        ((void (*)(id, SEL, IOHIDEventRef))objc_msgSend)(shared, inj2, toSend);
+        ok = YES;
+        err = "0";
+        route = "bk_injectEvent";
+      } else if (!shared) {
+        err = "BK_SHARED_NIL";
+      } else {
+        err = "BK_NO_SELECTOR";
+      }
+    } else {
+      err = "BK_CLASS_NIL";
+    }
+    // SpringBoard/backboardd：BKHID 不可用时回退 IOHID client dispatch。
+    // 这是真实注入，与 hidTouchPhase 桌面分支 / ZiYanTouchBridge 相同。
+    // embed/framecap 无 BKHID 特权，dispatch 到不了 UI，禁止记成功。
+    if (!ok) {
+      NSString *proc = [NSProcessInfo processInfo].processName ?: @"";
+      BOOL privileged = [proc isEqualToString:@"SpringBoard"] ||
+                        [proc isEqualToString:@"backboardd"];
+      if (privileged && HIDDispatch && self.client) {
+        HIDDispatch(self.client, toSend);
+        ok = YES;
+        err = "0";
+        route = "sb_dispatch";
+      } else if (!privileged) {
+        err = "NO_BK_EMBED_NO_DISPATCH";
+      } else if (!HIDDispatch || !self.client) {
+        err = "NO_BK_NO_CLIENT";
       }
     }
-    // 不再把 IOHIDEventSystemClientDispatchEvent 记成成功。
-    // BKHIDSystemInterface 只存在于 SpringBoard/backboardd 进程；合帧守护里
-    // 的 embed 拿不到它，退到无特权 client dispatch 后事件到不了 UI，但旧代码
-    // 照样 ok=YES。于是 touch.lua 的 SB 中继回落永不触发，表现就是
-    // 「tap_ok=true 而画面毫无变化」（.101/.112/.166 三台 rootful 同症，
-    // pixel_diff=0.0000，tmp_shots/EMBED_NATIVE_HID_20260807_*）。
-    // 无 BK 路由时直接判失败，让调用方走带回执的 touch_req 中继。
     if (!ok) {
       static dispatch_once_t onceRoute;
       dispatch_once(&onceRoute, ^{
-        ZiYanWriteVarText(@".ziyan_hid_route", @"route=relay reason=no_bk_inject\n");
+        ZiYanWriteVarText(@".ziyan_hid_route",
+                          @"route=relay reason=no_bk_inject\n");
       });
     }
   } @catch (__unused NSException *ex) {
     ok = NO;
+    err = "EXCEPTION";
+    route = "none";
+  }
+  {
+    NSString *body = [NSString
+        stringWithFormat:@"phase=%@\nok=%d\nerror_code=%s\nroute=%s\n",
+                         phase ?: @"?", ok ? 1 : 0, err, route];
+    ZiYanWriteVarText(@".ziyan_hid_err", body);
   }
   CFRelease(toSend);
   return ok;

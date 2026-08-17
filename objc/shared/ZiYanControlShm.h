@@ -133,9 +133,17 @@ BOOL ZiYanControlShmTakeTouchReq(int *outType, int *outX, int *outY, int *outHol
 BOOL ZiYanControlShmWriteTouchRep(BOOL ok, uint64_t nonce);
 BOOL ZiYanControlShmReadTouchRep(BOOL *outOk, uint64_t *outNonce);
 
+/// 兼容旧调用：未显式携带方向时，消费者在接收时冻结当前 init 方向。
 BOOL ZiYanControlShmWriteToast(NSString *text, int durationMs);
+/// Toast 的方向必须随消息跨进程传递。orient 仅允许 0/1/2；其他值表示未指定。
+/// 方向元数据复用 toast_cmd 的消费回执字，不改变 4096B 控制页 ABI，旧二进制仍可读写。
+BOOL ZiYanControlShmWriteToastWithOrient(NSString *text, int durationMs,
+                                         int orient);
 BOOL ZiYanControlShmTakeToast(NSString *_Nullable *_Nonnull outText,
                               int *outDurationMs);
+BOOL ZiYanControlShmTakeToastWithOrient(NSString *_Nullable *_Nonnull outText,
+                                        int *outDurationMs,
+                                        int *_Nullable outOrient);
 
 void ZiYanControlShmWriteHeartbeat(NSString *name);
 BOOL ZiYanControlShmTestHeartbeatFresh(NSString *name, NSTimeInterval maxAge);

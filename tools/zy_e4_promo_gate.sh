@@ -26,6 +26,13 @@ SEC=$((MIN * 60))
 # 旧的 512/1024「整窗差值」预算无实测出处，已作废。
 RMAX100_RF="${ZY_E4_RMAX100_RF:-120}"
 RMAX100_R53="${ZY_E4_RMAX100_R53:-240}"
+
+# 帧龄预算（ms）。判据：找色读到的帧有多旧（.ziyan_find_shm_log 的 age_ms）。
+# 出处：实测 .101 9000~14000、.112 2000~7000、.166 391000 —— 供帧塌到冻帧，
+# 而 RSS/CPU/keep 全部合规，旧门禁桌面场景下照过。中位数管日常节奏，
+# 硬上限管「塌成冻帧」。业务圈速 ~300ms，一圈内换帧则中位数应在千毫秒内。
+AGEMED_MAX="${ZY_E4_AGE_MED_MAX:-1200}"
+AGEHARD_MAX="${ZY_E4_AGE_HARD_MAX:-5000}"
 if [ "$#" -eq 0 ]; then HOSTS=(101 112 166 53); else HOSTS=("$@"); fi
 STAMP="$(date '+%Y%m%d_%H%M%S')"
 OUT="${ROOT}/tmp_shots/E4_PROMO_${STAMP}"
@@ -76,7 +83,9 @@ run_remote() {
     echo "SKIP .$H scp_failed_after_retry" | tee "$OUT/gate_${H}.txt"
     return 0
   fi
-  ssh_r "$IP" "SCHEME=$SCHEME SEC=$SEC H=$H SCRIPT=$SCRIPT SHA=$SHA RMAX100=$RMAX100 bash -s" <<'R' >"$OUT/gate_${H}.txt" 2>&1 &
+  # MIN 必须显式传进远端：漏传时远端 FMAX=$((MIN*2+5)) 里 MIN 为空，
+  # 恒等于 5，30min 长跑也只允许 5 次催帧，正常节奏就被判 force_storm。
+  ssh_r "$IP" "SCHEME=$SCHEME SEC=$SEC MIN=$MIN H=$H SCRIPT=$SCRIPT SHA=$SHA RMAX100=$RMAX100 AGEMED_MAX=$AGEMED_MAX AGEHARD_MAX=$AGEHARD_MAX bash -s" <<'R' >"$OUT/gate_${H}.txt" 2>&1 &
 set +e
 if [ "$SCHEME" = rootless ]; then
   V=/var/jb/usr/lib/ziyan/var; B=/var/jb/usr/lib/ziyan/bin
@@ -117,6 +126,24 @@ sb_pid() {
 fc_rss_line() {
   ps -axo rss,args 2>/dev/null | grep '[z]iyan_framecap serve' | head -1 | sed 's/^ *//' | tr -s ' '
 }
+# 守护会 fork 出短命子进程（同 argv、RSS 仅几百 KB~5MB），按名字 grep + head -1
+# 会随机抓到它们。实测 .101 基线 15 点里混进 5104 / 1344 / 720，尾窗中位数
+# 被带偏后算出 -831 KB/100s 的假斜率。锁定常驻 PID 采样，与 TS 采样器同法。
+fc_pid() {
+  ps -axo pid,args 2>/dev/null | grep '[z]iyan_framecap serve' | head -1 | sed 's/^ *//' | cut -d' ' -f1
+}
+FC_PID=$(fc_pid)
+fc_rss_kb() {
+  local r=""
+  if [ -n "$FC_PID" ]; then
+    r=$(ps -p "$FC_PID" -o rss= 2>/dev/null | tr -d ' ')
+  fi
+  if [ -z "$r" ]; then
+    FC_PID=$(fc_pid)
+    [ -n "$FC_PID" ] && r=$(ps -p "$FC_PID" -o rss= 2>/dev/null | tr -d ' ')
+  fi
+  echo "${r:-0}"
+}
 
 SB0=$(sb_pid); SB0=${SB0:-0}
 echo "SB0=$SB0"
@@ -146,7 +173,7 @@ sleep 2
 # 测到的是采样相位而不是趋势。
 BASE_SAMPLES=""
 for i in $(seq 1 15); do
-  FR=$(fc_rss_line | cut -d' ' -f1); FR=${FR:-0}
+  FR=$(fc_rss_kb); FR=${FR:-0}
   BASE_SAMPLES="$BASE_SAMPLES $FR"
   sleep 2
 done
@@ -162,8 +189,17 @@ sample=0
 FC_RSS_MAX=$RSS_BASE
 FC_RSS_MIN=$RSS_BASE
 TAIL_BUF=""
+# 帧龄采样：age_ms 是 embed 每次 find 时记的「这张帧有多旧」。
+# 本轮回归（.166 帧龄 391s、.101 9~14s，找色读冻结旧帧）本该被这条一眼拦下，
+# 而旧门禁只看 RSS/CPU/keep，桌面场景下全绿照过。
+: >"$V/.ziyan_e4_age.txt"
 while [ "$(date +%s)" -lt "$end" ]; do
   sample=$((sample + 1))
+  AGE_S=$(sed -n 's/.*age_ms=\(-*[0-9][0-9]*\).*/\1/p' "$V/.ziyan_find_shm_log" 2>/dev/null | tail -1)
+  case "$AGE_S" in
+    ''|*[!0-9-]*) ;;
+    *) echo "$AGE_S" >>"$V/.ziyan_e4_age.txt" ;;
+  esac
   if [ -f "$V/.ziyan_force_recap" ]; then FORCE=$((FORCE+1)); rm -f "$V/.ziyan_force_recap"; fi
   if [ -f "$V/.ziyan_toast_bump" ]; then TOAST=$((TOAST+1)); rm -f "$V/.ziyan_toast_bump"; fi
   if [ -f "$V/.ziyan_relay_req" ]; then RELAY=$((RELAY+1)); rm -f "$V/.ziyan_relay_req"; fi
@@ -177,9 +213,7 @@ while [ "$(date +%s)" -lt "$end" ]; do
   # 只计真实 serve 进程行（禁空行/误计把 FC_N 抬到 2）
   FC_N=$(ps -axo pid=,args= 2>/dev/null | grep -F 'ziyan_framecap serve' | grep -vc grep | tr -dc '0-9')
   [ -n "$FC_N" ] || FC_N=0
-  FC_LINES=$(ps -axo pid,rss,args 2>/dev/null | grep '[z]iyan_framecap serve' || true)
-  FC_R=$(echo "$FC_LINES" | head -1 | sed 's/^ *//' | tr -s ' ' | cut -d' ' -f2)
-  FC_R=${FC_R:-0}
+  FC_R=$(fc_rss_kb); FC_R=${FC_R:-0}
   [ "$FC_N" -gt "$FC_N_MAX" ] 2>/dev/null && FC_N_MAX=$FC_N
   [ "$FC_R" -gt "$FC_RSS_MAX" ] 2>/dev/null && FC_RSS_MAX=$FC_R
   if [ "$FC_RSS_MIN" = "0" ] || [ "$FC_R" -lt "$FC_RSS_MIN" ] 2>/dev/null; then FC_RSS_MIN=$FC_R; fi
@@ -224,6 +258,17 @@ echo "SB_CHG=$SB_CHG FORCE_HITS=$FORCE TOAST_BUMP=$TOAST KEEP_PEAK=$KEEP_PEAK RE
 echo "FC_N_MAX=$FC_N_MAX RSS_BASE=$RSS_BASE RSS_END=$RSS_END FC_RSS_MAX=$FC_RSS_MAX"
 echo "FC_SLOPE_KB=$FC_DELTA FC_PEAK_DELTA_KB=$FC_PEAK_DELTA"
 echo "FC_SLOPE_PER100_KB=$FC_PER100 window_sec=$SEC budget_per100=$RMAX100"
+
+# 帧龄统计：中位数判「日常读到的帧有多旧」，最大值判「有没有塌到冻帧」
+AGE_N=$(grep -cE '^-*[0-9]+$' "$V/.ziyan_e4_age.txt" 2>/dev/null | tr -dc '0-9')
+[ -n "$AGE_N" ] || AGE_N=0
+AGE_MED=-1; AGE_MAX=-1
+if [ "$AGE_N" -gt 0 ] 2>/dev/null; then
+  AGE_MED=$(grep -E '^-*[0-9]+$' "$V/.ziyan_e4_age.txt" | sort -n | sed -n "$(( AGE_N / 2 + 1 ))p")
+  AGE_MAX=$(grep -E '^-*[0-9]+$' "$V/.ziyan_e4_age.txt" | sort -n | tail -1)
+  AGE_MED=${AGE_MED:--1}; AGE_MAX=${AGE_MAX:--1}
+fi
+echo "FRAME_AGE_MED_MS=$AGE_MED FRAME_AGE_MAX_MS=$AGE_MAX samples=$AGE_N budget_med=$AGEMED_MAX budget_max=$AGEHARD_MAX"
 echo "OWNER=$OWNER WORKSET=$WS"
 echo "KEEP_AFTER_STOP=$KEEP_AFTER ACTIVE=$ACTIVE KEEP=$KEEP"
 echo "via_embed_find=$EM via_color_req_find=$CR"
@@ -245,9 +290,25 @@ fi
 [ "$CR" = "0" ] || [ "$CR" = "-1" ] || { echo "FAIL color_req=$CR"; OK=0; }
 [ "$EM" -gt 10 ] 2>/dev/null || { echo "FAIL embed_find_low=$EM"; OK=0; }
 [ "$FC_N_MAX" -le 1 ] 2>/dev/null || { echo "FAIL fc_n=$FC_N_MAX"; OK=0; }
-# 斜率：按 KB/100s 判定，预算由 Z0-TS 触动实测派生（见脚本顶部）
-[ "$FC_PER100_ABS" -le "$RMAX100" ] 2>/dev/null || {
-  echo "FAIL fc_rss_slope_per100=$FC_PER100 max=$RMAX100 (raw_delta=$FC_DELTA over ${SEC}s)"; OK=0; }
+# 斜率：按 KB/100s 判定，预算由 Z0-TS 触动实测派生（见脚本顶部）。
+# 只判「涨」：本门禁要挡的是泄漏，RSS 下降说明回收在工作，取绝对值会把
+# -831 / -321 这类回落也判成 FAIL（.101/.112 30min 实测即此）。
+if [ "$FC_PER100" -gt "$RMAX100" ] 2>/dev/null; then
+  echo "FAIL fc_rss_slope_per100=$FC_PER100 max=$RMAX100 (raw_delta=$FC_DELTA over ${SEC}s)"
+  OK=0
+elif [ "$FC_PER100" -lt 0 ] 2>/dev/null; then
+  echo "NOTE fc_rss_slope_per100=$FC_PER100（下降，视为通过）"
+fi
+# 帧龄：找色必须跑在新鲜帧上。中位数管日常，硬上限管「塌到冻帧」。
+if [ "$AGE_N" -lt 10 ] 2>/dev/null; then
+  echo "WARN frame_age_samples=$AGE_N（样本过少，帧龄未判）"
+elif [ "$AGE_MED" -gt "$AGEMED_MAX" ] 2>/dev/null; then
+  echo "FAIL frame_age_median=$AGE_MED max=$AGEMED_MAX（找色读的是旧帧）"
+  OK=0
+elif [ "$AGE_MAX" -gt "$AGEHARD_MAX" ] 2>/dev/null; then
+  echo "FAIL frame_age_peak=$AGE_MAX max=$AGEHARD_MAX（供帧塌到冻帧）"
+  OK=0
+fi
 FMAX=$(( MIN * 2 + 5 ))
 [ "$FORCE" -le "$FMAX" ] 2>/dev/null || { echo "FAIL force_storm=$FORCE max=$FMAX"; OK=0; }
 [ "$TOAST" = "0" ] || { echo "FAIL toast_bump=$TOAST"; OK=0; }

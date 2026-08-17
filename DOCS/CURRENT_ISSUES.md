@@ -1,10 +1,11 @@
 # ZiYan 当前问题账本（唯一当前真相）
 
-最后更新：2026-08-17 21:08（P2 两门 PASS 保持；SAME_FRAME 设计+双包均为 PASS_READY_FOR_DEPLOY；COLOR_PICKER_CONTRACT 仍 FAIL，未部署；禁宣称超越/发布）  
+最后更新：2026-08-17 21:29（本地 git 基线 `3e5ded6` 已提交，未部署；P2 两门 PASS 保持；SAME_FRAME 设计+双包均为 PASS_READY_FOR_DEPLOY；COLOR_PICKER_CONTRACT 仍 FAIL；禁宣称超越/发布）  
 维护规则：每次修改、部署或测试结束后必须更新本文件；历史报告只作为证据，不得覆盖这里的当前判定。
 
 ## 0. 当前结论
 
+- **本地 git 回滚基线（2026-08-17，源码快照，未部署）**：`3e5ded63d761c65c0af83fe3617a1f5cfdffdd84`。父提交 `7a37c92ee343a401457929b7955af1eeaba59174`。这是工作树收口，不是四机验收通过。
 - **P2（2026-08-17，不得回写成失败）**：`P2_HOME_FRAME_LEASE=PASS`，`P2_STALE_GAME_FRAME_REJECT=PASS`，`FC_N=1`。证据 `tmp_shots/P2_HOME_COMMIT_NO_FINGERPRINT_4PHONE_20260817_190812/VERDICT.md`。
 - **COLOR_PICKER_SAME_FRAME_DESIGN**：`PASS_READY_FOR_DEPLOY`。证据 `tmp_shots/COLOR_PICKER_SAME_FRAME_DESIGN_20260817_205327/VERDICT.md`。
 - **COLOR_PICKER_SAME_FRAME_BUILD（本轮，未部署）**：`COLOR_PICKER_SAME_FRAME_BUILD=PASS_READY_FOR_DEPLOY`。rootful `…-3+debug` SHA256 `3d3b8cd0da11872e3d02731634ab477340e9b9d7b1fb78effb49c16b03e8a694`，framecap `/usr/lib/ziyan/bin/ziyan_framecap` SHA256 `bbed80fbaaf3c413d61749b34df335618fd0340b5310564272c61ebe1950c01a`。rootless `…-4+debug` SHA256 `0a65de892eec02a6683e54fbd68cb56a6deb1b8eb2abdc8a982eb981e3673408`，framecap `/var/jb/usr/lib/ziyan/bin/ziyan_framecap` SHA256 `df33f2c78e552ae1f3b7f00122ebfb25a797dec3d5d62334bdc2da4ae6f11b83`。canonical MapRead 符号已链接；HTTP 源无 CARenderOnly/force_recap 写入；未新增第二 framecap。证据 `tmp_shots/COLOR_PICKER_SAME_FRAME_BUILD_20260817_210115/VERDICT.md`。未改 P2 Commit、matcher、ROI、fuzzy。

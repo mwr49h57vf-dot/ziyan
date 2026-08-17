@@ -1,8 +1,9 @@
 日期: 2026-08-17
 
-一句话状态: 本地 git 基线快照（工作树收口，不部署）。P2 两门保持 **PASS**。`COLOR_PICKER_CONTRACT=FAIL`，`P2_COLOR_CORE=BLOCKED`。抓色器同源帧设计/构建仍是 PASS_READY_FOR_DEPLOY，发布范围预检为脏树未归因，本基线只解决“可回滚”，不宣称合同通过。
+一句话状态: 本地 git 基线 `3e5ded63d761c65c0af83fe3617a1f5cfdffdd84` 已提交（工作树收口，不部署）。P2 两门保持 **PASS**。`COLOR_PICKER_CONTRACT=FAIL`，`P2_COLOR_CORE=BLOCKED`。抓色器同源帧设计/构建仍是 PASS_READY_FOR_DEPLOY。本基线只解决“可回滚”，不宣称合同通过。
 
 ## 已收
+- 本地回滚基线 SHA：`3e5ded63d761c65c0af83fe3617a1f5cfdffdd84`（父提交 `7a37c92ee343a401457929b7955af1eeaba59174`）
 - P2：`tmp_shots/P2_HOME_COMMIT_NO_FINGERPRINT_4PHONE_20260817_190812/VERDICT.md`
 - 设计：`tmp_shots/COLOR_PICKER_SAME_FRAME_DESIGN_20260817_205327/VERDICT.md`
 - 构建：`tmp_shots/COLOR_PICKER_SAME_FRAME_BUILD_20260817_210115/VERDICT.md`

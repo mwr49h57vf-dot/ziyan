@@ -1,8 +1,20 @@
-日期: 2026-08-17
+日期: 2026-09-04
 
-一句话状态: 本地 git 基线 `3e5ded63d761c65c0af83fe3617a1f5cfdffdd84` 已提交（工作树收口，不部署）。P2 两门保持 **PASS**。`COLOR_PICKER_CONTRACT=FAIL`，`P2_COLOR_CORE=BLOCKED`。抓色器同源帧设计/构建仍是 PASS_READY_FOR_DEPLOY。本基线只解决“可回滚”，不宣称合同通过。
+一句话状态: 三十九号 T4/T5 三十刀 PASS（HEAD `2e159b1`）。下一刀四十号收剩余 18 个应入库主题。
 
 ## 已收
+- 四机 tap VERDICT：`tmp_shots/FOUR_PHONE_PUBLIC_TAP/VERDICT.md`
+- 触动 16 版证据：`TSDaemon` 直接构造 hand+finger，经 `IOHIDEventSystemClientDispatchEvent`；child mask=3、parent down=35、up=4
+- rootful `...17-113` 已装 `.101/.112/.166`
+- rootless `...17-114` 已装 `.53`，install-name PASS
+- 四机前台随机参数：`.53=6/94ms（复测7/92ms）`、`.101=2/93ms`、`.112=3/84ms`、`.166=1/89ms`
+- 四机桌面结果：`com.apple.springboard -> com.apple.Preferences`
+- 前台点击证据：`tmp_shots/FOREGROUND_TAP_RELIABILITY_20260902_064840/VERDICT.md`
+- 桌面点击当前包 PASS：`tmp_shots/DEVICE101_BBTOUCH_CONSUMPTION_20260902_064535_38700/VERDICT.md`
+- 前台 App 对照：`tmp_shots/DEVICE101_FOREGROUND_APP_TAP_20260902_064137/`、`064218/`、`064246/`、`064253/`、`064344/`
+- rootful `...17-85` SHA256 `14d37748515200eb37c34b2c9b3a4048cd05681b243c4bfcfd4ae3811a389c22`
+- rootless `...17-86` SHA256 `d40fcd6032a21b2dc0a64e69853b70766e0e4a14ef1cf45a71c96ccbc2c578bb`
+- `.149/.171` 只读对照 `tmp_shots/TS_OBS/20260902_064936/`：两机本窗 `OBSERVER_UNREACHABLE`
 - 本地回滚基线 SHA：`3e5ded63d761c65c0af83fe3617a1f5cfdffdd84`（父提交 `7a37c92ee343a401457929b7955af1eeaba59174`）
 - P2：`tmp_shots/P2_HOME_COMMIT_NO_FINGERPRINT_4PHONE_20260817_190812/VERDICT.md`
 - 设计：`tmp_shots/COLOR_PICKER_SAME_FRAME_DESIGN_20260817_205327/VERDICT.md`
@@ -12,16 +24,137 @@
 - rootless `…-4+debug` SHA256 `0a65de892eec02a6683e54fbd68cb56a6deb1b8eb2abdc8a982eb981e3673408`
 
 ## 开机清单
-1. P2 已通过：禁止回退指纹/generation/provider Commit
-2. 禁止要求 Home r1=0；找色永远当前可见完整帧；front_bid 不是找色开关
-3. 不处理 OCR/Agent/网络/UI；不跑原始 main 触控循环
-4. 禁止自行部署四机，除非用户明确授权
-5. 本提交是本地回滚点，不是四机验收通过
+1. 四十号连续十八刀收完剩余应入库文档/合同/工具。禁止 .codex/.codegraph/.serena。三十九号已过，不要再发任务。
+2. 若继续触控验收，下一步只跑未改 `ios7.lua` / `ios8p.lua` 真实业务点击，不改脚本内容
+3. 测试坐标必须来自当前 ScreenTransform；`.53 init(0)` 当前为 `1242x2208`
+4. 长稳结论另跑 30 分钟 CPU/RSS/停止残留门禁；最小 tap PASS 不得升级为 G0
+5. 工作树仍为多主题 dirty，发布范围必须另做归因审核
 
 ## 未闭环
+- 未跑未改业务脚本 `ios7.lua` / `ios8p.lua`
+- 未跑 30 分钟 CPU/RSS、崩溃与停止恢复长稳
+- `...17-113/114` 仍来自混合 dirty-tree，发布范围不可归因
 - COLOR_PICKER_CONTRACT=FAIL
 - P2_COLOR_CORE=BLOCKED
 - RELEASE_SCOPE 预检未通过（脏树已收为基线后，仍须授权才可部署验收）
 
 ## 默认首条助手动作
-停止。等待授权部署。不得把 COLOR_PICKER_CONTRACT 或 P2_COLOR_CORE 写成 PASS。
+四十号收剩余十八个应入库主题。不要往三十九号发任务。
+
+## 2026-09-02 当前执行结果
+- checkpoint `device-101-capability-chat-deploy` 已执行：rootful `17-125` 受控幂等部署到 `.101`，范围仅 `.101`。
+- 部署证据：`tmp_shots/DEPLOY_ROOTFUL_20260902_20260902_222432_101/VERDICT.md`；包版本 `0.0.92-8-161-205-C-65.11-98+debug-10-38-17-125+debug`，包 SHA256 `1aecccd061176b316e91c9a9bc7becf95197481db26f36de26a11ac4d05079b3`。
+- 部署回读：SpringBoard PID `51008 -> 51008`，自动解锁 `ok`，`display_locked=0`，`FC_N=1`；未触发 SpringBoard/BackBoard 重载。
+- chat gate 证据：`tmp_shots/CAPABILITY_chat_DEVICE_101_20260902_222529_79091/VERDICT.md`。
+- `.101` 真实执行到 `input=1;send=1;multi_turn=1`，结果 `false`，`reason=no_message`；`front=target=com.xztl.ios`，包版本匹配，停止后 `active=0/embed=0`、`FC_N=1`。
+- 当前判定：`DEVICE_INCONCLUSIVE`，不是 `DEVICE_PASS`；`.112` 未部署、未测试。
+- 唯一下一步：`.101` 用 sidecar `/v1/vision/analyze` 分支处理：登录页点登录；已在人物角色则跳过登录并测 chat。未进角时 `no_message` 不得当成聊天模块故障。
+
+## 排队旁路（不改上面默认动作，不改 nextAction）
+本地大模型协作 SOP：`DOCS/LOCAL_LLM_COLLAB_SOP.md`
+主任务 compact 必须按仓库 `AGENTS.md` + `DOCS/ZIYAN_CONTINUATION_SOP.md` 用 create_thread 循环开新对话；MCP/本机 Agent：`DOCS/ZIYAN_MCP_SKILLS_AGENT_GUIDE.md`。
+旁路用 `create_thread` 拉项目「本机agent」占 18080；禁止 resume/fork 主任务。新开续接口令：`.codex/CONTINUATION_FIRST_MESSAGE.txt`。
+
+## 2026-09-03 五号 .101 续做结果
+- 按断点先打开 `com.xztl.ios`，未执行 `go_home`；首帧证据为 `tmp_shots/CAPABILITY_chat_DEVICE_101_20260903_005713/initial.png`。
+- 当前页确认为账号登录页；按覆盖指令两次执行 `Zy.Touch.tapRatio(0.78, 0.68)`，两次均返回 `tapped=true`，逻辑点 `(886,435)`。
+- 两次点击后的新帧 `post_tap.png`、`post_tap_2.png` 均仍为登录页；最终 `front_bid=com.xztl.ios`，未进入选角/人物角色，未执行 Chat。
+- 证据与判定：`tmp_shots/CAPABILITY_chat_DEVICE_101_20260903_005713/VERDICT.md`，`DEVICE_INCONCLUSIVE`。
+- `.112/.166/.53` 未推进；聊天夹具未打开；密码未填。
+
+## .101 用户凭据登录重试结果
+- 用户确认账号和密码已人工填好；本轮未读取或填写凭据，未调用输入接口。
+- 保持 `com.xztl.ios` 前台，连续 3 次执行 `Zy.Touch.tapRatio(0.78, 0.68)`；每次均 `tapped=true`，逻辑点 `(886,435)`。
+- 三次点击后的新帧 `tmp_shots/CAPABILITY_chat_DEVICE_101_20260903_015049/post_tap_1.png`、`post_tap_2.png`、`post_tap_3.png` 均仍为登录页。
+- 达到最多 3 次后停止本轮；未进角色、未跑 Chat、未写 `DEVICE_PASS`，判定 `DEVICE_INCONCLUSIVE`。
+- 最终证据：`tmp_shots/CAPABILITY_chat_DEVICE_101_20260903_015049/VERDICT.md`；`.112/.166/.53` 未推进。
+
+## 2026-09-03 五号断点续做结果
+- 未重复登录点击；根据新帧 `tmp_shots/CAPABILITY_chat_DEVICE_101_20260903_024247_login_retry/pre_retry.png` 确认 `.101` 已进入 `com.xztl.ios` 人物可玩画面，聊天输入区和发送按钮可见。
+- 真实脚本证据：`tmp_shots/CAPABILITY_chat_DEVICE_101_20260903_024247_login_retry/chat_live_retry_result.txt`；`Chat.begin=true`、`Chat.clear=true`、两次 `Chat.send=true`、`count=2`。
+- `Chat.verifyLast=false`，`verify_reason=result_not_found`；最终帧 `post_chat_retry_2.png` / `post_chat_retry_4.png` 仍为角色画面，未形成可验证的消息回显。
+- 当前 verdict 保持 `DEVICE_INCONCLUSIVE`，不得写 `DEVICE_PASS`；未执行 `go_home`，未打开聊天夹具，未推进 `.112/.166/.53`。
+
+## 2026-09-03 当前轮 .101 Chat 发送回显重试
+- 按断点先截当前帧：`tmp_shots/CAPABILITY_chat_DEVICE_101_20260903_031703_send_retry/current.png`；`.101` 前台仍为 `com.xztl.ios` 角色可玩页。
+- 首次比例 `(0.36,0.91)` 在键盘布局下点偏；确认 `Zy.Input.text` 实际只写剪贴板并返回成功，真实输入改为 ScreenTransform/tapRatio 逐字点击。
+- 第一轮真实键盘输入后帧 `after_keyboard_turn1_ratio.png` 可见 `ziyanchatthree`；发送比例 `(0.36,0.34)` 未命中，后续发送比例 `(0.36,0.90)` 使输入框清空但聊天记录未出现该文本。
+- 第二轮真实键盘输入并调用 `Chat.send` 后，`after_second.png` 未出现 `ziyanchatfour`，仅残留 `ur`；未调用 `verifyLast`，因为帧上无发出文本。
+- 证据与 verdict：`tmp_shots/CAPABILITY_chat_DEVICE_101_20260903_031703_send_retry/VERDICT.md`，保持 `DEVICE_INCONCLUSIVE`。
+- `SIDECAR_UNAVAILABLE`：`.101` 无 `ziyan_ocr`/sidecar 进程，视觉 OCR 调用曾阻塞；已停止所有临时 Lua，`com.xztl.ios` 保持前台，未执行 `go_home`。
+- `.112/.166/.53` 未推进。
+
+## 当前断点继续：.101 OCR 发送命中复核
+- 现场执行 `Zy.OCR.find("发送")`，结果 `call=true x=-1 y=-1`；设备 `/usr/lib/ziyan/bin/ziyan_ocr` 可执行，但对发送按钮裁剪未稳定识别。
+- 当前 `.101` 仍为 `com.xztl.ios` 角色可玩页；无临时 Lua，未执行 `go_home`，未打开夹具。
+- 键盘打开/收起的两个比例发送点均已实测，输入框可清空，但聊天记录没有目标文本，仍为 `DEVICE_INCONCLUSIVE`。
+- 证据：`tmp_shots/CAPABILITY_chat_DEVICE_101_20260903_042402_next2/VERDICT.md`；`.112/.166/.53` 未推进。
+
+## 当前断点继续：.101 Chat 发送点复核
+- 先截当前帧 `tmp_shots/CAPABILITY_chat_DEVICE_101_20260903_040642_next/current.png`，确认 `.101` 仍在 `com.xztl.ios` 角色可玩页，键盘打开且输入框残留 `ur`。
+- 键盘打开时输入 `zyecho`，调用 `Zy.Chat.send` 的 `(0.36,0.34)`；`after_send.png` 显示文本仍在输入框，未形成回显。
+- 键盘收起后调用 `Zy.Chat.send` 的 `(0.36,0.90)`；`after_closed_send.png` 显示输入框清空，但聊天记录无 `zyecho`。
+- 当前判定仍为 `DEVICE_INCONCLUSIVE`；证据：`tmp_shots/CAPABILITY_chat_DEVICE_101_20260903_040642_next/VERDICT.md`。
+- 保持 `com.xztl.ios` 前台，已停止临时 Lua；未执行 `go_home`，未打开聊天夹具，未推进 `.112/.166/.53`。
+
+## 2026-09-03 八号双击发送（本对话执行）
+- 停七号残留 lua `4178`，前台保持 `com.xztl.ios`，`FC_N=1`。证据 `tmp_shots/CAPABILITY_chat_DEVICE_101_20260903_120000_eight/`。
+- 双击协议已跑通执行面：第一下 `(0.361,0.342)` 收键盘，第二下 `(0.361,0.905)` 清空输入框。`Chat.send=true` 不算成功。
+- 「综合」只有系统刷屏；「附近」才有玩家句。历史附近记录可见 `ziyanchatthree` / `zyecho` 残字。
+- 本轮新词 `zyechox`：输入框可见 → 双击后输入框空，附近记录未稳定出现该词。OCR/`verifyLast` 挂死已杀，`SIDECAR_UNAVAILABLE`。
+- 判定 `DEVICE_INCONCLUSIVE`，未写 `DEVICE_PASS`。未推进 `.112/.166/.53`。未 `go_home`。等待用户指令。
+
+## 2026-09-03 OCR找不到就换找图
+- `Chat.lua`：OCR miss/挂死或 `templates/<phase>/` 已在盘 → `Zy.Image.find`（fuzzy 80）。发送模板 `templates/chat_send/send.png`。
+- 合同 `CHAT_RULE_DECISION_MODULE_CONTRACT=PASS`。`.101` 热补 Chat.lua（回滚 `/tmp/ziyan_chat_lua_bak/Chat.lua.17-127`），未打新包。
+- 真机找图：`find_x=358 find_y=554`，`tap=true`，`verifyLast=image`。证据 `tmp_shots/CAPABILITY_chat_DEVICE_101_20260903_120000_eight/eight_findimage_result.txt`。
+- Chat 门禁仍是 `DEVICE_INCONCLUSIVE`（附近无干净新词回显）。未 `go_home`，未开夹具，未推进 `.112`。
+
+## 2026-09-03 回显改走世界频道
+- 用户纠正：要先选「世界」，发出去的内容才在世界记录上看。
+- `.101` 已点左侧「世界」`(0.035,0.577)=(40,369)`，页签和下拉都是「世界」。证据 `tmp_shots/CAPABILITY_chat_DEVICE_101_20260903_132400_echo/`。
+- 世界频道打 `zechoxy`，双击发送（先收键盘，再找图点发送中心 `(402,587)`），输入框已空。
+- 世界记录区未见 `zechoxy`。判定仍 `DEVICE_INCONCLUSIVE`。未点「点击前往」，未推进 `.112`。
+
+## 2026-09-03 世界频道发送「你好」
+- 用户纠正：`zechoxy` 是被和谐，不是没发出；字母都会屏蔽。
+- `.101` 简体拼音选定「你好」，双击发送。`after_send_nihao.png` 世界记录可见 `小白兔: 你好`，输入框已空。
+- 正式 Chat 门禁仍欠 `verifyLast` 找图，不写 `DEVICE_PASS`。未推进 `.112`。
+
+## 2026-09-03 关聊天窗
+- 用户确认「你好」可见即发送成功。点窗外 `(0.62,0.12)` 后大聊天窗已关。`after_close_chat.png` 仅剩底部消息条。未点「点击前往」，未推进 `.112`。
+
+## 2026-09-03 登记 .101 Chat
+- 台账 `tmp_shots/CAPABILITY_SEQUENCE/ledger.json`：`chat/.101=DEVICE_PASS`。
+- 证据 `tmp_shots/CAPABILITY_chat_DEVICE_101_20260903_132400_echo/VERDICT.md`。包 `17-127`。
+- `check chat .112` = `SEQUENCE_ALLOWED`。未部署、未测 `.112`。四机 Chat 未齐。
+
+## 2026-09-03 九号接棒：打包并推进 .112 Chat
+- `lua/modules/Chat.lua` 已加入发送模板中心偏移：命中 `chat_send/send.png` 后由左上角加 `(44,33)`，其它 OCR/找图行为保持不变。
+- 合同：`python3 tools/test_chat_rule_decision_module_contract.py` = `CHAT_RULE_DECISION_MODULE_CONTRACT=PASS`。
+- 构建：`make clean-user-bins && make package` 完成，rootful 包 `packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-129+debug_iphoneos-arm.deb`，SHA256 `712dc5e1b48807429246c8da25e4345416a68c13a4a62384eb99dfecdf2f37a7`。
+- 部署：仅 `.112`，设备安装版本为 `...17-129+debug`；`INSTALL_OK no_auto_respring=1`，未重启 SpringBoard/BackBoard。
+- `.112` 启动 `com.xztl.ios` 后当前帧为账号登录页，不是人物可玩页；未执行登录、选角、公约、验证码、夹具或聊天动作。
+- Verdict：`tmp_shots/CAPABILITY_chat_DEVICE_112_20260903_143802/VERDICT.md` = `PRE_BLOCKED`；未登记 `chat/.112 DEVICE_PASS`。
+- 唯一下一步：由人工把 `.112` 进入已有角色可玩界面；随后只复用世界频道、简体拼音中文、双击发送中心、帧上中文回显、关大窗验收链路。
+
+## 2026-09-03 P3 去掉账号密码门禁
+- 登录页不再是 P3 FAIL，也不要求填账号密码或点「登录」。
+- `Zy.AI` / `Zy.Game.stepTo` / `StateMachine.suggest`：login → `pause_auth_skip_credentials` / `PAUSED_SAFE`。
+- 合同 `python3 tools/test_p3_no_credential_gate_contract.py` = PASS。
+- 续接 Skill 删除「登录页立刻点登录」。登录页该机 PRE_BLOCKED，并行继续其他机。
+
+## 2026-09-03 Cursor 收口 AI 自研产品代码（十号只跑真机）
+- App「AI 自研游戏玩法」已解冻：选游戏 → pipeline(real_device=true)。
+- Zy.AI.generate gameplay：Game.analyze(skip_ocr)+Decision+RuleEngine+Chat.playTurn「你好」+Knowledge；login 只暂停。
+- 合同：`test_p3_no_credential_gate_contract.py` / `test_ai_real_device_only_contract.py` / `test_chat_rule_decision_module_contract.py` 均 PASS。
+- 未构建、未部署。十号负责双包和四机并行验收。
+
+九号已按用户指令停止，不再接棒 .112 Chat。
+
+## 2026-09-04 十五～十七号 / 十八号断点
+- ScriptRunner：单次 embed + ACK≈8s；纯 ps 存活判断已回退。不要再改这一刀。
+- rootful 17-140：`packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-140+debug_iphoneos-arm.deb`，SHA256 `ceaa39212ed9739212d8ada2449e4f982a95b8b4fd15b46a310ce8ba041659f9`。
+- 十七号：`.112` SSH 通，当时前台 springboard，未确认已装 17-140，未复测。十一号 `.112` 仍 FAIL `embed_required embed_timeout`。
+- compact 模板与 checkpoint 已从「九号 Chat / 17-127」改到本阶段；emit 若再读到九号正文会改用 checkpoint。
+- 未授权前不要宣称 embed 已修。唯一下一步见上面「默认首条助手动作」。

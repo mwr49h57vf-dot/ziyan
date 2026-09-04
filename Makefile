@@ -24,9 +24,10 @@ include $(THEOS)/makefiles/common.mk
 ZIYAN_JB := $(THEOS_PACKAGE_INSTALL_PREFIX)
 
 APPLICATION_NAME = ZiYan
-# 8-161-62：ZiYanBBTouch（HID）仍不编入——曾触发重启环。
+# 8-161-62：ZiYanBBTouch 默认零副作用；只有 .ziyan_bbtouch_enable 存在时
+# 才在 backboardd 建立 HID 轮询，行为对齐 TouchSprite 的 TSEventTweak。
 # 137：ZiYanBBFrame（仅合帧）编入 backboardd；须 .ziyan_bbframe_on 才轮询。
-TWEAK_NAME = ZiYanVol ZiYanFrameRelay ZiYanAppTouch ZiYanDefense ZiYanFsCloak ZiYanBBFrame
+TWEAK_NAME = ZiYanVol ZiYanFrameRelay ZiYanAppTouch ZiYanDefense ZiYanFsCloak ZiYanBBFrame ZiYanBBTouch
 
 SHARED = objc/shared/ZiYanScriptRunner.m objc/shared/ZiYanEngine.m \
 	objc/shared/ZiYanControlShm.m \
@@ -39,6 +40,7 @@ ZiYan_FILES = \
 	objc/app/ceshiAppDelegate.m \
 	objc/app/ceshiRootViewController.m \
 	objc/app/ZiYanHomeViewController.m \
+	objc/app/ZiYanChatFixtureViewController.m \
 	objc/app/AgentGameViewController.m \
 	objc/app/AgentSessionController.m \
 	objc/app/AgentLearningRecorder.m \
@@ -149,7 +151,7 @@ ZiYanFsCloak_INSTALL_PATH = /Library/MobileSubstrate/DynamicLibraries
 include $(THEOS_MAKE_PATH)/application.mk
 include $(THEOS_MAKE_PATH)/tweak.mk
 
-TOOL_NAME = ziyan_ocr ziyan_mem ziyan_framecap ziyan_framecap_bootstrap ziyan_scriptgen_smoke ziyanctl ziyadaemond ziyan_shm_selftest ziyan_iomfb_diag ziyan_a_probe
+TOOL_NAME = ziyan_ocr ziyan_mem ziyan_portspace ziyan_framecap ziyan_framecap_bootstrap ziyan_scriptgen_smoke ziyanctl ziyadaemond ziyan_shm_selftest ziyan_iomfb_diag ziyan_a_probe
 ziyan_ocr_FILES = tools/ziyan_ocr/main.m tools/ziyan_ocr/ziyan_fontocr.m
 ziyan_ocr_FRAMEWORKS = Foundation UIKit Vision CoreGraphics ImageIO CoreImage CoreText
 ziyan_ocr_CFLAGS = -fobjc-arc -Wno-deprecated-declarations -Itools/ziyan_ocr
@@ -165,6 +167,14 @@ ziyan_mem_FRAMEWORKS = Foundation
 ziyan_mem_CFLAGS = -fobjc-arc -Wno-deprecated-declarations
 ziyan_mem_CODESIGN_FLAGS = -S$(THEOS_PROJECT_DIR)/tools/ziyan_mem/entitlements.plist
 ziyan_mem_INSTALL_PATH = /usr/lib/ziyan/bin
+
+# 一次性端口空间采样；复用 ziyan_mem 的 task_for_pid entitlement。
+# 采样器自身在每次读取后释放 task port，禁止常驻/轮询。
+ziyan_portspace_FILES = tools/ziyan_portspace/main.m
+ziyan_portspace_FRAMEWORKS = Foundation
+ziyan_portspace_CFLAGS = -fobjc-arc -Wno-deprecated-declarations
+ziyan_portspace_CODESIGN_FLAGS = -S$(THEOS_PROJECT_DIR)/tools/ziyan_mem/entitlements.plist
+ziyan_portspace_INSTALL_PATH = /usr/lib/ziyan/bin
 
 ziyan_framecap_bootstrap_FILES = tools/ziyan_framecap_bootstrap/main.c
 ziyan_framecap_bootstrap_INSTALL_PATH = /usr/lib/ziyan/bin
@@ -303,13 +313,21 @@ include $(THEOS_MAKE_PATH)/tool.mk
 .PHONY: stage-runtime package-rootless package-rootful clean-user-bins validate-substrate-plists
 
 # Theos treats <TWEAK_NAME>.plist in the project root as the injection filter.
-# A clang static-analyzer plist is syntactically valid XML, so lint alone cannot
-# detect the destructive collision that disabled ZiYanAppTouch in C79.
+# AppTouch must load in arbitrary foreground UIKit Apps; the constructor owns
+# the runtime exclusions for SpringBoard, ZiYan, and non-App processes.
 validate-substrate-plists:
 	@plutil -lint "$(CURDIR)/ZiYanAppTouch.plist" >/dev/null
-	@/usr/libexec/PlistBuddy -c 'Print :Filter:Bundles' "$(CURDIR)/ZiYanAppTouch.plist" 2>/dev/null | \
-		grep -Fq 'com.xztl.ios' || { \
-			echo "FAIL: ZiYanAppTouch.plist is not a Substrate Filter for com.xztl.ios" >&2; \
+	@/usr/libexec/PlistBuddy -c 'Print :Filter:Classes' "$(CURDIR)/ZiYanAppTouch.plist" 2>/dev/null | \
+		grep -Fq 'UIApplication' || { \
+		echo "FAIL: ZiYanAppTouch.plist must match UIApplication class" >&2; \
+		exit 2; \
+		}
+	@! /usr/libexec/PlistBuddy -c 'Print :Filter:Bundles' "$(CURDIR)/ZiYanAppTouch.plist" 2>/dev/null || { \
+		echo "FAIL: ZiYanAppTouch.plist must not use a framework Bundle filter" >&2; \
+		exit 2; \
+		}
+	@! grep -Eq 'com\.(xztl\.ios|ychj\.hlhjlygr|zsyxs180\.game|ljzbbadao\.game|ownbook\.notes)' "$(CURDIR)/ZiYanAppTouch.plist" || { \
+			echo "FAIL: ZiYanAppTouch.plist contains a product game Bundle allowlist" >&2; \
 			exit 2; \
 		}
 	@! grep -Fq '<key>clang_version</key>' "$(CURDIR)/ZiYanAppTouch.plist" || { \
@@ -424,10 +442,13 @@ stage-runtime:
 	cp -f layout/usr/lib/ziyan/bin/ziyan_zydaemond.sh \
 		"$$DEST/usr/lib/ziyan/bin/ziyan_zydaemond.sh"; \
 	chmod 755 "$$DEST/usr/lib/ziyan/bin/ziyan_zydaemond.sh"; \
-	cp -f layout/usr/lib/ziyan/bin/ziyan_framecap_wrap.sh \
-		"$$DEST/usr/lib/ziyan/bin/ziyan_framecap_wrap.sh"; \
-	chmod 755 "$$DEST/usr/lib/ziyan/bin/ziyan_framecap_wrap.sh"; \
-	cp -f vendor/runtime/launch/com.ziyan.framecap.plist \
+		cp -f layout/usr/lib/ziyan/bin/ziyan_framecap_wrap.sh \
+			"$$DEST/usr/lib/ziyan/bin/ziyan_framecap_wrap.sh"; \
+		chmod 755 "$$DEST/usr/lib/ziyan/bin/ziyan_framecap_wrap.sh"; \
+		cp -f layout/usr/lib/ziyan/bin/ziyan_runtime_root.sh \
+			"$$DEST/usr/lib/ziyan/bin/ziyan_runtime_root.sh"; \
+		chmod 755 "$$DEST/usr/lib/ziyan/bin/ziyan_runtime_root.sh"; \
+		cp -f vendor/runtime/launch/com.ziyan.framecap.plist \
 		"$$DEST/Library/LaunchDaemons/com.ziyan.framecap.plist"; \
 	rsync -a layout/private/var/mobile/Media/ZiYan/ \
 		"$$DEST/usr/lib/ziyan/share/media_seed/" 2>/dev/null || true; \

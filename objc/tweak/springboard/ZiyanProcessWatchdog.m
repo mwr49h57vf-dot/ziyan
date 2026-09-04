@@ -175,17 +175,11 @@ static NSMutableDictionary *sLastKick = nil; // name → last kick unix
 }
 
 + (NSString *)framecapPlist {
-  if ([[NSFileManager defaultManager] fileExistsAtPath:@"/var/jb"]) {
-    return @"/var/jb/Library/LaunchDaemons/com.ziyan.framecap.plist";
-  }
-  return @"/Library/LaunchDaemons/com.ziyan.framecap.plist";
+  return ZiYanJBPath(@"/Library/LaunchDaemons/com.ziyan.framecap.plist");
 }
 
 + (NSString *)zydaemonPlist {
-  if ([[NSFileManager defaultManager] fileExistsAtPath:@"/var/jb"]) {
-    return @"/var/jb/Library/LaunchDaemons/com.ziyan.zydaemon.plist";
-  }
-  return @"/Library/LaunchDaemons/com.ziyan.zydaemon.plist";
+  return ZiYanJBPath(@"/Library/LaunchDaemons/com.ziyan.zydaemon.plist");
 }
 
 + (NSString *)launchctlBin {

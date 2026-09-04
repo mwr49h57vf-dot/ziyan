@@ -642,46 +642,14 @@ static void EmbedWriteFindTiming(double lockWaitMs, double preMatchMs,
 
 static void EmbedFillToken(ZiYanCanonicalFrameToken *tok,
                            const ZiYanFrameShmHeader *hdr, const char *source) {
-  NSString *bid = ZiYanFrameKeepReadCapturedFront();
-  if (bid.length < 1) {
-    bid = ZiYanFrameKeepReadShmBid();
-  }
-  ZiYanCanonicalFrameTokenFill(tok, hdr,
-                               ZiYanFrameKeepReadCapturedGeneration(), bid,
-                               source);
+  (void)ZiYanCanonicalFrameTokenFillCommitted(tok, hdr, source);
 }
 
 static void EmbedPeekToken(ZiYanCanonicalFrameToken *tok) {
-  ZiYanFrameShmHeader fake;
-  memset(&fake, 0, sizeof(fake));
-  fake.version = 2;
-  size_t w = 0, h = 0, bpr = 0;
-  BOOL hasRes = ZiYanFrameResidentHasPixels(&w, &h, &bpr);
-  BOOL keepOn = ZiYanFrameKeepIsOn();
-  BOOL hasShm = NO;
-  const char *src = "none";
-  if (hasRes) {
-    fake.width = (uint32_t)w;
-    fake.height = (uint32_t)h;
-    fake.bpr = (uint32_t)bpr;
-    fake.seq = ZiYanFrameResidentPeekSeq();
-    fake.status = ZiYanFrameResidentPeekStatus();
-    fake.pixel_format = ZiYanFrameResidentPeekPixelFormat();
-    fake.ts_ms = ZiYanFrameResidentPeekTsMs();
-    src = "resident";
-  } else if (keepOn) {
-    hasShm = ZiYanFrameShmHasPixels(&w, &h, &bpr);
-    if (hasShm) {
-      fake.width = (uint32_t)w;
-      fake.height = (uint32_t)h;
-      fake.bpr = (uint32_t)bpr;
-      fake.seq = ZiYanFrameShmPeekSeq();
-      fake.status = ZiYanFrameShmPeekStatus();
-      fake.pixel_format = ZiYanFrameShmPeekPixelFormat();
-      src = "shm";
-    }
-  }
-  EmbedFillToken(tok, (hasRes || hasShm) ? &fake : NULL, src);
+  // A synthetic header cannot prove commit_seq/front_hash coherence.  Always
+  // obtain a real canonical snapshot so Embed cannot emit a token detached
+  // from the same generation/publish token used by metrics and health.
+  (void)ZiYanCanonicalFrameTokenReadCommitted(tok, ZiYanFrameKeepIsOn());
 }
 
 static NSString *EmbedJSONWithToken(NSString *json,
@@ -1260,7 +1228,9 @@ static int l_touch_tap(lua_State *L) {
   @autoreleasepool {
     double nx = 0, ny = 0;
     ZiYanMapLogicToNorm(sx, sy, &nx, &ny);
-    BOOL skipHand = !EmbedFrontIsHome();
+    // 与触动的 HID 事件形状一致：down/up 都保留 hand parent，tap 不按
+    // 前台 Bundle 分流，也不因当前业务 App 改变事件结构。
+    BOOL skipHand = NO;
     ok = [[ZiYanHIDOptimizer shared] injectTapNormX:nx
                                                   y:ny
                                              finger:finger

@@ -104,7 +104,7 @@
       AgentArtifactKind kind = AgentArtifactNone;
       NSInteger ver = 0;
       NSString *full = [dir stringByAppendingPathComponent:fn];
-      if ([self isQuarantinedPath:full] || [fn containsString:@"_自研草稿"]) {
+      if ([self isQuarantinedPath:full]) {
         continue;
       }
       if ([fn containsString:@"_学习草稿"]) {
@@ -179,10 +179,7 @@
 
 + (void)writeCopyOnWrite:(NSString *)path body:(NSString *)body {
   if (path.length == 0 || [self isUserHandwrittenPath:path]) {
-    if ([self isUserHandwrittenPath:path] &&
-        [[NSFileManager defaultManager] fileExistsAtPath:path]) {
-      return;
-    }
+    return;
   }
   if ([[NSFileManager defaultManager] fileExistsAtPath:path]) {
     return;

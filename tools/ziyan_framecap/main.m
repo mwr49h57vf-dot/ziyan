@@ -119,6 +119,24 @@ static void ZiYanExportFrameSeqFile(BOOL fromCap, BOOL capOk) {
     }
     return;
   }
+  // metrics 必须与 current-frame/health 使用同一张已提交 snapshot。新 SHM
+  // 已到而 resident 仍旧、或 generation/front 未封存时，清晰发布负证据，
+  // 禁止遗留上一代 metrics 被 P4 当作当前成功。
+  ZiYanCanonicalFrameToken tok;
+  if (!ZiYanCanonicalFrameTokenReadCommitted(&tok, NO)) {
+    NSString *bad = [NSString
+        stringWithFormat:@"seq=0\nraw_seq=%u\ncoherent=0\npublish_token=-\n"
+                         @"reject_reason=canonical_snapshot_unavailable\n"
+                         @"front_generation=%u\ncaptured_generation=%u\n",
+                         seq, ZiYanFrameKeepReadFrontGeneration(),
+                         ZiYanFrameKeepReadCapturedGeneration()];
+    (void)ZiYanWriteVarText(@".ziyan_frame_metrics", bad);
+    return;
+  }
+  seq = tok.frame_seq;
+  w = tok.width;
+  h = tok.height;
+  bpr = tok.bpr;
   if (!fromCap && seq == sExportSeq) {
     return;
   }
@@ -126,27 +144,19 @@ static void ZiYanExportFrameSeqFile(BOOL fromCap, BOOL capOk) {
     sExportOk++;
   }
   sExportSeq = seq;
-  long long age = ZiYanFrameShmPeekAgeMs();
   long long now = (long long)([[NSDate date] timeIntervalSince1970] * 1000.0);
-  long long ts = (age >= 0) ? (now - age) : now;
+  long long ts = (long long)tok.capture_ts_ms;
   unsigned long long bytes = 0;
   struct stat st;
   const char *sp = ZiYanFrameShmPath().fileSystemRepresentation;
   if (sp && stat(sp, &st) == 0 && st.st_size > 64) {
     bytes = (unsigned long long)st.st_size;
   }
-  NSString *lease = ZiYanFrameLeaseStatePeek() ?: @"-";
-  NSString *capFront = [NSString
-      stringWithContentsOfFile:ZiYanVarFile(@".ziyan_captured_front_bid")
-                      encoding:NSUTF8StringEncoding
-                         error:nil];
-  capFront = [[[capFront componentsSeparatedByCharactersInSet:
-                             NSCharacterSet.newlineCharacterSet] firstObject]
-      stringByTrimmingCharactersInSet:
-          NSCharacterSet.whitespaceAndNewlineCharacterSet];
-  if (capFront.length < 1) {
-    capFront = @"-";
-  }
+  long long age = MAX(0ll, now - ts);
+  NSString *capFront = @(tok.front_bid);
+  NSString *lease = ZiYanFrameLeaseState(
+      tok.frame_seq, age, (unsigned)ZiYanFrameShmPeekProvider(),
+      ZiYanFrameKeepReadFrontBid(), capFront);
   (void)ZiYanWriteVarText(@".ziyan_frame_seq",
                           [NSString stringWithFormat:@"%u\n", seq]);
   NSString *met = [NSString
@@ -155,14 +165,16 @@ static void ZiYanExportFrameSeqFile(BOOL fromCap, BOOL capOk) {
           @"provider=%u\nstatus=%u\nlease=%@\nqueue_len=1\nqueue_max=1\n"
           @"drops=%u\nok=%u\nexport_ts=%lld\nfront_hash=%u\ncaptured_front=%@\n"
           @"lease_fp=%u\ngame_fp=%u\ngame_seq=%u\ncand_fp=%u\n"
-          @"reject_reason=%s\nfront_generation=%u\ncaptured_generation=%u\n",
+          @"reject_reason=%s\nfront_generation=%u\ncaptured_generation=%u\n"
+          @"generation=%u\nfront_hash=%u\npublish_token=%s\ncoherent=1\n",
           seq, ts, w, h, bpr, bytes, (unsigned)ZiYanFrameShmPeekProvider(),
           (unsigned)ZiYanFrameShmPeekStatus(), lease, sExportDrops, sExportOk,
           now, ZiYanFrameShmPeekFrontHash(), capFront, sLastLeaseFp,
           sHomeGameFp, sHomeGameSeq, sHomeCandFp,
           sLeaseRejectReason[0] ? sLeaseRejectReason : "-",
           ZiYanFrameKeepReadFrontGeneration(),
-          ZiYanFrameKeepReadCapturedGeneration()];
+          ZiYanFrameKeepReadCapturedGeneration(), tok.generation, tok.front_hash,
+          tok.publish_token];
   (void)ZiYanWriteVarText(@".ziyan_frame_metrics", met);
 }
 
@@ -1532,7 +1544,17 @@ static BOOL RequestSbRelay(NSString *nonce, NSString **outErr) {
   static int sRelayFailStreak = 0;
   static BOOL sPrewarmRelayUsed = NO;
   BOOL emptyShmAtEntry = !ZiYanFrameShmHasPixels(NULL, NULL, NULL);
-  BOOL prewarmColdBackup = ZiYanLuaEmbedIsPrewarming() && emptyShmAtEntry;
+  // A business script can enter embed prewarm before gEmbedThreadAlive flips.
+  // Its session markers are already durable at that point; never let that
+  // startup race grant one SB _UICreateScreenUIImage relay ticket.
+  BOOL businessSession =
+      ZiYanLuaEmbedIsRunning() || ZiYanSessionWantsRun() ||
+      access(ZiYanVarFile(@".ziyan_project_active").fileSystemRepresentation,
+             F_OK) == 0 ||
+      access(ZiYanVarFile(@".ziyan_script_session").fileSystemRepresentation,
+             F_OK) == 0;
+  BOOL prewarmColdBackup =
+      ZiYanLuaEmbedIsPrewarming() && emptyShmAtEntry && !businessSession;
   if (!ZiYanLuaEmbedIsPrewarming()) {
     sPrewarmRelayUsed = NO;
   }
@@ -1540,7 +1562,7 @@ static BOOL RequestSbRelay(NSString *nonce, NSString **outErr) {
   // backboardd，而 backboardd 主线程可能阻塞在 IOMobileFramebuffer。不能为了
   // 填一张帧而把 Home/前台切换拖死。业务脚本只允许消费 framecap 已提交的 lease；
   // 如需保留该路径做受控诊断，必须显式写 .ziyan_sb_relay_diagnostic。
-  BOOL businessHot = ZiYanLuaEmbedIsRunning() || ZiYanSessionWantsRun() ||
+  BOOL businessHot = businessSession ||
                      access(ZiYanVarFile(@".ziyan_find_pulse").fileSystemRepresentation,
                             F_OK) == 0 ||
                      access(ZiYanVarFile(@".ziyan_color_req").fileSystemRepresentation,
@@ -2107,10 +2129,10 @@ static BOOL HandleOnceUnlocked(NSString *nonce) {
         CapLogC(failLine);
       }
     }
-    // 目标 App 仍在前台：不回退已证实错误的系统 provider。
-    // 仅当常驻槽仍是可读当前帧才算本圈完成；stale/released 旧像素不算。
-    // 前台已离开 allowlist：采当前屏。
-    if (ZiYanAppFrameCurrentFrontEligible()) {
+    // 只有目标进程提供 AppTouch evidence 时，AppWindow 失败才禁止回退全局
+    // provider。通用 Bundle 不注入 AppTouch；此时 app_window_unavailable 必须
+    // 继续走 IOSurface/UICreate，不能把“未注入”误判成“前台不能采帧”。
+    if (ZiYanAppFrameHasFreshAppActiveEvidence()) {
       BOOL kicked =
           (appErr.length > 0) &&
           ([appErr containsString:@"app_frame_kicked"] ||
@@ -4645,10 +4667,16 @@ static void ServeLoop(void) {
       // 收割，业务就持续读旧帧。pending 只表示“收割已有 child”，不再 fork 新的，
       // 因此可安全绕过普通节拍，且仍由 child 内 750ms 硬上限保护。
       BOOL uicreateChildPending = ZiYanUICreateChildPending();
+      // 当前 App 已由 AppTouch 发布新鲜 active evidence 时，空 SHM 也必须
+      // 启动一次首帧采集；否则无业务票/无 force 的冷启动会永久停在 seq=0，
+      // P4 只能看到 frame_unavailable。仅作用于空槽，不改变热找色节拍。
+      BOOL appActiveEvidenceEmpty =
+          emptyShm && ZiYanAppFrameHasFreshActiveEvidence();
       BOOL needCap =
           uicreateChildPending ||
           (emptyShm &&
-           (hasColor || ZiYanBusinessHot() || snapWant || mustRecap) &&
+           (hasColor || ZiYanBusinessHot() || snapWant || mustRecap ||
+            appActiveEvidenceEmpty) &&
            !backoffBlocks &&
            !(inReleaseQuiet && !snapWant && !forceRecap)) ||
           ((mustRecap || displayLocked || hotFrameAged) &&

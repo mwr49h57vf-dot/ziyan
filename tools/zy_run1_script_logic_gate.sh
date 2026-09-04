@@ -190,18 +190,6 @@ toast_hist() {
     tr '\n' '|' <"$VAR/.ziyan_toast_dump" 2>/dev/null
   fi
 }
-go_home() {
-  local i F
-  for i in $(seq 1 10); do
-    echo 1 >"$VAR/.ziyan_go_home"; chmod 666 "$VAR/.ziyan_go_home" 2>/dev/null
-    sleep 0.9; rm -f "$VAR/.ziyan_go_home"
-    F=$(tr -d '\r\n' <"$VAR/.ziyan_front_bid" 2>/dev/null)
-    echo "HOME try$i FRONT=$F"
-    echo "$F" | grep -qi springboard && return 0
-  done
-  return 1
-}
-
 echo "META VER=$VER SCRIPT=$SCRIPT RUN1=1 RULE=find_tap_typed_verdict RUN_ID=$RID FINAL=$FINAL"
 mkdir -p "$VAR" "$MEDIA"
 REMOTE_SHA=""
@@ -225,13 +213,23 @@ rm -f "$VAR/.ziyan_toast_dump" "$VAR/.ziyan_toast_hist" \
 chmod 666 "$VAR/.ziyan_toast_dump" "$VAR/.ziyan_toast_hist" \
   "$VAR/.ziyan_verify_log" 2>/dev/null
 
-# 202：仅 FC_N=0 时普通 kickstart（禁 -k）
+# 202：framecap 由 zydaemon 唯一监督。framecap LaunchDaemon 按设计 Disabled，
+# 因此缺实例时只注册/唤醒监督者，不能直接 kickstart framecap。
 FC0=$(ps -A -o command= 2>/dev/null | grep -F 'ziyan_framecap serve' | grep -vc grep | tr -dc '0-9')
 [ -n "$FC0" ] || FC0=0
 if [ "$FC0" -eq 0 ]; then
-  launchctl kickstart system/com.ziyan.framecap 2>/dev/null || \
-    launchctl kickstart com.ziyan.framecap 2>/dev/null || true
-  sleep 1.2
+  if [ "$SCHEME" = rootless ]; then
+    ZYD_PLIST=/var/jb/Library/LaunchDaemons/com.ziyan.zydaemon.plist
+  else
+    ZYD_PLIST=/Library/LaunchDaemons/com.ziyan.zydaemon.plist
+  fi
+  if ! launchctl print system/com.ziyan.zydaemon >/dev/null 2>&1; then
+    launchctl bootstrap system "$ZYD_PLIST" 2>/dev/null || true
+  fi
+  launchctl enable system/com.ziyan.zydaemon 2>/dev/null || true
+  echo 1 >"$VAR/.ziyan_watchdog_framecap_need"
+  chmod 666 "$VAR/.ziyan_watchdog_framecap_need" 2>/dev/null || true
+  sleep 2.0
 fi
 
 # A0：装包后 SB 可能锁屏。thin Home 对 lock state=1 直接 skip。
@@ -259,11 +257,10 @@ printf 'stop=1\n' >"$VAR/.ziyan_run_intent"
 chmod 666 "$VAR/.ziyan_run_intent" 2>/dev/null
 rm -f "$VAR/.ziyan_open_app" "$VAR/.ziyan_embed_go"
 
-# A0 Home — 禁止 open_app；不绑定固定游戏 BID
-go_home 10
+# A0 不再要求设备预先位于桌面；业务脚本从当前真实前台直接开始。
+# 这里仅记录当前前台，不拦截、不写 PRE_BLOCKED、不改变业务脚本。
 FRONT0=$(tr -d '\r\n' <"$VAR/.ziyan_front_bid" 2>/dev/null)
 echo "A0 FRONT=$FRONT0"
-echo "$FRONT0" | grep -qi springboard && pass A0_home || fail A0_not_home
 SEQ0=$(sed -n 's/.*seq=\([0-9][0-9]*\).*/\1/p' "$VAR/.ziyan_resident_bytes" 2>/dev/null | head -1)
 SEQ0=${SEQ0:-0}
 echo "A0_SEQ=$SEQ0"
@@ -511,19 +508,35 @@ R
   fi
 }
 
+run_serial() {
+  local tag="$1" ip="$2" scheme="$3" script="$4"
+  local clean_log="$OUT/pretest_${tag}.txt"
+  echo "[run1] mandatory four-device pretest before .$tag"
+  if ! bash "$ROOT/tools/zy_pretest_clean_4phone.sh" >"$clean_log" 2>&1; then
+    echo "PRETEST_FAILED .$tag; stopping before device action" | tee -a "$OUT/STOP_REASON.txt"
+    return 1
+  fi
+  run_one "$tag" "$ip" "$scheme" "$script"
+  if ! grep -q 'VERDICT=PASS' "$OUT/gate_${tag}.txt" 2>/dev/null; then
+    echo "SERIAL_STOP_FIRST_FAILURE .$tag" | tee -a "$OUT/STOP_REASON.txt"
+    return 1
+  fi
+  return 0
+}
+
 case "$WANT" in
   all)
-    run_one 53 192.168.31.53 rootless ios8p.lua
-    run_one 101 192.168.31.101 rootful ios7.lua
-    run_one 112 192.168.31.112 rootful ios7.lua
-    run_one 166 192.168.31.166 rootful ios7.lua
+    # Required ZiYan validation order: .101 → .112 → .166 → .53.
+    run_serial 101 192.168.31.101 rootful ios7.lua || true
+    if [ -f "$OUT/STOP_REASON.txt" ]; then WANT_STOP=1; else WANT_STOP=0; fi
+    if [ "$WANT_STOP" = 0 ]; then run_serial 112 192.168.31.112 rootful ios7.lua || true; fi
+    if [ "$WANT_STOP" = 0 ] && [ ! -f "$OUT/STOP_REASON.txt" ]; then run_serial 166 192.168.31.166 rootful ios7.lua || true; fi
+    if [ "$WANT_STOP" = 0 ] && [ ! -f "$OUT/STOP_REASON.txt" ]; then run_serial 53 192.168.31.53 rootless ios8p.lua || true; fi
     ;;
-  53)
-    run_one 53 192.168.31.53 rootless ios8p.lua
-    ;;
-  101) run_one 101 192.168.31.101 rootful ios7.lua ;;
-  112) run_one 112 192.168.31.112 rootful ios7.lua ;;
-  166) run_one 166 192.168.31.166 rootful ios7.lua ;;
+  53) run_serial 53 192.168.31.53 rootless ios8p.lua || true ;;
+  101) run_serial 101 192.168.31.101 rootful ios7.lua || true ;;
+  112) run_serial 112 192.168.31.112 rootful ios7.lua || true ;;
+  166) run_serial 166 192.168.31.166 rootful ios7.lua || true ;;
   *) echo "usage: $0 [all|53|101|112|166]"; exit 2 ;;
 esac
 

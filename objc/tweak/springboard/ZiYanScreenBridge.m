@@ -160,6 +160,29 @@ enum {
   return obj;
 }
 
+- (void)ensureHIDClient {
+  @synchronized(self) {
+    if (!_hidClient && ZiYanIOHIDEventSystemClientCreate) {
+      _hidClient = ZiYanIOHIDEventSystemClientCreate(kCFAllocatorDefault);
+    }
+  }
+}
+
+- (void)releaseHIDClient {
+  IOHIDEventSystemClientRef client = NULL;
+  @synchronized(self) {
+    client = _hidClient;
+    _hidClient = NULL;
+  }
+  if (client) {
+    CFRelease(client);
+  }
+}
+
+- (void)dealloc {
+  [self releaseHIDClient];
+}
+
 - (void)clearCachedPixels {
   [self.pixelLock lock];
   // R8.2：keepScreen 锁帧期间禁止清空像素缓冲（OCR/脉冲误清 → pix=0 狂截 → SB jetsam）
@@ -436,6 +459,21 @@ enum {
     if (gameFg) {
       return;
     }
+    // 业务 App 已在前台时，清理残留指针只允许发 HID up，禁止把
+    // SBHomeScreenWindow 调成 key window 抢回前台。旧逻辑仅依赖
+    // .ziyan_app_fg 的新鲜度；AppTouch 未注入或心跳抖动时会误判，
+    // 表现为脚本启动后游戏被 SpringBoard 顶掉。
+    NSString *front =
+        [[NSString stringWithContentsOfFile:ZiYanVarFile(@".ziyan_front_bid")
+                                   encoding:NSUTF8StringEncoding
+                                      error:nil]
+            stringByTrimmingCharactersInSet:
+                [NSCharacterSet whitespaceAndNewlineCharacterSet]];
+    NSString *frontLow = front.lowercaseString;
+    if (front.length > 0 && ![frontLow isEqualToString:@"com.apple.springboard"] &&
+        ![frontLow containsString:@"springboard"]) {
+      return;
+    }
     dispatch_async(dispatch_get_main_queue(), ^{
       Class homeCls = objc_getClass("SBHomeScreenWindow");
       UIWindow *home = nil;
@@ -547,9 +585,7 @@ enum {
     ZiYanBKSHIDEventSetDigitizerInfo =
         dlsym(bks ?: RTLD_DEFAULT, "BKSHIDEventSetDigitizerInfo");
   });
-  if (!_hidClient && ZiYanIOHIDEventSystemClientCreate) {
-    _hidClient = ZiYanIOHIDEventSystemClientCreate(kCFAllocatorDefault);
-  }
+  [self ensureHIDClient];
   ZiYanEnsureScriptsDirectory();
   NSString *alive =
       [ZiYanVarDirectory() stringByAppendingPathComponent:@".ziyan_sb_alive"];
@@ -715,9 +751,7 @@ enum {
     ZiYanBKSHIDEventSetDigitizerInfo =
         dlsym(bks ?: RTLD_DEFAULT, "BKSHIDEventSetDigitizerInfo");
   });
-  if (ZiYanIOHIDEventSystemClientCreate) {
-    _hidClient = ZiYanIOHIDEventSystemClientCreate(kCFAllocatorDefault);
-  }
+  [self ensureHIDClient];
   ZiYanEnsureScriptsDirectory();
   [@"1" writeToFile:[ZiYanVarDirectory()
                         stringByAppendingPathComponent:@".ziyan_bb_alive"]
@@ -2583,6 +2617,8 @@ enum {
   // 游戏内 AppTouch（.ziyan_app_alive）优先；仅当「前台」标记新鲜时让路
   // 后台控制 App 曾伪写 alive → 抢 req 且 sent=0；现已排除，此处再防呆
   {
+    BOOL appPreferred = [[NSFileManager defaultManager]
+        fileExistsAtPath:ZiYanVarFile(@".ziyan_prefer_app_touch")];
     NSString *fgPath = ZiYanVarFile(@".ziyan_app_fg");
     NSDictionary *fgAttrs =
         [[NSFileManager defaultManager] attributesOfItemAtPath:fgPath
@@ -2594,7 +2630,8 @@ enum {
         [[NSFileManager defaultManager] attributesOfItemAtPath:alivePath
                                                          error:nil];
     NSDate *aliveMod = aliveAttrs[NSFileModificationDate];
-    if (fgFresh && aliveMod && -[aliveMod timeIntervalSinceNow] < 2.0) {
+    if (appPreferred && fgFresh && aliveMod &&
+        -[aliveMod timeIntervalSinceNow] < 2.0) {
       NSDictionary *reqAttrs =
           [[NSFileManager defaultManager] attributesOfItemAtPath:path
                                                            error:nil];
@@ -4683,92 +4720,6 @@ static NSString *ZiYanOCRJSONEscape(NSString *s) {
 
 #pragma mark - HID
 
-/// SpringBoard 图标：合成 HID/UITouch 常无效果，命中 SBIconView 后直接
-/// iconTapped
-static BOOL ZiYanLaunchIconAtWindowPoint(UIWindow *key, CGPoint pt,
-                                         NSString **outHit) {
-  if (!key) {
-    return NO;
-  }
-  UIView *v = [key hitTest:pt withEvent:nil];
-  NSMutableString *chain = [NSMutableString string];
-  Class iconViewCls = objc_getClass("SBIconView");
-  UIView *iconView = nil;
-  for (UIView *cur = v; cur; cur = cur.superview) {
-    if (chain.length) {
-      [chain appendString:@">"];
-    }
-    [chain appendString:NSStringFromClass(cur.class) ?: @"?"];
-    if (!iconView && iconViewCls && [cur isKindOfClass:iconViewCls]) {
-      iconView = cur;
-    }
-  }
-  if (outHit) {
-    *outHit = chain.length ? chain : @"(nil)";
-  }
-  if (!iconView) {
-    return NO;
-  }
-
-  // 1) view.delegate / _delegate → iconTapped:
-  for (NSString *keyName in @[ @"delegate", @"_delegate" ]) {
-    id del = nil;
-    @try {
-      del = [iconView valueForKey:keyName];
-    } @catch (NSException *ex) {
-      del = nil;
-    }
-    if (del && [del respondsToSelector:@selector(iconTapped:)]) {
-      ((void (*)(id, SEL, id))objc_msgSend)(del, @selector(iconTapped:),
-                                            iconView);
-      return YES;
-    }
-  }
-
-  // 2) iOS 13: SBIconController.iconManager iconTapped:
-  Class icCls = objc_getClass("SBIconController");
-  if (icCls && [icCls respondsToSelector:@selector(sharedInstance)]) {
-    id ic = ((id(*)(id, SEL))objc_msgSend)(icCls, @selector(sharedInstance));
-    id mgr = nil;
-    if ([ic respondsToSelector:@selector(iconManager)]) {
-      mgr = ((id(*)(id, SEL))objc_msgSend)(ic, @selector(iconManager));
-    }
-    if (mgr && [mgr respondsToSelector:@selector(iconTapped:)]) {
-      ((void (*)(id, SEL, id))objc_msgSend)(mgr, @selector(iconTapped:),
-                                            iconView);
-      return YES;
-    }
-    if ([ic respondsToSelector:@selector(iconTapped:)]) {
-      ((void (*)(id, SEL, id))objc_msgSend)(ic, @selector(iconTapped:),
-                                            iconView);
-      return YES;
-    }
-  }
-
-  // 3) SBIcon launchFromLocation:
-  id icon = nil;
-  @try {
-    if ([iconView respondsToSelector:@selector(icon)]) {
-      icon = ((id(*)(id, SEL))objc_msgSend)(iconView, @selector(icon));
-    }
-  } @catch (NSException *ex) {
-    icon = nil;
-  }
-  if (icon) {
-    SEL launchCtx = NSSelectorFromString(@"launchFromLocation:context:");
-    if ([icon respondsToSelector:launchCtx]) {
-      ((void (*)(id, SEL, id, id))objc_msgSend)(icon, launchCtx, @"icon", nil);
-      return YES;
-    }
-    SEL launchLoc = NSSelectorFromString(@"launchFromLocation:");
-    if ([icon respondsToSelector:launchLoc]) {
-      ((void (*)(id, SEL, NSInteger))objc_msgSend)(icon, launchLoc, 0);
-      return YES;
-    }
-  }
-  return NO;
-}
-
 - (BOOL)hidTouchPhase:(NSString *)phase
                finger:(int)finger
                     x:(double)sx
@@ -4806,8 +4757,6 @@ static BOOL ZiYanLaunchIconAtWindowPoint(UIWindow *key, CGPoint pt,
 
   __block BOOL hidSent = NO;
   __block BOOL uiSent = NO;
-  __block BOOL iconOk = NO;
-  __block NSString *hitChain = nil;
   __block IOHIDEventRef toSend = NULL;
 
   void (^deliver)(void) = ^{
@@ -4888,7 +4837,7 @@ static BOOL ZiYanLaunchIconAtWindowPoint(UIWindow *key, CGPoint pt,
                                                      finger:(int)idx
                                                          nx:nx
                                                          ny:ny
-                                                   skipHand:YES];
+                                                   skipHand:NO];
       return;
     }
 
@@ -5052,12 +5001,6 @@ static BOOL ZiYanLaunchIconAtWindowPoint(UIWindow *key, CGPoint pt,
         NSLog(@"[ZiYanVol] ui touch %@", ex);
       }
 
-      // 仅在 up：直接唤起命中的桌面图标（解决「有坐标、无点击」）
-      if ([phase isEqualToString:@"up"]) {
-        NSString *chain = nil;
-        iconOk = ZiYanLaunchIconAtWindowPoint(key, winPt, &chain);
-        hitChain = chain;
-      }
     }
     CFRelease(retained);
     CFRelease(toSend);
@@ -5091,12 +5034,10 @@ static BOOL ZiYanLaunchIconAtWindowPoint(UIWindow *key, CGPoint pt,
     NSString *line = [NSString
         stringWithFormat:
             @"%@ %@ f=%d orient=%d native=%.0fx%.0f@%.0f logic=%.0f,%.0f "
-            @"port=%.1f,%.1f hid=%.3f,%.3f win=%.1f,%.1f hidOk=%d uiOk=%d "
-            @"iconOk=%d hit=%@\n",
+            @"port=%.1f,%.1f hid=%.3f,%.3f win=%.1f,%.1f hidOk=%d uiOk=%d\n",
             [[NSDate date] description], phase ?: @"?", idx,
             ZiYanReadOrient().orient, ns.pixW, ns.pixH, ns.scale, sx, sy,
-            proofPortX, proofPortY, nx, ny, winPt.x, winPt.y, hidSent, uiSent,
-            iconOk, hitChain ?: @"-"];
+            proofPortX, proofPortY, nx, ny, winPt.x, winPt.y, hidSent, uiSent];
     // 截断过大 touch_log，避免 iOS16 SpringBoard 日志膨胀
     {
       NSDictionary *la =
@@ -5120,24 +5061,23 @@ static BOOL ZiYanLaunchIconAtWindowPoint(UIWindow *key, CGPoint pt,
     }
   }
   if ([phase isEqualToString:@"up"]) {
-    // R8: tap_proof 采样写入 + atomically:NO
-    if (sTouchLogSkip == 0) {
-      ZiYanNativeScreen pns = ZiYanReadNativeScreen();
-      NSString *proof = [NSString
-          stringWithFormat:
-              @"logic=%.0f,%.0f port=%.1f,%.1f hid=%.3f,%.3f win=%.1f,%.1f "
-              @"native=%.0fx%.0f@%.0f orient=%d finger=%u hidOk=%d uiOk=%d\n",
-              sx, sy, proofPortX, proofPortY, nx, ny, winPt.x, winPt.y,
-              pns.pixW, pns.pixH, pns.scale, ZiYanReadOrient().orient, idx,
-              hidSent, uiSent];
-      [proof writeToFile:[ZiYanVarDirectory()
-                             stringByAppendingPathComponent:@".ziyan_tap_proof"]
-              atomically:NO
-                encoding:NSUTF8StringEncoding
-                   error:nil];
-    }
+    // tap_proof 必须对应最近一次真实 up；采样会让 coord_diag 把旧点
+    // 套到新 tap 上，尤其是游戏路径只走 HIDOptimizer 时更明显。
+    ZiYanNativeScreen pns = ZiYanReadNativeScreen();
+    NSString *proof = [NSString
+        stringWithFormat:
+            @"logic=%.0f,%.0f port=%.1f,%.1f hid=%.3f,%.3f win=%.1f,%.1f "
+            @"native=%.0fx%.0f@%.0f orient=%d finger=%u hidOk=%d uiOk=%d\n",
+            sx, sy, proofPortX, proofPortY, nx, ny, winPt.x, winPt.y,
+            pns.pixW, pns.pixH, pns.scale, ZiYanReadOrient().orient, idx,
+            hidSent, uiSent];
+    [proof writeToFile:[ZiYanVarDirectory()
+                           stringByAppendingPathComponent:@".ziyan_tap_proof"]
+            atomically:NO
+              encoding:NSUTF8StringEncoding
+                 error:nil];
   }
-  return hidSent || uiSent || iconOk;
+  return hidSent || uiSent;
 }
 
 @end

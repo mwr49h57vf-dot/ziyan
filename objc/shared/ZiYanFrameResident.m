@@ -1,4 +1,5 @@
 #import "ZiYanFrameResident.h"
+#import "ZiYanFrameKeep.h"
 #import "ZiYanPaths.h"
 #import <dispatch/dispatch.h>
 #import <math.h>
@@ -682,6 +683,7 @@ void ZiYanCanonicalFrameTokenFill(ZiYanCanonicalFrameToken *tok,
   tok->generation = generation;
   if (hdr) {
     tok->frame_seq = hdr->seq;
+    tok->front_hash = hdr->front_hash;
     tok->pixel_format = (hdr->version >= 2)
                             ? hdr->pixel_format
                             : ZiYanFramePixelFormatRGBA8888;
@@ -712,6 +714,41 @@ void ZiYanCanonicalFrameTokenFill(ZiYanCanonicalFrameToken *tok,
   }
 }
 
+static void ZFR_TokenUnavailable(ZiYanCanonicalFrameToken *tok,
+                                 const char *source) {
+  if (!tok) return;
+  memset(tok, 0, sizeof(*tok));
+  strncpy(tok->source, source && source[0] ? source : "none",
+          sizeof(tok->source) - 1);
+  strncpy(tok->frame_status, "unavailable", sizeof(tok->frame_status) - 1);
+}
+
+BOOL ZiYanCanonicalFrameTokenFillCommitted(ZiYanCanonicalFrameToken *tok,
+                                           const ZiYanFrameShmHeader *hdr,
+                                           const char *source) {
+  if (!tok || !hdr || hdr->seq < 1 || (hdr->commit_seq & 1u) ||
+      hdr->status == ZiYanFrameStatusWriting) {
+    ZFR_TokenUnavailable(tok, source);
+    return NO;
+  }
+  uint32_t frontGen = ZiYanFrameKeepReadFrontGeneration();
+  uint32_t capturedGen = ZiYanFrameKeepReadCapturedGeneration();
+  NSString *captured = ZiYanFrameKeepReadCapturedFront();
+  NSString *front = ZiYanFrameKeepReadFrontBid();
+  if (frontGen == 0 || capturedGen == 0 || frontGen != capturedGen ||
+      captured.length < 1 || front.length < 1 || ![captured isEqualToString:front] ||
+      hdr->front_hash == 0 ||
+      hdr->front_hash != ZiYanFrameShmHashFrontBid(captured)) {
+    ZFR_TokenUnavailable(tok, source);
+    return NO;
+  }
+  ZiYanCanonicalFrameTokenFill(tok, hdr, capturedGen, captured, source);
+  snprintf(tok->publish_token, sizeof(tok->publish_token),
+           "g%u-s%u-h%08x-t%llu", tok->generation, tok->frame_seq,
+           tok->front_hash, (unsigned long long)tok->capture_ts_ms);
+  return YES;
+}
+
 BOOL ZiYanCanonicalCurrentFrameMapRead(
     BOOL allowFileShm, const ZiYanFrameShmHeader **outHdr,
     const uint8_t **outPixels, size_t *outMapLen, void **outMap,
@@ -733,7 +770,28 @@ BOOL ZiYanCanonicalCurrentFrameMapRead(
   }
   if (ZiYanFrameResidentHasPixels(NULL, NULL, NULL) &&
       ZiYanFrameResidentMapRead(outHdr, outPixels, outMapLen, outMap) &&
-      outHdr && *outHdr && outPixels && *outPixels) {
+      outHdr && *outHdr && outPixels && *outPixels && outMap) {
+    // 新 writer 已提交 SHM 时，旧 resident 不能作为 canonical current-frame。
+    // 非 pin 状态下尝试镜像当前 SHM；失败则 fail-closed，杜绝旧帧回放。
+    uint32_t residentSeq = (*outHdr)->seq;
+    uint32_t shmSeq = ZiYanFrameShmPeekSeq();
+    if (!ZiYanFrameResidentIsPinned() && shmSeq > 0 && residentSeq != shmSeq) {
+      ZiYanFrameResidentUnmap(*outMap, *outMapLen);
+      *outHdr = NULL;
+      *outPixels = NULL;
+      *outMapLen = 0;
+      *outMap = NULL;
+      if (!ZiYanFrameResidentMirrorFromShm() ||
+          !ZiYanFrameResidentMapRead(outHdr, outPixels, outMapLen, outMap) ||
+          !*outHdr || !*outPixels || (*outHdr)->seq != ZiYanFrameShmPeekSeq()) {
+        if (*outMap) ZiYanFrameResidentUnmap(*outMap, *outMapLen);
+        *outHdr = NULL;
+        *outPixels = NULL;
+        *outMapLen = 0;
+        *outMap = NULL;
+        return NO;
+      }
+    }
     if (outResident) {
       *outResident = YES;
     }
@@ -753,6 +811,27 @@ BOOL ZiYanCanonicalCurrentFrameMapRead(
     return YES;
   }
   return NO;
+}
+
+BOOL ZiYanCanonicalFrameTokenReadCommitted(ZiYanCanonicalFrameToken *tok,
+                                           BOOL allowFileShm) {
+  if (!tok) return NO;
+  const ZiYanFrameShmHeader *hdr = NULL;
+  const uint8_t *pixels = NULL;
+  size_t mapLen = 0;
+  void *map = NULL;
+  BOOL resident = NO;
+  if (!ZiYanCanonicalCurrentFrameMapRead(allowFileShm, &hdr, &pixels, &mapLen,
+                                         &map, &resident) ||
+      !hdr || !pixels) {
+    ZFR_TokenUnavailable(tok, "none");
+    return NO;
+  }
+  ZiYanFrameShmHeader snapshot = *hdr;
+  BOOL ok = ZiYanCanonicalFrameTokenFillCommitted(
+      tok, &snapshot, resident ? "resident" : "shm");
+  ZiYanCanonicalCurrentFrameUnmap(map, mapLen, resident);
+  return ok;
 }
 
 void ZiYanCanonicalCurrentFrameUnmap(void *map, size_t mapLen,
@@ -815,6 +894,8 @@ NSDictionary *ZiYanCanonicalFrameTokenDictionary(
       @"front_bid" : @"",
       @"frame_seq" : @0,
       @"generation" : @0,
+      @"front_hash" : @0,
+      @"publish_token" : @"",
       @"pixel_format" : @"",
       @"width" : @0,
       @"height" : @0,
@@ -828,6 +909,8 @@ NSDictionary *ZiYanCanonicalFrameTokenDictionary(
     @"front_bid" : @(tok->front_bid),
     @"frame_seq" : @(tok->frame_seq),
     @"generation" : @(tok->generation),
+    @"front_hash" : @(tok->front_hash),
+    @"publish_token" : @(tok->publish_token),
     @"pixel_format" : @(tok->pixel_format_name),
     @"width" : @(tok->width),
     @"height" : @(tok->height),

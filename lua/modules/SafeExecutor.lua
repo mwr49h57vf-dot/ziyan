@@ -191,25 +191,11 @@ function M._staleCheck()
 end
 
 ---------------------------------------------------------------------------
--- 包装后的 tap：防重复点击
+-- 包装后的 tap：只透传脚本传入的参数
 ---------------------------------------------------------------------------
-local function safe_tap(x, y, ...)
+local function safe_tap(...)
   if not _orig_tap then return end
-  local key = string.format("%d,%d", x, y)
-  local now = os.time() * 1000
-
-  if key == M.state.last_tap_xy and (now - M.state.last_tap_time) < M.TAP_COOLDOWN_MS then
-    return  -- 冷却期内，跳过
-  end
-
-  M.state.last_tap_xy = key
-  M.state.last_tap_time = now
-
-  -- 添加 ±3px 随机偏移（反作弊）
-  local rx = x + math.random(-3, 3)
-  local ry = y + math.random(-3, 3)
-
-  return _orig_tap(rx, ry, ...)
+  return _orig_tap(...)
 end
 
 ---------------------------------------------------------------------------

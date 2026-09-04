@@ -210,3 +210,5 @@ CF/CG/IOSurface 释放路径均已有界，增长来自**回收节拍**而非未
 - 证据：`tmp_shots/TS_OBS/`（触动对照）· `tmp_shots/E4_PROMO_*`（资源）·
   `tmp_shots/RUN1_GATE_*`（业务）
 - 历史计划（作废）：`DOCS/_superseded_plans/`
+
+> **P4 empty-SHM 首帧候选（2026-08-31）**：候选 `P4_EMPTY_SHM_FIRST_FRAME_20260831_0340` 已完成本地合同与 rootful/rootless 构建，包 SHA=`2e7bf7e64d4ed9439880f0a73104aaebddbe77fba2253e19e6c01c687647ddbf`/`11537e3569371ef0841a8dd36bd03a012932d36a42b3cbac0ff68b2f4c402745`。`.101` 已安装并通过既有 zydaemon 生命周期完成受控 framecap 替换，但本轮未触发新 P4 request；当前只读后检前台为 SpringBoard、canonical frame_seq=0、P4/P3 transient absent、FC_N=1、SB/BB=`12443/12442`，故设备状态保持 `PRE_BLOCKED/INCONCLUSIVE`，不是 `DEVICE_PASS`。证据：`tmp_shots/P4_EMPTY_SHM_FIRST_FRAME_CANDIDATE_20260831_0340/VERDICT.md`。

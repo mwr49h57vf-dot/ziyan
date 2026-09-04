@@ -1,5 +1,7 @@
 --[[ Zy.Touch — 触控模块
-  仅接受设计坐标 / 比例坐标；禁止固定物理像素入口。
+  点击坐标统一按逻辑屏坐标原样交给全局 tap；设计/比例入口只负责
+  先把坐标换算到逻辑屏。找色、找图、找字返回的 x,y 与固定整数
+  tap(x,y) 使用同一个直通入口，不再因参数来源不同而拒绝。
 ]]
 local C = require("modules._ctx")
 local M = { name = "Touch", version = "1.0.0" }
@@ -52,9 +54,16 @@ function M.tapHit(lx, ly, hold_ms)
   return tap_logic(lx, ly, hold_ms), lx, ly
 end
 
---- 明确拒绝：物理/逻辑裸坐标（防止脚本绕过）
+--- 原始逻辑坐标点击：固定整数和视觉命中坐标都原样执行
 function M.tap(x, y, ...)
-  error("Zy.Touch.tap forbidden — use tapDesign / tapRatio / tapHit (no fixed coords)", 2)
+  C.require_pipeline("touch")
+  x, y = tonumber(x), tonumber(y)
+  if x == nil or y == nil then
+    return false, "bad_args"
+  end
+  local hold_ms = select(1, ...)
+  local ok = tap_logic(x, y, hold_ms)
+  return ok, x, y
 end
 
 local function sleep(ms)
@@ -122,6 +131,11 @@ end
 --- 设计坐标长按（hold_ms 默认 800）
 function M.longPress(dx, dy, hold_ms)
   return M.tapDesign(dx, dy, tonumber(hold_ms) or 800)
+end
+
+--- 比例长按（0~1；避免调用方使用物理坐标）
+function M.longPressRatio(rx, ry, hold_ms)
+  return M.tapRatio(rx, ry, tonumber(hold_ms) or 800)
 end
 
 --- 短别名：比例滑动（同 swipeRatio）

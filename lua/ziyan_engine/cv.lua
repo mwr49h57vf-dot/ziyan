@@ -964,8 +964,6 @@ function M.install()
       return
     end
     if _last_front_bid and _last_front_bid ~= bid then
-      local low = tostring(bid):lower()
-      local isHome = low:find("springboard", 1, true) ~= nil
       -- 181：切前台只换帧；方向钉业务 init（禁止重放成别的 rotate / init(0)）
       pcall(function()
         if type(_G.ZiYanOrient) == "table" and type(_G.ZiYanOrient.sync_game_screen) == "function" then
@@ -982,7 +980,9 @@ function M.install()
       -- 对标触动：找色跟前台像素，不靠 toast 刷屏催帧
       do
         local now = os.clock() or 0
-        local gap = isHome and 2.0 or 1.5
+        -- 所有前台只代表可见帧换代；不按 SpringBoard/业务 App
+        -- 分流。方向始终由脚本 init(0/1/2) 固定。
+        local gap = 1.5
         -- 与 ensure_foreground_frame 共用 _last_force_recap_t；若 ensure 已写则跳过
         if (now - (_last_force_recap_t or 0)) >= gap and
            (now - (_vision_last_force_t or 0)) >= gap then
@@ -1274,18 +1274,30 @@ function M.install()
     if tf then
       local bid = (tf:read("*l") or ""):match("%S+")
       tf:close()
-      if type(bid) == "string" and #bid > 3 and not bid:find("springboard", 1, true) then
+      if type(bid) == "string" and bid:match("^[%w_%-]+%.[%w_%-%.]+$")
+          and bid ~= "com.ziyan.ziyan" and bid ~= "com.touchsprite.ios"
+          and bid ~= "com.apple.springboard" then
         return
       end
     end
     local intent = ""
     local inf = io.open(VAR .. "/.ziyan_run_intent", "r")
     if inf then intent = inf:read("*a") or ""; inf:close() end
-    local bid = nil
-    if intent:find("ios8p", 1, true) then
-      bid = "com.ljzbbadao.game"
-    elseif intent:find("ios7", 1, true) then
-      bid = "com.xztl.ios"
+    local bid = intent:match("[\r\n]target_bid=([^\r\n]+)") or
+                intent:match("[\r\n]bid=([^\r\n]+)")
+    if not (type(bid) == "string" and bid:match("^[%w_%-]+%.[%w_%-%.]+$")
+        and bid ~= "com.ziyan.ziyan" and bid ~= "com.touchsprite.ios"
+        and bid ~= "com.apple.springboard") then
+      bid = nil
+    end
+    if not bid and type(_G.frontAppBid) == "function" then
+      local ok, front = pcall(_G.frontAppBid)
+      if ok and type(front) == "string" and
+          front:match("^[%w_%-]+%.[%w_%-%.]+$") and
+          front ~= "com.ziyan.ziyan" and front ~= "com.touchsprite.ios" and
+          front ~= "com.apple.springboard" then
+        bid = front
+      end
     end
     if type(bid) == "string" then
       pcall(function()

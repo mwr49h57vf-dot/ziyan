@@ -1,4 +1,5 @@
 #import <Foundation/Foundation.h>
+#import <objc/message.h>
 #import <unistd.h>
 #import <sys/stat.h>
 
@@ -10,21 +11,52 @@ typedef NS_ENUM(NSInteger, ZiYanRunState) {
   ZiYanRunStatePaused = 2,
 };
 
-/// 越狱根前缀：rootless 为 `/var/jb`，rootful 为空串。运行时探测，勿写死。
-static inline NSString *ZiYanJailbreakRoot(void) {
-  static NSString *root;
+/// 安装方案由 postinst 按 deb Architecture 原子写入。不能以 `/var/jb` 是否存在判定：
+/// rootful 设备也可能保留 rootless 残留树；一旦 SpringBoard/BB/framecap 选到不同树，
+/// 所有 IPC 会分裂到两个 `var/` 目录。
+static inline NSString *ZiYanRuntimeSchemeMarkerPath(void) {
+  return @"/var/mobile/Library/Preferences/com.ziyan.ziyan.runtime_scheme";
+}
+
+static inline NSString *ZiYanRuntimeScheme(void) {
+  static NSString *scheme;
   static dispatch_once_t once;
   dispatch_once(&once, ^{
     NSFileManager *fm = [NSFileManager defaultManager];
-    if ([fm fileExistsAtPath:@"/var/jb/usr/lib/ziyan"] ||
-        [fm fileExistsAtPath:@"/var/jb/usr/lib"] ||
-        [fm fileExistsAtPath:@"/var/jb"]) {
-      root = @"/var/jb";
+    NSString *marked =
+        [[NSString stringWithContentsOfFile:ZiYanRuntimeSchemeMarkerPath()
+                                   encoding:NSUTF8StringEncoding
+                                      error:nil]
+            stringByTrimmingCharactersInSet:
+                [NSCharacterSet whitespaceAndNewlineCharacterSet]];
+    if ([marked isEqualToString:@"rootful"] ||
+        [marked isEqualToString:@"rootless"]) {
+      scheme = marked;
+      return;
+    }
+    // 旧包无 marker 时仅按完整 runtime payload 回退，绝不把 `/var/jb` 的存在
+    // 当作 ZiYan 的安装方案；双树同时存在时保留历史 rootless 优先以避免改变
+    // 旧 rootless 设备行为，升级后的 marker 会消除该歧义。
+    BOOL rootless =
+        [fm fileExistsAtPath:@"/var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua"];
+    BOOL rootful =
+        [fm fileExistsAtPath:@"/usr/lib/ziyan/lib/lua/ziyan_run.lua"];
+    if (rootless && !rootful) {
+      scheme = @"rootless";
+    } else if (rootful && !rootless) {
+      scheme = @"rootful";
+    } else if (rootless) {
+      scheme = @"rootless";
     } else {
-      root = @"";
+      scheme = @"rootful";
     }
   });
-  return root;
+  return scheme;
+}
+
+/// 越狱根前缀：rootless 为 `/var/jb`，rootful 为空串。
+static inline NSString *ZiYanJailbreakRoot(void) {
+  return [ZiYanRuntimeScheme() isEqualToString:@"rootless"] ? @"/var/jb" : @"";
 }
 
 /// jb 前缀拼路径：rootless → /var/jb/... ；rootful → /...
@@ -255,17 +287,20 @@ static inline BOOL ZiYanConsumeOpenAppFile(NSString *via,
   *outBid = nil;
   NSFileManager *fm = [NSFileManager defaultManager];
   NSString *openPath = ZiYanVarFile(@".ziyan_open_app");
-  NSString *takingPath = ZiYanVarFile(@".ziyan_open_app.taking");
   if (![fm fileExistsAtPath:openPath]) {
     return NO;
   }
   if (access(ZiYanVarFile(@".ziyan_app_user_closed").fileSystemRepresentation,
              F_OK) == 0) {
     [fm removeItemAtPath:openPath error:nil];
-    [fm removeItemAtPath:takingPath error:nil];
     return NO;
   }
-  [fm removeItemAtPath:takingPath error:nil];
+  // Each consumer gets a private claim path. Removing a shared ".taking"
+  // path lets the other consumer steal an in-flight request.
+  static uint64_t sClaimSequence = 0;
+  uint64_t seq = __sync_add_and_fetch(&sClaimSequence, 1);
+  NSString *takingPath =
+      [openPath stringByAppendingFormat:@".taking.%d.%llu", getpid(), seq];
   if (![fm moveItemAtPath:openPath toPath:takingPath error:nil]) {
     return NO;
   }
@@ -293,18 +328,75 @@ static inline BOOL ZiYanConsumeOpenAppFile(NSString *via,
   return YES;
 }
 
-/// 页面/脚本启动后请求回到后台：只写一次 Home，不 terminate / SIGTERM / kill。
-/// SpringBoard 已有 `.ziyan_go_home` 状态机；禁止再走 `.ziyan_app_minimize_req`
-///（该文件会 FBS terminate + SIGTERM ZiYan，R3 .53 已证实进程在 run_ok 前被杀）。
+/// Mark the current SpringBoard process birth once. The PID guard prevents a
+/// later-loaded dylib from extending the protection window.
+static inline void ZiYanMarkSbInjectBirth(void) {
+  ZiYanEnsureVarDirectory();
+  NSString *pidRaw =
+      [NSString stringWithContentsOfFile:ZiYanVarFile(@".ziyan_sb_born_pid")
+                                encoding:NSUTF8StringEncoding
+                                   error:nil];
+  if (pidRaw.intValue == (int)getpid()) {
+    NSString *bornRaw =
+        [NSString stringWithContentsOfFile:ZiYanVarFile(@".ziyan_sb_born_ts")
+                                  encoding:NSUTF8StringEncoding
+                                     error:nil];
+    double age = [[NSDate date] timeIntervalSince1970] - bornRaw.doubleValue;
+    if (bornRaw.doubleValue >= 100000.0 && age >= 0.0 && age < 12.0) {
+      return;
+    }
+  }
+  NSTimeInterval now = [[NSDate date] timeIntervalSince1970];
+  ZiYanWriteVarText(@".ziyan_sb_born_pid",
+                    [NSString stringWithFormat:@"%d\n", getpid()]);
+  ZiYanWriteVarText(@".ziyan_sb_born_ts",
+                    [NSString stringWithFormat:@"%.6f\n", now]);
+}
+
+/// 业务启动只能最小化 ZiYan 自身。调用者必须是活跃的 ZiYan App；
+/// framecap / SpringBoard / 后台进程不得代替当前前台 App 请求 Home。
+static inline BOOL ZiYanOwnsForegroundForMinimize(void) {
+  NSString *bundleId = NSBundle.mainBundle.bundleIdentifier ?: @"";
+  if (![bundleId isEqualToString:@"com.ziyan.ziyan"]) {
+    return NO;
+  }
+  Class appClass = NSClassFromString(@"UIApplication");
+  SEL sharedSel = NSSelectorFromString(@"sharedApplication");
+  if (!appClass || ![appClass respondsToSelector:sharedSel]) {
+    return NO;
+  }
+  id app = ((id(*)(id, SEL))objc_msgSend)(appClass, sharedSel);
+  SEL stateSel = NSSelectorFromString(@"applicationState");
+  if (!app || ![app respondsToSelector:stateSel]) {
+    return NO;
+  }
+  // UIApplicationStateActive is 0.  Keep this dynamic so non-App targets
+  // never acquire a UIKit link merely by including ZiYanPaths.h.
+  return ((NSInteger(*)(id, SEL))objc_msgSend)(app, stateSel) == 0;
+}
+
+/// 页面/脚本启动后请求回到后台：仅 ZiYan 活跃前台时写一次带 owner 的 Home 请求。
+/// SpringBoard 会在消费时再次验证真实前台，禁止任何其他 App 被 Home / suspend / close。
 static inline BOOL ZiYanRequestAppMinimizeAfterScriptStart(
     NSString *_Nullable source, NSString *_Nullable scriptPath) {
+  if (!ZiYanOwnsForegroundForMinimize()) {
+    NSString *denied = [NSString
+        stringWithFormat:@"ts=%.3f\nowner=com.ziyan.ziyan\nsource=%@\n"
+                         @"path=%@\naccepted=0\nreason=caller_not_active_ziyan\n",
+                         [[NSDate date] timeIntervalSince1970],
+                         source.length ? source : @"runner",
+                         scriptPath.length ? scriptPath : @""];
+    (void)ZiYanWriteVarText(@".ziyan_page_bg_req", denied);
+    return NO;
+  }
   NSString *note = [NSString
-      stringWithFormat:@"1\nts=%.3f\nsource=%@\npath=%@\n",
+      stringWithFormat:@"owner=com.ziyan.ziyan\nts=%.3f\nsource=%@\n"
+                       @"path=%@\naccepted=1\n",
                        [[NSDate date] timeIntervalSince1970],
                        source.length ? source : @"runner",
                        scriptPath.length ? scriptPath : @""];
   (void)ZiYanWriteVarText(@".ziyan_page_bg_req", note);
-  return ZiYanWriteVarText(@".ziyan_go_home", @"1\n");
+  return ZiYanWriteVarText(@".ziyan_go_home", note);
 }
 
 /// SB 注入出生时刻。冷启动 12s 内不处理 unlock/open/minimize 文件，
@@ -883,10 +975,9 @@ static inline BOOL ZiYanFramecapHeartbeatFresh(NSTimeInterval maxAge) {
 
 /// Day9 health_ack。ok 不含 fresh：idle/Home seq=0 仍算控制面就绪。
 /// fresh=1 仅表示当前有可用新鲜帧；Ensure/Poll 不得为 fresh 阻塞。
-static inline void ZiYanWriteHealthAck(int alive, int heartbeat, int ipc,
-                                       int fcN, int fresh, NSString *lease,
-                                       long long ageMs, unsigned provider,
-                                       NSString *err) {
+static inline void ZiYanWriteHealthAckWithCoherence(
+    int alive, int heartbeat, int ipc, int fcN, int fresh, NSString *lease,
+    long long ageMs, unsigned provider, NSString *err, NSString *coherence) {
   int ok = (alive && heartbeat && ipc && (fcN == 1 || fcN < 0)) ? 1 : 0;
   NSString *e = err.length ? err : @"";
   if (fcN > 1 && e.length == 0) {
@@ -904,11 +995,20 @@ static inline void ZiYanWriteHealthAck(int alive, int heartbeat, int ipc,
       stringWithFormat:
           @"alive=%d\nheartbeat=%d\nipc=%d\nfc_n=%d\nfresh=%d\n"
           @"lease_state=%@\nframe_age_ms=%lld\nframe_provider=%u\n"
-          @"ok=%d\nerr=%@\nfresh_err=%@\nts=%.0f\n",
+          @"ok=%d\nerr=%@\nfresh_err=%@\n%@ts=%.0f\n",
           alive ? 1 : 0, heartbeat ? 1 : 0, ipc ? 1 : 0, fcN, fresh,
           lease.length ? lease : @"-", ageMs, provider, ok, e, freshErr,
+          coherence.length ? coherence : @"coherent=-\n",
           [[NSDate date] timeIntervalSince1970]];
   ZiYanWriteVarText(@".ziyan_health_ack", body);
+}
+
+static inline void ZiYanWriteHealthAck(int alive, int heartbeat, int ipc,
+                                       int fcN, int fresh, NSString *lease,
+                                       long long ageMs, unsigned provider,
+                                       NSString *err) {
+  ZiYanWriteHealthAckWithCoherence(alive, heartbeat, ipc, fcN, fresh, lease,
+                                   ageMs, provider, err, @"");
 }
 
 /// 8-161-110 Phase1-R：是否仍要跑（对标 TSDaemon _runSession，禁粘滞假保活）

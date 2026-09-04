@@ -99,22 +99,55 @@ static BOOL ZAF_PublishRequest(NSString *body, NSString *nonce) {
 }
 
 static BOOL ZAF_EligibleBid(NSString *bid) {
-  if (!bid.length) return NO;
-  static NSSet<NSString *> *bids;
-  static dispatch_once_t once;
-  dispatch_once(&once, ^{
-    bids = [NSSet setWithArray:@[
-      @"com.xztl.ios", @"com.ychj.hlhjlygr", @"com.zsyxs180.game",
-      @"com.ljzbbadao.game"
-    ]];
-  });
-  return [bids containsObject:bid];
+  // 触动按真实 frontAppBid + 当前帧工作，不维护游戏白名单。
+  // 只过滤控制面/桌面；目标 App 必须另外通过 AppTouch 发布 fresh
+  // active evidence，避免把“任意 Bundle ID”误变成“任意陈旧帧都可扫”。
+  NSString *value = [bid stringByTrimmingCharactersInSet:
+                              [NSCharacterSet whitespaceAndNewlineCharacterSet]];
+  if (value.length == 0 || value.length > 255) return NO;
+  if ([value isEqualToString:@"com.apple.springboard"] ||
+      [value isEqualToString:@"com.ziyan.ziyan"] ||
+      [value isEqualToString:@"com.touchsprite.ios"]) {
+    return NO;
+  }
+  NSArray<NSString *> *parts = [value componentsSeparatedByString:@"."];
+  if (parts.count < 2) return NO;
+  NSCharacterSet *allowed =
+      [NSCharacterSet characterSetWithCharactersInString:
+                          @"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"];
+  for (NSString *part in parts) {
+    if (part.length == 0) return NO;
+    if ([part rangeOfCharacterFromSet:
+                  [allowed invertedSet]].location != NSNotFound) {
+      return NO;
+    }
+  }
+  return YES;
 }
 
-/// front_bid 是 SpringBoard 的帧同步缓存，杀掉目标 App 后可能短暂保留旧值。
-/// 只有注入到目标 App 的 AppTouch 周期发布了新鲜 Active evidence，framecap
-/// 才能创建跨进程取帧票；否则请求无人消费，会把 Lua 找色热路径拖到超时。
-static BOOL ZAF_HasFreshActiveEvidence(NSString *bid) {
+static BOOL ZAF_HasFreshEvidenceFile(NSString *name, NSString *bid,
+                                     NSString *source) {
+  NSString *path = ZiYanVarFile(name);
+  NSDictionary *attrs = [[NSFileManager defaultManager]
+      attributesOfItemAtPath:path error:nil];
+  NSDate *mod = attrs[NSFileModificationDate];
+  if (!mod || -mod.timeIntervalSinceNow > 3.0) return NO;
+  NSString *body = [NSString stringWithContentsOfFile:path
+                                               encoding:NSUTF8StringEncoding
+                                                  error:nil];
+  return [body containsString:[NSString stringWithFormat:@"bid=%@\n", bid]] &&
+         [body containsString:[NSString stringWithFormat:@"source=%@\n", source]];
+}
+
+/// SpringBoard 的 foreground reducer 是通用 App 前台事实来源；AppTouch evidence
+/// 仅用于判断 AppWindow provider 是否真的在目标进程内可用。两者均要求同一 bid
+/// 与短 TTL，禁止让旧 front_bid 直接解锁帧。
+static BOOL ZAF_HasFreshSpringBoardFrontEvidence(NSString *bid) {
+  return ZAF_HasFreshEvidenceFile(@".ziyan_front_active_evidence", bid,
+                                  @"springboard_front_reducer");
+}
+
+static BOOL ZAF_HasFreshAppActiveEvidenceForBid(NSString *bid) {
   NSString *path = ZiYanVarFile(@".ziyan_app_active_evidence");
   NSDictionary *attrs = [[NSFileManager defaultManager]
       attributesOfItemAtPath:path error:nil];
@@ -123,11 +156,28 @@ static BOOL ZAF_HasFreshActiveEvidence(NSString *bid) {
   NSString *body = [NSString stringWithContentsOfFile:path
                                                encoding:NSUTF8StringEncoding
                                                   error:nil];
-  return [body containsString:[NSString stringWithFormat:@"bid=%@\n", bid]];
+  return [body containsString:[NSString stringWithFormat:@"bid=%@\n", bid]] &&
+         ([body containsString:@"source=app_did_become_active\n"] ||
+          [body containsString:@"source=app_active_heartbeat\n"]);
+}
+
+static BOOL ZAF_HasFreshActiveEvidence(NSString *bid) {
+  return ZAF_HasFreshSpringBoardFrontEvidence(bid) ||
+         ZAF_HasFreshAppActiveEvidenceForBid(bid);
 }
 
 BOOL ZiYanAppFrameCurrentFrontEligible(void) {
   return ZAF_EligibleBid(ZAF_ReadLine(@".ziyan_front_bid"));
+}
+
+BOOL ZiYanAppFrameHasFreshActiveEvidence(void) {
+  NSString *bid = ZAF_ReadLine(@".ziyan_front_bid");
+  return ZAF_EligibleBid(bid) && ZAF_HasFreshActiveEvidence(bid);
+}
+
+BOOL ZiYanAppFrameHasFreshAppActiveEvidence(void) {
+  NSString *bid = ZAF_ReadLine(@".ziyan_front_bid");
+  return ZAF_EligibleBid(bid) && ZAF_HasFreshAppActiveEvidenceForBid(bid);
 }
 
 static BOOL ZAF_CurrentFrameOK(NSString *bid, NSInteger freshAgeMs,
@@ -173,6 +223,12 @@ BOOL ZiYanAppFrameEnsureForCurrentFront(NSInteger freshAgeMs,
   }
   if (!ZAF_HasFreshActiveEvidence(bid)) {
     if (outErr) *outErr = @"app_not_active_evidence";
+    return NO;
+  }
+  // 没有目标进程的 AppTouch evidence 时，绝不发布 AppWindow 请求：
+  // 通用游戏由 framecap 的 IOSurface/UICreate provider 接管。
+  if (!ZAF_HasFreshAppActiveEvidenceForBid(bid)) {
+    if (outErr) *outErr = @"app_window_unavailable";
     return NO;
   }
 

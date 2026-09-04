@@ -16,6 +16,29 @@ local function media()
   return "/private/var/mobile/Media/ZiYan"
 end
 
+local function var_dir()
+  local Zy = _G.Zy
+  if Zy and Zy.File and type(Zy.File.varDir) == "function" then
+    local ok, path = pcall(Zy.File.varDir)
+    if ok and type(path) == "string" and path ~= "" then return path end
+  end
+  return _G.ZIYAN_VAR or "/usr/lib/ziyan/var"
+end
+
+local function read_kv_file(path)
+  local Zy = _G.Zy
+  local raw = ""
+  if Zy and Zy.File and type(Zy.File.read) == "function" then
+    raw = Zy.File.read(path) or ""
+  end
+  local out = {}
+  for line in tostring(raw):gmatch("[^\r\n]+") do
+    local key, value = line:match("^([%w_]+)=(.*)$")
+    if key then out[key] = value end
+  end
+  return out, raw
+end
+
 local function gen_dir()
   local d = media() .. "/scripts/generated"
   pcall(function() os.execute(string.format('mkdir -p "%s"', d)) end)
@@ -79,6 +102,7 @@ function M.collect(bid, opts)
   local Zy = assert(_G.Zy, "Zy required")
   bid = bid or C.bid
   opts = opts or {}
+  local gameplay = opts.gameplay == true
   Zy.Device.refresh()
   local prof = Zy.Device.profile() or {}
   if bid then
@@ -86,18 +110,20 @@ function M.collect(bid, opts)
     Zy.Screen.sync(opts.orient or C.orient or 1, bid)
   end
   local si = Zy.Screen.info() or {}
-  local fr = Zy.Game.analyze(bid)
+  -- P3 gameplay explores through current-frame classification only. Device OCR
+  -- sidecars have stalled on target games, while templates remain usable.
+  local fr = Zy.Game.analyze(bid, gameplay and { skip_ocr = true, light = true } or nil)
   local st = Zy.StateMachine.current(bid)
   local suggest = Zy.StateMachine.suggest(st)
   local shot = nil
-  if not _G.__ZIYAN_OCR_NO_SHOT then
+  if not gameplay and not _G.__ZIYAN_OCR_NO_SHOT then
     shot = Zy.Screen.snapshot("ai_collect")
   end
 
   local vision = { hit = false }
-  if not _G.__ZIYAN_OCR_NO_SHOT then
+  if not gameplay and not _G.__ZIYAN_OCR_NO_SHOT then
     local hit, kind, x, y, c, detail = Zy.Vision.analyze({
-      words = opts.words or { "登录", "开始", "确定", "进入", "继续" },
+      words = opts.words or { "开始", "确定", "进入", "继续" },
       design_w = C.design_w, design_h = C.design_h,
     })
     vision = { hit = hit, kind = kind, x = x, y = y, c = c, detail = detail }
@@ -137,9 +163,9 @@ function M.analyzeNeed(need, opts)
   local lower = need:lower()
   local tasks = {}
   local words = { "确定", "继续", "开始" }
+  -- P3 门禁不含填写账号密码：识别到登录只记 skip_auth，绝不把「登录」当可点词。
   if need:find("登录") or lower:find("login") then
-    tasks[#tasks + 1] = "login"
-    words[#words + 1] = "登录"
+    tasks[#tasks + 1] = "skip_auth"
   end
   if need:find("领取") or need:find("奖励") or need:find("每日") or lower:find("reward") then
     tasks[#tasks + 1] = "daily_reward"
@@ -150,11 +176,30 @@ function M.analyzeNeed(need, opts)
     tasks[#tasks + 1] = "enter_role"
     words[#words + 1] = "进入"
   end
+  local capability
+  if need:find("世界") or need:find("玩法") or need:find("自研") or
+      need:find("探索") or lower:find("gameplay") then
+    capability = "gameplay"
+  elseif need:find("聊天") or lower:find("chat") then
+    capability = "chat"
+  elseif need:find("游戏规则") or need:find("规则引擎") or lower:find("rule engine") then
+    capability = "rules"
+  elseif need:find("自动决策") or need:find("决策") or lower:find("decision") then
+    capability = "decision"
+  elseif need:find("非视觉") or need:find("剪贴板") or need:find("硬件键") or lower:find("non.visual") then
+    capability = "non_visual"
+  end
   if #tasks == 0 then tasks[1] = "advance_ui" end
   local modules = {
     "Device", "Screen", "Coordinate", "Vision", "Image", "OCR",
     "Touch", "Verify", "StateMachine", "Game", "Script",
   }
+  if capability == "gameplay" then
+    modules[#modules + 1] = "Decision"
+    modules[#modules + 1] = "RuleEngine"
+    modules[#modules + 1] = "Chat"
+    modules[#modules + 1] = "Knowledge"
+  end
   local flow = {
     "Device.refresh → Screen.sync → Coordinate.setDesign",
     "Game.analyze / StateMachine.current",
@@ -170,6 +215,7 @@ function M.analyzeNeed(need, opts)
     flow = flow,
     states = states,
     words = words,
+    capability = capability,
     bid = opts.bid,
     design_w = opts.design_w or 1136,
     design_h = opts.design_h or 640,
@@ -202,16 +248,22 @@ function M.plan(goal, ctx, opts)
   }
   local action = { kind = "tap_ratio", rx = 0.50, ry = 0.72, label = "ai_cta" }
   if ctx.vision and ctx.vision.hit and ctx.vision.rx then
-    action = {
-      kind = "tap_ratio",
-      rx = math.max(0.05, math.min(0.95, ctx.vision.rx)),
-      ry = math.max(0.05, math.min(0.95, ctx.vision.ry)),
-      label = "ai_vision_ratio",
-    }
-    table.insert(steps, { kind = "vision", desc = "Vision hit → tapRatio" })
+    local vword = tostring((ctx.vision.detail and ctx.vision.detail.word) or ctx.vision.kind or "")
+    if vword:find("登录") or vword:find("账号") or vword:find("密码") or vword:lower():find("login") or vword:lower():find("password") then
+      action = { kind = "pause_auth", label = "p3_skip_credentials" }
+      table.insert(steps, { kind = "pause_auth", desc = "auth word is not a P3 gate" })
+    else
+      action = {
+        kind = "tap_ratio",
+        rx = math.max(0.05, math.min(0.95, ctx.vision.rx)),
+        ry = math.max(0.05, math.min(0.95, ctx.vision.ry)),
+        label = "ai_vision_ratio",
+      }
+      table.insert(steps, { kind = "vision", desc = "Vision hit → tapRatio" })
+    end
   else
-    if phase == "login" or (analysis.tasks[1] == "login") then
-      action.rx, action.ry, action.label = 0.64, 0.72, "ai_login"
+    if phase == "login" or (analysis.tasks[1] == "login") or (analysis.tasks[1] == "skip_auth") then
+      action = { kind = "pause_auth", label = "p3_skip_credentials" }
     elseif phase == "menu" then action.rx, action.ry = 0.50, 0.70
     elseif phase == "role" then action.rx, action.ry = 0.50, 0.75
     elseif phase == "boot" then
@@ -246,6 +298,7 @@ function M.plan(goal, ctx, opts)
     action = action,
     analysis = analysis,
     words = analysis.words,
+    capability = analysis.capability,
     design_w = opts.design_w or C.design_w or analysis.design_w,
     design_h = opts.design_h or C.design_h or analysis.design_h,
     bid = ctx.bid or C.bid or opts.bid,
@@ -268,6 +321,103 @@ function M.generate(plan, opts)
 
   local lines = {}
   local function L(s) lines[#lines + 1] = s end
+
+  if plan.capability == "gameplay" then
+    L("-- AI-GENERATED GAMEPLAY by Zy.AI " .. M.version)
+    L("-- real-device P3: observe -> decide -> rule -> world greeting -> knowledge")
+    L("-- RULES: Zy.* only; no fixed physical coords; no auth credentials")
+    L("")
+    L("local function ailog(msg) print(tostring(msg)) end")
+    L("")
+    L("function main()")
+    L("  if type(Zy) ~= \"table\" then require(\"modules\") end")
+    L(string.format("  local BID = %q", bid))
+    L(string.format("  local DW, DH = %d, %d", dw, dh))
+    L("  local Game, Decision, Rules = Zy.Game, Zy.Decision, Zy.RuleEngine")
+    L("  local Chat, Knowledge = Zy.Chat, Zy.Knowledge")
+    L("  if type(Game) ~= \"table\" or type(Decision) ~= \"table\" or type(Rules) ~= \"table\" or type(Chat) ~= \"table\" or type(Knowledge) ~= \"table\" then")
+    L("    return false, \"gameplay_module_missing\"")
+    L("  end")
+    L("  Zy.Device.refresh()")
+    L("  Zy.Script.begin({ bid = BID, design_w = DW, design_h = DH, orient = 1 })")
+    L("  Zy.Coordinate.setDesign(DW, DH)")
+    L("  Zy.App.launch(BID, 800)")
+    L("  Zy.Screen.sync(1, BID)")
+    L("  local frame = Game.analyze(BID, { skip_ocr = true, light = true, fuzzy = 80 })")
+    L("  local phase = tostring(frame.phase or \"unknown\")")
+    L("  Zy.Script.set(\"gameplay_phase\", phase)")
+    L("  ailog(\"GAMEPLAY phase=\" .. phase)")
+    L("  if phase == \"login\" then")
+    L("    Zy.Script.set(\"paused_auth\", true)")
+    L("    Zy.Script.set(\"done\", true)")
+    L("    Zy.File.write(Zy.File.varDir() .. \"/.ziyan_agent_gameplay_result\", \"status=PAUSED_SAFE\\nphase=login\\nreason=login_credentials_not_a_p3_gate\\n\")")
+    L("    return false, \"login_credentials_not_a_p3_gate\"")
+    L("  end")
+    L("  if phase == \"role\" then")
+    L("    local role_path = \"/private/var/mobile/Media/ZiYan/templates/role/进入游戏.png\"")
+    L("    local x, y = Zy.Image.find(role_path, 80)")
+    L("    x, y = tonumber(x), tonumber(y)")
+    L("    if x and y and x >= 0 and y >= 0 then")
+    L("      local entered = Zy.Touch.tapHit(x, y)")
+    L("      Zy.File.write(Zy.File.varDir() .. \"/.ziyan_agent_gameplay_result\", \"status=ROLE_ENTRY_ATTEMPT\\nphase=role\\naction=visible_enter_game\\nok=\" .. tostring(entered ~= false) .. \"\\n\")")
+    L("      return entered ~= false, entered and \"visible_enter_game\" or \"enter_game_tap_failed\"")
+    L("    end")
+    L("    return false, \"visible_enter_game_not_found\"")
+    L("  end")
+    L("  if phase ~= \"running\" then")
+    L("    Zy.File.write(Zy.File.varDir() .. \"/.ziyan_agent_gameplay_result\", \"status=INCONCLUSIVE\\nphase=\" .. phase .. \"\\nreason=not_playable\\n\")")
+    L("    return false, \"not_playable:\" .. phase")
+    L("  end")
+    L("  local decision = Decision.new({ id = \"gameplay_world_hello\" })")
+    L("  local rules = Rules.new({ id = \"gameplay_world_hello\", initial_state = \"running\" })")
+    L("  Rules.add(rules, { id = \"world_channel\", when = function(ctx) return ctx.phase == \"running\" end, [\"then\"] = function(_, engine) engine.state = \"world_ready\"; engine.score = engine.score + 1 end })")
+    L("  local rule_ok, rule_event = Rules.step(rules, { phase = phase })")
+    L("  local turn_ok, turn_reason = false, \"rule_not_ready\"")
+    L("  Decision.add(decision, { id = \"world_hello\", when = function(ctx) return ctx.rule_ok and ctx.rule_state == \"world_ready\" end, run = function()")
+    L("    turn_ok, turn_reason = Chat.playTurn(\"你好\", {")
+    L("      channel_labels = { \"世界\" }, focus_ratio = { x = 0.36, y = 0.91 }, skip_ocr = true,")
+    L("      dismiss_ratio = { x = 0.361, y = 0.342 }, send_labels = { \"发送\" },")
+    L("      echo_phase = \"chat_echo\", fuzzy = 80, close_ratio = { x = 0.62, y = 0.12 },")
+    L("      verify = true,")
+    L("    })")
+    L("    return turn_ok")
+    L("  end })")
+    L("  local chosen, choice_event = Decision.choose(decision, { rule_ok = rule_ok, rule_state = rules.state })")
+    L("  local ok = rule_ok and chosen and turn_ok")
+    L("  local snap = Rules.snapshot(rules)")
+    L("  Knowledge.save({ task = \"AI 自研游戏玩法\", bid = BID, ok = ok, phase = phase,")
+    L("    rules = \"world_channel\", flow = \"Game.analyze>Decision>RuleEngine>Chat.playTurn>Knowledge\",")
+    L("    fail_reason = ok and \"\" or tostring(turn_reason), event = \"gameplay_world_hello\" })")
+    L("  Zy.Script.set(\"capability_gameplay\", ok)")
+    L("  Zy.Script.set(\"capability_detail\", \"phase=\" .. phase .. \";rule=\" .. tostring(rule_ok) .. \";decision=\" .. tostring(chosen) .. \";chat=\" .. tostring(turn_ok) .. \";reason=\" .. tostring(turn_reason))")
+    L("  local go = Zy.File.read(Zy.File.varDir() .. \"/.ziyan_capability_context\") or Zy.File.read(Zy.File.varDir() .. \"/.ziyan_embed_go\") or \"\"")
+    L("  local nonce = go:match(\"nonce=([^\\r\\n]+)\") or \"\"")
+    L("  local session_id = go:match(\"session_id=([^\\r\\n]+)\") or \"\"")
+    L("  local prof = Zy.Device.profile() or {}")
+    L("  local front = Zy.App.front()")
+    L("  local detail = Zy.Script.get(\"capability_detail\") or \"\"")
+    L("  local function kv(v) return tostring(v or \"\"):gsub(\"[\\r\\n]\", \" \") end")
+    L("  Zy.File.write(Zy.File.varDir() .. \"/.ziyan_capability_result\",")
+    L("    \"result_ready=1\\ncapability=gameplay\\nmodule_ok=\" .. tostring(ok) .. \"\\nreal_device=true\\nnonce=\" .. kv(nonce) .. \"\\nsession_id=\" .. kv(session_id) .. \"\\nfront=\" .. kv(front) .. \"\\ndevice_model=\" .. kv(prof.model) .. \"\\ndetail=\" .. kv(detail) .. \"\\nreason=\" .. kv(turn_reason) .. \"\\n\")")
+    L("  Zy.File.write(Zy.File.varDir() .. \"/.ziyan_agent_gameplay_result\",")
+    L("    \"status=\" .. (ok and \"BUSINESS_PASS\" or \"INCONCLUSIVE\") .. \"\\nphase=\" .. phase .. \"\\nrule_state=\" .. tostring(snap.state) .. \"\\nchat_verified=\" .. tostring(turn_ok) .. \"\\nreason=\" .. tostring(turn_reason) .. \"\\n\")")
+    L("  if ok then Zy.Script.set(\"done\", true) end")
+    L("  return ok, choice_event")
+    L("end")
+    L("")
+    L("return main")
+    L("")
+    local gameplay_src = table.concat(lines, "\n")
+    local login_find = "ctx.findText(" .. string.char(34) .. "登录" .. string.char(34) .. ")"
+    for _, forbidden in ipairs({
+      "openFixture", "Input.text", "点击前往", "ziyan-device-chat", login_find,
+    }) do
+      if gameplay_src:find(forbidden, 1, true) then
+        error("AI.generate gameplay refused: " .. forbidden)
+      end
+    end
+    return gameplay_src
+  end
 
   L("-- AI-GENERATED by Zy.AI " .. M.version)
   L("-- goal=" .. tostring(goal) .. " phase_hint=" .. tostring(plan.phase))
@@ -295,19 +445,113 @@ function M.generate(plan, opts)
   L("  local sh = (si and (si.logic_h or si.h)) or select(2, Zy.Screen.size())")
   L("  ailog(\"AI screen=\" .. tostring(sw) .. \"x\" .. tostring(sh))")
   L("  Zy.Script.set(\"goal\", " .. string.format("%q", goal) .. ")")
+  if plan.capability then
+    L("")
+    L("  -- Capability suite is generated by Zy.AI and executes only Zy modules.")
+    L("  Zy.Script.defineTask(\"capability_suite\", function()")
+    if plan.capability == "chat" then
+      L("    local Chat = Zy.Chat")
+      L("    if type(Chat) ~= \"table\" then return false, \"chat_module_missing\" end")
+      L("    local ok_fixture, fixture_reason = Chat.openFixture({ title = \"聊天测试\" })")
+      L("    if not ok_fixture then return false, fixture_reason or \"chat_fixture_failed\" end")
+      L("    local ok_begin = Chat.begin({ id = \"device_chat_suite\" })")
+      L("    local ok_clear = Chat.clear()")
+      L("    local labels = { \"输入消息\", \"输入\", \"消息\", \"Message\" }")
+      L("    local send_labels = { \"发送\", \"Send\" }")
+      L("    local ok_turn1 = Chat.send(\"ziyan-device-chat-1\", { focus_labels = labels, send_labels = send_labels })")
+      L("    local ok_copy = Chat.copyLast({ action_labels = { \"复制\" } })")
+      L("    local ok_paste = Chat.pasteLast({ action_labels = { \"粘贴\" } })")
+      L("    local ok_turn2 = Chat.send(\"ziyan-device-chat-2\", { focus_labels = labels, send_labels = send_labels })")
+      L("    local ok_result, result_reason = Chat.verifyLast({ text = \"ziyan-device-chat-2\" })")
+      L("    local st = Chat.state()")
+      L("    local ok = ok_begin and ok_clear and ok_turn1 and ok_copy and ok_paste and ok_turn2 and ok_result and st.count >= 2")
+      L("    Zy.Script.set(\"capability_chat\", ok)")
+      L("    Chat.endSession()")
+      L("    Zy.Script.set(\"capability_detail\", \"input=1;send=1;multi_turn=1;copy=\" .. tostring(ok_copy) .. \";paste=\" .. tostring(ok_paste) .. \";result=\" .. tostring(ok_result) .. \";reason=\" .. tostring(result_reason))")
+      L("    return ok, ok and \"chat_business_device_verified\" or \"chat_business_failed\"")
+    elseif plan.capability == "rules" then
+      L("    local R = Zy.RuleEngine")
+      L("    if type(R) ~= \"table\" then return false, \"rule_module_missing\" end")
+      L("    local e = R.new({ id = \"device_rules_suite\", initial_state = \"ready\" })")
+      L("    R.add(e, { id = \"advance\", when = function(ctx, x) return ctx.advance == true and x.state == \"ready\" end, [\"then\"] = function(_, x) x.state = \"running\"; x.score = x.score + 1 end })")
+      L("    local ok_step = R.step(e, { advance = true })")
+      L("    local ok_repeat, repeat_reason = R.step(e, { advance = true })")
+      L("    local ok_pause = R.pause(e, \"device_pause\") and R.step(e, { advance = true }) == false")
+      L("    local ok_resume = R.resume(e) and R.step(e, { advance = true }) == false")
+      L("    local snap = R.snapshot(e)")
+      L("    local replay = R.replay(e, { { advance = false } })")
+      L("    local ok_timeout = Zy.Script.untilPhase(\"__ziyan_never__\", 1, 1) == false")
+      L("    local ok = ok_step and not ok_repeat and repeat_reason == \"no_rule\" and ok_pause and ok_resume and ok_timeout and snap.state == \"running\" and snap.score == 1 and snap.turn >= 2 and #replay == 1")
+      L("    Zy.Script.set(\"capability_rules\", ok)")
+      L("    Zy.Script.set(\"capability_detail\", \"normal=1;error=\" .. tostring(not ok_repeat) .. \";repeat=\" .. tostring(not ok_repeat) .. \";pause_resume=1;timeout=\" .. tostring(ok_timeout) .. \";trace=\" .. tostring(#snap.trace))")
+      L("    return ok, ok and \"rules_business_device_verified\" or \"rules_business_failed\"")
+    elseif plan.capability == "decision" then
+      L("    local D = Zy.Decision")
+      L("    if type(D) ~= \"table\" then return false, \"decision_module_missing\" end")
+      L("    local e = D.new({ id = \"device_decision_suite\" }); local ran = false")
+      L("    D.add(e, { id = \"choose_a\", when = function(ctx) return ctx.pick == \"a\" end, run = function() ran = true; return true end })")
+      L("    local ok_choose = D.choose(e, { pick = \"a\" }); local ok_retry = D.retry(e, \"choose_a\", 2)")
+      L("    local ok_retry_limit = D.retry(e, \"choose_a\", 2) and D.retry(e, \"choose_a\", 2) == false")
+      L("    local ok_pause = D.pause(e, \"device_pause\") and D.choose(e, { pick = \"a\" }) == false")
+      L("    local ok_resume = D.resume(e) and D.choose(e, { pick = \"a\" }) == true")
+      L("    local snap = D.snapshot(e)")
+      L("    local replay = D.replay(e, { { pick = \"a\" }, { pick = \"missing\" } })")
+      L("    local ok = ok_choose and ok_retry and ok_retry_limit and ok_pause and ok_resume and ran and snap.cursor >= 2 and #snap.trace >= 2 and #replay == 2")
+      L("    Zy.Script.set(\"capability_decision\", ok)")
+      L("    Zy.Script.set(\"capability_detail\", \"choose=1;retry=1;retry_limit=\" .. tostring(ok_retry_limit) .. \";pause_resume=1;replay=\" .. tostring(#replay == 2) .. \";trace=\" .. tostring(#snap.trace))")
+      L("    return ok, ok and \"decision_business_device_verified\" or \"decision_business_failed\"")
+    else
+      L("    local C = Zy.Clipboard; local I = Zy.Input; local T = Zy.Touch; local A = Zy.App; local D = Zy.Device")
+      L("    if type(C) ~= \"table\" or type(I) ~= \"table\" or type(T) ~= \"table\" or type(A) ~= \"table\" or type(D) ~= \"table\" then return false, \"non_visual_module_missing\" end")
+      L("    local token = \"ziyan-device-clipboard\"")
+      L("    local wrote = C.set(token); local got = C.get(); local pasted = C.pasteToFocus(); local cleared = C.clear()")
+      L("    local swiped = T.swipeRatio(0.20, 0.80, 0.80, 0.80, 3, 5)")
+      L("    local long = T.longPressRatio(0.50, 0.50, 20)")
+      L("    local multi = T.pinch(DW / 2, DH / 2, 20, 10, 2, 5)")
+      L("    local lock = D.lock(); local unlock = D.unlock()")
+      L("    local home = I.pressHome(40)")
+      L("    local lifecycle = A.launch(BID, 500); local state = A.windowState(BID); A.close(BID); A.activate(BID, 500)")
+      L("    local ok = wrote and got == token and pasted ~= false and cleared ~= false and swiped ~= false and long ~= false and multi ~= false and lock ~= false and unlock ~= false and home ~= false and lifecycle ~= false and state.bid == BID")
+      L("    Zy.Script.set(\"capability_non_visual\", ok)")
+      L("    Zy.Script.set(\"capability_detail\", \"input=1;clipboard=1;gesture=1;multi_touch=\" .. tostring(multi ~= false) .. \";lock_unlock=\" .. tostring(lock ~= false and unlock ~= false) .. \";home=\" .. tostring(home ~= false) .. \";app_lifecycle=\" .. tostring(lifecycle ~= false))")
+      L("    return ok, ok and \"non_visual_business_device_verified\" or \"non_visual_business_failed\"")
+    end
+    L("  end)")
+    L("  local cap_ok, cap_reason = Zy.Script.runTask(\"capability_suite\")")
+    L("  ailog(\"CAPABILITY_SUITE ok=\" .. tostring(cap_ok) .. \" reason=\" .. tostring(cap_reason))")
+    L("  local function capability_kv()")
+    L("    local var = Zy.File.varDir()")
+    L("    local go = Zy.File.read(var .. \"/.ziyan_capability_context\") or Zy.File.read(var .. \"/.ziyan_embed_go\") or \"\"")
+    L("    local nonce = go:match(\"nonce=([^\\r\\n]+)\") or \"\"")
+    L("    local session_id = go:match(\"session_id=([^\\r\\n]+)\") or \"\"")
+    L("    local prof = Zy.Device.profile() or {}")
+    L("    local front = Zy.App.front()")
+    L("    local detail = Zy.Script.get(\"capability_detail\") or \"\"")
+    L("    local function kv_value(value) return (tostring(value or \"\"):gsub(\"[\\r\\n]\", \" \")) end")
+    L("    return table.concat({")
+    L("      \"result_ready=1\",")
+    L("      " .. string.format("%q", "capability=" .. tostring(plan.capability)) .. ",")
+    L("      \"module_ok=\" .. tostring(cap_ok),")
+    L("      \"real_device=true\",")
+    L("      \"nonce=\" .. kv_value(nonce),")
+    L("      \"session_id=\" .. kv_value(session_id),")
+    L("      \"front=\" .. kv_value(front),")
+    L("      \"device_model=\" .. kv_value(prof.model),")
+    L("      \"detail=\" .. kv_value(detail),")
+    L("      \"reason=\" .. kv_value(cap_reason),")
+    L("    }, string.char(10)) .. string.char(10)")
+    L("  end")
+    L("  Zy.File.write(Zy.File.varDir() .. \"/.ziyan_capability_result\", capability_kv())")
+  end
   L("")
   L("  local handlers = {")
   L("    boot = function(ctx) Zy.App.launch(BID, 600); Zy.Screen.sync(1, BID) end,")
   L("    loading = function(ctx) end,")
   L("    login = function(ctx)")
-  L("      local x, y = ctx.findText(\"登录\")")
-  L("      if x ~= -1 then ctx.tapHit(x, y) else")
-  if act.kind == "launch" then
-    L("        Zy.App.activate(BID, 600)")
-  else
-    L(string.format("        ctx.tapRatio(%.4f, %.4f)", rx, ry))
-  end
-  L("      end")
+  L("      -- P3：登录页不是门禁。禁止点登录、禁止 Input.text 填账号密码。")
+  L("      Zy.Script.set(\"paused_auth\", true)")
+  L("      Zy.Script.set(\"done\", true)")
+  L("      ailog(\"PAUSED_SAFE reason=login_credentials_not_a_p3_gate\")")
   L("    end,")
   L("    menu = function(ctx)")
   L("      local x, y = ctx.findText(\"领取\")")
@@ -323,7 +567,6 @@ function M.generate(plan, opts)
   L("    error = function(ctx) Zy.Script.recover({ policy = \"resync\", reason = \"ai_error_state\" }) end,")
   L("    default = function(ctx)")
   L("      local x, y = ctx.findText(\"领取\")")
-  L("      if x == -1 then x, y = ctx.findText(\"登录\") end")
   L("      if x ~= -1 then ctx.tapHit(x, y) else")
   L(string.format("        ctx.tapRatio(%.4f, %.4f)", rx, ry))
   L("      end")
@@ -331,7 +574,7 @@ function M.generate(plan, opts)
   L("  }")
   L("")
   L("  -- 视觉增强：Vision/OCR/Image；冒烟可设 __ZIYAN_OCR_NO_SHOT")
-  local words = plan.words or { "登录", "开始", "确定", "进入", "领取" }
+  local words = plan.words or { "开始", "确定", "进入", "领取" }
   local wlit = {}
   for _, w in ipairs(words) do
     wlit[#wlit + 1] = string.format("%q", w)
@@ -405,12 +648,45 @@ end
 function M.test(path_or_src, opts)
   opts = opts or {}
   local Zy = assert(_G.Zy)
+  if opts.real_device ~= true then
+    local detail = {
+      path = path_or_src,
+      phase = "not_run",
+      reason = "REAL_DEVICE_TEST_REQUIRED",
+      real_device = false,
+      functional_pass = false,
+    }
+    M.record({
+      goal = opts.goal, bid = opts.bid, path = path_or_src, ok = false,
+      reason = detail.reason, event = "test_blocked_local", iter = opts.iter,
+    })
+    return false, detail
+  end
   local path = path_or_src
   if type(path_or_src) == "string" and path_or_src:find("function main", 1, true) then
     path = M.save(path_or_src, { goal = opts.goal or "inline", bid = opts.bid, name = "ai_inline_test.lua" })
   end
   log("AI.test " .. tostring(path))
-  -- 轻量：仅语法/加载，不执行 main（避免 App.launch 挂死冒烟）
+  local source = ""
+  do
+    local f = io.open(path, "r")
+    if f then source = f:read("*a") or ""; f:close() end
+  end
+  if not source:find("AI%-GENERATED", 1, false) or not source:find("Zy%.", 1, false) then
+    local detail = {
+      path = path,
+      phase = "not_run",
+      reason = "GENERATED_ZY_MODULE_SOURCE_REQUIRED",
+      real_device = true,
+      functional_pass = false,
+    }
+    M.record({
+      goal = opts.goal, bid = opts.bid, path = path, ok = false,
+      reason = detail.reason, event = "test_source_rejected", iter = opts.iter,
+    })
+    return false, detail
+  end
+  -- 本地 load-only/light-test 只能是语法检查，绝不计入功能通过。
   if opts.load_only or opts.light_test then
     local chunk, e
     if type(loadfile) == "function" then
@@ -423,10 +699,14 @@ function M.test(path_or_src, opts)
     end
     local ok = type(chunk) == "function"
     M.record({
-      goal = opts.goal, bid = opts.bid, path = path, ok = ok,
-      reason = ok and "load_only" or tostring(e), event = "test_load", iter = opts.iter,
+      goal = opts.goal, bid = opts.bid, path = path, ok = false,
+      reason = ok and "LOCAL_LOAD_ONLY_NOT_FUNCTIONAL_PASS" or tostring(e),
+      event = "test_load", iter = opts.iter,
     })
-    return ok, { path = path, phase = "load_only", err = e, load_only = true }
+    return false, {
+      path = path, phase = "load_only", err = e, load_only = true,
+      real_device = false, functional_pass = false,
+    }
   end
   local ok_load, mod = pcall(dofile, path)
   if not ok_load then
@@ -447,13 +727,40 @@ function M.test(path_or_src, opts)
     local okp, ph = pcall(function() return Zy.Game and Zy.Game.phase and Zy.Game.phase(opts.bid or C.bid) end)
     if okp then phase = ph or "?" end
   end
+  local evidence, evidence_raw = {}, ""
+  if opts.require_capability_evidence then
+    evidence, evidence_raw = read_kv_file(var_dir() .. "/.ziyan_capability_result")
+  end
+  local evidence_ready = evidence.result_ready == "1"
+  local capability_evidence = (not opts.require_capability_evidence) or (
+    evidence_ready and evidence.real_device == "true"
+      and evidence.module_ok == "true"
+      and evidence.capability ~= nil
+      and evidence.session_id ~= nil and evidence.session_id ~= ""
+      and evidence.nonce ~= nil and evidence.nonce ~= ""
+      and evidence.front ~= nil and evidence.front ~= ""
+  )
   local gen_ok = ok_run == true
   local reason = gen_ok and ("ran phase=" .. tostring(phase)) or tostring(err)
+  if opts.require_capability_evidence and not capability_evidence then
+    gen_ok = false
+    reason = "CAPABILITY_EVIDENCE_INCOMPLETE"
+  end
   pcall(M.record, {
     goal = opts.goal, bid = opts.bid, path = path, ok = gen_ok,
     reason = reason, phase = phase, event = "test", iter = opts.iter,
   })
-  return gen_ok, { path = path, phase = phase, err = err, business_done = not not Zy.Script.get("done") }
+  return gen_ok, {
+    path = path, phase = phase, err = err,
+    business_done = not not Zy.Script.get("done"),
+    real_device = true, functional_pass = gen_ok,
+    RESULT_READY = evidence_ready,
+    capability_evidence = capability_evidence,
+    session_id = evidence.session_id,
+    nonce = evidence.nonce,
+    cleanup_active = false,
+    evidence = evidence_raw,
+  }
 end
 
 --- 根据失败原因调整计划
@@ -462,7 +769,9 @@ function M.optimize(plan, fail_info)
   plan = plan or {}
   local reason = tostring(fail_info.reason or "")
   local tune = { shift_x = 0, shift_y = 0 }
-  if reason:find("still_login", 1, true) or reason:find("no_change", 1, true) then
+  if reason:find("still_login", 1, true) then
+    plan.action = { kind = "pause_auth", label = "p3_skip_credentials" }
+  elseif reason:find("no_change", 1, true) then
     tune.shift_y = -0.04
     tune.shift_x = 0.02
   elseif reason:find("vision", 1, true) then
@@ -500,7 +809,11 @@ function M.loop(goal, opts)
     local plan = M.plan(goal, ctx, { design_w = dw, design_h = dh, tune = opts.tune })
     local src = M.generate(plan, { max_loop = opts.max_loop or 2 })
     local path = M.save(src, { goal = goal, bid = bid, plan = plan, iter = iter, name = string.format("ai_loop_%d.lua", iter) })
-    local ok, detail = M.test(path, { goal = goal, bid = bid, iter = iter })
+    local ok, detail = M.test(path, {
+      goal = goal, bid = bid, iter = iter,
+      real_device = opts.real_device == true,
+      light_test = false,
+    })
     detail = detail or {}
     detail.ctx = ctx
     if ok then
@@ -555,6 +868,12 @@ function M.pipeline(goal, opts)
 
   -- 1 需求分析
   local analysis = M.analyzeNeed(goal, { bid = bid, design_w = dw, design_h = dh })
+  local gameplay = opts.gameplay == true or analysis.capability == "gameplay"
+  if gameplay then
+    analysis.capability = "gameplay"
+    opts.gameplay = true
+    opts.skip_ocr = true
+  end
   stage("需求分析", true, table.concat(analysis.tasks, ","))
 
   -- 2 任务规划 + 采集（可 offline）
@@ -594,7 +913,7 @@ function M.pipeline(goal, opts)
     return report
   end
 
-  -- 7 模拟运行（语法 load）
+  -- 7 本地只做语法加载检查，不作为功能测试或 PASS。
   local path = M.save(src, {
     goal = goal, bid = bid, plan = plan, name = opts.name or ("ai_pipe_" .. tostring(os.time()) .. ".lua"),
   })
@@ -612,22 +931,28 @@ function M.pipeline(goal, opts)
     ok_sim = type(chunk) == "function"
     err_sim = e
   end
-  stage("模拟运行", ok_sim, tostring(err_sim))
+  stage("本地语法检查", ok_sim, tostring(err_sim))
 
-  -- 8 真机测试（opts.skip_test 则跳过执行）
+  -- 8 真机测试：必须显式 real_device=true；跳过或本地调用均失败闭环。
   local tok, detail = false, {}
-  if opts.skip_test then
-    stage("真机测试", true, "skipped")
-    tok = true
-    detail = { phase = "skipped", path = path }
+  if opts.skip_test or opts.real_device ~= true then
+    stage("真机测试", false, "REAL_DEVICE_TEST_REQUIRED")
+    tok = false
+    detail = {
+      phase = "not_run", path = path,
+      reason = "REAL_DEVICE_TEST_REQUIRED",
+      real_device = false, functional_pass = false,
+    }
   else
-    -- 轻量：dofile 加载；执行时强制 OCR_NO_SHOT 防卡
+    -- 真机路径执行完整视觉/触控链，不设置 OCR_NO_SHOT 或 light_test。
     local prev = _G.__ZIYAN_OCR_NO_SHOT
-    if opts.light_test ~= false then _G.__ZIYAN_OCR_NO_SHOT = true end
+    _G.__ZIYAN_OCR_NO_SHOT = false
     tok, detail = M.test(path, {
       goal = goal, bid = bid, iter = 1,
-      light_test = (opts.light_test ~= false),
+      real_device = true,
+      light_test = false,
       load_only = opts.load_only,
+      require_capability_evidence = plan.capability ~= nil,
     })
     _G.__ZIYAN_OCR_NO_SHOT = prev
     detail = detail or {}
@@ -635,7 +960,7 @@ function M.pipeline(goal, opts)
   end
 
   -- 9 结果验证
-  local verified = tok and (detail.reason ~= "test_load")
+  local verified = tok and detail.real_device == true and detail.functional_pass == true
   stage("结果验证", verified, detail.phase)
 
   -- 10 错误修复
@@ -670,7 +995,7 @@ function M.pipeline(goal, opts)
     report.elite = elite
   end
 
-  report.ok = tok or (opts.skip_test and vok)
+  report.ok = verified
   report.path = path
   report.plan = plan
   report.analysis = analysis

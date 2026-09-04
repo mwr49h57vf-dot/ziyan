@@ -45,8 +45,29 @@ function M.classify(bid, opts)
     end
   end
 
-  -- OCR/Vision 词表探测（通用词，不绑 Bundle）；无截图冒烟模式跳过重 OCR
-  if not _G.__ZIYAN_OCR_NO_SHOT then
+  local skip_ocr = opts.skip_ocr or opts.light or _G.__ZIYAN_OCR_NO_SHOT
+  -- 找图优先于 OCR：机上 sidecar 会挂死，模板在盘时直接分类。
+  if Zy and Zy.Image and type(Zy.Image.find) == "function" then
+    local root = "/private/var/mobile/Media/ZiYan/templates"
+    for _, st in ipairs({ "error", "loading", "login", "role", "menu" }) do
+      for _, w in ipairs(M.LEXICON[st] or {}) do
+        local file = tostring(w):gsub("[^%w%._%-]+", "_") .. ".png"
+        local path = root .. "/" .. st .. "/" .. file
+        local f = io.open(path, "rb")
+        if f then
+          f:close()
+          local x, y = Zy.Image.find(path, tonumber(opts.fuzzy) or 80)
+          x, y = tonumber(x), tonumber(y)
+          if x and y and x >= 0 and y >= 0 then
+            return st, { via = "image", word = w, x = x, y = y }
+          end
+        end
+      end
+    end
+  end
+
+  -- OCR/Vision 词表探测（通用词，不绑 Bundle）；无截图冒烟/探索模式跳过重 OCR
+  if not skip_ocr then
     if defined("visionAnalyze") then
       for _, st in ipairs({ "error", "loading", "login", "role", "menu" }) do
         local hit, kind, x, y, c, detail = visionAnalyze({
@@ -122,7 +143,7 @@ function M.suggest(state)
   local map = {
     boot = "launch_app_and_sync",
     loading = "wait_and_reclassify",
-    login = "analyze_auth_ui_then_act",
+    login = "pause_auth_skip_credentials",
     menu = "select_primary_entry_then_verify",
     role = "confirm_identity_then_verify",
     running = "observe_or_task_step",
@@ -184,6 +205,13 @@ function M.stepTo(bid, target, max_steps)
       if Zy and Zy.Screen then Zy.Screen.sync(C.orient, bid) end
     elseif fr.phase == "loading" then
       if defined("mSleep") then mSleep(1500) end
+    elseif fr.phase == "login" then
+      -- P3 门禁不含填写账号密码：登录页安全暂停，不点登录钮、不填框。
+      if Zy and Zy.Script then
+        Zy.Script.set("paused_auth", true)
+        Zy.Script.set("last_reason", "login_credentials_not_a_p3_gate")
+      end
+      return false, fr
     else
       -- 通用：点设计中心偏下一次（主 CTA 常见区），必须经 Verify
       if Zy and Zy.Script then

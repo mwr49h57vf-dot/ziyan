@@ -94,11 +94,8 @@
   return o;
 }
 
-/// 8-161-66 / 128 / 131：仅在「可见屏为竖」时允许竖 host+旋转。
-/// 屏已横（游戏横持）禁止 toastLock——否则 scene 竖 + 竖 host + CCW90 叠在横屏上错位
-/// （.112 dump: screenLand=1 sceneLand=0 mode=sessionLock_portraitHost）。
-/// 131：前台已是游戏且脚本横 init → 禁竖锁（iPhone7 UIScreen 常假竖 320×568）。
-/// 对标触动：toast 贴可见屏底边，不跟错误坐标系硬旋。
+/// 脚本会话只以 init(0/1/2) 和当前可见屏几何布局；不得按
+/// SpringBoard/业务 App 的 bundle 选择方向策略。
 + (BOOL)toastSessionLockPortraitHost {
   NSInteger o = [self scriptOrient];
   if (o != 1 && o != 2) {
@@ -110,20 +107,7 @@
     return NO;
   }
   if ([self scriptSessionActive]) {
-    NSString *rawFront = [NSString
-        stringWithContentsOfFile:ZiYanVarFile(@".ziyan_front_bid")
-                        encoding:NSUTF8StringEncoding
-                           error:nil];
-    NSString *front = [[[rawFront componentsSeparatedByCharactersInSet:
-                                       [NSCharacterSet newlineCharacterSet]]
-                          firstObject]
-        stringByTrimmingCharactersInSet:
-            [NSCharacterSet whitespaceAndNewlineCharacterSet]];
-    NSString *fl = front.lowercaseString ?: @"";
-    if (front.length > 0 && ![fl containsString:@"springboard"]) {
-      return NO; // 游戏横持会话：假竖 UIScreen 也走横逻辑
-    }
-    return YES; // Home / 桌面：仍竖锁
+    return YES;
   }
   return [[NSFileManager defaultManager]
       fileExistsAtPath:ZiYanVarFile(@".ziyan_active")];

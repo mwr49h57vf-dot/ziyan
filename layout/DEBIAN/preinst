@@ -1,15 +1,18 @@
 #!/bin/bash
-# preinst — 换包前必须卸掉 KeepAlive，否则 iOS13 launchd 在 binary 缺失时内核 panic（冷重启）
-# 实证：.101 2026-07-30 22:24 panic-full Job=com.ziyan.framecap missing executable
+# preinst — 默认安装/升级绝不改变现有进程生命周期。
+# 新文件由 dpkg 原子替换；新注入与守护生效须由人工授权的独立激活步骤完成。
 set +e
-for LD in /Library/LaunchDaemons /var/jb/Library/LaunchDaemons; do
-  for p in com.ziyan.framecap.plist com.ziyan.zydaemon.plist com.ziyan.fscloak.plist \
-           com.ziyan.engine.plist com.ziyan.scripthub.plist; do
-    [ -f "$LD/$p" ] || continue
-    launchctl bootout system "$LD/$p" >/dev/null 2>&1 || true
-    launchctl unload "$LD/$p" >/dev/null 2>&1 || true
-  done
-done
-killall -9 ziyan_framecap >/dev/null 2>&1 || true
-killall -9 ziyadaemond >/dev/null 2>&1 || true
+
+JB=""
+[ -d /var/jb/usr ] && JB="/var/jb"
+ROOT="${JB}/usr/lib/ziyan"
+MARKER="$ROOT/var/.ziyan_inject_reload_pending"
+
+mkdir -p "$ROOT/var" 2>/dev/null || true
+{
+  echo "status=pending_manual_inject_reload"
+  echo "phase=preinst"
+  echo "reason=package_install_or_upgrade_no_lifecycle_change"
+} >"$MARKER" 2>/dev/null || true
+chmod 666 "$MARKER" 2>/dev/null || true
 exit 0

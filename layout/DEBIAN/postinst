@@ -1,11 +1,30 @@
 #!/bin/bash
 set -e
 
-# rootless: /var/jb ；rootful: 空
-JB=""
-if [ -d /var/jb/usr ]; then
-  JB="/var/jb"
-fi
+# 安装方案必须以当前已配置 deb 的 Architecture 为准，不能依据 `/var/jb`
+# 是否存在：rootful 设备也可能遗留 rootless runtime，目录探测会令 SB/BB/
+# framecap 把同一套 IPC 分到两个 var 树。
+PKG_ARCH="$(dpkg-query -W -f='${Architecture}' com.ziyan.ziyan 2>/dev/null || true)"
+case "$PKG_ARCH" in
+  iphoneos-arm64*|arm64*) SCHEME="rootless"; JB="/var/jb" ;;
+  iphoneos-arm*|arm*) SCHEME="rootful"; JB="" ;;
+  *)
+    # 仅兼容旧 dpkg 环境；正常安装必须命中上面的 package Architecture。
+    if [ -f /usr/lib/ziyan/lib/lua/ziyan_run.lua ] &&
+       [ ! -f /var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua ]; then
+      SCHEME="rootful"; JB=""
+    else
+      SCHEME="rootless"; JB="/var/jb"
+    fi
+    ;;
+esac
+SCHEME_MARKER="/var/mobile/Library/Preferences/com.ziyan.ziyan.runtime_scheme"
+mkdir -p "$(dirname "$SCHEME_MARKER")" 2>/dev/null || true
+tmp_marker="${SCHEME_MARKER}.$$"
+printf '%s\n' "$SCHEME" >"$tmp_marker" 2>/dev/null &&
+  mv -f "$tmp_marker" "$SCHEME_MARKER" 2>/dev/null || true
+rm -f "$tmp_marker" 2>/dev/null || true
+chmod 644 "$SCHEME_MARKER" 2>/dev/null || true
 ROOT="${JB}/usr/lib/ziyan"
 MS="${JB}/Library/MobileSubstrate/DynamicLibraries"
 LD="${JB}/Library/LaunchDaemons"
@@ -22,6 +41,8 @@ mkdir -p "$ROOT/bin" "$ROOT/lib" "$ROOT/engine" "$ROOT/var" \
   "$ROOT/runtime/scripts" "$ROOT/runtime/var/lib" \
   "$ROOT/runtime/var/log" "$ROOT/runtime/var/tmp" \
   "$ROOT/hook"
+printf '%s\n' "$SCHEME" >"$ROOT/var/.ziyan_runtime_scheme" 2>/dev/null || true
+chmod 644 "$ROOT/var/.ziyan_runtime_scheme" 2>/dev/null || true
 
 # 旧布局迁移：Media/ZiYan/{config,log,tmp,res} → ZYCV/ 后删除顶层四目录
 migrate_old() {
@@ -234,14 +255,7 @@ if [ -n "$JB" ] && [ -f "$LD/com.ziyan.engine.plist" ]; then
   sed -i '' "s|/usr/lib/ziyan|${JB}/usr/lib/ziyan|g" "$LD/com.ziyan.engine.plist" 2>/dev/null || \
     sed -i "s|/usr/lib/ziyan|${JB}/usr/lib/ziyan|g" "$LD/com.ziyan.engine.plist" 2>/dev/null || true
 fi
-killall -9 wnriakwyww >/dev/null 2>&1 || true
-killall -9 ziyan_fscloakd.sh >/dev/null 2>&1 || true
-if [ -f "$LD/com.ziyan.engine.plist" ]; then
-  launchctl bootout system "$LD/com.ziyan.engine.plist" >/dev/null 2>&1 || true
-  launchctl unload "$LD/com.ziyan.engine.plist" >/dev/null 2>&1 || true
-  launchctl bootstrap system "$LD/com.ziyan.engine.plist" >/dev/null 2>&1 || \
-    launchctl load -w "$LD/com.ziyan.engine.plist" >/dev/null 2>&1 || true
-fi
+# 安装/升级阶段只落盘。不得在 maintainer script 中停止、重载或启动现有服务。
 
 # 8-71：清 AFC/会话残留 + 还原桌面隐藏 App。不得杀 ZiYan App / Lua，不得重启 SB。
 rm -f \
@@ -347,20 +361,12 @@ if [ -f "$FSCLOAK_SH" ]; then
 </dict>
 </plist>
 EOF
-  launchctl bootout system "$LD/com.ziyan.fscloak.plist" >/dev/null 2>&1 || true
-  launchctl unload "$LD/com.ziyan.fscloak.plist" >/dev/null 2>&1 || true
-  launchctl bootstrap system "$LD/com.ziyan.fscloak.plist" >/dev/null 2>&1 || \
-    launchctl load -w "$LD/com.ziyan.fscloak.plist" >/dev/null 2>&1 || true
 fi
 
 # ScriptHub：保留脚本，但 8-88 起由 ZyDaemon 接管保活（避免双守护抢拉）
 SCRIPTHUB_SH="${ROOT}/bin/ziyan_scripthubd.sh"
 if [ -f "$SCRIPTHUB_SH" ]; then
   chmod 755 "$SCRIPTHUB_SH"
-  killall -9 ziyan_scripthubd.sh >/dev/null 2>&1 || true
-  launchctl bootout system "$LD/com.ziyan.scripthub.plist" >/dev/null 2>&1 || true
-  launchctl unload "$LD/com.ziyan.scripthub.plist" >/dev/null 2>&1 || true
-  rm -f "$LD/com.ziyan.scripthub.plist" 2>/dev/null || true
 fi
 
 # ZyDaemon：脚本 KeepAlive + 帧 shm 维护（不截屏；不碰 Desktop lua）
@@ -403,11 +409,6 @@ if [ -f "$ZYDAEMON_SH" ]; then
 </dict>
 </plist>
 EOF
-  killall -9 ziyan_zydaemond.sh >/dev/null 2>&1 || true
-  launchctl bootout system "$LD/com.ziyan.zydaemon.plist" >/dev/null 2>&1 || true
-  launchctl unload "$LD/com.ziyan.zydaemon.plist" >/dev/null 2>&1 || true
-  launchctl bootstrap system "$LD/com.ziyan.zydaemon.plist" >/dev/null 2>&1 || \
-    launchctl load -w "$LD/com.ziyan.zydaemon.plist" >/dev/null 2>&1 || true
   # 预创建外置帧文件（mobile/root 均可写）
   touch "${ROOT}/var/.ziyan_frame_shm" 2>/dev/null || true
   chmod 666 "${ROOT}/var/.ziyan_frame_shm" 2>/dev/null || true
@@ -482,9 +483,6 @@ if [ -x "$FRAMECAP_BIN" ] || [ -f "$FRAMECAP_WRAP" ]; then
 </dict>
 </plist>
 EOF
-  killall -9 ziyan_framecap >/dev/null 2>&1 || true
-  launchctl bootout system "$LD/com.ziyan.framecap.plist" >/dev/null 2>&1 || true
-  launchctl unload "$LD/com.ziyan.framecap.plist" >/dev/null 2>&1 || true
   # iOS 13 把这个 LaunchDaemon 槽位硬限到 6MB，dyld/ObjC 初始化前即会
   # 被 jetsam；framecap 统一由已存活的 zydaemon 子进程监督，禁在此 bootstrap。
   echo "zydaemon" >"${ROOT}/var/.ziyan_framecap_owner_mode" 2>/dev/null || true

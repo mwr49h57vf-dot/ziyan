@@ -964,22 +964,22 @@ static void ZiYanRunSelected(NSString *path) {
   ZiYanClearPaused();
   ZiYanClearStopFlag();
   ZiYanClearUserStopped(); // 8-136：允许再次「运行」
-  // 8-161-77：run_intent + target_bid + 默认 embed（对齐 TSDaemon）
+  // run_intent + target_bid + 默认 embed（目标由业务脚本/运行会话提供；
+  // 不从 ios7/ios8p 等脚本文件名猜 Bundle ID）
   {
     NSString *name = path.lastPathComponent ?: @"";
     NSString *intent = [NSString stringWithFormat:@"path=%@\nstop=0\n", path];
     ZiYanWriteVarText(@".ziyan_run_intent", intent);
-    NSString *tbid = nil;
-    if ([name containsString:@"ios8p"]) {
-      tbid = @"com.ljzbbadao.game";
-    } else if ([name containsString:@"ios7"]) {
-      tbid = @"com.xztl.ios";
-    }
+    (void)name;
+    NSString *tbid = [[NSString stringWithContentsOfFile:
+                           ZiYanVarFile(@".ziyan_target_bid")
+                                      encoding:NSUTF8StringEncoding
+                                         error:nil]
+                         stringByTrimmingCharactersInSet:
+                             [NSCharacterSet whitespaceAndNewlineCharacterSet]];
     if (tbid.length > 0) {
-      ZiYanWriteVarText(@".ziyan_target_bid",
-                        [NSString stringWithFormat:@"%@\n", tbid]);
       ZiYanAppendMinimizeLog(
-          [NSString stringWithFormat:@"menu_run target_bid=%@", tbid]);
+          [NSString stringWithFormat:@"menu_run target_bid_explicit=%@", tbid]);
     }
     // 触动式：脚本进 framecap；禁 embed_off 残留把稳路径打回文件 IPC
     [[NSFileManager defaultManager]
@@ -1551,6 +1551,27 @@ static void ZiYanHookVolumeButton(void) {
 
 static void ZiYanOpenApplicationBundle(NSString *bundleId);
 
+static pid_t ZiYanMarkedSpringBoardPid(void) {
+  NSString *raw =
+      [NSString stringWithContentsOfFile:ZiYanVarFile(@".ziyan_hooks")
+                                encoding:NSUTF8StringEncoding
+                                   error:nil];
+  for (NSString *line in [raw componentsSeparatedByString:@"\n"]) {
+    if ([line hasPrefix:@"sb_pid="]) {
+      return (pid_t)[[line substringFromIndex:7] intValue];
+    }
+  }
+  return 0;
+}
+
+static BOOL ZiYanSpringBoardPidChanged(pid_t expectedPid) {
+  if (expectedPid <= 1 || getpid() != expectedPid) {
+    return expectedPid > 1;
+  }
+  pid_t markedPid = ZiYanMarkedSpringBoardPid();
+  return markedPid > 1 && markedPid != expectedPid;
+}
+
 /// 8-161-79：目标 App 进程是否仍在（front_bid 文件在杀进程后会僵死）
 /// 1=alive 0=dead -1=unknown
 static int ZiYanBundleProcessAliveState(NSString *bundleId) {
@@ -1584,10 +1605,9 @@ static int ZiYanBundleProcessAliveState(NSString *bundleId) {
     if ([app respondsToSelector:psSel]) {
       id ps = ((id(*)(id, SEL))objc_msgSend)(app, psSel);
       if (ps) {
-        SEL ir = NSSelectorFromString(@"isRunning");
-        if ([ps respondsToSelector:ir]) {
-          return ((BOOL(*)(id, SEL))objc_msgSend)(ps, ir) ? 1 : 0;
-        }
+        // 不在这里直接返回 isRunning：SBApplication 的 processState
+        // 在进程退出后可能短暂保留 running，必须继续读取真实 PID 并由
+        // kill(pid, 0) 做最终判断。
         for (NSString *n in @[ @"pid", @"processIdentifier" ]) {
           SEL s = NSSelectorFromString(n);
           if ([ps respondsToSelector:s]) {
@@ -1821,6 +1841,15 @@ static NSString *ZiYanBundleIdOfApp(id app) {
   return ((id(*)(id, SEL))objc_msgSend)(app, bidSel);
 }
 
+static BOOL ZiYanGoHomeRequestOwnedByZiYan(NSString *request) {
+  for (NSString *line in [request componentsSeparatedByString:@"\n"]) {
+    if ([line isEqualToString:@"owner=com.ziyan.ziyan"]) {
+      return YES;
+    }
+  }
+  return NO;
+}
+
 /// App 最小化兜底：写 `.ziyan_go_home` → SpringBoard 回桌面（iOS13–16）
 /// 不杀脚本；不 respring。防抖，避免连点 Home 拖垮 SB。
 static void ZiYanRequestSpringBoardHome(void) {
@@ -1830,6 +1859,13 @@ static void ZiYanRequestSpringBoardHome(void) {
     dispatch_async(dispatch_get_main_queue(), ^{
       ZiYanRequestSpringBoardHome();
     });
+    return;
+  }
+  NSString *frontBid = ZiYanBundleIdOfApp(ZiYanFrontmostSBApplication());
+  if (![frontBid isEqualToString:@"com.ziyan.ziyan"]) {
+    ZiYanAppendMinimizeLog([NSString
+        stringWithFormat:@"go_home policy_skip_non_ziyan_front=%@",
+                         frontBid.length ? frontBid : @"(nil)"]);
     return;
   }
   static NSTimeInterval sLastHome = 0;
@@ -1933,7 +1969,7 @@ static void ZiYanRequestSpringBoardHome(void) {
   // rootless iOS16：homeHardwareButton 常「命中但无效」，front 仍为 ZiYan。
   // 因此不论 Home 是否 ok，只要前台不是 SpringBoard，都再走 workspace / SBUI 挂起。
   BOOL needSuspendFront = YES;
-  NSString *frontBid = nil;
+  frontBid = nil;
   if (front) {
     SEL bidSel = NSSelectorFromString(@"bundleIdentifier");
     if ([front respondsToSelector:bidSel]) {
@@ -2254,12 +2290,33 @@ static uint64_t gZiYanOpenAppGateEpoch = 0;
 static void ZiYanOpenAppScheduleProcessGate(NSString *bid, uint64_t epoch,
                                             NSTimeInterval startedAt,
                                             NSTimeInterval firstSeenAt,
-                                            int retried, int workspaceAccepted,
+                                            int launchAttempts,
+                                            pid_t springBoardPid,
+                                            int workspaceAccepted,
                                             int launchIdOk, int thinLsaw) {
   if (epoch != gZiYanOpenAppGateEpoch) {
     return;
   }
+  if (ZiYanSpringBoardPidChanged(springBoardPid)) {
+    ZiYanAppendMinimizeLog(
+        [NSString stringWithFormat:@"sb_pid_changed expected=%d marked=%d",
+                                   springBoardPid, ZiYanMarkedSpringBoardPid()]);
+    ZiYanAppendOpenAppLog(@"sb_pid_changed", @"vol", bid);
+    ZiYanOpenAppWriteGate(bid, 1, workspaceAccepted, 0, 0, launchIdOk,
+                          thinLsaw, @"sb_pid_changed");
+    return;
+  }
   NSTimeInterval now = [[NSDate date] timeIntervalSince1970];
+  NSString *frontBid = ZiYanBundleIdOfApp(ZiYanFrontmostSBApplication());
+  if ([frontBid isEqualToString:bid]) {
+    ZiYanAppendMinimizeLog(
+        [NSString stringWithFormat:@"launch_suppressed_duplicate front=%@",
+                                   bid]);
+    ZiYanAppendOpenAppLog(@"launch_suppressed_duplicate", @"vol", bid);
+    ZiYanOpenAppWriteGate(bid, 1, workspaceAccepted, 1, 1, launchIdOk,
+                          thinLsaw, @"already_front");
+    return;
+  }
   int alive = ZiYanBundleProcessAliveState(bid) == 1 ? 1 : 0;
   NSTimeInterval seen = firstSeenAt;
   if (alive) {
@@ -2275,14 +2332,19 @@ static void ZiYanOpenAppScheduleProcessGate(NSString *bid, uint64_t epoch,
                           @"process_stable");
     return;
   }
-  if (!alive && !retried && (now - startedAt) >= 1.0) {
-    ZiYanOpenAppTrySBUIOnce(bid, @"pid_retry_1s");
-    retried = 1;
+  if (!alive && launchAttempts < 5 &&
+      (now - startedAt) >= (NSTimeInterval)launchAttempts) {
+    NSString *why =
+        [NSString stringWithFormat:@"pid_retry_%ds", launchAttempts];
+    ZiYanOpenAppTrySBUIOnce(bid, why);
+    launchAttempts++;
   }
   if ((now - startedAt) >= 15.0) {
     ZiYanOpenAppWriteGate(bid, 1, workspaceAccepted, alive, 0, launchIdOk,
                           thinLsaw,
-                          alive ? @"exec_not_stable" : @"no_process");
+                          alive ? @"exec_not_stable"
+                                : (launchAttempts >= 5 ? @"max_retries"
+                                                       : @"no_process"));
     return;
   }
   ZiYanOpenAppWriteGate(bid, 1, workspaceAccepted, alive, 0, launchIdOk,
@@ -2290,9 +2352,9 @@ static void ZiYanOpenAppScheduleProcessGate(NSString *bid, uint64_t epoch,
                         alive ? @"exec_waiting_stable" : @"waiting_exec");
   dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)),
                  dispatch_get_main_queue(), ^{
-                   ZiYanOpenAppScheduleProcessGate(bid, epoch, startedAt, seen,
-                                                   retried, workspaceAccepted,
-                                                   launchIdOk, thinLsaw);
+                   ZiYanOpenAppScheduleProcessGate(
+                       bid, epoch, startedAt, seen, launchAttempts,
+                       springBoardPid, workspaceAccepted, launchIdOk, thinLsaw);
                  });
 }
 
@@ -2301,7 +2363,8 @@ static void ZiYanOpenAppScheduleProcessGate(NSString *bid, uint64_t epoch,
 /// 四层门：launchId/AX 不得写成 open_app_verified；仅 PID 连续 5s。
 static void ZiYanOpenApplicationBundle(NSString *bundleId) {
   if (bundleId.length == 0) {
-    bundleId = @"com.ziyan.ziyan";
+    ZiYanAppendOpenAppLog(@"open_app_skip_empty", @"vol", @"empty_arg");
+    return;
   }
   if (![NSThread isMainThread]) {
     dispatch_async(dispatch_get_main_queue(), ^{
@@ -2322,6 +2385,7 @@ static void ZiYanOpenApplicationBundle(NSString *bundleId) {
   }
   static NSString *sLastOpenBid = nil;
   static NSTimeInterval sLastOpenAt = 0;
+  pid_t springBoardPid = getpid();
   NSTimeInterval now = CFAbsoluteTimeGetCurrent();
   NSString *front =
       [[NSString stringWithContentsOfFile:ZiYanVarFile(@".ziyan_front_bid")
@@ -2334,15 +2398,20 @@ static void ZiYanOpenApplicationBundle(NSString *bundleId) {
   // 8-161-79：front 文件==bid 但进程已死时仍须激活（完全关闭后找不到的根因）
   if ([front isEqualToString:bundleId] &&
       ZiYanBundleProcessAliveState(bundleId) == 1) {
-    ZiYanAppendMinimizeLog(@"open_app already_alive_wait_stable");
+    ZiYanAppendMinimizeLog(@"launch_suppressed_duplicate already_alive");
+    ZiYanAppendOpenAppLog(@"launch_suppressed_duplicate", @"vol", bundleId);
     NSTimeInterval gateStart = [[NSDate date] timeIntervalSince1970];
     ZiYanOpenAppWriteGate(bundleId, 1, 0, 1, 0, 0, 0, @"already_exec");
     ZiYanOpenAppScheduleProcessGate(bundleId, openEpoch, gateStart, gateStart,
-                                    1, 0, 0, 0);
+                                    0, springBoardPid, 0, 0, 0);
     return;
   }
   if (sLastOpenBid && [sLastOpenBid isEqualToString:bundleId] &&
       (now - sLastOpenAt) < 3.0) {
+    ZiYanAppendMinimizeLog(
+        [NSString stringWithFormat:@"launch_suppressed_duplicate debounce=%@",
+                                   bundleId]);
+    ZiYanAppendOpenAppLog(@"launch_suppressed_duplicate", @"vol", bundleId);
     return;
   }
   sLastOpenBid = [bundleId copy];
@@ -2378,8 +2447,8 @@ static void ZiYanOpenApplicationBundle(NSString *bundleId) {
   ZiYanOpenAppWriteGate(bundleId, 1, workspaceAccepted, already, 0, launchIdOk,
                         0, already ? @"submitted_exec" : @"submitted_no_exec");
   ZiYanOpenAppScheduleProcessGate(bundleId, openEpoch, gateStart,
-                                  already ? gateStart : 0, 0, workspaceAccepted,
-                                  launchIdOk, 0);
+                                  already ? gateStart : 0, 1, springBoardPid,
+                                  workspaceAccepted, launchIdOk, 0);
 }
 
 /// 关闭指定 bundle：FBS terminate → SB pid kill → home → killall 可执行名
@@ -2605,6 +2674,17 @@ void ZiYanVolTrigPollOnce(void) {
   NSFileManager *fm = [NSFileManager defaultManager];
   // App「运行」：经 SB 代启 lua（避开 App 沙盒 pid 无效）
   [ZiYanScriptRunner serviceSpringBoardRunRequestIfNeeded];
+  // Keep Home/minimize/open_app requests on disk until SpringBoard has
+  // cleared the iOS 13 launch abort window.
+  static BOOL sLoggedColdStartHold = NO;
+  if (ZiYanSbInjectTooYoung()) {
+    if (!sLoggedColdStartHold) {
+      ZiYanAppendMinimizeLog(@"open_app_cold_start_suppressed age_lt_12s");
+      sLoggedColdStartHold = YES;
+    }
+    return;
+  }
+  sLoggedColdStartHold = NO;
 
   NSString *minimizePath = ZiYanVarFile(@".ziyan_app_minimize_req");
   if ([fm fileExistsAtPath:minimizePath]) {
@@ -2644,9 +2724,23 @@ void ZiYanVolTrigPollOnce(void) {
   NSString *homePath =
       [ZiYanVarDirectory() stringByAppendingPathComponent:@".ziyan_go_home"];
   if ([fm fileExistsAtPath:homePath]) {
+    NSString *request =
+        [NSString stringWithContentsOfFile:homePath
+                                  encoding:NSUTF8StringEncoding
+                                     error:nil] ?: @"";
     [fm removeItemAtPath:homePath error:nil];
     dispatch_async(dispatch_get_main_queue(), ^{
-      ZiYanRequestSpringBoardHome();
+      NSString *frontBid =
+          ZiYanBundleIdOfApp(ZiYanFrontmostSBApplication());
+      if (!ZiYanGoHomeRequestOwnedByZiYan(request)) {
+        ZiYanAppendMinimizeLog(@"go_home policy_reject_missing_ziyan_owner");
+      } else if (![frontBid isEqualToString:@"com.ziyan.ziyan"]) {
+        ZiYanAppendMinimizeLog([NSString
+            stringWithFormat:@"go_home policy_reject_front=%@",
+                             frontBid.length ? frontBid : @"(nil)"]);
+      } else {
+        ZiYanRequestSpringBoardHome();
+      }
     });
   }
 
@@ -2670,21 +2764,13 @@ void ZiYanVolTrigPollOnce(void) {
     });
   }
 
-  NSString *openPath =
-      [ZiYanVarDirectory() stringByAppendingPathComponent:@".ziyan_open_app"];
-  if ([fm fileExistsAtPath:openPath]) {
-    // 用户「关闭程序」粘性：吞掉自动打开，避免反复拉起+藏图标
-    if (ZiYanIsAppUserClosed()) {
-      [fm removeItemAtPath:openPath error:nil];
-    } else {
-      NSString *bid = [[NSString stringWithContentsOfFile:openPath
-                                                 encoding:NSUTF8StringEncoding
-                                                    error:nil]
-          stringByTrimmingCharactersInSet:
-              [NSCharacterSet whitespaceAndNewlineCharacterSet]];
-      [fm removeItemAtPath:openPath error:nil];
+  // In thin mode Vol is the only open_app consumer. In full mode FrameRelay
+  // owns the same file; leaving it untouched here avoids dual launch.
+  if (ZiYanSbVolThin()) {
+    NSString *bid = nil;
+    if (ZiYanConsumeOpenAppFile(@"vol", &bid) && bid.length > 0) {
       dispatch_async(dispatch_get_main_queue(), ^{
-        ZiYanOpenApplicationBundle(bid.length ? bid : @"com.ziyan.ziyan");
+        ZiYanOpenApplicationBundle(bid);
       });
     }
   }
@@ -2778,8 +2864,10 @@ void ZiYanVolTrigPollOnce(void) {
   {
     static NSTimeInterval sLastFrontWrite = 0;
     NSTimeInterval now = NSDate.date.timeIntervalSince1970;
-    // R8: 0.5s→2s 且 atomically:YES→NO（降低 disk writes，.53 资源超限主因）
-    if (now - sLastFrontWrite >= 2.0) {
+    // 这里是唯一能同时看见真实 SpringBoard 前台状态和全局显示帧的 reducer。
+    // 1s 发布一次有界前台证据：generic game 不依赖 AppTouch 注入；framecap
+    // 仍须按该证据门禁，不能把任意遗留 front_bid 当作当前业务 App。
+    if (now - sLastFrontWrite >= 1.0) {
       sLastFrontWrite = now;
       dispatch_async(dispatch_get_main_queue(), ^{
         NSString *bid = @"com.apple.springboard";
@@ -2803,12 +2891,30 @@ void ZiYanVolTrigPollOnce(void) {
             }
           }
         }
+        // 8-161-81：SBApplication 对象可能在进程退出后短暂残留。
+        // 进程已确认退出时不得继续发布旧业务前台，否则下一轮只能被
+        // PRE_BLOCKED，且会把已回到桌面的真实状态误判成业务 App 前台。
+        if (![bid isEqualToString:@"com.apple.springboard"] &&
+            ZiYanBundleProcessAliveState(bid) == 0) {
+          bid = @"com.apple.springboard";
+        }
         NSString *out = [ZiYanVarDirectory()
             stringByAppendingPathComponent:@".ziyan_front_bid"];
         // atomically:NO 避免 temp+rename 双倍 IO（IPC
         // 文件可容忍极小写中断窗口）
         [bid writeToFile:out
               atomically:NO
+                encoding:NSUTF8StringEncoding
+                   error:nil];
+        NSString *frontEvidence = [NSString
+            stringWithFormat:
+                @"v=1\nts_ms=%llu\nbid=%@\nsource=springboard_front_reducer\n",
+                (unsigned long long)llround(
+                    NSDate.date.timeIntervalSince1970 * 1000.0),
+                bid];
+        [frontEvidence
+            writeToFile:ZiYanVarFile(@".ziyan_front_active_evidence")
+              atomically:YES
                 encoding:NSUTF8StringEncoding
                    error:nil];
       });
@@ -3051,6 +3157,7 @@ __attribute__((constructor)) static void ZiYanVolInit(void) {
     if (![proc isEqualToString:@"SpringBoard"]) {
       return;
     }
+    ZiYanMarkSbInjectBirth();
 
     // 8-159 全零：默认空操作；8-161-42 若 sb_vol_thin → 仅装音量菜单 hooks
     if (ZiYanZeroSbFull() && !ZiYanSbVolThin()) {

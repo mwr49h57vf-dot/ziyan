@@ -195,11 +195,17 @@ function M.find(word, x1, y1, x2, y2)
   local dw, dh = C.require_design()
   x1, y1, x2, y2 = to_logic_region(x1, y1, x2, y2)
   if defined("visionFindText") then
-    return visionFindText(word, x1, y1, x2, y2, dw, dh)
+    local fx, fy, via = visionFindText(word, x1, y1, x2, y2, dw, dh)
+    fx, fy = tonumber(fx), tonumber(fy)
+    if fx and fy and fx >= 0 and fy >= 0 then
+      return fx, fy, via or "vision"
+    end
+    return -1, -1, via or "miss"
   end
   if defined("findStr") then
     local ok, fx, fy = pcall(findStr, word, x1, y1, x2, y2)
-    if ok and fx and fx ~= -1 then
+    fx, fy = tonumber(fx), tonumber(fy)
+    if ok and fx and fy and fx >= 0 and fy >= 0 then
       return fx, fy, "findStr"
     end
   end

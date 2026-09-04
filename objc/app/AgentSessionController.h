@@ -26,6 +26,7 @@ typedef NS_ENUM(NSInteger, AgentUIState) {
 - (void)recoverStaleSession;
 - (void)cancelIdle;
 - (BOOL)beginLearnArmed;
+- (BOOL)beginAutonomousExploreName:(NSString *)name bid:(NSString *)bid;
 - (void)cancelWaitingLock;
 - (void)handleVolumeUp;
 - (void)lockTestTarget:(NSString *)bid name:(NSString *)name;

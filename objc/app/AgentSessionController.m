@@ -457,6 +457,23 @@
   return YES;
 }
 
+- (BOOL)beginAutonomousExploreName:(NSString *)name bid:(NSString *)bid {
+  if (self.isActive || ![[self class] isLockableBid:bid]) {
+    return NO;
+  }
+  self.sessionId = [NSString
+      stringWithFormat:@"agp_%lld",
+                       (long long)([[NSDate date] timeIntervalSince1970] * 1000)];
+  self.mode = @"gameplay";
+  self.bundleId = bid;
+  self.displayName = name.length ? name : [[self class] displayNameForBid:bid];
+  [self clearTemps];
+  [self transitTo:AgentUIExploring reason:@"gameplay_start"];
+  [self startPoller];
+  [[AgentAutonomousEngine shared] startExploreName:self.displayName bid:bid];
+  return YES;
+}
+
 - (void)cancelWaitingLock {
   [self transitTo:AgentUICancelled reason:@"volume_waiting_lock"];
   self.sessionId = @"";
@@ -500,7 +517,9 @@
     return;
   }
   if (self.uiState == AgentUIExploring || self.uiState == AgentUIIterating) {
-    [self convergeFrozenMode:@"p3p4_frozen_stop"];
+    [[AgentAutonomousEngine shared] stopAndGenerate];
+    [self convergeFrozenMode:@"gameplay_stop_generated"];
+    [self refreshScriptList];
     return;
   }
 }

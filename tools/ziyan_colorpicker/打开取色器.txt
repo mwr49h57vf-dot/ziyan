@@ -1,14 +1,15 @@
-子砚取点抓色器 v1.3.4
+子砚取点抓色器 v1.5.0
 ==============
 
 唯一主程序：ZiYanColorPicker.py（色串：formats.py）
-Windows 包：ZiYanColorPicker_v134.zip / 启动取色器.bat
+抄触动精灵取点抓色器(TSColorPicker) 1.7.10：
+  主窗放图和工具栏，取色面板是浮窗。
+Windows 旧包 ZiYanColorPicker_v134.exe 不要再用；源码以本目录 py 为准。
 
 设备截屏（不需要 SSH）
   1. 手机安装子砚（framecap 监听 50005，占用则 50015）
-  2. 取色器「设备·截屏」→ 填 IP →「检测环境」应显示 子砚运行中
-  3. 选 init 方向 →「截屏并加载」→ http://IP:50005/snapshot
-  4. 「测试」→ POST /findtest（与机上 ColorMatch 同核）
+  2. 主窗「文件 → 连接设备」填 IP → 探测 / 截屏
+  3. 「<-测试」→ POST /findtest（与机上 ColorMatch 同核；PC 不弹窗）
 
 协议：
   GET  /status     → zy1 文本 + JSON

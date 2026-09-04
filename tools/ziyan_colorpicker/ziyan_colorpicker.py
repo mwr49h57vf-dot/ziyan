@@ -3,7 +3,7 @@
 """
 兼容入口（已废弃独立 UI）。
 
-唯一主程序：ZiYanColorPicker.py（v1.3.4）
+唯一主程序：ZiYanColorPicker.py（v1.6.0）
 色串唯一源：formats.py
 自测只对照 Desktop ios7/ios8p（子砚抓色器产出），禁止触动色参样例。
 """

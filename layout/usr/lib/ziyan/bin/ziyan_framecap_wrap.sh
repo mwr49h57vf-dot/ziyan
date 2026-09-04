@@ -5,7 +5,13 @@
 # rootless：daemon PATH 常无 /var/jb/usr/bin → 禁止依赖裸 grep/sleep
 set +e
 ROOT="/usr/lib/ziyan"
-[ -d /var/jb/usr/lib/ziyan ] && ROOT="/var/jb/usr/lib/ziyan"
+for helper in /usr/lib/ziyan/bin/ziyan_runtime_root.sh \
+              /var/jb/usr/lib/ziyan/bin/ziyan_runtime_root.sh; do
+  [ -r "$helper" ] || continue
+  . "$helper"
+  break
+done
+ROOT="${ZIYAN_RUNTIME_ROOT:-$ROOT}"
 BIN="$ROOT/bin/ziyan_framecap"
 BOOT="$ROOT/bin/ziyan_framecap_bootstrap"
 VAR="$ROOT/var"

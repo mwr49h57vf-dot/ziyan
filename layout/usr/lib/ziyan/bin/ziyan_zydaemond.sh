@@ -8,25 +8,25 @@
 
 export PATH="/var/jb/bin:/var/jb/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:${PATH}"
 
-ROOTLESS=0
-[ -d /var/jb/usr/lib/ziyan ] && ROOTLESS=1
 ROOT=/usr/lib/ziyan
+for helper in /usr/lib/ziyan/bin/ziyan_runtime_root.sh \
+              /var/jb/usr/lib/ziyan/bin/ziyan_runtime_root.sh; do
+  [ -r "$helper" ] || continue
+  . "$helper"
+  break
+done
+ROOT="${ZIYAN_RUNTIME_ROOT:-$ROOT}"
+ROOTLESS=0
+case "$ROOT" in /var/jb/*) ROOTLESS=1 ;; esac
+VAR="$ROOT/var"
+LUA="$ROOT/bin/lua5.3"
+RUN="$ROOT/lib/lua/ziyan_run.lua"
 if [ "$ROOTLESS" = "1" ]; then
-  ROOT=/var/jb/usr/lib/ziyan
-fi
-
-if [ "$ROOTLESS" = "1" ]; then
-  VAR=/var/jb/usr/lib/ziyan/var
-  LUA=/var/jb/usr/lib/ziyan/bin/lua5.3
-  RUN=/var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua
   FRAMECAP_PLIST=/var/jb/Library/LaunchDaemons/com.ziyan.framecap.plist
-  export DYLD_LIBRARY_PATH=/var/jb/usr/lib/ziyan/lib
 else
-  VAR=/usr/lib/ziyan/var
-  LUA=/usr/lib/ziyan/bin/lua5.3
-  RUN=/usr/lib/ziyan/lib/lua/ziyan_run.lua
   FRAMECAP_PLIST=/Library/LaunchDaemons/com.ziyan.framecap.plist
 fi
+export DYLD_LIBRARY_PATH="$ROOT/lib"
 
 MEDIA=/var/mobile/Media/ZiYan
 INTENT="$VAR/.ziyan_run_intent"

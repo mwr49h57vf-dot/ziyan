@@ -1,5 +1,6 @@
 -- ZiYan 运行时路径：rootless (/var/jb/usr/lib/ziyan) / rootful (/usr/lib/ziyan)
 local M = {}
+local SCHEME_MARKER = "/var/mobile/Library/Preferences/com.ziyan.ziyan.runtime_scheme"
 
 local function exists(p)
   local f = io.open(p, "r")
@@ -10,11 +11,29 @@ local function exists(p)
   return false
 end
 
+local function marked_scheme()
+  local f = io.open(SCHEME_MARKER, "r")
+  if not f then return nil end
+  local s = (f:read("*l") or ""):match("^%s*(.-)%s*$")
+  f:close()
+  if s == "rootful" or s == "rootless" then
+    return s
+  end
+  return nil
+end
+
 function M.root()
   if M._root then
     return M._root
   end
-  if exists("/var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua")
+  -- postinst 按实际 deb Architecture 写此 marker。`/var/jb` 在 rootful
+  -- 设备也可能存在（残留 rootless 树），因此绝不能仅按目录存在选 IPC 根。
+  local scheme = marked_scheme()
+  if scheme == "rootless" then
+    M._root = "/var/jb/usr/lib/ziyan"
+  elseif scheme == "rootful" then
+    M._root = "/usr/lib/ziyan"
+  elseif exists("/var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua")
       or exists("/var/jb/usr/lib/ziyan/lib/lua/ziyan_engine/init.lua")
       or exists("/var/jb/usr/lib/ziyan/bin/lua5.3") then
     M._root = "/var/jb/usr/lib/ziyan"

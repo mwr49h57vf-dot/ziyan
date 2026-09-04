@@ -16,7 +16,9 @@
 @implementation ZiYanBootRecovery
 
 + (BOOL)isRootlessScheme {
-  return access("/var/jb/usr/lib/ziyan", F_OK) == 0;
+  // 与 FrameRelay/BB/framecap 共用 postinst 的 scheme marker；rootful 设备可能
+  // 保留 /var/jb 残留树，不能据此把本次安装误归为 rootless。
+  return ZiYanJailbreakRoot().length > 0;
 }
 
 + (BOOL)isJailbreakEnvironmentActive {

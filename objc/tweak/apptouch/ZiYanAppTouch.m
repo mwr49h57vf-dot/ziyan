@@ -922,12 +922,92 @@ static NSDictionary<NSString *, NSString *> *ZYA_CurrentHomeIntentForBid(
     } @catch (NSException *ex) {
       NSLog(@"[ZiYanAppTouch] hid %@", ex);
     }
-    if (wantUI && !sent) {
-      // 仅 HID 失败时可选 UI 路径；成功则不再 sendEvent
+    // 游戏进程内 _enqueueHIDEvent: 的返回不代表 UI 已经消费。
+    // 显式诊断开关下同时走 UIKit 触摸分发；实际成功仍必须由真机画面变化确认。
+    if (wantUI) {
+      @try {
+        UIWindow *key = app.keyWindow;
+        if (!key) {
+          for (UIWindow *w in app.windows) {
+            if (w.windowLevel == UIWindowLevelNormal) {
+              key = w;
+              break;
+            }
+          }
+        }
+        if (key) {
+          double wx = 0, wy = 0, unusedNx = 0, unusedNy = 0;
+          ZiYanMapLogicToWindowNorm(
+              sx, sy, key.bounds.size.width, key.bounds.size.height,
+              &wx, &wy, &unusedNx, &unusedNy);
+          CGPoint pt = CGPointMake((CGFloat)wx, (CGFloat)wy);
+          UIView *hit = [key hitTest:pt withEvent:nil] ?: (UIView *)key;
+          UITouch *touch = self.activeTouches[fkey];
+          if (!touch || [phaseCopy isEqualToString:@"down"]) {
+            touch = [[UITouch alloc] init];
+            self.activeTouches[fkey] = touch;
+          }
+          UITouchPhase touchPhase = UITouchPhaseBegan;
+          if ([phaseCopy isEqualToString:@"up"]) {
+            touchPhase = UITouchPhaseEnded;
+          } else if ([phaseCopy isEqualToString:@"move"]) {
+            touchPhase = UITouchPhaseMoved;
+          }
+          if ([touch respondsToSelector:@selector(setWindow:)]) {
+            ((void (*)(id, SEL, id))objc_msgSend)(touch, @selector(setWindow:),
+                                                  key);
+          }
+          if ([touch respondsToSelector:@selector(setView:)]) {
+            ((void (*)(id, SEL, id))objc_msgSend)(touch, @selector(setView:),
+                                                  hit);
+          }
+          if ([touch respondsToSelector:@selector(setPhase:)]) {
+            ((void (*)(id, SEL, NSInteger))objc_msgSend)(
+                touch, @selector(setPhase:), (NSInteger)touchPhase);
+          }
+          if ([touch respondsToSelector:@selector(setTimestamp:)]) {
+            ((void (*)(id, SEL, NSTimeInterval))objc_msgSend)(
+                touch, @selector(setTimestamp:),
+                NSProcessInfo.processInfo.systemUptime);
+          }
+          SEL loc = NSSelectorFromString(@"_setLocationInWindow:resetPrevious:");
+          if ([touch respondsToSelector:loc]) {
+            ((void (*)(id, SEL, CGPoint, BOOL))objc_msgSend)(touch, loc, pt,
+                                                             YES);
+          }
+          SEL hid = NSSelectorFromString(@"_setHidEvent:");
+          if ([touch respondsToSelector:hid]) {
+            ((void (*)(id, SEL, IOHIDEventRef))objc_msgSend)(touch, hid,
+                                                             handRetain);
+          }
+          SEL eventSel = NSSelectorFromString(@"_touchesEvent");
+          id event = [app respondsToSelector:eventSel]
+                         ? ((id(*)(id, SEL))objc_msgSend)(app, eventSel)
+                         : nil;
+          SEL add = NSSelectorFromString(@"_addTouch:forDelayedDelivery:");
+          if (event && [event respondsToSelector:add]) {
+            ((void (*)(id, SEL, id, BOOL))objc_msgSend)(event, add, touch, NO);
+            [app sendEvent:event];
+            uiSent = YES;
+          }
+          if ([phaseCopy isEqualToString:@"up"]) {
+            [self.activeTouches removeObjectForKey:fkey];
+          }
+        }
+      } @catch (NSException *ex) {
+        NSLog(@"[ZiYanAppTouch] ui %@", ex);
+      }
     }
-    (void)uiSent;
-    (void)phaseCopy;
-    (void)fkey;
+    NSString *dispatchLine = [NSString
+        stringWithFormat:@"app_dispatch phase=%@ hid=%d ui=%d want_ui=%d\n",
+                         phaseCopy, sent ? 1 : 0, uiSent ? 1 : 0,
+                         wantUI ? 1 : 0];
+    [dispatchLine writeToFile:[ZiYanVarDirectory()
+                                  stringByAppendingPathComponent:
+                                      @".ziyan_app_touch_dispatch"]
+                     atomically:YES
+                       encoding:NSUTF8StringEncoding
+                          error:nil];
     CFRelease(handRetain);
   });
   CFRelease(hand);
@@ -1107,13 +1187,23 @@ __attribute__((constructor)) static void ZiYanAppTouchInit(void) {
     if (bid.length == 0) {
       return;
     }
+    // Global substrate loading also reaches non-UIKit processes.  Only a
+    // real UIKit application may establish the AppTouch polling loop.
+    if (NSClassFromString(@"UIApplication") == Nil) {
+      return;
+    }
     if ([bid isEqualToString:@"com.apple.springboard"] ||
         [bid isEqualToString:@"com.ziyan.ziyan"]) {
       return;
     }
+    // 游戏进程的主队列可能被业务引擎占满；若把启动排到 main queue，
+    // constructor 只留下 ctor_enter/exit，AppTouch 永远不 poll，tap 会
+    // 落回 SpringBoard HID（hidOk=1 但业务 UI 不变）。启动轮询本身不依赖
+    // 主线程，改在独立队列延迟启动；真正的 UI 触摸仍由 injectPhase 的
+    // 主线程投递路径处理。
     dispatch_after(
         dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)),
-        dispatch_get_main_queue(), ^{
+        dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
           ZiYanInjectTrace("ZiYanAppTouch", "late_start");
           [[ZiYanAppTouch shared] start];
           ZiYanInstallRecordTouchHook();

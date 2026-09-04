@@ -3,6 +3,7 @@
 #import "ZiYanAppSelector.h"
 #import "ZiYanPaths.h"
 #import "AgentSessionController.h"
+#import "AgentAutonomousEngine.h"
 #import "AgentVersionStore.h"
 #import <objc/message.h>
 
@@ -213,18 +214,48 @@
 }
 
 - (void)aiTapped {
-  UIAlertController *stop = [UIAlertController
-      alertControllerWithTitle:@"AI 自研游戏玩法"
-                       message:@"本轮冻结。P3/P4 未实现，不得把空 Lua 当作自研完成。"
-                preferredStyle:UIAlertControllerStyleAlert];
-  [stop addAction:[UIAlertAction actionWithTitle:@"确定"
-                                           style:UIAlertActionStyleCancel
-                                         handler:nil]];
-  [self presentViewController:stop animated:YES completion:nil];
-  [@"NOT_IMPLEMENTED\nphase=P3P4\n" writeToFile:ZiYanVarFile(@".ziyan_agent_p3p4")
-                                     atomically:YES
-                                       encoding:NSUTF8StringEncoding
-                                          error:nil];
+  AgentSessionController *session = [AgentSessionController shared];
+  if (session.isActive) {
+    return;
+  }
+  __weak typeof(self) weakSelf = self;
+  [ZiYanAppSelector presentRealAppPickerFrom:self
+                                  completion:^(ZiYanAppPick *_Nullable pick) {
+                                    if (!pick) {
+                                      [weakSelf writeAppPickerProbeCancelled];
+                                      return;
+                                    }
+                                    [[weakSelf class] writeUserTarget:pick];
+                                    [weakSelf writeAppPickerProbeConfirmed];
+                                    [weakSelf openBundle:pick.bundleId];
+                                    dispatch_after(
+                                        dispatch_time(DISPATCH_TIME_NOW,
+                                                      (int64_t)(0.45 * NSEC_PER_SEC)),
+                                        dispatch_get_main_queue(), ^{
+                                          BOOL started =
+                                              [[AgentSessionController shared]
+                                                  beginAutonomousExploreName:
+                                                      pick.displayName
+                                                                          bid:
+                                                                              pick.bundleId];
+                                          NSDictionary *probe = @{
+                                            @"result" : started ? @"started" : @"not_started",
+                                            @"mode" : @"gameplay",
+                                            @"bundle_id" : pick.bundleId ?: @"",
+                                            @"display_name" : pick.displayName ?: @"",
+                                            @"engine_running" : @([[AgentAutonomousEngine shared] running]),
+                                          };
+                                          NSData *data = [NSJSONSerialization
+                                              dataWithJSONObject:probe
+                                                         options:0
+                                                           error:nil];
+                                          [data writeToFile:ZiYanVarFile(
+                                                                 @".ziyan_ui_gameplay.json")
+                                                   atomically:YES];
+                                          [weakSelf refreshStatus];
+                                          [weakSelf writeAgentPageProbe];
+                                        });
+                                  }];
 }
 
 - (void)dumpTapped {

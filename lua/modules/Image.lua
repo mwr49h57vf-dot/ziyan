@@ -58,10 +58,12 @@ function M.find(path, fuzzy, x1, y1, x2, y2)
     a, b, c, d = 0, 0, w - 1, h - 1
   end
   if defined("findImageInRegionFuzzy") then
-    return findImageInRegionFuzzy(path, tonumber(fuzzy) or 0.9, a, b, c, d)
+    local fx, fy = findImageInRegionFuzzy(path, tonumber(fuzzy) or 0.9, a, b, c, d)
+    return tonumber(fx) or -1, tonumber(fy) or -1
   end
   if defined("findImage") then
-    return findImage(path, fuzzy)
+    local fx, fy = findImage(path, fuzzy)
+    return tonumber(fx) or -1, tonumber(fy) or -1
   end
   return -1, -1
 end

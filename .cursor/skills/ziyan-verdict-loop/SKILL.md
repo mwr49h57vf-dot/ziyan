@@ -9,6 +9,7 @@ description: 为 ZiYan 越狱 iOS 自动化项目执行快速、证据优先的�
 
 ## 每次任务开始时
 
+0. 若本回合是 Codex 压缩摘要：停手，按仓库根目录 `AGENTS.md` 与 `.codex/skills/ziyan-compact-handoff/SKILL.md` 执行 `create_thread` 迁出；禁止在压缩对话里继续 `nextAction`。
 1. 在仓库根目录执行：`bash .cursor/skills/ziyan-verdict-loop/scripts/preflight.sh`。
 2. 按顺序读取：`今日项目进度.txt`、`ROADMAP.md`、`ARCHITECTURE.md`、`完整超越触动精灵方案.txt` 的当前执行章节。
 3. 只读取当前症状所需的源码、最新 `VERDICT.md` 与相关 `.149/.171` 只读观察证据。

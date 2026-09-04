@@ -4,10 +4,19 @@
 # 用法：bash tools/zy_pretest_clean_4phone.sh
 set -euo pipefail
 PASS="${ZY_SSH_PASS:-alpine}"
-SSH_OPTS=(-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=12
-          -o PreferredAuthentications=password -o PubkeyAuthentication=no
-          -o NumberOfPasswordPrompts=1)
-ssh_r() { sshpass -p "$PASS" ssh "${SSH_OPTS[@]}" "root@$1" "${@:2}"; }
+SSH_COMMON=(-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
+            -o ConnectTimeout=12)
+ssh_r() {
+  local host="$1"
+  shift
+  # 四机已部署公钥时优先无密码通道；仅在密钥不可用时回退 alpine。
+  if ssh "${SSH_COMMON[@]}" -o BatchMode=yes "root@$host" "$@"; then
+    return 0
+  fi
+  sshpass -p "$PASS" ssh "${SSH_COMMON[@]}" \
+    -o PreferredAuthentications=password -o PubkeyAuthentication=no \
+    -o NumberOfPasswordPrompts=1 "root@$host" "$@"
+}
 
 clean_one() {
   local tag="$1" ip="$2" scheme="$3"
@@ -28,6 +37,7 @@ mkdir -p "$VAR"
 echo stop=1 >"$VAR/.ziyan_stop"
 rm -f "$VAR/.ziyan_run_intent" "$VAR/.ziyan_embed_go" "$VAR/.ziyan_embed_script" \
       "$VAR/.ziyan_active" "$VAR/.ziyan_lua_run.pid" "$VAR/.ziyan_te_running" \
+      "$VAR/.ziyan_chat_fixture_ready" \
       "$VAR/.ziyan_touch_req" "$VAR/.ziyan_open_app" "$VAR/.ziyan_menu_run_trig" \
       "$VAR/.ziyan_vol_menu_sticky" "$VAR/.ziyan_force_recap" "$VAR/.ziyan_frame_req" \
       "$VAR/.ziyan_color_req" "$VAR/.ziyan_color_req.daemon" \
@@ -92,11 +102,17 @@ while [ "$i" -lt 6 ]; do
   # （实测 .53 清场时已是 springboard，30min 长跑却又变回 com.ljzbbadao.game）。
   # 桌面脚本必须在桌面上跑，这里把被测期间打开的 App 真正结束掉。
   if [ -n "$FB" ]; then
-    for p in $(ps -axo pid=,args= 2>/dev/null | grep -F "/Applications" \
+    # 第三方 App 主程序位于 /var/containers/Bundle/Application；旧逻辑只
+    # 匹配 /Applications，导致游戏跨 sbreload 存活并继续持有已删除的 shm。
+    # 测试机清场允许结束全部容器 App（包括 ZiYan 控制 App），系统进程不在此树。
+    for p in $(ps -axo pid=,args= 2>/dev/null |
+                 grep -E '/var/containers/Bundle/Application/|/Applications/' \
                  | grep -v '[S]pringBoard' | sed 's/^ *//' | cut -d' ' -f1); do
       BUNDLE=$(ps -p "$p" -o args= 2>/dev/null)
       case "$BUNDLE" in
-        *"$FB"*) kill -9 "$p" 2>/dev/null ;;
+        /var/containers/Bundle/Application/*|/Applications/*)
+          kill -9 "$p" 2>/dev/null
+          ;;
       esac
     done
     # 容器路径里不含 bundle id 的场景：按 SB 前台记录直接杀同名进程
@@ -140,8 +156,19 @@ EOS
 }
 
 clean_one 53 192.168.31.53 rootless &
+P53=$!
 clean_one 101 192.168.31.101 rootful &
+P101=$!
 clean_one 112 192.168.31.112 rootful &
+P112=$!
 clean_one 166 192.168.31.166 rootful &
-wait
+P166=$!
+FAIL=0
+for pid in "$P53" "$P101" "$P112" "$P166"; do
+  wait "$pid" || FAIL=1
+done
+if [ "$FAIL" -ne 0 ]; then
+  echo "======== CLEAN FAILED ========" >&2
+  exit 1
+fi
 echo "======== ALL CLEAN DONE ========"

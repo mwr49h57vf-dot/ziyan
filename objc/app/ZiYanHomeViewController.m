@@ -4,6 +4,7 @@
 #import "AgentSessionController.h"
 #import "AgentVersionStore.h"
 #import "ZiYanPaths.h"
+#import "ZiYanChatFixtureViewController.h"
 
 @interface ZiYanHomeViewController ()
 @property (nonatomic, strong) UILabel *scriptsTitleLabel;
@@ -203,6 +204,7 @@
   }
   NSString *cmd = [[line componentsSeparatedByString:@"\t"] firstObject] ?: @"";
   BOOL mine = [cmd isEqualToString:@"open_agent"] ||
+              [cmd isEqualToString:@"open_chat_fixture"] ||
               [cmd isEqualToString:@"agent_probe"] ||
               [cmd isEqualToString:@"pages_probe"] ||
               [cmd isEqualToString:@"home_probe"] ||
@@ -307,6 +309,15 @@
   }
   if ([cmd isEqualToString:@"open_agent"]) {
     [self openAgentShowingPicker:NO];
+    return;
+  }
+  if ([cmd isEqualToString:@"open_chat_fixture"]) {
+    UIViewController *top = self.navigationController.topViewController;
+    if (![top isKindOfClass:[ZiYanChatFixtureViewController class]]) {
+      [self.navigationController
+          pushViewController:[[ZiYanChatFixtureViewController alloc] init]
+                    animated:NO];
+    }
     return;
   }
   if ([cmd isEqualToString:@"pages_probe"] ||

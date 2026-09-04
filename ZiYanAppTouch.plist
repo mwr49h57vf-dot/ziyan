@@ -2,16 +2,13 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<!-- Substrate matches classes, not framework bundle identifiers.  UIApplication
+	     selects real UIKit apps; the constructor excludes SpringBoard and ZiYan. -->
 	<key>Filter</key>
 	<dict>
-		<key>Bundles</key>
+		<key>Classes</key>
 		<array>
-			<!-- 勿挂 UIKit：多进程抢 touch_req → 竖屏 HID sent=0 与横屏 sent=1 竞态 -->
-			<string>com.xztl.ios</string>
-			<string>com.ychj.hlhjlygr</string>
-			<string>com.zsyxs180.game</string>
-			<string>com.ljzbbadao.game</string>
-			<string>com.ownbook.notes</string>
+			<string>UIApplication</string>
 		</array>
 	</dict>
 </dict>

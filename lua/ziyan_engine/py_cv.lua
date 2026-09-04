@@ -1296,20 +1296,57 @@ function M.install()
     return nil
   end
 
+  -- 西部数码/万网 PASV 常回内网 IP，rootful 无 curl 时 ftplib 会连错数据口。
+  -- 禁止 io.popen（iOS embed 会挂 framecap）；错误写 ZIYAN_VAR 再读。
+  local function ftp_err_path()
+    return ZIYAN_VAR .. "/.ziyan_ftp_err.txt"
+  end
+
+  local function ftp_read_err()
+    local f = io.open(ftp_err_path(), "r")
+    if not f then return "" end
+    local t = f:read("*a") or ""
+    f:close()
+    t = t:gsub("\r", ""):gsub("%s+$", "")
+    local last = t:match("([^\n]+)$") or t
+    if last:find("530") then return "530 Login incorrect" end
+    if last:find("Access denied") then return "530 Login incorrect" end
+    return last
+  end
+
+  -- curl 被动模式：忽略服务器广告的 PASV IP，数据连接仍走控制连接主机。
+  local function ftp_curl_flags(timeout)
+    return string.format(
+      "--connect-timeout %d --max-time %d --ftp-pasv --ftp-skip-pasv-ip -sS",
+      math.min(12, tonumber(timeout) or 30), tonumber(timeout) or 30)
+  end
+
   local function ftp_via_py(op, host, user, password, a, b, port, timeout)
     local py = ftp_python()
     if not py then
       return { ok = false, error = "CAPABILITY_MISSING", via = "no_curl_no_python" }
     end
     local helper = ZIYAN_VAR .. "/.ziyan_ftp_cli.py"
-    if not file_exists(helper) then
+    local need = true
+    local hf0 = io.open(helper, "r")
+    if hf0 then
+      local head = hf0:read(80) or ""
+      hf0:close()
+      if head:find("skip_pasv_ip", 1, true) then need = false end
+    end
+    if need then
       local hf = io.open(helper, "w")
       if not hf then return { ok = false, error = "ftp_helper_write" } end
       hf:write([[
+# skip_pasv_ip
 import sys, ftplib
 op, host, user, password, a, b, port, timeout = sys.argv[1:9]
 port = int(port); timeout = float(timeout)
-ftp = ftplib.FTP()
+class FTP(ftplib.FTP):
+    def makepasv(self):
+        _h, p = ftplib.FTP.makepasv(self)
+        return self.host, p
+ftp = FTP()
 ftp.connect(host, port, timeout=timeout)
 ftp.login(user, password)
 if op == "upload":
@@ -1324,13 +1361,18 @@ ftp.quit()
 ]])
       hf:close()
     end
+    local errf = ftp_err_path()
+    pcall(os.remove, errf)
     local cmd = string.format(
-      "'%s' '%s' '%s' '%s' '%s' '%s' '%s' '%s' '%s' '%s' >/dev/null 2>&1",
+      "'%s' '%s' '%s' '%s' '%s' '%s' '%s' '%s' '%s' '%s' >'%s' 2>&1",
       py, helper, op, tostring(host or ""), tostring(user or ""),
       tostring(password or ""), tostring(a or ""), tostring(b or ""),
-      tostring(port or 21), tostring(timeout or 30))
+      tostring(port or 21), tostring(timeout or 30), errf)
     local st = os.execute(cmd)
-    return { ok = (st == true or st == 0), via = "python_ftplib" }
+    local ok = (st == true or st == 0)
+    local err = ftp_read_err()
+    if ok then return { ok = true, via = "python_ftplib" } end
+    return { ok = false, via = "python_ftplib", error = (err ~= "" and err or "ftp_fail") }
   end
 
   function FtpUpload(host, user, password, local_path, remote_path, port, timeout)
@@ -1338,14 +1380,18 @@ ftp.quit()
     timeout = tonumber(timeout) or 30
     local curl = ftp_curl_bin()
     if curl then
+      local errf = ftp_err_path()
+      pcall(os.remove, errf)
       local cmd = string.format(
-        "'%s' -s --max-time %d -T '%s' --user '%s:%s' 'ftp://%s:%d/%s' >/dev/null 2>&1",
-        curl, timeout, tostring(local_path or ""),
+        "'%s' %s -T '%s' --user '%s:%s' 'ftp://%s:%d/%s' >'%s' 2>&1",
+        curl, ftp_curl_flags(timeout), tostring(local_path or ""),
         tostring(user or ""), tostring(password or ""),
-        tostring(host or ""), port, tostring(remote_path or "")
+        tostring(host or ""), port, tostring(remote_path or ""), errf
       )
       local st = os.execute(cmd)
-      return { ok = (st == true or st == 0), via = "curl" }
+      local ok = (st == true or st == 0)
+      if ok then return { ok = true, via = "curl" } end
+      return { ok = false, via = "curl", error = ftp_read_err() }
     end
     return ftp_via_py("upload", host, user, password, local_path, remote_path, port, timeout)
   end
@@ -1355,14 +1401,18 @@ ftp.quit()
     timeout = tonumber(timeout) or 30
     local curl = ftp_curl_bin()
     if curl then
+      local errf = ftp_err_path()
+      pcall(os.remove, errf)
       local cmd = string.format(
-        "'%s' -s --max-time %d --user '%s:%s' 'ftp://%s:%d/%s' -o '%s' >/dev/null 2>&1",
-        curl, timeout, tostring(user or ""), tostring(password or ""),
+        "'%s' %s --user '%s:%s' 'ftp://%s:%d/%s' -o '%s' >'%s' 2>&1",
+        curl, ftp_curl_flags(timeout), tostring(user or ""), tostring(password or ""),
         tostring(host or ""), port, tostring(remote_path or ""),
-        tostring(local_path or "")
+        tostring(local_path or ""), errf
       )
       local st = os.execute(cmd)
-      return { ok = (st == true or st == 0), via = "curl" }
+      local ok = (st == true or st == 0)
+      if ok then return { ok = true, via = "curl" } end
+      return { ok = false, via = "curl", error = ftp_read_err() }
     end
     return ftp_via_py("download", host, user, password, remote_path, local_path, port, timeout)
   end
@@ -1372,13 +1422,17 @@ ftp.quit()
     timeout = tonumber(timeout) or 30
     local curl = ftp_curl_bin()
     if curl then
+      local errf = ftp_err_path()
+      pcall(os.remove, errf)
       local cmd = string.format(
-        "'%s' -s --max-time %d --user '%s:%s' -Q 'DELE %s' 'ftp://%s:%d/' >/dev/null 2>&1",
-        curl, timeout, tostring(user or ""), tostring(password or ""),
-        tostring(remote_path or ""), tostring(host or ""), port
+        "'%s' %s --user '%s:%s' -Q 'DELE %s' 'ftp://%s:%d/' >'%s' 2>&1",
+        curl, ftp_curl_flags(timeout), tostring(user or ""), tostring(password or ""),
+        tostring(remote_path or ""), tostring(host or ""), port, errf
       )
       local st = os.execute(cmd)
-      return { ok = (st == true or st == 0), via = "curl" }
+      local ok = (st == true or st == 0)
+      if ok then return { ok = true, via = "curl" } end
+      return { ok = false, via = "curl", error = ftp_read_err() }
     end
     return ftp_via_py("delete", host, user, password, remote_path, "", port, timeout)
   end
@@ -1386,7 +1440,7 @@ ftp.quit()
   function FtpRead(host, user, password, remote_path, port, timeout)
     local tmp = ZIYAN_VAR .. "/.ziyan_ftp_read.tmp"
     local r = FtpDownload(host, user, password, remote_path, tmp, port, timeout)
-    if not (r and r.ok) then return { ok = false } end
+    if not (r and r.ok) then return { ok = false, error = r and r.error } end
     local f = io.open(tmp, "rb")
     if not f then return { ok = false } end
     local data = f:read("*a") or ""
@@ -1403,8 +1457,8 @@ ftp.quit()
     local remote_sz = nil
     if curl then
       local cmd = string.format(
-        "'%s' -sI --max-time %d --user '%s:%s' 'ftp://%s:%d/%s' 2>/dev/null | tr -d '\\r' > '%s'",
-        curl, timeout, tostring(user or ""), tostring(password or ""),
+        "'%s' %s -I --user '%s:%s' 'ftp://%s:%d/%s' 2>/dev/null | tr -d '\\r' > '%s'",
+        curl, ftp_curl_flags(timeout), tostring(user or ""), tostring(password or ""),
         tostring(host or ""), port, tostring(remote_path or ""), tmp
       )
       os.execute(cmd)
@@ -1420,8 +1474,8 @@ ftp.quit()
     if not remote_sz and curl then
       -- SIZE 命令回退
       local cmd2 = string.format(
-        "'%s' -s --max-time %d --user '%s:%s' -Q 'SIZE %s' 'ftp://%s:%d/' 2>/dev/null | tr -cd '0-9' > '%s'",
-        curl, timeout, tostring(user or ""), tostring(password or ""),
+        "'%s' %s --user '%s:%s' -Q 'SIZE %s' 'ftp://%s:%d/' 2>/dev/null | tr -cd '0-9' > '%s'",
+        curl, ftp_curl_flags(timeout), tostring(user or ""), tostring(password or ""),
         tostring(remote_path or ""), tostring(host or ""), port, tmp
       )
       os.execute(cmd2)

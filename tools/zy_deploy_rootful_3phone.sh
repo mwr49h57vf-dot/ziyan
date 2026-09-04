@@ -36,9 +36,25 @@ for host in "${HOSTS[@]}"; do
   case "$host" in 101|112|166) ;; *) echo "FAIL: forbidden host .$host (allowed: 101 112 166)" >&2; exit 2 ;; esac
 done
 
-SSH_OPTS=(-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=12 -o PreferredAuthentications=password -o PubkeyAuthentication=no)
-ssh_r() { sshpass -p "$PASS" ssh "${SSH_OPTS[@]}" "root@192.168.31.$1" "${@:2}"; }
-scp_r() { sshpass -p "$PASS" scp "${SSH_OPTS[@]}" "$1" "root@192.168.31.$2:$3"; }
+SSH_OPTS=(-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=12
+          -o ServerAliveInterval=10 -o ServerAliveCountMax=6
+          -o PreferredAuthentications=password -o PubkeyAuthentication=no)
+SSH_KEY_OPTS=(-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=12
+              -o ServerAliveInterval=10 -o ServerAliveCountMax=6 -o BatchMode=yes)
+ssh_r() {
+  local host="$1"; shift
+  if ssh "${SSH_KEY_OPTS[@]}" "root@192.168.31.$host" "$@"; then
+    return 0
+  fi
+  sshpass -p "$PASS" ssh "${SSH_OPTS[@]}" "root@192.168.31.$host" "$@"
+}
+scp_r() {
+  local src="$1" host="$2" dst="$3"
+  if scp "${SSH_KEY_OPTS[@]}" "$src" "root@192.168.31.$host:$dst"; then
+    return 0
+  fi
+  sshpass -p "$PASS" scp "${SSH_OPTS[@]}" "$src" "root@192.168.31.$host:$dst"
+}
 
 LOCAL_SHA="$(shasum -a 256 "$DEB" | awk '{print $1}')"
 [ -z "$EXPECTED_SHA" ] || [ "$LOCAL_SHA" = "$EXPECTED_SHA" ] || {

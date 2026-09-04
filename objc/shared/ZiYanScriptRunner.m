@@ -247,10 +247,17 @@ static BOOL ZiYanArgsLookLikeZiYanLua(NSString *args) {
 }
 
 + (NSString *)framecapBinaryPath {
+  NSMutableArray<NSString *> *paths = [NSMutableArray arrayWithObject:
+      [ZiYanRuntimeBin() stringByAppendingPathComponent:@"ziyan_framecap"]];
   for (NSString *p in @[
          @"/var/jb/usr/lib/ziyan/bin/ziyan_framecap",
          @"/usr/lib/ziyan/bin/ziyan_framecap"
        ]) {
+    if (![paths containsObject:p]) {
+      [paths addObject:p];
+    }
+  }
+  for (NSString *p in paths) {
     if (access(p.fileSystemRepresentation, X_OK) == 0) {
       return p;
     }
@@ -259,13 +266,18 @@ static BOOL ZiYanArgsLookLikeZiYanLua(NSString *args) {
 }
 
 + (NSString *)framecapLaunchPlistPath {
-  NSString *jb = @"/var/jb/Library/LaunchDaemons/com.ziyan.framecap.plist";
-  NSString *rf = @"/Library/LaunchDaemons/com.ziyan.framecap.plist";
-  if ([[NSFileManager defaultManager] fileExistsAtPath:jb]) {
-    return jb;
+  NSString *selected =
+      ZiYanJBPath(@"/Library/LaunchDaemons/com.ziyan.framecap.plist");
+  if ([[NSFileManager defaultManager] fileExistsAtPath:selected]) {
+    return selected;
   }
-  if ([[NSFileManager defaultManager] fileExistsAtPath:rf]) {
-    return rf;
+  for (NSString *p in @[
+         @"/var/jb/Library/LaunchDaemons/com.ziyan.framecap.plist",
+         @"/Library/LaunchDaemons/com.ziyan.framecap.plist"
+       ]) {
+    if ([[NSFileManager defaultManager] fileExistsAtPath:p]) {
+      return p;
+    }
   }
   return nil;
 }
@@ -1488,16 +1500,6 @@ static BOOL ZiYanArgsLookLikeZiYanLua(NSString *args) {
     if ([embed[@"ok"] boolValue]) {
       return embed;
     }
-    // framecap 未就绪：再 Ensure 一次后重试 embed
-    (void)[self ensureFramecapAlive];
-    usleep(250000);
-    embed = [self runLuaViaEmbedAtPath:path
-                               pidFile:pidFile
-                               logFile:logFile
-                             oldPidHint:old];
-    if ([embed[@"ok"] boolValue]) {
-      return embed;
-    }
     // 仅显式 debug 旗才允许独立 lua；否则失败返回（逼齐 TSDaemon 模型）
     if (![[NSFileManager defaultManager]
             fileExistsAtPath:ZiYanVarFile(@".ziyan_embed_off")]) {
@@ -1706,10 +1708,10 @@ static BOOL ZiYanArgsLookLikeZiYanLua(NSString *args) {
             error:nil];
   chmod(ZiYanVarFile(@".ziyan_embed_go").fileSystemRepresentation, 0666);
 
-  // 等 framecap Poll ~1.5s
+  // 等 framecap Poll，SB 首次冷启动 ACK 可能超过 1.5s。
   BOOL ok = NO;
   pid_t pid = 0;
-  for (int i = 0; i < 30; i++) {
+  for (int i = 0; i < 160; i++) {
     usleep(50000);
     NSString *ack =
         [NSString stringWithContentsOfFile:ackPath

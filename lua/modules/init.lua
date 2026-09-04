@@ -34,6 +34,7 @@ local names = {
   "LearningObserver", "StabilityAnalyzer",
   "String", "Clipboard", "Timer", "Dialog",
   "Thread", "Widget",
+  "TestMatrix", "Chat", "RuleEngine", "Decision",
   "HealthMonitor", "SafeExecutor", "MemoryGuard", "CrashLog",
   "ScriptTimeout", "CacheHealth", "Util", "HttpCtl", "PerfGate",
   "AppDump", "AntiDetect", "Sandbox", "FrameHook", "AutoInject",

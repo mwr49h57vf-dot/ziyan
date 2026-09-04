@@ -100,7 +100,7 @@
 }
 
 + (BOOL)isRootlessScheme {
-  return [[NSFileManager defaultManager] fileExistsAtPath:@"/var/jb"];
+  return ZiYanJailbreakRoot().length > 0;
 }
 
 + (void)ensureMobileDir {

@@ -2,10 +2,28 @@
 -- package.path / toast / mSleep / notifyMessage / main()
 
 local function _ziyan_load_paths()
-  local candidates = {
+  -- 先加载与当前 runner 同目录的 helper。rootful 设备可能残留
+  -- `/var/jb/usr/lib/ziyan`，若固定 rootless-first，会把本次 rootful 会话
+  -- 连接到另一套 IPC var。
+  local candidates = {}
+  local info = debug and debug.getinfo and debug.getinfo(1, "S")
+  local source = info and info.source or ""
+  if source:sub(1, 1) == "@" then
+    local self_path = source:sub(2)
+    local local_paths, changed =
+        self_path:gsub("ziyan_run%.lua$", "ziyan_paths.lua")
+    if changed > 0 then
+      candidates[#candidates + 1] = local_paths
+    end
+  end
+  for _, p in ipairs({
     "/var/jb/usr/lib/ziyan/lib/lua/ziyan_paths.lua",
     "/usr/lib/ziyan/lib/lua/ziyan_paths.lua",
-  }
+  }) do
+    if p ~= candidates[1] then
+      candidates[#candidates + 1] = p
+    end
+  end
   for _, p in ipairs(candidates) do
     local ok, mod = pcall(dofile, p)
     if ok and type(mod) == "table" and mod.root then

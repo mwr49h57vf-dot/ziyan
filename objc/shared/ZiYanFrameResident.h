@@ -70,6 +70,7 @@ BOOL ZiYanFrameResidentIsPinned(void);
 typedef struct ZiYanCanonicalFrameToken {
   uint32_t frame_seq;
   uint32_t generation;
+  uint32_t front_hash;
   char front_bid[96];
   uint8_t pixel_format;
   uint32_t width;
@@ -80,6 +81,9 @@ typedef struct ZiYanCanonicalFrameToken {
   char source[24];
   char frame_status[24];
   char pixel_format_name[16];
+  /// 同一张已提交帧的 generation + seq + front_hash + capture_ts。所有
+  /// P4 诊断面必须发布同一个 token；空值表示 fail-closed，禁止回退旧文件。
+  char publish_token[128];
 } ZiYanCanonicalFrameToken;
 
 NSString *ZiYanFrameStatusName(uint8_t status);
@@ -89,6 +93,17 @@ void ZiYanCanonicalFrameTokenFill(
     ZiYanCanonicalFrameToken *tok,
     const ZiYanFrameShmHeader *_Nullable hdr, uint32_t generation,
     NSString *_Nullable frontBid, const char *_Nullable source);
+
+/// 仅接受同代、同前台 hash 的已提交帧。generation/front/header 任一不一致时
+/// 返回 NO 并清空 token，调用方必须把当前帧视为 unavailable。
+BOOL ZiYanCanonicalFrameTokenFillCommitted(
+    ZiYanCanonicalFrameToken *_Nonnull tok,
+    const ZiYanFrameShmHeader *_Nullable hdr, const char *_Nullable source);
+
+/// 读取一份可跨 metrics/health/current-frame 复用的已提交 token。无同代
+/// snapshot 时 fail-closed；绝不从 .ziyan_last_frame_token 回放旧 token。
+BOOL ZiYanCanonicalFrameTokenReadCommitted(
+    ZiYanCanonicalFrameToken *_Nonnull tok, BOOL allowFileShm);
 
 /// 优先读已提交 resident；allowFileShm 时才冷备文件 shm（与 Embed keep 一致）。
 /// 成功时 *outResident=YES 必须 ZiYanFrameResidentUnmap，否则 ZiYanFrameShmUnmap。

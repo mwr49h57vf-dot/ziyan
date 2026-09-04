@@ -102,14 +102,15 @@ function M.acquire(kind)
   end)
   if type(bid) == "string" and #bid > 0 then
     if _last_front and _last_front ~= bid then
-      local isHome = tostring(bid):lower():find("springboard", 1, true) ~= nil
       pcall(function()
         if type(_G.ZiYanOrient) == "table" and type(_G.ZiYanOrient.sync_game_screen) == "function" then
           _G.ZiYanOrient.sync_game_screen(orient, bid)
         end
       end)
       local now = os.clock() or 0
-      local gap = isHome and 2.0 or 1.5
+      -- 前台切换只代表当前可见帧换代；不按 SpringBoard/业务 App
+      -- 选择不同策略。init(0/1/2) 是唯一的逻辑方向来源。
+      local gap = 1.5
       if (now - (_last_force_t or 0)) >= gap then
         _last_force_t = now
         pcall(function()

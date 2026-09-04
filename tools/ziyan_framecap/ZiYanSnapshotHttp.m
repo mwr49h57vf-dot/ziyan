@@ -111,13 +111,8 @@ static NSData *PNGFromMappedRGBA(const uint8_t *pix, size_t w, size_t h,
 static void FillHttpFrameToken(ZiYanCanonicalFrameToken *tok,
                                const ZiYanFrameShmHeader *hdr,
                                BOOL resident) {
-  NSString *bid = ZiYanFrameKeepReadCapturedFront();
-  if (bid.length < 1) {
-    bid = ZiYanFrameKeepReadShmBid();
-  }
-  ZiYanCanonicalFrameTokenFill(tok, hdr,
-                               ZiYanFrameKeepReadCapturedGeneration(), bid,
-                               resident ? "resident" : "shm");
+  (void)ZiYanCanonicalFrameTokenFillCommitted(
+      tok, hdr, resident ? "resident" : "shm");
 }
 
 static NSData *EncodeCanonicalPNG(size_t *outW, size_t *outH,
@@ -143,8 +138,16 @@ static NSData *EncodeCanonicalPNG(size_t *outW, size_t *outH,
   if (outH) {
     *outH = h;
   }
-  if (outTok) {
-    FillHttpFrameToken(outTok, hdr, resident);
+  ZiYanCanonicalFrameToken committedTok;
+  BOOL committed = ZiYanCanonicalFrameTokenFillCommitted(
+      &committedTok, hdr, resident ? "resident" : "shm");
+  if (outTok) *outTok = committedTok;
+  // PNG 像素可见不代表它可作为 P4 current-frame。只有 generation/front
+  // 与该 header 同代封存时才允许对外发布，避免 health/metrics/new SHM 与
+  // resident 旧帧交叉采纳。
+  if (!committed) {
+    ZiYanCanonicalCurrentFrameUnmap(map, mapLen, resident);
+    return nil;
   }
   uint8_t fmt = hdr->version >= 2 ? hdr->pixel_format
                                   : ZiYanFramePixelFormatRGBA8888;
@@ -741,17 +744,33 @@ void ZiYanSnapshotHttpSetCaptureHook(ZiYanSnapCaptureHook hook) {
 }
 
 void ZiYanSnapshotHttpWriteHealthAck(void) {
-  size_t w = 0, h = 0;
-  (void)ZiYanFrameShmHasPixels(&w, &h, NULL);
-  long long age = ZiYanFrameShmPeekAgeMs();
-  NSString *lease = ZiYanFrameLeaseStatePeek() ?: @"-";
-  unsigned pv = (unsigned)ZiYanFrameShmPeekProvider();
+  ZiYanCanonicalFrameToken tok;
+  BOOL coherent = ZiYanCanonicalFrameTokenReadCommitted(&tok, NO);
+  long long age = coherent
+                      ? MAX(0ll, (long long)(NSDate.date.timeIntervalSince1970 * 1000.0) -
+                                       (long long)tok.capture_ts_ms)
+                      : -1;
+  NSString *front = coherent ? @(tok.front_bid) : @"";
+  NSString *lease = coherent
+                        ? ZiYanFrameLeaseState(tok.frame_seq, age,
+                                               (unsigned)ZiYanFrameShmPeekProvider(),
+                                               ZiYanFrameKeepReadFrontBid(), front)
+                        : @"reacquiring";
+  unsigned pv = coherent ? (unsigned)ZiYanFrameShmPeekProvider() : 0;
   BOOL hb = ZiYanFramecapHeartbeatFresh(12.0);
-  BOOL shmFresh = ZiYanFrameShmIsFresh(3.0, NULL, NULL, NULL);
+  BOOL shmFresh = coherent && age >= 0 && age <= 3000;
   int fresh =
-      ([lease isEqualToString:@"active"] && shmFresh && w >= 2) ? 1 : 0;
+      (coherent && [lease isEqualToString:@"active"] && shmFresh) ? 1 : 0;
   // fc_n 由门外 ps 计数；本进程不能诚实声称全局唯一，写 -1。
-  ZiYanWriteHealthAck(1, hb ? 1 : 0, 1, -1, fresh, lease, age, pv, @"");
+  NSString *coherence = coherent
+                            ? [NSString stringWithFormat:
+                                  @"coherent=1\ngeneration=%u\nfront=%@\nfront_hash=%u\npublish_token=%@",
+                                  tok.generation, @(tok.front_bid), tok.front_hash,
+                                  @(tok.publish_token)]
+                            : @"coherent=0\nreason=canonical_snapshot_unavailable";
+  ZiYanWriteHealthAckWithCoherence(
+      1, hb ? 1 : 0, 1, -1, fresh, lease, age, pv,
+      coherent ? @"" : @"ZY_E_FRAME_INCOHERENT", coherence);
 }
 
 void ZiYanSnapshotHttpStart(void) {
@@ -1086,9 +1105,13 @@ static void HandleClient(int cfd) {
   }
 
   if ([pathOnly isEqualToString:@"/snapshot"]) {
-    // 只导出已 Commit 的 canonical current frame。不写 force_recap、
-    // 不 CARender、不等待旁路新帧。busy 旗只防 idle 回收读票窗口。
+    // 先经已注册的唯一 capture hook 取得本次 canonical frame；空 SHM 时
+    // 不驱动一帧会把真机点击验收永久降级为 503。随后仍只编码 canonical
+    // current frame，不读取旁路帧。
     ZiYanWriteVarText(@".ziyan_snap_http_busy", @"1\n");
+    if (sCaptureHook) {
+      sCaptureHook();
+    }
     int orient = -1;
     if (query.length) {
       for (NSString *part in [query componentsSeparatedByString:@"&"]) {

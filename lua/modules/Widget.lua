@@ -5,6 +5,7 @@
   - scroll*/setText/region：尽力；无法完成时诚实返回 false
   风险：OCR 误识别导致错点；勿 tight-loop 无 mSleep。
 ]]
+local C = require("modules._ctx")
 local M = { name = "Widget", version = "1.0.0", _last = nil }
 
 local function defined(n) return type(_G[n]) == "function" end
@@ -12,12 +13,18 @@ local function defined(n) return type(_G[n]) == "function" end
 local function tap_xy(x, y)
   x, y = tonumber(x), tonumber(y)
   if not x or not y then return false, "bad_xy" end
-  if type(_G.Zy) == "table" and _G.Zy.Touch and type(_G.Zy.Touch.tap) == "function" then
-    return _G.Zy.Touch.tap(x, y)
+  if type(_G.Zy) == "table" and _G.Zy.Touch and
+      type(_G.Zy.Touch.tapHit) == "function" then
+    if _G.__ZIYAN_INIT_CALLED then
+      local orient = tonumber(_G.__ZIYAN_ORIENT)
+      if orient and orient >= 0 and orient <= 2 then
+        C.orient = orient
+      end
+    end
+    return _G.Zy.Touch.tapHit(x, y)
   end
   if defined("tap") then
-    tap(x, y)
-    return true
+    return tap(x, y)
   end
   return false, "no_tap"
 end

@@ -3,11 +3,15 @@
 # 写 .ziyan_httpctl_alive + .ziyan_httpctl_last.json；HTTP 可选 ZIYAN_HTTPCTL_NC=1
 set +e
 PORT=18080
-if [ -d /var/jb/usr/lib/ziyan ]; then
-  VAR=/var/jb/usr/lib/ziyan/var
-else
-  VAR=/usr/lib/ziyan/var
-fi
+ROOT=/usr/lib/ziyan
+for helper in /usr/lib/ziyan/bin/ziyan_runtime_root.sh \
+              /var/jb/usr/lib/ziyan/bin/ziyan_runtime_root.sh; do
+  [ -r "$helper" ] || continue
+  . "$helper"
+  break
+done
+ROOT="${ZIYAN_RUNTIME_ROOT:-$ROOT}"
+VAR="$ROOT/var"
 mkdir -p "$VAR"
 
 write_status() {

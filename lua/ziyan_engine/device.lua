@@ -43,11 +43,13 @@ local function read_lines(path, n)
 end
 
 local function shell_one(cmd)
-  local p = io.popen(cmd .. " 2>/dev/null")
-  if not p then return "" end
-  local s = p:read("*l") or ""
-  p:close()
-  return (s:gsub("%s+$", ""))
+  if type(io) ~= "table" or type(io.popen) ~= "function" then return "" end
+  local ok_open, p = pcall(io.popen, cmd .. " 2>/dev/null")
+  if not ok_open or not p then return "" end
+  local ok_read, s = pcall(function() return p:read("*l") or "" end)
+  pcall(function() p:close() end)
+  if not ok_read then return "" end
+  return (tostring(s):gsub("%s+$", ""))
 end
 
 local function is_rootless()

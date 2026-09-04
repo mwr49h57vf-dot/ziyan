@@ -31,6 +31,8 @@ static void ZiYanFrameRelayOpenApp(NSString *bundleId) {
           stringByTrimmingCharactersInSet:
               [NSCharacterSet whitespaceAndNewlineCharacterSet]];
   if ([front isEqualToString:bundleId]) {
+    ZiYanAppendOpenAppLog(@"launch_suppressed_duplicate", @"relay_open",
+                          bundleId);
     return;
   }
   NSString *last =
@@ -46,6 +48,8 @@ static void ZiYanFrameRelayOpenApp(NSString *bundleId) {
     // CFAbsoluteTime 与闸文件同一时钟；跨进程粗防抖
     if ([lastBid isEqualToString:bundleId] &&
         (CFAbsoluteTimeGetCurrent() - ts) < 2.5) {
+      ZiYanAppendOpenAppLog(@"launch_suppressed_duplicate", @"relay_open",
+                            bundleId);
       return;
     }
   }
@@ -115,6 +119,9 @@ static NSString *ZiYanFrameRelayStartSharedScreenBridge(void) {
 }
 
 static void ZiYanFrameRelayPollOpenApp(void) {
+  if (ZiYanSbVolThin() || ZiYanSbInjectTooYoung()) {
+    return;
+  }
   NSString *bid = nil;
   if (ZiYanConsumeOpenAppFile(@"relay", &bid) && bid.length > 0) {
     ZiYanFrameRelayOpenApp(bid);
@@ -130,6 +137,7 @@ __attribute__((constructor)) static void ZiYanFrameRelayInit(void) {
       return;
     }
     ZiYanEnsureVarDirectory();
+    ZiYanMarkSbInjectBirth();
     // 8-161-67：勿整文件覆盖 Vol 的 hooks 状态；只写 relay 标记
     ZiYanWriteVarText(@".ziyan_frame_relay_tweak", @"1\n");
     // 阶段5：找色/keep 热路径彻底禁进 SB；仅冷备 relay

@@ -700,3 +700,15 @@
 - 下一条：`.112` 要过 Z1-VIS 只能用户改 Desktop 色点；禁止再给找色加 App 身份 if。3h/180m 仍禁。
 
 
+
+- **P4 empty-SHM 首帧候选（2026-08-31）**：本地合同 `P4_FRAMECAP_EMPTY_SHM_ACTIVE_EVIDENCE_CONTRACT=PASS`；rootful/rootless 包 SHA=`2e7bf7e64d4ed9439880f0a73104aaebddbe77fba2253e19e6c01c687647ddbf`/`11537e3569371ef0841a8dd36bd03a012932d36a42b3cbac0ff68b2f4c402745`。`.101` 已安装并在既有 zydaemon owning layer 下受控替换 framecap，当前后检 `FC_N=1`、SB/BB=`12443/12442`、P4/P3/GameEntry/touch/bridge/recovery transient 全 absent；但前台为 `com.apple.springboard`、canonical `frame_seq=0`，未触发新 P4 request，故保持 `PRE_BLOCKED/INCONCLUSIVE`，不升级 `DEVICE_PASS`。证据：`tmp_shots/P4_EMPTY_SHM_FIRST_FRAME_CANDIDATE_20260831_0340/VERDICT.md`、`current_readonly_20260831.txt`、`replacement_verified_readonly.txt`。
+
+## 40. 2026-09-02 chat capability `.101` / rootful `17-125`
+
+- **部署**：按 checkpoint 唯一动作将 rootful `17-125` 受控幂等部署到 `.101`，没有触发 SpringBoard/BackBoard 重载；包版本 `0.0.92-8-161-205-C-65.11-98+debug-10-38-17-125+debug`，包 SHA256 `1aecccd061176b316e91c9a9bc7becf95197481db26f36de26a11ac4d05079b3`。证据 `tmp_shots/DEPLOY_ROOTFUL_20260902_20260902_222432_101/VERDICT.md`。
+- **部署回读**：SpringBoard PID `51008 -> 51008`，自动解锁 `ok`，`display_locked=0`，`FC_N=1`；设备回滚快照路径见部署 `device.txt`。
+- **chat gate**：仅测试 `.101`，目标 `com.xztl.ios`。证据 `tmp_shots/CAPABILITY_chat_DEVICE_101_20260902_222529_79091/VERDICT.md`。
+- **设备事实**：`real_device=true`，`input=1;send=1;multi_turn=1`，但 `result=false`，`reason=no_message`；`pipeline_ok=false`、`module_ok=false`；包版本匹配，`FC_N=1`，停止后 `active=0/embed=0`。
+- **判定**：`DEVICE_INCONCLUSIVE`。这不是传输中断，也不是清理 PASS；chat 业务结果尚未成立。`.112/.166/.53` 未因本轮结果推进。
+- **当前阻塞层**：chat 业务链的消息产生/回显路径仍未完成归因；暂不改视觉、触控、framecap 或设备范围。
+- **唯一下一步**：只读诊断 `.101` 的 `input/send/multi_turn -> no_message` 单一归属层；确认后仅修该层并回 `.101` 复验。

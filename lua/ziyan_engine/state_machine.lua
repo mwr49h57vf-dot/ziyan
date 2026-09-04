@@ -60,7 +60,7 @@ function M.suggest(state)
   local map = {
     boot = "launch_app_and_sync",
     loading = "wait_and_reclassify",
-    login = "analyze_auth_ui_then_act",
+    login = "pause_auth_skip_credentials",
     menu = "select_primary_entry_then_verify",
     role = "confirm_identity_then_verify",
     running = "observe_or_task_step",

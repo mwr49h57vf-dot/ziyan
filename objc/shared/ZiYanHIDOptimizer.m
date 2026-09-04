@@ -19,30 +19,29 @@ enum {
   kIOHIDDigitizerEventTouch = 1 << 1,
   kIOHIDDigitizerEventPosition = 1 << 2,
   kIOHIDDigitizerEventIdentity = 1 << 5,
-  kIOHIDTransducerTypeHand = 3,
-  kIOHIDFieldDisplayIntegrated = (11 << 16) | 19,
-  kIOHIDFieldEventMask = (11 << 16) | 1,
-  kIOHIDFieldRange = (11 << 16) | 3,
-  kIOHIDFieldTouch = (11 << 16) | 4,
-  kIOHIDFieldBuiltIn = (0 << 16) | 0x4000011,
+  kIOHIDTransducerTypeFinger = 4,
+  kIOHIDTransducerTypeHand = 35,
+  kIOHIDFieldDisplayIntegrated = (11 << 16) | 25,
+  kIOHIDFieldEventMask = (11 << 16) | 7,
+  kIOHIDFieldRange = (11 << 16) | 8,
+  kIOHIDFieldTouch = (11 << 16) | 9,
+  kIOHIDFieldBuiltIn = 4,
 };
+static const uint64_t kZYModernTouchSpriteSenderID = 0x8000000817319376ULL;
 
 static IOHIDEventRef (*HIDCreateDigitizer)(
     CFAllocatorRef, uint64_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t,
     double, double, double, double, double, boolean_t, boolean_t,
     uint32_t) = NULL;
 static IOHIDEventRef (*HIDCreateFinger)(CFAllocatorRef, uint64_t, uint32_t,
-                                        uint32_t, uint32_t, uint32_t, double,
-                                        double, double, double, double, uint32_t,
-                                        uint32_t, uint32_t, boolean_t, boolean_t,
-                                        boolean_t) = NULL;
+                                        uint32_t, uint32_t, double, double,
+                                        double, double, double,
+                                        boolean_t, boolean_t, uint32_t) = NULL;
 static void (*HIDAppend)(IOHIDEventRef, IOHIDEventRef) = NULL;
 static void (*HIDSetInt)(IOHIDEventRef, uint32_t, CFIndex) = NULL;
 static void (*HIDSetSender)(IOHIDEventRef, uint64_t) = NULL;
 static void (*HIDDispatch)(IOHIDEventSystemClientRef, IOHIDEventRef) = NULL;
 static IOHIDEventSystemClientRef (*HIDClientCreate)(CFAllocatorRef) = NULL;
-static void (*BKSSetDig)(IOHIDEventRef, uint32_t, uint32_t, uint8_t, void *,
-                         uint32_t, CFTimeInterval) = NULL;
 
 @interface ZiYanHIDOptimizer ()
 @property(nonatomic, assign) BOOL warmed;
@@ -103,11 +102,6 @@ static void loadSyms(void) {
     HIDSetSender = dlsym(h, "IOHIDEventSetSenderID");
     HIDClientCreate = dlsym(h, "IOHIDEventSystemClientCreate");
     HIDDispatch = dlsym(h, "IOHIDEventSystemClientDispatchEvent");
-    void *bks = dlopen(
-        "/System/Library/PrivateFrameworks/BackBoardServices.framework/"
-        "BackBoardServices",
-        RTLD_LAZY);
-    BKSSetDig = dlsym(bks, "BKSHIDEventSetDigitizerInfo");
   });
 }
 
@@ -127,7 +121,7 @@ static void loadSyms(void) {
         kCFAllocatorDefault, ts, 1, 2,
         (kIOHIDDigitizerEventRange | kIOHIDDigitizerEventTouch |
          kIOHIDDigitizerEventPosition),
-        0, 0.5, 0.5, 0, 0, 0, 0, 0, 0, 1, 1, 0);
+        0.5, 0.5, 0, 0, 0, 1, 1, 0);
     if (ev) {
       CFRelease(ev);
     }
@@ -151,7 +145,9 @@ static void loadSyms(void) {
                     @"ts=%.0f create=%d client=%d dispatch=%d bks=%d ok=%d\n",
                     [[NSDate date] timeIntervalSince1970],
                     HIDCreateFinger ? 1 : 0, HIDClientCreate ? 1 : 0,
-                    HIDDispatch ? 1 : 0, BKSSetDig ? 1 : 0, ok ? 1 : 0]);
+                    HIDDispatch ? 1 : 0,
+                    NSClassFromString(@"BKHIDSystemInterface") ? 1 : 0,
+                    ok ? 1 : 0]);
   return ok;
 }
 
@@ -170,30 +166,35 @@ static void loadSyms(void) {
     self.client = HIDClientCreate(kCFAllocatorDefault);
   }
   boolean_t down = [phase isEqualToString:@"up"] ? 0 : 1;
-  boolean_t isMove = [phase isEqualToString:@"move"];
-  boolean_t inRange = 1;
-  uint32_t fingerMask =
-      isMove ? kIOHIDDigitizerEventPosition
-             : (kIOHIDDigitizerEventRange | kIOHIDDigitizerEventTouch |
-                kIOHIDDigitizerEventIdentity |
-                kIOHIDDigitizerEventPosition);
+  boolean_t inRange = down;
+  // TouchSprite 4.1.1 / iOS 16 TSDaemon 的第 5 参数是 eventMask，
+  // 不是 transducer type：down/up child 均为 Range|Touch(3)；
+  // parent 在 down 汇总 35，up 汇总 Position(4)。
+  uint32_t childMask =
+      kIOHIDDigitizerEventRange | kIOHIDDigitizerEventTouch;
+  uint32_t parentMask =
+      down ? (kIOHIDDigitizerEventRange | kIOHIDDigitizerEventTouch |
+              kIOHIDDigitizerEventIdentity)
+           : kIOHIDDigitizerEventPosition;
   uint64_t ts = mach_absolute_time();
   uint32_t idx = (uint32_t)MAX(finger, 1);
   IOHIDEventRef toSend = NULL;
   if (!skipHand && HIDCreateDigitizer && HIDAppend) {
+    // TSEventTweak iOS 11+：空 hand parent + 普通 finger child。
+    // parent 不携带坐标，B0007/8/9 在 append 后汇总 child 状态。
     IOHIDEventRef hand = HIDCreateDigitizer(
-        kCFAllocatorDefault, ts, kIOHIDTransducerTypeHand, 0, 1, fingerMask, 0,
-        nx, ny, 0, 0, 0, inRange, down, 0);
+        kCFAllocatorDefault, ts, kIOHIDTransducerTypeHand, 0, 1, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0);
     IOHIDEventRef fingerEvent =
-        HIDCreateFinger(kCFAllocatorDefault, ts, idx, 2, fingerMask, 0, nx, ny,
-                        0, 0, 0, 0, 0, 0, inRange, down, 0);
+        HIDCreateFinger(kCFAllocatorDefault, ts, idx, 2, childMask, nx, ny, 0,
+                        0, 0, inRange, down, 0);
     if (hand && fingerEvent) {
       HIDAppend(hand, fingerEvent);
       CFRelease(fingerEvent);
       if (HIDSetInt) {
         HIDSetInt(hand, kIOHIDFieldDisplayIntegrated, 1);
         HIDSetInt(hand, kIOHIDFieldBuiltIn, 1);
-        HIDSetInt(hand, kIOHIDFieldEventMask, (CFIndex)fingerMask);
+        HIDSetInt(hand, kIOHIDFieldEventMask, (CFIndex)parentMask);
         HIDSetInt(hand, kIOHIDFieldRange, inRange);
         HIDSetInt(hand, kIOHIDFieldTouch, down);
       }
@@ -208,8 +209,8 @@ static void loadSyms(void) {
     }
   }
   if (!toSend) {
-    toSend = HIDCreateFinger(kCFAllocatorDefault, ts, idx, 2, fingerMask, 0, nx,
-                             ny, 0, 0, 0, 0, 0, 0, inRange, down, 0);
+    toSend = HIDCreateFinger(kCFAllocatorDefault, ts, idx, 2, childMask, nx, ny,
+                             0, 0, 0, inRange, down, 0);
   }
   if (!toSend) {
     ZiYanWriteVarText(@".ziyan_hid_err",
@@ -217,56 +218,39 @@ static void loadSyms(void) {
     return NO;
   }
   if (HIDSetSender) {
-    HIDSetSender(toSend, 0x000000010000027FULL);
-  }
-  if (BKSSetDig) {
-    BKSSetDig(toSend, 0, 0, 0, NULL, 0, 0);
+    HIDSetSender(toSend, kZYModernTouchSpriteSenderID);
   }
   BOOL ok = NO;
   const char *err = "NO_ROUTE";
   const char *route = "none";
   @try {
-    Class bk = NSClassFromString(@"BKHIDSystemInterface");
-    if (bk) {
+    BOOL (^dispatchBKHID)(void) = ^BOOL {
+      Class bk = NSClassFromString(@"BKHIDSystemInterface");
+      if (!bk) {
+        return NO;
+      }
       id shared =
           ((id(*)(id, SEL))objc_msgSend)(bk, @selector(sharedInstance));
       SEL inj = @selector(injectHIDEvent:);
-      SEL inj2 = @selector(injectEvent:);
-      if (shared && [shared respondsToSelector:inj]) {
-        ((void (*)(id, SEL, IOHIDEventRef))objc_msgSend)(shared, inj, toSend);
-        ok = YES;
-        err = "0";
-        route = "bk_injectHIDEvent";
-      } else if (shared && [shared respondsToSelector:inj2]) {
-        ((void (*)(id, SEL, IOHIDEventRef))objc_msgSend)(shared, inj2, toSend);
-        ok = YES;
-        err = "0";
-        route = "bk_injectEvent";
-      } else if (!shared) {
-        err = "BK_SHARED_NIL";
-      } else {
-        err = "BK_NO_SELECTOR";
+      if (!shared || ![shared respondsToSelector:inj]) {
+        return NO;
       }
-    } else {
-      err = "BK_CLASS_NIL";
+      ((void (*)(id, SEL, IOHIDEventRef))objc_msgSend)(shared, inj, toSend);
+      return YES;
+    };
+
+    // TouchSprite 4.1.1 / iOS 16 的 TSDaemon 直接使用 system client；
+    // 不额外查询 WindowServer，也不在每次 phase 产生诊断文件 I/O。
+    if (HIDDispatch && self.client) {
+      HIDDispatch(self.client, toSend);
+      ok = YES;
+      err = "0";
+      route = "iohid_dispatch";
     }
-    // SpringBoard/backboardd：BKHID 不可用时回退 IOHID client dispatch。
-    // 这是真实注入，与 hidTouchPhase 桌面分支 / ZiYanTouchBridge 相同。
-    // embed/framecap 无 BKHID 特权，dispatch 到不了 UI，禁止记成功。
-    if (!ok) {
-      NSString *proc = [NSProcessInfo processInfo].processName ?: @"";
-      BOOL privileged = [proc isEqualToString:@"SpringBoard"] ||
-                        [proc isEqualToString:@"backboardd"];
-      if (privileged && HIDDispatch && self.client) {
-        HIDDispatch(self.client, toSend);
-        ok = YES;
-        err = "0";
-        route = "sb_dispatch";
-      } else if (!privileged) {
-        err = "NO_BK_EMBED_NO_DISPATCH";
-      } else if (!HIDDispatch || !self.client) {
-        err = "NO_BK_NO_CLIENT";
-      }
+    if (!ok && dispatchBKHID()) {
+      ok = YES;
+      err = "0";
+      route = "bk_injectHIDEvent_fallback";
     }
     if (!ok) {
       static dispatch_once_t onceRoute;

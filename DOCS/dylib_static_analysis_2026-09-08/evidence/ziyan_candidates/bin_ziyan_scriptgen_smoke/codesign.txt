@@ -1,0 +1,20 @@
+Executable=/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/bin/ziyan_scriptgen_smoke
+Identifier=ziyan_scriptgen_smoke.d49319a4.unsigned
+Format=Mach-O thin (arm64)
+CodeDirectory v=20400 size=2496 flags=0x0(none) hashes=67+7 location=embedded
+Hash type=sha256 size=32
+CandidateCDHash sha1=ef49ff8adb7df15d6764381c4f40d8c2bf5adbb6
+CandidateCDHashFull sha1=ef49ff8adb7df15d6764381c4f40d8c2bf5adbb6
+CandidateCDHash sha256=cca9b28e793c90f244a9eda4f0983dc73c06e41b
+CandidateCDHashFull sha256=cca9b28e793c90f244a9eda4f0983dc73c06e41bc7a19f44da977f68cfb33eb2
+Hash choices=sha1,sha256
+CMSDigest=1ed7f46ff48bda9a5450f7284069e36fcd1957cb0a1a53c519e064ec25f049a0
+CMSDigestType=2
+Launch Constraints:
+	None
+CDHash=cca9b28e793c90f244a9eda4f0983dc73c06e41b
+/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/bin/ziyan_scriptgen_smoke: no signature
+Info.plist=not bound
+TeamIdentifier=not set
+Sealed Resources=none
+Internal requirements count=1 size=156

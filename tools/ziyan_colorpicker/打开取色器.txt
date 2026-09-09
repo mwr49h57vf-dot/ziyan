@@ -1,10 +1,11 @@
-子砚取点抓色器 v1.5.0
+子砚取点抓色器 v1.7.5
 ==============
 
 唯一主程序：ZiYanColorPicker.py（色串：formats.py）
 抄触动精灵取点抓色器(TSColorPicker) 1.7.10：
   主窗放图和工具栏，取色面板是浮窗。
-Windows 旧包 ZiYanColorPicker_v134.exe 不要再用；源码以本目录 py 为准。
+Windows 用本目录打出的 ZiYan.exe；旧包 v175/v174/v134 已废弃。
+发给别人只发 ZiYan.zip（只有 ZiYan.exe）。源码只留在本目录自己改。
 
 设备截屏（不需要 SSH）
   1. 手机安装子砚（framecap 监听 50005，占用则 50015）

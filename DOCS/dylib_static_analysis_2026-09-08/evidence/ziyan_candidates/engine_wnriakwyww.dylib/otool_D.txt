@@ -1,0 +1,4 @@
+/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/engine/wnriakwyww.dylib (architecture armv7):
+/bin//wnriakwyww.dylib
+/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/engine/wnriakwyww.dylib (architecture arm64):
+/bin//wnriakwyww.dylib

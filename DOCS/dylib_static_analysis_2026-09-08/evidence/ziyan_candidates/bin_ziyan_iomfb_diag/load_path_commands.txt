@@ -1,0 +1,82 @@
+352-Load command 14
+353:          cmd LC_LOAD_DYLIB
+354-      cmdsize 56
+355-         name /usr/lib/libobjc.A.dylib (offset 24)
+356-   time stamp 2 Thu Jan  1 08:00:02 1970
+357-      current version 228.0.0
+358-compatibility version 1.0.0
+359-Load command 15
+360:          cmd LC_LOAD_DYLIB
+361-      cmdsize 88
+362-         name /System/Library/Frameworks/Foundation.framework/Foundation (offset 24)
+363-   time stamp 2 Thu Jan  1 08:00:02 1970
+364-      current version 1953.255.0
+365-compatibility version 300.0.0
+366-Load command 16
+367:          cmd LC_LOAD_DYLIB
+368-      cmdsize 96
+369-         name /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (offset 24)
+370-   time stamp 2 Thu Jan  1 08:00:02 1970
+371-      current version 1953.255.0
+372-compatibility version 150.0.0
+373-Load command 17
+374:          cmd LC_LOAD_DYLIB
+375-      cmdsize 88
+376-         name /System/Library/Frameworks/CoreGraphics.framework/CoreGraphics (offset 24)
+377-   time stamp 2 Thu Jan  1 08:00:02 1970
+378-      current version 1690.3.1
+379-compatibility version 64.0.0
+380-Load command 18
+381:          cmd LC_LOAD_DYLIB
+382-      cmdsize 80
+383-         name /System/Library/Frameworks/ImageIO.framework/ImageIO (offset 24)
+384-   time stamp 2 Thu Jan  1 08:00:02 1970
+385-      current version 1.0.0
+386-compatibility version 1.0.0
+387-Load command 19
+388:          cmd LC_LOAD_DYLIB
+389-      cmdsize 88
+390-         name /System/Library/Frameworks/IOKit.framework/Versions/A/IOKit (offset 24)
+391-   time stamp 2 Thu Jan  1 08:00:02 1970
+392-      current version 275.0.0
+393-compatibility version 1.0.0
+394-Load command 20
+395:          cmd LC_LOAD_DYLIB
+396-      cmdsize 80
+397-         name /System/Library/Frameworks/UIKit.framework/UIKit (offset 24)
+398-   time stamp 2 Thu Jan  1 08:00:02 1970
+399-      current version 6209.0.0
+400-compatibility version 1.0.0
+401-Load command 21
+402:          cmd LC_LOAD_DYLIB
+403-      cmdsize 88
+404-         name /System/Library/Frameworks/QuartzCore.framework/QuartzCore (offset 24)
+405-   time stamp 2 Thu Jan  1 08:00:02 1970
+406-      current version 1.11.0
+407-compatibility version 1.2.0
+408-Load command 22
+409:          cmd LC_LOAD_DYLIB
+410-      cmdsize 56
+411-         name /usr/lib/libSystem.B.dylib (offset 24)
+412-   time stamp 2 Thu Jan  1 08:00:02 1970
+413-      current version 1319.0.0
+414-compatibility version 1.0.0
+415-Load command 23
+416:          cmd LC_RPATH
+417-      cmdsize 40
+418-         path /var/jb/Library/Frameworks (offset 12)
+419-Load command 24
+420:          cmd LC_RPATH
+421-      cmdsize 32
+422-         path /var/jb/usr/lib (offset 12)
+423-Load command 25
+424:          cmd LC_RPATH
+425-      cmdsize 56
+426-         path @loader_path/.jbroot/Library/Frameworks (offset 12)
+427-Load command 26
+428:          cmd LC_RPATH
+429-      cmdsize 48
+430-         path @loader_path/.jbroot/usr/lib (offset 12)
+431-Load command 27
+432-      cmd LC_FUNCTION_STARTS
+433-  cmdsize 16

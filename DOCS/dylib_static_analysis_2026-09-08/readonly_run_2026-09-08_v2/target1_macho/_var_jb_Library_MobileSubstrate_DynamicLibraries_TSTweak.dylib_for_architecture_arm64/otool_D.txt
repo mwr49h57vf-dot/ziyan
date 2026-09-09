@@ -1,0 +1,1 @@
+error: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic: can't open file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Library/MobileSubstrate/DynamicLibraries/TSTweak.dylib (for architecture arm64): (No such file or directory)

@@ -1,0 +1,1 @@
+e65b34727c66eef27ec7e4b2d6d9258b5c260f626c417cc30f094514cd5a7e65  /Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/bin/ziyan_framecap

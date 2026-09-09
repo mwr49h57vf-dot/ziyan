@@ -1,0 +1,20 @@
+Executable=/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TouchSpritePe
+Identifier=TouchSpritePe
+Format=app bundle with Mach-O universal (armv7 arm64)
+CodeDirectory v=20400 size=47654 flags=0x0(none) hashes=1479+7 location=embedded
+Hash type=sha256 size=32
+CandidateCDHash sha1=9fa8a3165181e9bf6e9216fc2b105aa38f20f23e
+CandidateCDHashFull sha1=9fa8a3165181e9bf6e9216fc2b105aa38f20f23e
+CandidateCDHash sha256=721a9adccf021ddf824e332dbea742176c0eade8
+CandidateCDHashFull sha256=721a9adccf021ddf824e332dbea742176c0eade8322d08e0d94475f974ff2296
+Hash choices=sha1,sha256
+CMSDigest=74dff1e9460d62180f5e272131a98244c6f1992c8a3aa613130a01d24481744a
+CMSDigestType=2
+Launch Constraints:
+	None
+CDHash=721a9adccf021ddf824e332dbea742176c0eade8
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TouchSpritePe: no signature
+Info.plist=not bound
+TeamIdentifier=not set
+Sealed Resources=none
+Internal requirements count=1 size=132

@@ -19,6 +19,10 @@ static uint32_t sShmSeq = 1;
 static NSString *sPathOverride = nil;
 static ZiYanFrameResidentHooks sResidentHooks;
 static uint8_t sWritePixFmt = ZiYanFramePixelFormatRGBA8888;
+static BOOL sFilePixelsSeeded;
+static int sLastShmSkipPx;
+
+int ZiYanFrameShmLastWriteSkippedPixels(void) { return sLastShmSkipPx; }
 
 void ZiYanFrameShmSetWritePixelFormat(uint8_t pixelFormat) {
   sWritePixFmt = (pixelFormat == ZiYanFramePixelFormatBGRA8888)
@@ -372,6 +376,7 @@ BOOL ZiYanFrameShmWriteEx(const void *pixels, size_t width, size_t height,
   if (status == ZiYanFrameStatusWriting) {
     status = ZiYanFrameStatusValid;
   }
+  sLastShmSkipPx = 0;
   if (!ZiYanFrameShmEnsureFile()) {
     return NO;
   }
@@ -410,8 +415,17 @@ BOOL ZiYanFrameShmWriteEx(const void *pixels, size_t width, size_t height,
           // 189：热路径禁 MS_SYNC（MAP_SHARED 跨进程已可见；SYNC 脏 APFS→diskwrites）
           // 仅对 header 可选 MS_ASYNC，像素靠 commit_seq 奇偶门闩。
 
-          // 2) 像素
-          memcpy((uint8_t *)map + sizeof(ZiYanFrameShmHeader), pixels, payload);
+          // 2) 像素。BIZ07 embed：同几何已种过像素则只改 header，仍 ResidentRenew。
+          BOOL embedHot =
+              access(ZiYanVarFile(@".ziyan_lua_embedded").fileSystemRepresentation,
+                     F_OK) == 0;
+          BOOL skipPx = embedHot && sFilePixelsSeeded;
+          if (!skipPx) {
+            memcpy((uint8_t *)map + sizeof(ZiYanFrameShmHeader), pixels,
+                   payload);
+            sFilePixelsSeeded = YES;
+          }
+          sLastShmSkipPx = skipPx ? 1 : 0;
 
           // 3) 原子提交 header
           uint32_t next = ZFS_NextSeq(oh.seq);
@@ -498,6 +512,8 @@ BOOL ZiYanFrameShmWriteEx(const void *pixels, size_t width, size_t height,
     return NO;
   }
   chmod(cpath, 0666);
+  sFilePixelsSeeded = YES;
+  sLastShmSkipPx = 0;
   ZFS_ResidentRenew(pixels, width, height, bpr, provider, orient, frontHash,
                     status, newSeq, ts);
   return YES;

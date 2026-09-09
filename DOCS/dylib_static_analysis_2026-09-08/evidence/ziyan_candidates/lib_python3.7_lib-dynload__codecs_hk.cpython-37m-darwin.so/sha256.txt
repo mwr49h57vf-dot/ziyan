@@ -1,0 +1,1 @@
+990821568c3c805f77aacdd3a8115d16ae3d537ccc13ee03cafae33287dd5e1d  /Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/python3.7/lib-dynload/_codecs_hk.cpython-37m-darwin.so

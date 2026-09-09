@@ -1,0 +1,13 @@
+01	/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/Hades
+02	/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/OcrPlugin.dylib
+03	/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSDaemon
+04	/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSInstaller
+05	/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSLn
+06	/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSUpdate
+07	/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TouchSpritePe
+08	/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/luasql.so
+09	/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/sz.so
+10	/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/model.so
+11	/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/paddleocr.so
+12	/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/unzip
+13	/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Library/MobileSubstrate/DynamicLibraries/TSTweak.dylib

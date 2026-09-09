@@ -18,16 +18,24 @@ def main() -> None:
     assert "BOOL appActiveEvidenceEmpty =" in MAIN
     assert "emptyShm && ZiYanAppFrameHasFreshActiveEvidence()" in MAIN
     assert "appActiveEvidenceEmpty) &&" in MAIN
-    # 空 SHM 时，/snapshot 必须使用已注册的唯一 capture hook 先驱动一帧，
-    # 再编码 canonical frame；否则点击验收在无证据时恒为 HTTP 503。
+    # /snapshot 禁止 HTTP 线程重入 HandleOnce / force_recap。
+    # 只写 .ziyan_snap_http_want 给 ServeLoop；无已提交帧则 503。
     snapshot_handler = SNAPSHOT[
         SNAPSHOT.index('if ([pathOnly isEqualToString:@"/snapshot"])') :
     ]
-    assert "if (sCaptureHook)" in snapshot_handler
-    assert "sCaptureHook();" in snapshot_handler
-    assert snapshot_handler.index("sCaptureHook();") < snapshot_handler.index(
-        "EncodeCanonicalPNG"
-    )
+    encode_at = snapshot_handler.index("EncodeCanonicalPNG")
+    before_encode = snapshot_handler[:encode_at]
+    assert 'ZiYanWriteVarText(@".ziyan_snap_http_want"' in before_encode
+    assert "sCaptureHook();" not in before_encode
+    assert 'ZiYanWriteVarText(@".ziyan_force_recap"' not in before_encode
+    assert "HandleOnce(" not in before_encode
+    drive = MAIN[
+        MAIN.index("static void SnapDriveCapture(void)") : MAIN.index(
+            "static void ServeLoop(void)"
+        )
+    ]
+    assert 'ZiYanWriteVarText(@".ziyan_force_recap"' not in drive
+    assert "HandleOnce(" not in drive
     print("P4_FRAMECAP_EMPTY_SHM_ACTIVE_EVIDENCE_CONTRACT=PASS")
 
 

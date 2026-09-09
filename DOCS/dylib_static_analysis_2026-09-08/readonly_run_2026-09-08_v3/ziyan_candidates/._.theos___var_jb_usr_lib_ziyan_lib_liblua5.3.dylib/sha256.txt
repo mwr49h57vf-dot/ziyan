@@ -1,0 +1,13 @@
+perl: warning: Setting locale failed.
+perl: warning: Please check that your locale settings:
+	LC_ALL = "C.UTF-8",
+	LC_CTYPE = "C.UTF-8",
+	LC_NUMERIC = (unset),
+	LC_COLLATE = (unset),
+	LC_TIME = (unset),
+	LC_MESSAGES = (unset),
+	LC_MONETARY = (unset),
+	LANG = "C.UTF-8"
+    are supported and installed on your system.
+perl: warning: Falling back to the standard locale ("C").
+51ca786549e916d89a4b1264b1398c5abbe516dc3a501fc326ea4bb3f3003ae5  /Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/liblua5.3.dylib

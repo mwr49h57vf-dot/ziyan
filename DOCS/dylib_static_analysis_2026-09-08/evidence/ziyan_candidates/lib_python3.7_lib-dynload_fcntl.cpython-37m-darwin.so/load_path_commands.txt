@@ -1,0 +1,7 @@
+195-Load command 10
+196:          cmd LC_LOAD_DYLIB
+197-      cmdsize 56
+198-         name /usr/lib/libSystem.B.dylib (offset 24)
+199-   time stamp 2 Thu Jan  1 08:00:02 1970
+200-      current version 1252.0.0
+201-compatibility version 1.0.0

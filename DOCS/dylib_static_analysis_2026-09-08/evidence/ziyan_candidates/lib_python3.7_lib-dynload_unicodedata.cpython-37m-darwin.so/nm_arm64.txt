@@ -1,0 +1,5 @@
+0000000000005fa0 T _PyInit_unicodedata
+0000000000104570 D __PyUnicode_BidirectionalNames
+0000000000104470 D __PyUnicode_CategoryNames
+0000000000008918 S __PyUnicode_Database_Records
+0000000000104638 D __PyUnicode_EastAsianWidthNames

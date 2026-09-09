@@ -1,0 +1,18 @@
+Executable=/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/model.so
+Identifier=model.so
+Format=Mach-O thin (arm64)
+CodeDirectory v=20400 size=961 flags=0x0(none) hashes=20+7 location=embedded
+Hash type=sha256 size=32
+CandidateCDHash sha256=a775238567b4b5aace6ef4a6b436c33e7f14e05c
+CandidateCDHashFull sha256=a775238567b4b5aace6ef4a6b436c33e7f14e05cea30d4e336e553eb7bbba105
+Hash choices=sha256
+CMSDigest=a775238567b4b5aace6ef4a6b436c33e7f14e05cea30d4e336e553eb7bbba105
+CMSDigestType=2
+Launch Constraints:
+	None
+CDHash=a775238567b4b5aace6ef4a6b436c33e7f14e05c
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/model.so: no signature
+Info.plist=not bound
+TeamIdentifier=not set
+Sealed Resources=none
+Internal requirements count=1 size=124

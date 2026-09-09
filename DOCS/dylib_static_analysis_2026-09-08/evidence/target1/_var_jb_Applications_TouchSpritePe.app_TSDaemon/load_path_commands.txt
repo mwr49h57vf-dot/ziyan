@@ -1,0 +1,147 @@
+492-Load command 14
+493:          cmd LC_LOAD_DYLIB
+494-      cmdsize 88
+495-         name /System/Library/Frameworks/QuartzCore.framework/QuartzCore (offset 24)
+496-   time stamp 2 Thu Jan  1 08:00:02 1970
+497-      current version 1.11.0
+498-compatibility version 1.2.0
+499-Load command 15
+500:          cmd LC_LOAD_DYLIB
+501-      cmdsize 96
+502-         name /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (offset 24)
+503-   time stamp 2 Thu Jan  1 08:00:02 1970
+504-      current version 1673.126.0
+505-compatibility version 150.0.0
+506-Load command 16
+507:          cmd LC_LOAD_DYLIB
+508-      cmdsize 88
+509-         name /System/Library/Frameworks/CoreGraphics.framework/CoreGraphics (offset 24)
+510-   time stamp 2 Thu Jan  1 08:00:02 1970
+511-      current version 1348.12.1
+512-compatibility version 64.0.0
+513-Load command 17
+514:          cmd LC_LOAD_DYLIB
+515-      cmdsize 88
+516-         name /System/Library/Frameworks/AVFoundation.framework/AVFoundation (offset 24)
+517-   time stamp 2 Thu Jan  1 08:00:02 1970
+518-      current version 2.0.0
+519-compatibility version 1.0.0
+520-Load command 18
+521:          cmd LC_LOAD_DYLIB
+522-      cmdsize 112
+523-         name /System/Library/PrivateFrameworks/SpringBoardServices.framework/SpringBoardServices (offset 24)
+524-   time stamp 2 Thu Jan  1 08:00:02 1970
+525-      current version 1.0.0
+526-compatibility version 1.0.0
+527-Load command 19
+528:          cmd LC_LOAD_DYLIB
+529-      cmdsize 120
+530-         name /System/Library/PrivateFrameworks/SoftwareUpdateServices.framework/SoftwareUpdateServices (offset 24)
+531-   time stamp 2 Thu Jan  1 08:00:02 1970
+532-      current version 1.0.0
+533-compatibility version 1.0.0
+534-Load command 20
+535:          cmd LC_LOAD_DYLIB
+536-      cmdsize 88
+537-         name /System/Library/Frameworks/IOKit.framework/Versions/A/IOKit (offset 24)
+538-   time stamp 2 Thu Jan  1 08:00:02 1970
+539-      current version 275.0.0
+540-compatibility version 1.0.0
+541-Load command 21
+542:          cmd LC_LOAD_DYLIB
+543-      cmdsize 88
+544-         name /System/Library/Frameworks/Foundation.framework/Foundation (offset 24)
+545-   time stamp 2 Thu Jan  1 08:00:02 1970
+546-      current version 1673.126.0
+547-compatibility version 300.0.0
+548-Load command 22
+549:          cmd LC_LOAD_DYLIB
+550-      cmdsize 104
+551-         name /System/Library/Frameworks/MobileCoreServices.framework/MobileCoreServices (offset 24)
+552-   time stamp 2 Thu Jan  1 08:00:02 1970
+553-      current version 727.5.3
+554-compatibility version 1.0.0
+555-Load command 23
+556:          cmd LC_LOAD_DYLIB
+557-      cmdsize 80
+558-         name /System/Library/Frameworks/ImageIO.framework/ImageIO (offset 24)
+559-   time stamp 2 Thu Jan  1 08:00:02 1970
+560-      current version 1.0.0
+561-compatibility version 1.0.0
+562-Load command 24
+563:          cmd LC_LOAD_DYLIB
+564-      cmdsize 88
+565-         name /System/Library/Frameworks/AudioToolbox.framework/AudioToolbox (offset 24)
+566-   time stamp 2 Thu Jan  1 08:00:02 1970
+567-      current version 492.0.0
+568-compatibility version 1.0.0
+569-Load command 25
+570:          cmd LC_LOAD_DYLIB
+571-      cmdsize 112
+572-         name /System/Library/PrivateFrameworks/IOMobileFramebuffer.framework/IOMobileFramebuffer (offset 24)
+573-   time stamp 2 Thu Jan  1 08:00:02 1970
+574-      current version 1.0.0
+575-compatibility version 1.0.0
+576-Load command 26
+577:          cmd LC_LOAD_DYLIB
+578-      cmdsize 104
+579-         name /System/Library/PrivateFrameworks/GraphicsServices.framework/GraphicsServices (offset 24)
+580-   time stamp 2 Thu Jan  1 08:00:02 1970
+581-      current version 14.0.0
+582-compatibility version 1.0.0
+583-Load command 27
+584:          cmd LC_LOAD_DYLIB
+585-      cmdsize 88
+586-         name /System/Library/PrivateFrameworks/Celestial.framework/Celestial (offset 24)
+587-   time stamp 2 Thu Jan  1 08:00:02 1970
+588-      current version 1.0.0
+589-compatibility version 1.0.0
+590-Load command 28
+591:          cmd LC_LOAD_DYLIB
+592-      cmdsize 88
+593-         name /System/Library/PrivateFrameworks/IOSurface.framework/IOSurface (offset 24)
+594-   time stamp 2 Thu Jan  1 08:00:02 1970
+595-      current version 1.0.0
+596-compatibility version 1.0.0
+597-Load command 29
+598:          cmd LC_LOAD_DYLIB
+599-      cmdsize 96
+600-         name /System/Library/Frameworks/CoreTelephony.framework/CoreTelephony (offset 24)
+601-   time stamp 2 Thu Jan  1 08:00:02 1970
+602-      current version 0.0.0
+603-compatibility version 1.0.0
+604-Load command 30
+605:          cmd LC_LOAD_DYLIB
+606-      cmdsize 80
+607-         name /System/Library/Frameworks/UIKit.framework/UIKit (offset 24)
+608-   time stamp 2 Thu Jan  1 08:00:02 1970
+609-      current version 61000.0.0
+610-compatibility version 1.0.0
+611-Load command 31
+612:          cmd LC_LOAD_DYLIB
+613-      cmdsize 56
+614-         name /usr/lib/libsqlite3.dylib (offset 24)
+615-   time stamp 2 Thu Jan  1 08:00:02 1970
+616-      current version 308.4.0
+617-compatibility version 9.0.0
+618-Load command 32
+619:          cmd LC_LOAD_DYLIB
+620-      cmdsize 56
+621-         name /usr/lib/libobjc.A.dylib (offset 24)
+622-   time stamp 2 Thu Jan  1 08:00:02 1970
+623-      current version 228.0.0
+624-compatibility version 1.0.0
+625-Load command 33
+626:          cmd LC_LOAD_DYLIB
+627-      cmdsize 48
+628-         name /usr/lib/libc++.1.dylib (offset 24)
+629-   time stamp 2 Thu Jan  1 08:00:02 1970
+630-      current version 800.7.0
+631-compatibility version 1.0.0
+632-Load command 34
+633:          cmd LC_LOAD_DYLIB
+634-      cmdsize 56
+635-         name /usr/lib/libSystem.B.dylib (offset 24)
+636-   time stamp 2 Thu Jan  1 08:00:02 1970
+637-      current version 1281.0.0
+638-compatibility version 1.0.0

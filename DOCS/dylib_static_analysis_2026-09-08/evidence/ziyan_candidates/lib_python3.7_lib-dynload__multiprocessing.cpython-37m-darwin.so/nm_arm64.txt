@@ -1,0 +1,4 @@
+0000000000006e30 T _PyInit__multiprocessing
+0000000000008440 D __PyMp_SemLockType
+0000000000006dac T __PyMp_SetError
+0000000000007190 T __PyMp_sem_unlink

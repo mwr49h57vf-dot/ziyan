@@ -1,0 +1,1 @@
+Non-fat file: vendor/lib/liblua5.3.dylib is architecture: arm64

@@ -1,0 +1,2 @@
+0000000000005c1c T _PyInit__decimal
+0000000000039c08 S _mprime_rdx

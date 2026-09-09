@@ -1,0 +1,1 @@
+61115180297f6f87279a51b3dd6daab19c32e686c2611bfb36affe97b9c507bd  /Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/python3.7/lib-dynload/unicodedata.cpython-37m-darwin.so

@@ -1,0 +1,2 @@
+Non-fat file: /Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/bin/ziyanctl is architecture: arm64
+arm64

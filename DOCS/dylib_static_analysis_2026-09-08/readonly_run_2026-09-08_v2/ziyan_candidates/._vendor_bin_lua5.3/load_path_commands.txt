@@ -1,0 +1,27 @@
+LC_ID_DYLIB / LC_LOAD_DYLIB / LC_RPATH extracted from otool -l
+240-Load command 13
+241:          cmd LC_LOAD_DYLIB
+242-      cmdsize 64
+243-         name /usr/lib/ziyan/lib/liblua5.3.dylib (offset 24)
+244-   time stamp 2 Thu Jan  1 08:00:02 1970
+245-      current version 5.3.5
+246-compatibility version 5.3.0
+247-Load command 14
+248:          cmd LC_LOAD_DYLIB
+249-      cmdsize 56
+250-         name /usr/lib/libSystem.B.dylib (offset 24)
+251-   time stamp 2 Thu Jan  1 08:00:02 1970
+252-      current version 1252.0.0
+253-compatibility version 1.0.0
+254-Load command 15
+255:          cmd LC_LOAD_DYLIB
+256-      cmdsize 64
+257-         name /usr/lib/ziyan/lib/libreadline.8.dylib (offset 24)
+258-   time stamp 2 Thu Jan  1 08:00:02 1970
+259-      current version 8.0.0
+260-compatibility version 8.0.0
+--
+276-Load command 19
+277:          cmd LC_RPATH
+278-      cmdsize 32
+279:         path /usr/lib/ziyan/lib (offset 12)

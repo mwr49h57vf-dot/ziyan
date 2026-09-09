@@ -1,0 +1,1 @@
+bb7c986049615a986091036c37ab4e4581709b542322de96a24fa1f84d3beeba  /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSUpdate

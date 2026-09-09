@@ -1,0 +1,1 @@
+0000000000006f00 T _PyInit_termios

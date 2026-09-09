@@ -1,0 +1,2 @@
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/ts_control.tar.gz
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/ts_data.tar.gz

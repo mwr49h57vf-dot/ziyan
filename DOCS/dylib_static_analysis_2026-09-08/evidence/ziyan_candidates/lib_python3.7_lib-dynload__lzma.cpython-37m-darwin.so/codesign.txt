@@ -1,0 +1,20 @@
+Executable=/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/python3.7/lib-dynload/_lzma.cpython-37m-darwin.so
+Identifier=_lzma.cpython-37m-darwin.so
+Format=Mach-O thin (arm64)
+CodeDirectory v=20200 size=604 flags=0x0(none) hashes=14+2 location=embedded
+Hash type=sha256 size=32
+CandidateCDHash sha1=179b61a35ff834fc055afc1e62efc9892b6ed874
+CandidateCDHashFull sha1=179b61a35ff834fc055afc1e62efc9892b6ed874
+CandidateCDHash sha256=efb6c23c11833d9140a4bbd4251b01fbc7a0e8fe
+CandidateCDHashFull sha256=efb6c23c11833d9140a4bbd4251b01fbc7a0e8fe0e7197e5ccd36c6cc33a1975
+Hash choices=sha1,sha256
+CMSDigest=53fc286a857e5679753d4d65bfa5c90af4326b2bdd775b3ef0cf45bf15a3e8fc
+CMSDigestType=2
+Launch Constraints:
+	None
+CDHash=efb6c23c11833d9140a4bbd4251b01fbc7a0e8fe
+/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/python3.7/lib-dynload/_lzma.cpython-37m-darwin.so: no signature
+Info.plist=not bound
+TeamIdentifier=not set
+Sealed Resources=none
+Internal requirements count=0 size=12

@@ -1,0 +1,6 @@
+cmp_liblua_vendor_staged_exit=0
+cmp_lua_vendor_staged_exit=0
+51ca786549e916d89a4b1264b1398c5abbe516dc3a501fc326ea4bb3f3003ae5  /Users/mac/Desktop/ZiYan_副本/vendor/lib/liblua5.3.dylib
+51ca786549e916d89a4b1264b1398c5abbe516dc3a501fc326ea4bb3f3003ae5  /Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/liblua5.3.dylib
+7f73822f9fb7461e1b0e7b73911ba05210e070a19a4f51504b527f41e6fa049e  /Users/mac/Desktop/ZiYan_副本/vendor/bin/lua5.3
+7f73822f9fb7461e1b0e7b73911ba05210e070a19a4f51504b527f41e6fa049e  /Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/bin/lua5.3

@@ -1,0 +1,1 @@
+Non-fat file: .theos/_/var/jb/usr/lib/ziyan/lib/liblua5.3.dylib is architecture: arm64

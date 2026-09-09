@@ -1,0 +1,20 @@
+Executable=/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/python3.7/lib-dynload/termios.cpython-37m-darwin.so
+Identifier=termios.cpython-37m-darwin.so
+Format=Mach-O thin (arm64)
+CodeDirectory v=20200 size=574 flags=0x0(none) hashes=13+2 location=embedded
+Hash type=sha256 size=32
+CandidateCDHash sha1=b5315d6c869d6380920e6ea91f6298a3c8d45df9
+CandidateCDHashFull sha1=b5315d6c869d6380920e6ea91f6298a3c8d45df9
+CandidateCDHash sha256=f3ba184f59d0f6e5f231001c42cb37ac603e958b
+CandidateCDHashFull sha256=f3ba184f59d0f6e5f231001c42cb37ac603e958bb8048acc11ef34f12b26d174
+Hash choices=sha1,sha256
+CMSDigest=b8ceb8b4513e644fbd307617318e4904a5b00906066ae5d4ab2dc4318f4ba703
+CMSDigestType=2
+Launch Constraints:
+	None
+CDHash=f3ba184f59d0f6e5f231001c42cb37ac603e958b
+/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/python3.7/lib-dynload/termios.cpython-37m-darwin.so: no signature
+Info.plist=not bound
+TeamIdentifier=not set
+Sealed Resources=none
+Internal requirements count=0 size=12

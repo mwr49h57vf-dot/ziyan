@@ -1,0 +1,86 @@
+lua_exit
+lua-cjson.src/lua_cjson.c
+_M.source = source
+_M.sourcet = sourcet
+_M.source = _M.choose(sourcet)
+    self.try(ltn12.pump.all(sendt.source, sink, checkstep))
+    local source = socket.source("until-closed", self.data)
+    putt.source = ltn12.source.string(body)
+socket.sourcet["http-chunked"] = function(sock, headers)
+    source = source or ltn12.source.empty()
+    return self.try(ltn12.pump.all(socket.source(mode, self.c, length),
+    local source = ltn12.source.rewind(socket.source("until-closed", self.c))
+        source = reqt.source,
+    if nreqt.source then
+        h:sendbody(nreqt.headers, nreqt.source, nreqt.step) 
+    if shouldredirect(nreqt, code, headers) and not nreqt.source then
+        reqt.source = ltn12.source.string(b)
+    self:data(ltn12.source.chain(mailt.source, mime.stuff()), mailt.step)
+      url.source = ltn12.source.string(body)
+   local mt = getmetatable(conn.sock).__index
+                         return method(self.sock, ...)
+      conn.sock = try(socket.tcp())
+      local st = getmetatable(conn.sock).__index.settimeout
+         return st(self.sock, ...)
+         try(self.sock:connect(host, port))
+         self.sock = try(ssl.wrap(self.sock, params))
+         try(self.sock:dohandshake())
+         reg(self, getmetatable(self.sock))
+        headers["User-Agent"] = "sz.so"
+        headers["User-Agent"] = "sz.so"
+        source = ltn12.source.string(post_data),
+        headers["User-Agent"] = "sz.so"
+        headers["User-Agent"] = "sz.so"
+        source = ltn12.source.string(post_data),
+    sz.socket = {}
+    function sz.socket.connect(host, port, connect_timeout)
+    sz.socket.SO_LINGER = "linger"
+    sz.socket.SO_SNDTIMEO = "SO_SNDTIMEO"
+    sz.socket.SO_RCVTIMEO = "SO_RCVTIMEO"
+    return sz.socket
+sz_sz.socket = make_sz_socket(sz_sz)
+    local c = sz_sz.socket.connect(ip,port, tonumber(timeout) or 1)
+        c:setopts(sz_sz.socket.SO_LINGER, {1, 0})
+lua_exit
+lua-cjson.src/lua_cjson.c
+_M.source = source
+_M.sourcet = sourcet
+_M.source = _M.choose(sourcet)
+    self.try(ltn12.pump.all(sendt.source, sink, checkstep))
+    local source = socket.source("until-closed", self.data)
+    putt.source = ltn12.source.string(body)
+socket.sourcet["http-chunked"] = function(sock, headers)
+    source = source or ltn12.source.empty()
+    return self.try(ltn12.pump.all(socket.source(mode, self.c, length),
+    local source = ltn12.source.rewind(socket.source("until-closed", self.c))
+        source = reqt.source,
+    if nreqt.source then
+        h:sendbody(nreqt.headers, nreqt.source, nreqt.step) 
+    if shouldredirect(nreqt, code, headers) and not nreqt.source then
+        reqt.source = ltn12.source.string(b)
+    self:data(ltn12.source.chain(mailt.source, mime.stuff()), mailt.step)
+      url.source = ltn12.source.string(body)
+   local mt = getmetatable(conn.sock).__index
+                         return method(self.sock, ...)
+      conn.sock = try(socket.tcp())
+      local st = getmetatable(conn.sock).__index.settimeout
+         return st(self.sock, ...)
+         try(self.sock:connect(host, port))
+         self.sock = try(ssl.wrap(self.sock, params))
+         try(self.sock:dohandshake())
+         reg(self, getmetatable(self.sock))
+        headers["User-Agent"] = "sz.so"
+        headers["User-Agent"] = "sz.so"
+        source = ltn12.source.string(post_data),
+        headers["User-Agent"] = "sz.so"
+        headers["User-Agent"] = "sz.so"
+        source = ltn12.source.string(post_data),
+    sz.socket = {}
+    function sz.socket.connect(host, port, connect_timeout)
+    sz.socket.SO_LINGER = "linger"
+    sz.socket.SO_SNDTIMEO = "SO_SNDTIMEO"
+    sz.socket.SO_RCVTIMEO = "SO_RCVTIMEO"
+    return sz.socket
+sz_sz.socket = make_sz_socket(sz_sz)
+    local c = sz_sz.socket.connect(ip,port, tonumber(timeout) or 1)
+        c:setopts(sz_sz.socket.SO_LINGER, {1, 0})

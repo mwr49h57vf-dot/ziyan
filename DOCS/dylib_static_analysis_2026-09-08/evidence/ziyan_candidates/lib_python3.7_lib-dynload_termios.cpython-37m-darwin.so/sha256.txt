@@ -1,0 +1,1 @@
+4b8a1dabc45bac5c1daa625e9de87f1ecf3439924f080a9af251ac7c5f7a302e  /Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/python3.7/lib-dynload/termios.cpython-37m-darwin.so

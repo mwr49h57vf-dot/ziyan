@@ -7,6 +7,7 @@
 #import <stdatomic.h>
 #import <stdlib.h>
 #import <string.h>
+#import <sys/time.h>
 
 /*
  * 174/204：自有常驻帧（仿触动 createScreenIOSurface，不链 TS）
@@ -21,6 +22,15 @@ static atomic_int sActive = 0;              // 0/1 可读面
 static BOOL sReady = NO;
 static BOOL sPinned = NO; // 178：keepScreen 钉槽，禁 SB renew 覆盖
 static uint8_t sResPixFmt = ZiYanFramePixelFormatRGBA8888;
+static double sLastResidentMs = 0;
+
+double ZiYanFrameResidentLastRenewMs(void) { return sLastResidentMs; }
+
+static double ZFR_NowMs(void) {
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+  return (double)tv.tv_sec * 1000.0 + (double)tv.tv_usec / 1000.0;
+}
 
 void ZiYanFrameResidentSetWritePixelFormat(uint8_t pixelFormat) {
   sResPixFmt = (pixelFormat == ZiYanFramePixelFormatBGRA8888)
@@ -181,10 +191,10 @@ BOOL ZiYanFrameResidentIsPinned(void) {
   return pinned;
 }
 
-BOOL ZiYanFrameResidentRenew(const void *pixels, size_t width, size_t height,
-                             size_t bpr, uint8_t provider, uint8_t orient,
-                             uint32_t frontHash, uint8_t status, uint32_t seq,
-                             uint64_t ts_ms) {
+static BOOL ZFR_RenewImpl(const void *pixels, size_t width, size_t height,
+                          size_t bpr, uint8_t provider, uint8_t orient,
+                          uint32_t frontHash, uint8_t status, uint32_t seq,
+                          uint64_t ts_ms) {
   ZFR_EnsureSync();
   if (!pixels || width < 2 || height < 2 || bpr < width * 4 || seq < 1) {
     return NO;
@@ -298,6 +308,18 @@ BOOL ZiYanFrameResidentRenew(const void *pixels, size_t width, size_t height,
   ZiYanWriteVarText(@".ziyan_workset_meta", meta);
   pthread_mutex_unlock(&sResidentMu);
   return YES;
+}
+
+BOOL ZiYanFrameResidentRenew(const void *pixels, size_t width, size_t height,
+                             size_t bpr, uint8_t provider, uint8_t orient,
+                             uint32_t frontHash, uint8_t status, uint32_t seq,
+                             uint64_t ts_ms) {
+  // BIZ08：整笔 Renew 墙钟。含读票 cond_wait + @3x 点采样。
+  double t0 = ZFR_NowMs();
+  BOOL ok = ZFR_RenewImpl(pixels, width, height, bpr, provider, orient,
+                          frontHash, status, seq, ts_ms);
+  sLastResidentMs = ZFR_NowMs() - t0;
+  return ok;
 }
 
 void ZiYanFrameResidentMarkStatus(uint8_t status, BOOL touchTs) {

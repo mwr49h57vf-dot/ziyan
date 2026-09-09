@@ -1,0 +1,1 @@
+49af8e8a8308b6c3b198d9a1a1468dd2f0e31b404f271db333b9398046749521  /Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/python3.7/lib-dynload/_curses_panel.cpython-37m-darwin.so

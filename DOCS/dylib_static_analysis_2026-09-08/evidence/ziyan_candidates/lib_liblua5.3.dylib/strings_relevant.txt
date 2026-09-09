@@ -1,0 +1,8 @@
+620:invalid option '%%%c' to 'lua_pushfstring'
+725:lua_Integer
+726:lua_Number
+867:lua_debug> 
+974:/tmp/lua_XXXXXX
+1051:LUA_PATH
+1054:LUA_CPATH
+1072:LUA_NOENV

@@ -1,0 +1,18 @@
+Executable=/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSDaemon
+Identifier=TSDaemonPersonalNoRoot_arm64
+Format=Mach-O thin (arm64)
+CodeDirectory v=20400 size=29589 flags=0x0(none) hashes=914+7 location=embedded
+Hash type=sha256 size=32
+CandidateCDHash sha256=f2585abf4391ec930c97f5e1f81d30f6f7b41385
+CandidateCDHashFull sha256=f2585abf4391ec930c97f5e1f81d30f6f7b41385f2c0fd2c363c59a25cdc7216
+Hash choices=sha256
+CMSDigest=f2585abf4391ec930c97f5e1f81d30f6f7b41385f2c0fd2c363c59a25cdc7216
+CMSDigestType=2
+Launch Constraints:
+	None
+CDHash=f2585abf4391ec930c97f5e1f81d30f6f7b41385
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSDaemon: no signature
+Info.plist=not bound
+TeamIdentifier=not set
+Sealed Resources=none
+Internal requirements count=1 size=144

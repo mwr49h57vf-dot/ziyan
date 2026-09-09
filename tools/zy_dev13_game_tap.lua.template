@@ -1,0 +1,44 @@
+local expected = "__EXPECTED_BUNDLE__"
+
+local var = "__VAR__"
+
+local function read_front()
+  local f = io.open(var .. "/.ziyan_front_bid", "r")
+  if not f then
+    error("front_read_failed", 0)
+  end
+  local value = f:read("*l") or ""
+  f:close()
+  return value:match("^%s*(.-)%s*$")
+end
+
+if type(init) ~= "function" then
+  error("missing_init", 0)
+end
+if type(getScreenSize) ~= "function" then
+  error("missing_getScreenSize", 0)
+end
+if type(tap) ~= "function" then
+  error("missing_tap", 0)
+end
+
+init(0)
+
+if read_front() ~= expected then
+  error("front_not_expected:" .. read_front(), 0)
+end
+
+local w, h = getScreenSize()
+w, h = tonumber(w), tonumber(h)
+if not w or not h or w <= 0 or h <= 0 then
+  error("invalid_screen_size", 0)
+end
+
+local result = tap(w * 0.50, h * 0.08)
+if result == false then
+  error("tap_failed", 0)
+end
+
+if read_front() ~= expected then
+  error("post_front_changed:" .. read_front(), 0)
+end

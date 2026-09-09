@@ -1,0 +1,20 @@
+all read-only commands used in this run
+python3 tools/ziyan_codex_checkpoint.py show
+git status --short
+sed reverse-engineering skill files
+find target1/target2 -type f -print | sort
+file each target file
+tar -tzvf each target archive
+find target1 files; file; select Mach-O
+lipo -info each Mach-O
+otool -L each Mach-O
+otool -l each Mach-O
+otool -D each Mach-O
+nm -gU each Mach-O
+strings -a each Mach-O; rg requested paths/tokens
+shasum -a 256 each candidate
+stat each candidate
+rg requested paths/tokens in target directories
+find ZiYan tree; exact lua5.3/liblua5.3 candidates
+cmp vendor vs staged exact candidates
+dpkg-deb -c ZiYan package archives; filter lua5.3/liblua5.3

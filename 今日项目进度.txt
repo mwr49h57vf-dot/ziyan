@@ -1,8 +1,571 @@
-日期: 2026-09-04
+日期: 2026-09-07
 
-一句话状态: 三十九号 T4/T5 三十刀 PASS（HEAD `2e159b1`）。下一刀四十号收剩余 18 个应入库主题。
+一句话状态: BIZ11 复核完成：窗口内 publish p50=79.1ms、resident p50=63.7ms、rest5=430.7ms；窗口、合同和停止状态均通过，等待人工最终审核，不进入 Probe 优化。
+
+## 2026-09-07 业务风暴十一号复核（.53 publish_ms 账本）
+- `ZiYanFrameCapturePublishPixels` 从函数入口计时，经唯一收口写耗时；覆盖输入失败、尺寸解析、旋转、unhealthy、WriteEx 与 ResidentRenew。
+- `tools/test_framecap_publish_ms_contract.py` 与 `tools/test_framecap_cap_cost_contract.py` 均 PASS；fixture 验证 `stop_sent` 后 real 行不进入窗口统计。
+- 90s 窗口：`RUN_START=1788754497.017029`、`STOP_SENT=1788754588.602563`、`CAP_COST_LINES=104=REAL 26+REUSE 78`、`TAIL_REAL=2`、`MALFORMED=0`、`INCOMPLETE_REAL=0`。
+- 窗口内 real p50：publish=**79.1**、resident=**63.7**、rest5=**430.7**、cost=**701.2**。`TAIL_REAL` 只保留为停后证据，不进入 p50。
+- .53 当前 SHA `b380ecdd69fa2133e28b57e1e766ff7623bba9b5a065fee0efcfab95a4889e0d`；SB=`46408`；停后 `EMBED=0`、`KEEP=0`、`FC_N=1`。
+- 证据：`tmp_shots/STORM_BIZ11_PUBLISH53_20260907/VERDICT.md`。
+- 口径：`STORM_BIZ11=PASS_PENDING_HUMAN`，判据仅为合同、样本边界和设备停止状态。等待人工最终审核；不进入 Probe 优化。
+
+## 2026-09-07 业务风暴十号（.53 只拆 release_ms）
+- 只记账 `createScreenIOSurface` 之后的系统源面 `CFRelease`。仍立即释放。未改节拍/2500ms/系统面/dest-lock/shm/resident/src-lock。
+- 热换 SHA `15be7807`。回滚 `bak.20260907_biz10a`。SB 仍 `46408`。FC `86612`。未 dpkg。未 sbreload。
+- 90s embed 真采 28：release p50=**1.4** max=5.5。rest4=**472.7**。复用 77，seq 35→62。
+- 证据：`tmp_shots/STORM_BIZ10_RELEASE53_20260907/VERDICT.md`
+- 下一刀：只拆 `publish_ms`（整笔 PublishPixels）。禁止再猜 dest-lock / 文件 shm / resident / src-lock / CFRelease。禁止再叠 idle/2500ms。
+
+## 2026-09-07 业务风暴九号（.53 只拆 src_lock_ms）
+- 只记账 Accel/线性路径的系统源面 `IOSurfaceLock(src)`。未改节拍/2500ms/系统面/dest-lock/shm skip/resident。
+- 热换 SHA `f2903729`。回滚 `bak.20260907_biz09a`。SB 仍 `46408`。FC `82585`。未 dpkg。未 sbreload。
+- 90s embed 真采 27：src_lock p50=**0.0** max=0.0（27/27 都是 0）。rest3=**488.5**。复用 75，seq 3→29。
+- 证据：`tmp_shots/STORM_BIZ09_SRCLOCK53_20260907/VERDICT.md`
+- 下一刀：只拆 `release_ms`（系统源面 `CFRelease`）。禁止再猜 dest-lock / 文件 shm / resident / src-lock。禁止再叠 idle/2500ms。
+
+## 2026-09-07 业务风暴八号（.53 只拆 resident_ms）
+- 只记账整笔 `ResidentRenew`（读票等待 + 2208×1242→1104×621）。未改节拍/2500ms/系统面/dest-lock/shm skip。
+- 热换 SHA `573a3775`。回滚 `bak.20260907_biz08a`。SB 仍 `46408`。FC `77749`。未 dpkg。未 sbreload。
+- 90s embed 真采 28：resident p50=**66.8** max=97.6。rest=522.4，rest2=**457.2**。复用 76，seq 71→98。
+- 证据：`tmp_shots/STORM_BIZ08_RESIDENT53_20260907/VERDICT.md`
+- 下一刀：只拆 `src_lock_ms`（系统源面 IOSurfaceLock）。禁止再猜 dest-lock / 文件 shm memcpy / resident。禁止再叠 idle/2500ms。
+
+## 2026-09-07 业务风暴七号（.53 embed 少写文件 shm）
+- 同几何+embed 跳过 11MB `memcpy`，仍写 header + ResidentRenew。未改节拍/2500ms/系统面。
+- 热换 SHA `5477b0b5`。回滚 `bak.20260907_biz07a`。SB 仍 `46408`。FC `71146`。未 dpkg。未 sbreload。
+- 90s embed 真采 27：skip_px=1 共 26。rest p50=**548.2**（BIZ06 570.5，只掉 23ms）。复用 76，seq 35→61。
+- 证据：`tmp_shots/STORM_BIZ07_SHMSKIP53_20260907/VERDICT.md`
+- 下一刀：只拆 `resident_ms`（或 src lock / Publish 其它墙钟）。禁止再猜 dest-lock / 文件 shm memcpy。禁止再叠 idle/2500ms。
+
+## 2026-09-07 业务风暴六号（.53 只拆 dest-lock）
+- 只记账 `destlock_ms`。未改节拍/2500ms/系统面。
+- 热换 SHA `6bbd9de1`。回滚 `bak.20260907_biz06a`。SB 仍 `46408`。FC `67255`。未 dpkg。未 sbreload。
+- 90s embed 真采 27：destlock p50=**0.0** max=0.1。rest 仍 570.5。假设证伪。
+- 证据：`tmp_shots/STORM_BIZ06_DESTLOCK53_20260907/VERDICT.md`
+- 下一刀：embed 少写 11MB 文件 shm，必须保 age/header。禁止再猜 dest-lock。
+
+## 2026-09-07 业务风暴五号（.171+触动16 对照，只拆 create/xfer/copy）
+- `.171` 只读：TSDaemon 555 RSS 29MB 空闲脉动；Frida 无 USB。触动16：常驻 `_gj_g_n_uu`+`screenBitmapData`+screenRenew。子砚头文件禁 sticky 系统面，本刀不持有。
+- 只 `.53` 热换 SHA `a58251e9`。回滚 `bak.20260907_biz05a`。SB 仍 `46408`。FC `60793`。未 dpkg。未 sbreload。
+- 90s embed 真采 27：cost p50=784.5；create=77.8；xfer=5.7；copy=107.7；**rest=607.3**。
+- 证据：`tmp_shots/STORM_BIZ05_TS171_SURF_20260907/VERDICT.md`
+- 下一刀：只拧 rest（dest-lock / shm 热写）。禁止再叠 idle/2500ms/持有系统面。
+
+## 2026-09-07 业务风暴四号（.53 合帧 cost + surface 复用）
+- 只 `.53`。先打 `.ziyan_cap_cost.log`：90s 真采 55 次，单次 p50=729ms，复用 0。
+- 再只改 `HandleOnce` @3x IOSurface 复用 2500ms。真采 27 / 复用 76。fc p50=18.3。
+- SHA `56a4a838`。SB 仍 `46408`。FC 现 `39370`。未 dpkg。未 sbreload。
+- 证据：`tmp_shots/STORM_BIZ04_SURF53_20260907/VERDICT.md`
+
+## 2026-09-07 业务风暴三号续（.53 节拍部署+复测）
+- 只换 `.53` framecap。SHA `1f349516`→`e63436e0`。回滚 `ziyan_framecap.bak.20260907_biz03b`。未 dpkg。未 sbreload。
+- 同色 embed 90s：p50=31.8 p90=59.0 max=68.2。相对旧 embed 49.5 有降，未到 22。
+- `FC 49176→32117`。SB `46408` MATCH。停后空闲 2.1%。
+- 证据：`tmp_shots/STORM_BIZ03B_PACE53_20260907/VERDICT.md`
+
+## 2026-09-07 业务风暴三号（.53 embed CPU）
+- 只 `.53`。同一套 ios8p 色。embed_go，无独立 lua。`via_embed_find=140` `via_color_req_find=0`。
+- p50=49.5 p90=67.3 max=71.4。相对 BIZ02 44.4 **没掉**。按合同不改夹具启动。
+- 源码只改 `main.m` `hasColor` @3x idle 5ms→25ms。未装包。冻结 MATCH `46408/49176`。
+- 证据：`tmp_shots/STORM_BIZ03_EMBED53_20260907/VERDICT.md`
+
+## 2026-09-07 .53 framecap CPU 诊断
+- 只读。未改引擎。未部署。未对比触动。
+- BIZ01/BIZ02 分析器都红：`.53` p50≈40–44，另三机 p50≤5。`CPU_STORM=0`。
+- 空闲四拍 `%cpu=1.8–2.1`。FORCE/KEEP/THROTTLE/SNAP ABSENT。
+- 四机 BIZ02 都是 `via=color_req embed=false`。`.53` find 2100 / get 1101，约是 `.101` 的 2.4 倍。
+- 层：`COLOR_REQ_COLD_ON_3X`。证据：`tmp_shots/STORM_53_FC_CPU_20260907/VERDICT.md`
+
+## 2026-09-07 业务风暴二号（Cursor 代跑）
+- 只改夹具。色点抄自桌面 `ios7.lua`/`ios8p.lua`（只读）。登录禁止 tap。采集器 `27924` PPID=1，PARALLEL 2→592 共 240 行。
+- 四机都 `done`。loop 全 `MISS`：`.101` 439 / `.112` 184 / `.166` 426 / `.53` 1050。无登录 tap。无 ≥8s 卡死。
+- `FC_N=1` `SB_CHG=0` 冻结 MATCH。`.53` fc_cpu 最高 80.3，连续 ≥80 只有 1 拍，不是 CPU_STORM。
+- 证据：`tmp_shots/STORM_BIZ02_20260907/` VERDICT=`PASS_PENDING_HUMAN` `SCENE=MISS` `STORM=NONE`
+- 未改引擎。未对比触动。不是 G0。
+
+## 2026-09-07 业务风暴一号（Cursor 代跑）
+- 四机 1788738256 同开。原 Mac runner 约 2 分钟被收掉；lua 继续。continue_sample 从 155s 采到 595s。
+- tick：`.101` 413 圈 done；`.112` 237 圈停在 pre_get；`.166` 424 圈 done；`.53` 1229 圈 done。get/find 最大 1082/260ms，无 ≥8s。
+- PARALLEL：四机 `LUA_N=1` `FC_N=1`。`.53` fc_cpu 最高 78，连续 ≥80 为 0。冻结 MATCH，`SB_CHG=0`。
+- 四机各 tap 2 次（夹具 ROI 钉 1% 角，几乎必中）。`.112` AFTER 留了假 keep，已删。
+- 证据：`tmp_shots/STORM_BIZ01_20260907/` VERDICT=`PARTIAL_PENDING_HUMAN` `STORM=NONE`
+- 未改引擎。未对比触动。不是 G0。
+
+## 2026-09-07 风暴循环五号审核
+- 他们自己写 PARTIAL。夹具已分 get/find、有色串。没改引擎，没对比触动。
+- `PARALLEL.tsv` 只有 4 行 launch 表，不是 90s 采样。主 checkpoint 仍是三号。AFTER 时 `.101/.112/.166` 各 2 条 lua。
+- `.112` tick=5 `pre_get` 卡 ≥105s = 首圈 getColor。`.166` `pre_find` 后卡住。`.101` 也停在 `pre_get` 但双 lua 脏。`.53` 到 `done`。
+- 他们 leftover `.53 FC_N=2` 是 `grep -F ziyan_framecap serve` 误计。独立四机 `FC_N=1`，冻结 MATCH，tick/lua 已清。
+- 夹具墙钟用了 `os.clock()+90`，圈 `mSleep(5000)`。
+- 审核：`tmp_shots/STORM_LOOP05_AUDIT_20260907/VERDICT.md`
+- 下一刀：`tmp_shots/STORM_LOOP06_PROMPT_20260907.txt`
+
+## 2026-09-07 风暴循环四号续重开审核
+- 他们四机同开了，PARALLEL/AFTER 真 tab。没写 `STORM_LOOP04C_20260907/VERDICT.md`，checkpoint 仍是三号收口，四机 tick 没删。
+- `.112` 采样窗全程冻在 tick=31 `pre_find`，AFTER 时 lua 还在；leftover 才见到 tick=33 `done`（ts 6504→6728，约 224s）。独立 LAYER=`SCRIPT_FIND`。FRAME 仍不成立。
+- `.101/.166/.53` 采样窗内已 `done`；`.166` seq 冻 + keep=1 + find 8.8ms = keep 锁。四机 leftover `FC_N=1`，冻结 MATCH。
+- 夹具自身：空 offset `""`、find 写成 0/1、getColor 没单独计时、`os.time()*1000`。
+- 审核：`tmp_shots/STORM_LOOP04C_AUDIT_20260907/VERDICT.md`
+- 下一刀：`tmp_shots/STORM_LOOP05_PROMPT_20260907.txt`（禁止对比触动；只修夹具再四机同测）
+
+## 2026-09-07 风暴循环四号审核
+- 他们四机同一秒真跑了，夹具用了 os.clock()，没改引擎。checkpoint 仍是三号收口。
+- `.112` 约 70s 无 tick，之后 find 48–100ms，tick.layer=ABSENT。四机 lease_age 全程冻死；`.112` 的 62389 在 BEFORE 残留 tick 里就有。FRAME 不成立。
+- leftover：四机 tick 还在；SB/FC 冻结 MATCH；`FC_N=1`。AFTER 时 `.112` 仍有 lua。
+- 审核：`tmp_shots/STORM_LOOP04_AUDIT_20260907/VERDICT.md`
+- 下一刀：`tmp_shots/STORM_LOOP04C_PROMPT_20260907.txt`（短纸重开；04B 对话 `response.failed` 作废）
+
+## 2026-09-07 风暴循环三号收口审核
+- 他们只写了 VERDICT + checkpoint，并删了四机 tick。没有重跑，夹具/PARALLEL/AFTER mtime 未动。
+- 独立 leftover：四机 TICK/KEEP/夹具进程 ABSENT；SB/FC 冻结 MATCH；`FC_N=1`。`.101` 旁支 zy=30025 只记。
+- `.166`「旧帧」按收口纸照抄成立；产品归因不成立（keep=1 时 seq 不涨是锁缓冲）。下一刀禁止修它。
+- 审核：`tmp_shots/STORM_LOOP03D_AUDIT_20260907/VERDICT.md`
+- 下一刀：`tmp_shots/STORM_LOOP04_PROMPT_20260907.txt`
+
+## 2026-09-07 风暴循环三号再续审核
+- 他们四机同时跑了约 88s，`PARALLEL.tsv` + AFTER/tick 齐。没写 VERDICT，checkpoint 仍是未开跑。
+- `.112` 首圈 find 23000ms。`.166` frame_seq 卡死 178355。`.53` framecap %cpu 连续≥80。`.101` seq 在涨。`SB_CHG=0`，`FC_N=1`，`tap_count=0`。
+- 独立复读约 02:53：冻结 MATCH，无夹具 lua，keep 文件无，tick 还在。
+- 审核：`tmp_shots/STORM_LOOP03C_AUDIT_20260907/VERDICT.md`
+- 下一刀：`tmp_shots/STORM_LOOP03D_PROMPT_20260907.txt`（只收口，禁止重跑）
+
+## 2026-09-07 风暴循环三号续被用户停掉
+- 夹具已写出：`tmp_shots/STORM_LOOP03_20260907/scripts/storm_loop03_ziyan.lua`。
+- 四机 CLEAN_OK。LAUNCH_PID：`.101=40487` `.112=83761` `.166=24710` `.53=63291`。
+- launch/check 只有 `runApp_requested=1`，front 空。BEFORE 本机引号炸。无 PARALLEL.tsv / AFTER / VERDICT。
+- 旧 Codex「风暴循环三号续」已停并作废。下一刀：`tmp_shots/STORM_LOOP03C_PROMPT_20260907.txt`。
+
+## 2026-09-07 风暴循环二号续审核
+- 他们自己写 PARTIAL，证据对得上，AFTER_PS 这回没有谎报 SCRIPT=ABSENT。
+- `.101` 卡在 `snapshot()`：tick 与墙钟差 358s，lua etime 06:31，无 PNG。他们写的「约 40s」只是采样窗尾巴。
+- `.112/.166/.53` 按门槛未开。冻结 MATCH，`FC_N=1`。
+- 复读：`.101` 仍留 tick=50 和机上 `_storm_loop01.lua`；keep/active 已无。另三机干净。
+- 审核：`tmp_shots/STORM_LOOP02B_AUDIT_20260907/VERDICT.md`
+- 下一刀提示词：`tmp_shots/STORM_LOOP03B_PROMPT_20260907.txt`
+- 三号没测。审核：`tmp_shots/STORM_LOOP03_AUDIT_20260907/VERDICT.md`。他们吐的是过期 `.codex/CONTINUATION_FIRST_MESSAGE.txt`（五十一号），已改写成三号续。
+
+## 2026-09-07 风暴循环二号审核
+- 他们没写 `VERDICT.md`。checkpoint 还写 NOT_STARTED，但 `.101` 实际跑了三开。
+- `.112/.166/.53` 只有 BEFORE。
+- `.101` r1/r2 都约 35s 冻 tick，没到 `phase=done`，snapshot/ocr/find 没跑到。
+- r2 自报 SCRIPT=ABSENT，自己的 AFTER_PS 仍有 lua 47567。
+- 独立复读冻结 MATCH，`FC_N=1`。`.101` 仍留 tick=66 和 `.ziyan_active=1`。另三机干净。
+- 审核：`tmp_shots/STORM_LOOP02_AUDIT_20260906/VERDICT.md`
+- 续跑提示词：`tmp_shots/STORM_LOOP02B_PROMPT_20260906.txt`
+
+## 2026-09-06 抓色器加密发行 + 图标
+- 发给别人只发 `tools/ziyan_colorpicker/ZiYan.zip`，里面只有 `ZiYan.exe`。
+- 定稿图标：渐变蓝底 + 渐变黑字 `ZY` / `touch`。已写入 `Resources/AppIcon*` 和 `ZiYan.exe`。
+- 源码打成 `_zy_payload.bin` 再进 exe。不是不可逆向。
+- 已恢复 `.48` explorer。禁止再杀资源管理器。
+- `.48` 上所有子砚抓色器已换成同一份 `ZiYan.exe`。圆角外已改透明（JPEG 白底是四个白点的原因）。桌面 `ZiYan.lnk` 指向新 ico。未动触动 TS抓色器。
+- 手机桌面图标要等下次装包才会变。不是 G0。
+
+## 2026-09-06 风暴循环一号审核
+- 他们 VERDICT=PARTIAL 采信。独立复读四机冻结 MATCH，`_storm_loop01.lua`/tick/keep 都 ABSENT，`FC_N=1`。
+- 触动 run.cfg 已恢复；夹具文件还在观察机，tick 没有。
+- 审核：`tmp_shots/STORM_LOOP01_AUDIT_20260906/VERDICT.md`
+- 用户改口下一刀不比触动。提示词：`tmp_shots/STORM_LOOP02_PROMPT_20260906.txt`
+
+## 2026-09-06 .48 取色器三问
+- 复制：`clipboard_append` 写两遍，`705, 450` 黏成 `705, 450705, 450`。现只写一份。
+- 方向键：warp 后立刻清 `_arrow_stick`，鼠标 Motion 把取样点打回旧像素。现锁到下一次单击。
+- 生成脚本：A 有值 S=0 时 ROI 写成 `0,0`；F 复制第 1 框且 wrap 看起来像两行。现用色点包围盒填范围，复制单行 find。
+- `.48` 已停旧 v174、重打 exe：`D:\360MoveData\Users\Administrator\Desktop\share\ZiYanColorPicker_v174.exe`。不是 G0。
+
+## 2026-09-06 风暴/CPU/内存审核
+- 用户下令：梳理整项目与触动对比；死循环风暴、风暴处理、CPU、泄漏、崩溃都要审。
+- 未改产品代码，未部署，未 sbreload，未 invent 十五号。Agent 游戏仍暂停。
+- 审核 VERDICT：`tmp_shots/TS_STORM_CPU_MEM_AUDIT_20260906/VERDICT.md`
+- Canvas：`ziyan-ts-storm-cpu-mem-audit`
+- 总裁决：toast/keep/force 已有节流；find 无 mSleep、snapshot、findImage(color_req)、tap 仍能在死循环里打满。Z1-MEM/Z2 是 08-15 包，不能当本包仍绿。本窗未拉 .149/.171。
+- 残留洞：notifyMessage 绕过 Lua 同文闸；snapshot/findImage 无圈速帽。
+- 用户改口：提示词必须自写子砚函数循环脚本、放入四机测试循环、对比触动、本窗数字必须优于触动。
+- 只读纸作废：`tmp_shots/STORM_LOOKUP01_PROMPT_20260906.txt`
+- 现贴：`tmp_shots/STORM_LOOP01_PROMPT_20260906.txt`
+- 仍禁止改引擎、禁止 ios7/ios8p、禁止覆盖触动现有业务脚本、禁止口头全面超越/G0/MVP。本窗只审核他们的数字。
+
+## 2026-09-06 暂停 Agent 游戏
+- 用户下令：先暂停开发 Agent 游戏功能，任意游戏工期太长。
+- 不要再贴十五号自玩 / 跟前台 / 指定两款横屏死区纸。不要 invent 十六号。
+- 已人审的一到十四号证据保留，不回滚、不删记录。
+- 下一主题等用户另开。不是 Agent 做完。
+
+## 2026-09-06 任意游戏第一刀提示词
+- 作废：指定两款死区纸、只跟前台不玩的纸。
+- 现在只贴：`tmp_shots/DEV15_PROMPT_ANY_GAME_SELF_PLAY_20260906.txt`
+- 目标：任何当前前台游戏自己玩。本刀=自己找可玩按钮点一次。禁止登录。禁止白名单。
+
+## 2026-09-06 用户锁定：任何游戏
+- 要求是 Agent 可玩**任何游戏**，不是只玩血战屠龙 / 拔刀传奇。
+- 已收口的 Lua / 子砚 HID / P2 指定两款，都不能满足这条。
+- 十五号若仍按「这两款 init(1) 死区点」做，只是方向校正，不是任意游戏。
+- 任意游戏还没有立项、没有真机证据、不能承诺做完就行。未另开目标前禁止宣称 Agent 能自己玩。
+
+## 2026-09-06 十四号开发审核
+- 他们写家族 PASS 采信。只读四机残留，未跑 lua，未 open，未 tap，未 sbreload，未 invent 十五号。
+- 三项人审路径本审核按 AUDIT 原文核对都是 PASS：DEV11/DEV12/DEV13 AUDIT。他们 VERDICT 只写刀名、没贴路径，按文件核过，不否决。
+- 独立复读约 21:05：四机冻结 MATCH，真 `FC_N=1`，无真实 agent lua，keep/stop ABSENT。front 仍是分机游戏。tap 仍是十三号 ts。open_app / `/tmp/dev13_game_tap.lua` ABSENT。
+- `.101` 旁支 zydaemon `32249` 只记。session 仍 `PAUSED_SAFE` 只记。
+- 口径 `AGENT_TRUE_GAME_FAMILY=PASS_PENDING_HUMAN`。本家族收口。不是横屏点，不是 MVP。证据：`tmp_shots/DEV14_AUDIT_20260906/VERDICT.md`。下一刀：`tmp_shots/DEV15_PROMPT_TRUE_GAME_TAP_INIT1_20260906.txt`。
+
+## 2026-09-06 十三号开发审核
+- 他们写 PASS 采信。一次性 `/tmp/dev13_game_tap.lua` + `ziyan_run.lua`，`init(0)` 按发出的纸。未改 `run_*`，未跑 agent，未 Home，未登录，未 sbreload，未 invent 十四号。
+- 独立复读约 20:46：四机冻结 MATCH，真 `FC_N=1`，无真实 agent lua，keep/stop ABSENT。front 仍是分机游戏。profile 文件仍是子砚。
+- tap 已从七号换成十三号：`.101=1788698375` `.112=1788698390` `.166=1788698406` `.53=1788698418`。坐标仍是 `320.0,90.88` / `621.0,176.64`，`front=` 各机游戏。
+- `.166` `ps` 有 `grep -F ziyan_framecap serve`，排除后真 serve 仍是 `52622`。旁支 zy `11964` 只记。
+- 口径 `AGENT_TRUE_GAME_TAP=PASS_PENDING_HUMAN`。不是点开始，不是 MVP。证据：`tmp_shots/DEV13_AUDIT_20260906/VERDICT.md`。下一刀：`tmp_shots/DEV14_PROMPT_TRUE_GAME_FAMILY_20260906.txt`。
+
+## 2026-09-06 进游戏方向（用户写死）
+- 进游戏一律 `init(1)` 横屏。`getScreenSize()` 后的比例点按横屏算，禁止再按竖屏 750×1334 去套 `320.0,90.88`。
+- 七号对子砚仍是 `init(0)`，那是子砚竖屏死区，不回溯改。
+- 十三号提示词已经发出且合同是 `init(0)`：本刀按那张纸做完，人审按发出的纸核，不中途改合同。
+- **十四号及以后**：提示词和一次性脚本禁止再写 `init(0)`。游戏前台只许 `init(1)`。
+
+## 2026-09-06 十二号开发审核
+- 他们写 PASS 采信。只写一次 `.ziyan_open_app`，未跑 agent lua，未 uiopen，未 tap，未改 `run_*`，未 sbreload，未 invent 十三号。
+- 独立复读约 20:22：四机冻结 MATCH，`FC_N=1`，无真实 agent lua，keep/stop ABSENT。profile 文件仍是子砚。tap 仍是七号 ts。
+- front 现在是 `.101/.112/.166=com.xztl.ios`，`.53=com.ljzbbadao.game`。open_app 已消费。`.166` 没有打开旁边的拔刀传奇。
+- session 仍 `PAUSED_SAFE` 且正文留着错 bundle，只记。登录页未读原文。
+- 口径 `AGENT_TRUE_GAME_OPEN=PASS_PENDING_HUMAN`。不是点开始，不是 MVP。证据：`tmp_shots/DEV12_AUDIT_20260906/VERDICT.md`。下一刀：`tmp_shots/DEV13_PROMPT_TRUE_GAME_TAP_20260906.txt`。
+
+## 2026-09-06 十一号开发审核
+- 他们写 PASS 采信。只读四机安装，未跑 lua，未 scp，未 open，未 tap，未 sbreload，未 invent 十二号。
+- 独立复读约 20:06：四机冻结 MATCH，`FC_N=1`，无真实 agent lua，keep/stop ABSENT。front / profile 文件仍是子砚。tap_gate 仍是七号 ts。
+- `.101/.112/.166` 装着 `com.xztl.ios` / 血战屠龙。`.53` 装着 `com.ljzbbadao.game` / 龙界争霸-拔刀传奇，没有血战屠龙，这是设计。`.166` 另有拔刀传奇只记。
+- session 仍 `PAUSED_SAFE` 且正文留着错 bundle，只记。他们整份 plist base64 过重，不否决。
+- 口径 `AGENT_TRUE_GAME_PREFLIGHT=PASS_PENDING_HUMAN`。不是打开游戏，不是点开始，不是 MVP。证据：`tmp_shots/DEV11_AUDIT_20260906/VERDICT.md`。下一刀：`tmp_shots/DEV12_PROMPT_TRUE_GAME_OPEN_20260906.txt`。
+
+## 2026-09-06 十号开发审核
+- 他们写家族 PASS 采信。三项人审路径用的是 DEV07/08/09 AUDIT，不是 502/429 旧对话。未跑 lua，未 scp，未 sbreload，未 invent 十一号。
+- 独立复读约 19:31：四机冻结 MATCH，`FC_N=1`，无真实 agent lua，keep/stop ABSENT。profile **文件**仍是子砚。tap_gate 仍是七号 ts。学习/记录相对九号无新文件。
+- session 仍 `PAUSED_SAFE` 且正文留着错 bundle，只记。他们写了 NEW_* 文件名但目录里没有，按清单对九号基线，不否决。
+- 口径 `AGENT_TRUE_HID_ZIYAN_FAMILY=PASS_PENDING_HUMAN`。本家族收口。不是点游戏，不是 MVP。证据：`tmp_shots/DEV10_AUDIT_20260906/VERDICT.md`。下一刀：`tmp_shots/DEV11_PROMPT_TRUE_GAME_PREFLIGHT_20260906.txt`。
+
+## 2026-09-06 九号开发审核
+- 他们写 PASS 采信。只读四机残留，未跑 lua，未 scp，未改 `run_*`，未 sbreload，未开十号。
+- 独立复读约 18:07：四机冻结 MATCH，`FC_N=1`，无真实 agent lua，keep/stop ABSENT。profile **文件**仍是子砚。tap_gate 仍是七号 ts。七号记录还在，无新学习。
+- session 仍 `PAUSED_SAFE` 且正文留着错 bundle，只记。req `mode=auto` 与 drill_learn_id 只记。
+- 口径 `AGENT_TRUE_HID_LEFTOVER=PASS_PENDING_HUMAN`。不是家族汇总，不是 MVP。证据：`tmp_shots/DEV09_AUDIT_20260906/VERDICT.md`。下一刀：`tmp_shots/DEV10_PROMPT_TRUE_HID_FAMILY_20260906.txt`。
+
+## 2026-09-06 八号开发审核
+- 他们写 PASS 采信。四机空 profile / 错 bundle 都是 `PAUSED_SAFE`，没点。本审核不重跑入口。离线三合同仍绿。
+- 独立复读约 17:29：四机冻结 MATCH，`FC_N=1`，无真实 agent lua。profile **文件**已恢复子砚。tap_gate/tap_meta 仍是七号 ts。七号记录还在，无新学习。
+- session 仍 `PAUSED_SAFE` 且正文留着错 bundle，只记。`.53` 旁支 zydaemon `75242` 只记。
+- 口径 `AGENT_TRUE_HID_SAFE_GATE=PASS_PENDING_HUMAN`。不是家族汇总，不是 MVP。证据：`tmp_shots/DEV08_AUDIT_20260906/VERDICT.md`。下一刀：`tmp_shots/DEV09_PROMPT_TRUE_HID_LEFTOVER_20260906.txt`。
+
+## 2026-09-06 七号开发审核
+- 他们写 PASS 产品合同采信。`run_auto` 在验证后按 `init(0)` + `getScreenSize` × `0.50/0.08` 点一次。离线三合同本审核重跑仍绿。
+- 独立复读约 17:03：四机冻结 MATCH，`FC_N=1`，无真实 agent lua。记录 `.101=ags_17886337469438` `.112=ags_17886337525795` `.166=ags_17886337609702` `.53=ags_17886337703981`（续跑 `ags_17886341743064`）。都是 `tapped=1` / `auto_hid_ziyan_done`。tap_gate 比例对，front 子砚。
+- 采集纸乱：TRANSCRIPT 中断、`.53` STATE 仍 `NOT_RUN` 却手写 VERDICT OK。现场记录对得上，不否决。旧 ui_learn/gameplay `started` PRE 就有，只记。
+- runtime SHA 四机 `a78767ab6a51f3c81786e6d888179d8e01102ca41680ae7842b20ab0061292ae`。无新学习文件。
+- 口径 `AGENT_TRUE_HID_ZIYAN=PASS_PENDING_HUMAN`。不是安全门，不是 MVP。证据：`tmp_shots/DEV07_AUDIT_20260906/VERDICT.md`。下一刀：`tmp_shots/DEV08_PROMPT_TRUE_HID_SAFE_GATE_20260906.txt`。
+
+## 2026-09-06 六号开发补审核
+- 他们写 PASS 采信。只读四机汇总续跑，未跑 lua，未 scp，未改 `run_*`，未 sbreload，未开七号。
+- 采集已改走 `REMOTE`，一号查 `学习数据/`，三/四号查 `运行记录/`。stderr 不再是 `command not found: ssh`。
+- 独立复读约 02:20：四机冻结 MATCH，`FC_N=1`，无真实 agent lua，keep/stop ABSENT，session `STOPPED`/`active=0`。学习/drill/auto 四机都 PRESENT。
+- `.101` 复读旁支 zydaemon `73099`、僵尸 `(ziyan_framecap)` 只记。req / `.ziyan_drill_learn_id` 残留只记。
+- 口径 `AGENT_TRUE_LUA_FAMILY=PASS_PENDING_HUMAN`。本家族收口。不是 HID，不是 MVP，不是 G0。证据：`tmp_shots/DEV06_RETRY_AUDIT_20260906/VERDICT.md`。下一刀：`tmp_shots/DEV07_PROMPT_TRUE_HID_ZIYAN_20260906.txt`。
+
+## 2026-09-06 六号开发审核
+- 他们写 PARTIAL 采信为未完成，不升家族 PASS。五项人审 PASS 路径列对了。未跑 lua，未 scp，未开七号。
+- `.101` 冻结/session/keep 他们采到了。记录判 MISSING 不采信：stderr 是 `record_presence:2: command not found: ssh`，一号学习还查到了 `运行记录/`。
+- 独立复读约 02:06：四机冻结 MATCH，学习文件和三/四号记录都在，keep/stop ABSENT，无真实 agent lua。这是审核复读，不把他们的六号升 PASS。
+- 口径 `AGENT_TRUE_LUA_FAMILY=PARTIAL_PENDING_HUMAN`。不是 MVP。证据：`tmp_shots/DEV06_AUDIT_20260906/VERDICT.md`。下一刀：`tmp_shots/DEV06_RETRY_PROMPT_20260906.txt`。
+
+## 2026-09-06 五号开发审核
+- 他们写 PASS 采信。只读四机残留，未跑 lua，未 scp，未改 `run_*`。
+- 独立复读约 01:52：四机冻结 MATCH，`FC_N=1`，无真实 agent lua，keep/stop ABSENT，session `STOPPED`/`active=0`。
+- 一号学习文件、三号 drill 记录、四号 auto 记录现场都在。runtime SHA 仍是四号 `9b0673c5…`。
+- req `mode=auto` 和 `.ziyan_drill_learn_id` 残留只记，不否决。
+- 口径 `AGENT_TRUE_STOP_LEFTOVER=PASS_PENDING_HUMAN`。不是家族汇总，不是 MVP。证据：`tmp_shots/DEV05_AUDIT_20260906/VERDICT.md`。下一刀：`tmp_shots/DEV06_PROMPT_TRUE_LUA_FAMILY_20260906.txt`。
+
+## 2026-09-06 四号开发审核
+- 他们写 PASS 采信。`dispatch("auto")` 现活走 `run_auto`，不再和 `safe` 同分支。四机都跑了一次 `mode=auto`。
+- 本审核重跑 `OFFLINE_TRUE_AUTO=PASS` / `OFFLINE_TRUE_LEARN=PASS` / `OFFLINE_TRUE_DRILL=PASS`。独立复读约 01:42：四机冻结 MATCH，`FC_N=1`，无真实 agent lua。
+- 记录：`.101=ags_17886296402152` `.112=ags_17886296471822` `.166=ags_17886296545352` `.53=ags_17886296643544`。都是 `mode=auto` + `observed=`/`identified=`/`verified=` + `stop_reason=auto_cycle_done`。一号学习原文仍在，无新学习文件。三号记录仍在。
+- runtime SHA 四机对齐仓库 `9b0673c5570350b87e7c53ceeb334b770537687035b516c07dc697a3246e791f`。stop/keep ABSENT。
+- 口径 `AGENT_TRUE_AUTO=PASS_PENDING_HUMAN`。不是 MVP。证据：`tmp_shots/DEV04_AUDIT_20260906/VERDICT.md`。下一刀：`tmp_shots/DEV05_PROMPT_TRUE_STOP_LEFTOVER_20260906.txt`。
+
+## 2026-09-06 三号开发再补续审核
+- 他们写 PASS 采信。`.101` 只读核验，没再启动。后三机串行 `mode=drill`，四机记录现场都在。
+- 本审核重跑 `OFFLINE_TRUE_DRILL=PASS` / `OFFLINE_TRUE_LEARN=PASS`。独立复读约 01:12：四机冻结 MATCH，`FC_N=1`，无真实 agent lua。
+- 记录：`.101=ags_17886236835498` `.112=ags_17886277372496` `.166=ags_17886277436109` `.53=ags_17886278684212`。都是 `mode=drill` + 一号 `learn_id` + `stop_reason=agent_stop`。一号学习原文仍在，无新学习文件。
+- `.53` 第一次缺 DYLD 崩了，无假记录，只重试一次，不否决。runtime SHA 四机对齐仓库。
+- 口径 `AGENT_TRUE_DRILL=PASS_PENDING_HUMAN`。不是真自研，不是 MVP。证据：`tmp_shots/DEV03_RERETRY_CONTINUE_AUDIT_20260906/VERDICT.md`。下一刀：`tmp_shots/DEV04_PROMPT_TRUE_AUTO_20260906.txt`。
+
+## 2026-09-05 三号开发补审核
+- 他们写 PARTIAL 采信，不升 PASS。离线本审核重跑 `OFFLINE_TRUE_DRILL=PASS`。仓库已去掉 popen/`drill_timeout`，失败后没有还原旧桩。
+- 第一次采集把 `.101` 冻结判漂，不采信。独立复读约 23:18：四机冻结 MATCH。
+- `.101` 新 session `ags_17886200594993` 报告仍在：`replay_learned_observation` + `agent_stop_required`，没有运行记录。他们自己写未写 stop。runtime SHA 与仓库一致。
+- `.112/.166/.53` 没 scp、没跑。一号学习原文仍在。无新学习文件。无真实 agent lua。
+- 口径 `AGENT_TRUE_DRILL=PARTIAL_PENDING_HUMAN`。不是 MVP。证据：`tmp_shots/DEV03_RETRY_AUDIT_20260905/VERDICT.md`。下一刀：`tmp_shots/DEV03_RERETRY_PROMPT_20260905.txt`。
+
+## 2026-09-05 三号开发审核
+- 他们写 PARTIAL 采信，不升 PASS。本地 `run_drill` 已改，本审核重跑 `OFFLINE_TRUE_DRILL=PASS`。`.101` 跑了一次 `mode=drill`，报告 `PAUSED_SAFE` / `agent_stop_required`，随后还原 runtime。`.112/.166/.53` 没 scp、没跑。
+- 独立复读约 22:34：四机冻结 MATCH。一号学习原文仍在。无新学习文件。无真实 agent lua。四机现活 runtime 仍是旧桩（有 `drill_timeout`，无 `io.popen`）。
+- `.101` 报告原文仍在：`ags_17886181327424`，`last_action=replay_learned_observation`，没有运行记录。离线把 stop 预置了，没覆盖先启动再写 stop。
+- 口径 `AGENT_TRUE_DRILL=PARTIAL_PENDING_HUMAN`。不是 MVP。证据：`tmp_shots/DEV03_AUDIT_20260905/VERDICT.md`。下一刀：`tmp_shots/DEV03_RETRY_PROMPT_20260905.txt`。
+
+## 2026-09-05 二号开发审核
+- 他们写 PASS 采信。四机都跑了 `mode=learn` 空 profile / 错 bundle，报告原文现场仍在。
+- 独立复读约 21:57：四机冻结 SB/BB/FC MATCH。profile 文件已恢复 `agent_default_observe` / `com.ziyan.ziyan`。一号学习原文仍在。二号新 session 都没有学习文件。无真实 agent lua。`.53` 冻结 zy `93705` 仍在。
+- session leftover `PAUSED_SAFE`（正文还写着错 bundle）是 `pause_safe` 旧合同，不否决。req `mode=learn` 残留只记。
+- 口径 `AGENT_TRUE_LEARN_SAFE_GATE=PASS_PENDING_HUMAN`。不是 MVP。证据：`tmp_shots/DEV02_AUDIT_20260905/VERDICT.md`。下一刀：`tmp_shots/DEV03_PROMPT_TRUE_DRILL_20260905.txt`。
+
+## 2026-09-05 一号开发补审核
+- 他们写 PARTIAL（`.53` zy 漂）不采信为否决。四机都跑了 `mode=learn`，学习文件和记录都在。
+- 独立复读约 21:13：四机冻结 SB/BB/FC MATCH。学习原文仍在（`.101=ags_17886130846274` `.112=ags_17886130889526` `.166=ags_17886130933873` `.53=ags_17886131005180`）。profile 未改。无真实 agent lua。
+- `.53` POST 另有 `4056/4057`，复读旁支是 `8812`，冻结 `93705` 仍在，只记。
+- 口径 `AGENT_TRUE_LEARN=PASS_PENDING_HUMAN`。不是 MVP。证据：`tmp_shots/DEV01_RETRY_AUDIT_20260905/VERDICT.md`。下一刀：`tmp_shots/DEV02_PROMPT_TRUE_LEARN_SAFE_GATE_20260905.txt`。
+
+## 2026-09-05 一号开发审核
+- 他们写 PARTIAL 采信，不升 PASS。只改了仓库 `run_learn` + 离线合同。`.101` 预检后停串行，四机未 scp、未跑 `mode=learn`。
+- 本审核重跑离线：`OFFLINE_TRUE_LEARN=PASS`。`run_auto`/`run_drill`/`dispatch("auto")` 未改。
+- 独立复读约 20:48：四机冻结 MATCH。front 和 bundle 都是 `com.ziyan.ziyan`。`profile_id=agent_default_observe`。学习目录只有 Aug 16 旧文件。
+- 他们对 `agent_observe` 名字的停因不采信。对准子砚看的是 bundle/front。
+- 证据：`tmp_shots/DEV01_AUDIT_20260905/VERDICT.md`。下一刀：`tmp_shots/DEV01_RETRY_PROMPT_20260905.txt`。
+
+## 2026-09-05 八十五号审核
+- 执行面 PASS：只读汇总，未跑 lua，未写设备，未删 pending，未 sbreload。十项都用人审 PASS 路径，没有拿第一刀 PARTIAL 当缺项。
+- 独立复读约 20:17：四机冻结 MATCH。hooks.sb_pid 对齐。front 子砚。`.ziyan_agent_session` 原文 `STOPPED` / `active=0`。无真实 agent lua。`FC_N=1`。
+- 他们第一次 SUMMARY 误读脚本侧 `.ziyan_session=idle`，后来改读 agent session，不否决。
+- 口径 `AGENT_SMOKE_SAFE_GATE=PASS_PENDING_HUMAN`。不是 MVP。证据：`tmp_shots/EIGHTYFIVE_AUDIT_20260905/VERDICT.md`。下一刀：`tmp_shots/EIGHTYSIX_PROMPT_AFTER85_20260905.txt`。
+
+## 2026-09-05 八十五号执行
+- 只读汇总。未跑 lua，未写设备，未删 pending，未 sbreload，未改 lua/objc。
+- 十项对照全部用人审 PASS 路径（七十五修 / 七十六补 / 七十七补 / 七十八 / 七十九 / 八十补 / 八十一 / 八十二再补 / 八十三 / 八十四）。未用第一刀 PARTIAL 旧文件当缺项。
+- 串行 `.101 → .112 → .166 → .53`：`ps` 拉回本机再筛。四机冻结 MATCH（`87863/79809/25025/46408`），`FC_N=1`，hooks.sb_pid 对齐，front 子砚，`.ziyan_agent_session` 均为 `state=STOPPED active=0`，无真实 agent lua。
+- 口径 `AGENT_SMOKE_SAFE_GATE=PASS_PENDING_HUMAN`。不是真学习/真自研/真演练，不是 `AGENT_MVP_4PHONE_PASS`，不是 G0。pending 仍在只记。
+- 证据：`tmp_shots/EIGHTYFIVE_AGENT_SMOKE_SAFE_GATE_20260905/VERDICT.md`。停手，等待人工最终审核。不要自己开八十六。
+
+## 2026-09-05 八十四号审核
+- 执行面 PASS：串行四机只读 pending 全文。未删、未跑 lua、未 sbreload。他们写 `PENDING_LEFT=1`，没有写成注入已清。
+- 独立复读约 20:10：四机冻结 MATCH。pending mtime/正文与他们一致（`.101` 20:07:25 / `.112` 20:44:22 / `.166` 21:09:14 / `.53` 21:20:48）。front 子砚。session `STOPPED`。无真实 agent lua。
+- 证据目录没有各机 `ps.txt`，只记。`.53` 另有短命 zydaemon `73897`，冻结 `93705` 仍在，不否决。
+- 口径 `AGENT_SMOKE_PENDING_LEFT=PASS_PENDING_HUMAN`。不是注入已清，不是 MVP。证据：`tmp_shots/EIGHTYFOUR_AUDIT_20260905/VERDICT.md`。下一刀：`tmp_shots/EIGHTYFIVE_PROMPT_AFTER84_20260905.txt`。
+
+## 2026-09-05 八十三号审核
+- 执行面 PASS：串行四机只读，`ps` 拉回本机再筛。冻结 MATCH，`FC_N=1`，无真实 agent lua。session `STOPPED` / `active=0`。七个残留文件 ABSENT。未跑 lua，未写设备，未删 pending，未 sbreload。
+- 独立复读约 20:02：四机冻结 MATCH。front 子砚。残留仍 ABSENT。pending 仍在（Sep 4），本刀不处理。
+- 口径 `AGENT_SMOKE_SAFE_LEFTOVER=PASS_PENDING_HUMAN`。不是 MVP。证据：`tmp_shots/EIGHTYTHREE_AUDIT_20260905/VERDICT.md`。下一刀：`tmp_shots/EIGHTYFOUR_PROMPT_AFTER83_20260905.txt`。
+
+## 2026-09-05 八十二再补审核
+- 执行面 PASS：`ps` 拉回本机再筛，未再 sh -c 自匹配。串行 `.101 → .112 → .53` 抽出 `no_profile` / 错 bundle / Home / `mode=observe` / `mode=safe_action`。`.166` `REPORT_REEXTRACTED=0`。未跑 lua，未写设备，未 sbreload。
+- 独立复读约 19:50：四机冻结 MATCH。front 子砚。session `STOPPED`。无真实 agent lua。抽查报告/记录原文与他们落盘一致。最新仍是八十一那四条。
+- `.166` DIRECT_READ 第一行是 SSH 警告，只记。`.101` `EXPECTED_REPORT_SEEN=0` 是记录 id 对报告 id，不否决。
+- 口径 `AGENT_SMOKE_REPORT_SPLIT=PASS_PENDING_HUMAN`。不是 MVP。证据：`tmp_shots/EIGHTYTWO_RERETRY_AUDIT_20260905/VERDICT.md`。下一刀：`tmp_shots/EIGHTYTHREE_PROMPT_AFTER82_20260905.txt`。
+
+## 2026-09-05 八十二补审核
+- 他们写 PARTIAL 采信：未跑 lua，未写设备，未 sbreload。`.101` 公钥进来了。没有再用 `stat -f`。
+- `.166` 本刀直读成立：冻结 `25025` MATCH，抽出 `no_profile` / 错 bundle / Home / `mode=observe` / `mode=safe_action`，最新仍是 `ags_17886039294846`。
+- `.101/.112/.53` 假 PID `37476/1243/35775` 是采集脚本自匹配。同一份盘面真 SB 仍是 `87863/79809/46408`。他们按假 PID 停，三机 reason 没抽。
+- 独立复读约 19:15：四机真 SB/BB/FC 仍冻结。`.112` 另有短命 zydaemon `34917`，只记。
+- 不升 PASS，不开八十三。证据：`tmp_shots/EIGHTYTWO_RETRY_AUDIT_20260905/VERDICT.md`。下一刀：`tmp_shots/EIGHTYTWO_RERETRY_PROMPT_20260905.txt`。
+
+## 2026-09-05 八十二号审核
+- 他们写 PARTIAL 采信：`.101` 公钥 `Permission denied` 未进设备。三机冻结 MATCH，但 `stat -f` 抽不出字段，INVENTORY 后半段抄旧审核。未跑 lua，未 sbreload。
+- 独立复读约 18:54：`.101` 密码通道可进，冻结 MATCH。四机抽查 `no_profile` / `bundle_mismatch` / Home / `safe_action` / 缺省 observe 分流成立。这是审核抽查，不把八十二升 PASS。
+- 不升 PASS，不开八十三。证据：`tmp_shots/EIGHTYTWO_AUDIT_20260905/VERDICT.md`。下一刀：`tmp_shots/EIGHTYTWO_RETRY_PROMPT_20260905.txt`。
+
+## 2026-09-05 八十一号审核
+- 执行面 PASS：串行四机 req 原文 `#no_mode`，没有补 `mode=`。新记录都是 `STOPPED` / `action_count=0` / `mode=observe`。未开 App，未 sbreload，未改 lua。
+- 独立复读约 18:32：冻结 MATCH。四机 front 子砚。req 现活仍是 `#no_mode`。声称四条记录都在且是最新。无真实 agent lua。
+- 源码 `dispatch` 缺 mode 走 `run_observe`。口径 `AGENT_SMOKE_DEFAULT_OBSERVE=PASS_PENDING_HUMAN`。不是 hidden auto，不是 MVP。
+- 证据：`tmp_shots/EIGHTYONE_AUDIT_20260905/VERDICT.md`。下一刀：`tmp_shots/EIGHTYTWO_PROMPT_20260905.txt`。
+
+## 2026-09-05 八十补审核
+- 执行面 PASS：`.101/.112` 只读，记录仍是八十号 18:05 那两条。串行 `.166 → .53` 新记录 `STOPPED` / `mode=safe_action`，toast hist 2→3。未重跑前两台，未 sbreload，未改 lua。
+- 独立复读约 18:19：冻结 MATCH。四机 front 子砚。声称记录都在且是最新。`.166` AFTER 短命 zydaemon 不否决。
+- 口径 `AGENT_SMOKE_SAFE_TOAST=PASS_PENDING_HUMAN`。不是 toast 风暴，不是 MVP。
+- 证据：`tmp_shots/EIGHTY_RETRY_AUDIT_20260905/VERDICT.md`。下一刀：`tmp_shots/EIGHTYONE_PROMPT_20260905.txt`。
+
+## 2026-09-05 八十号审核
+- 他们写 PARTIAL 采信：`.101/.112` 新记录 `safe_action`，toast 窗口 delta=1。`.166` PRECHECK 因 `FC_N=2` 停，`.53` 没跑。未改 lua，未 sbreload。
+- 独立核 raw：`.166` 第二行是 `grep -F ziyan_framecap serve`，不是第二份 framecap。AFTER 已是 `FC_N=1`。不把误报改写成四机 PASS。
+- 独立复读约 18:10：冻结 MATCH。`.101=ags_17886027543490` `.112=ags_17886027566825`。`.166/.53` 仍是七十九 observe。无真实 agent lua。
+- 不升 PASS，不开八十一。证据：`tmp_shots/EIGHTY_AUDIT_20260905/VERDICT.md`。下一刀：`tmp_shots/EIGHTY_RETRY_PROMPT_20260905.txt`。
+
+## 2026-09-05 七十九号审核
+- 执行面 PASS：串行四机桌面确认无 `user_closed`，写 `open_app` 开到子砚，再 `agent_recover_observe` / `mode=observe`。新运行记录都是 `STOPPED` / `mode=observe`。未再 Home，未写 `user_closed`，未 sbreload，未改 lua。
+- 独立复读约 17:59–18:00：冻结 MATCH。四机 front 是子砚。session 原文 `state=STOPPED active=0`（无 session_id，这是 `finish_ok` 合同）。声称四条记录都在且是最新。`open_app_last` 已改成 17:42–17:52。无真实 agent lua。
+- `.101/.112` 第一次采集器标 FAIL，后来靠记录补读，不否决成功记录。口径 `AGENT_SMOKE_RECOVER_OBSERVE=PASS_PENDING_HUMAN`。不是六十五重做，不是 MVP。
+- 证据：`tmp_shots/SEVENTYNINE_AUDIT_20260905/VERDICT.md`。下一刀：`tmp_shots/EIGHTY_PROMPT_20260905.txt`。
+
+## 2026-09-05 七十八号审核
+- 执行面 PASS：串行四机先写 `user_closed` 再写 `open_app`。AFTER 时 front 仍是桌面，`open_app` 已消费，`open_app_last` 未变，然后删 `user_closed`。未跑 agent，未 Home，未 sbreload。
+- 独立复读约 17:27：冻结 MATCH。四机 front 仍是 SpringBoard。session 仍是七十七补那四条。`user_closed`/`open_app` ABSENT。`open_app_last` mtime 仍是上午旧文件。
+- `.101` 第一次采集器误报、`.112` 第一次 RC=1 后重跑，不否决成功 transcript。口径 `AGENT_SMOKE_USER_CLOSED_GATE=PASS_PENDING_HUMAN`。不是开 App 成功，不是 MVP。
+- 证据：`tmp_shots/SEVENTYEIGHT_AUDIT_20260905/VERDICT.md`。下一刀：`tmp_shots/SEVENTYNINE_PROMPT_20260905.txt`。
+
+## 2026-09-05 七十七补审核
+- 执行面 PASS：串行四机写 `.ziyan_go_home`（含 `owner=com.ziyan.ziyan`），文件被消费，front 到 SpringBoard，再 observe。新 session 都是 `PAUSED_SAFE` / `bundle_mismatch`。未再跑 `pressHomeKey`，未 sbreload，未改 lua。
+- 独立复读约 17:07：冻结 MATCH。四机 front 仍是桌面。`.101=ags_17885974811676` `.112=ags_17885974847132` `.166=ags_17885974889469` `.53=ags_17885974918644`。报告 `front_bid=com.apple.springboard`。无真实 agent lua。`user_closed` ABSENT。
+- 口径 `AGENT_SMOKE_HOME_OBSERVE=PASS_PENDING_HUMAN`。不是 observe STOPPED，不是六十五回归，不是 MVP。
+- 证据：`tmp_shots/SEVENTYSEVEN_RETRY_AUDIT_20260905/VERDICT.md`。下一刀：`tmp_shots/SEVENTYEIGHT_PROMPT_20260905.txt`。
+
+## 2026-09-05 七十七号审核
+- 他们写 PARTIAL 采信：`.101` `HOME_RC=0` 但 front 仍是子砚，按合同停串行，未写 home_observe，未跑 agent。`.112/.166/.53` 没跑。未改 lua，未 sbreload。
+- 独立复读约 16:29：冻结 MATCH。四机仍是七十六的错 bundle session。无真实 agent lua。`.ziyan_home_once_77.log` 为空。
+- 根因：`pressHomeKey` 只是 `keyDown("HOME")` 空成功，不是真 Home。不升 PASS，不开七十八。
+- 证据：`tmp_shots/SEVENTYSEVEN_AUDIT_20260905/VERDICT.md`。下一刀：`tmp_shots/SEVENTYSEVEN_RETRY_PROMPT_20260905.txt`。
+
+## 2026-09-05 七十六补审核
+- 执行面 PASS：只串行 `.112 → .166 → .53`，未重跑 `.101`，未开设置，未改 lua，未 sbreload。PRECHECK 旧 session 是七十五的 `none`，AFTER 换成新 id，`RUN_RC=0`，报告 `bundle_mismatch`。
+- 独立复读约 16:19：冻结 MATCH。`.101` 仍 `ags_17885953567783`。`.112=ags_17885959462621` `.166=ags_17885959489568` `.53=ags_17885959501437`。四机 front 仍是子砚，无真实 agent lua。
+- 他们 VERDICT 头误写 `ACCEPT_PARTIAL`，不采信这个头。口径 `AGENT_SMOKE_BUNDLE_MISMATCH=PASS_PENDING_HUMAN`。不是 observe STOPPED，不是 MVP。
+- 证据：`tmp_shots/SEVENTYSIX_RETRY_AUDIT_20260905/VERDICT.md`。下一刀：`tmp_shots/SEVENTYSEVEN_PROMPT_20260905.txt`。
+
+## 2026-09-05 七十六号审核
+- 他们写 PARTIAL 采信：`.101` 启动后 1 秒就拍到旧 `no_profile` 和残留 lua，三机没跑。未改 lua，未开设置。
+- 独立复读约 16:06：残留 lua 已无。`.101` 新 session `ags_17885953567783` 报告 `bundle_mismatch`。`.112/.166/.53` 仍是空 profile / 七十五 session。
+- 不升四机 PASS，也不把 `.101` 主题判失败。证据：`tmp_shots/SEVENTYSIX_AUDIT_20260905/VERDICT.md`。下一刀：`tmp_shots/SEVENTYSIX_RETRY_PROMPT_20260905.txt`。
+
+## 2026-09-05 七十五修审核
+- 执行面 PASS：只改 `agent_runtime.lua` 为扁平 `错误报告/<id>.txt`，只 scp `.53`。一次 observe，`ags_17885944161025`，报告 `stop_reason=no_profile`。
+- 独立复读约 15:51：机上 SHA 与仓库 `3a9aa462…4040` 一致，无 `os.execute`。冻结 MATCH。三机仍是七十五原 session。
+- `mkdir_fixed` 现在只检查目录在不在，本刀不否决。口径 `AGENT_SMOKE_NO_PROFILE=PASS_PENDING_HUMAN`。不是 MVP。
+- 证据：`tmp_shots/SEVENTYFIVE_53_FIX_AUDIT_20260905/VERDICT.md`。下一刀：`tmp_shots/SEVENTYSIX_PROMPT_20260905.txt`。
+
+## 2026-09-05 七十五诊审核
+- 执行面 PASS：未跑 agent。`os.execute` 返回 `nil,exit,127`，SSH 确认 `ags_probe_mkdir` 未建。`io.open` 写出 `.zy_io_probe` 后已删。`/bin/sh` 不存在。
+- 独立复读约 15:40：冻结 MATCH，探针残留 ABSENT，session 仍是七十五补的 `ags_17885929743467`。
+- 他们 transcript 把整份 `ps -A` 打进去，只记。`io.popen(ls)` 也是 127，目录结论以 SSH `ls` 为准。
+- 七十五四机仍 PARTIAL。不是 MVP。证据：`tmp_shots/SEVENTYFIVE_53_DIAG_AUDIT_20260905/VERDICT.md`。下一刀：`tmp_shots/SEVENTYFIVE_53_FIX_PROMPT_20260905.txt`。
+
+## 2026-09-05 七十五补审核
+- 执行面成立：三机只读未重跑；`.53` 新 session `ags_17885929743467` 仍是 `PAUSED_SAFE`/`none`，`RUN_RC=0`，冻结未漂。他们写 `REPORT_STILL_ABSENT` 采信。
+- 独立复读约 15:28：两条新 session 目录都不在。`/bin/sh` 不存在。机上 `mkdir_fixed` 仍走 `os.execute`。禁止第三次 `agent_run`。
+- 不升 PASS，不开七十六。证据：`tmp_shots/SEVENTYFIVE_53_RETRY_AUDIT_20260905/VERDICT.md`。下一刀：`tmp_shots/SEVENTYFIVE_53_DIAG_PROMPT_20260905.txt`。
+
+## 2026-09-05 七十五号审核
+- 执行面成立：串行四机空 profile + `mode=observe`，都进 `PAUSED_SAFE` / `profile_id=none`，冻结未漂，未 sbreload。
+- 独立复读约 15:05：`.101/.112/.166` 报告 `stop_reason=no_profile`。`.53` `ags_17885915431655` 目录不存在；`错误报告/` 仍只有 Aug 16 两条。
+- 他们写 PARTIAL 采信，不升四机 PASS。`.53` Media 目录可写（运行记录今天有文件），缺的是这次报告没落盘。
+- 证据：`tmp_shots/SEVENTYFIVE_AUDIT_20260905/VERDICT.md`。下一刀原文：`tmp_shots/SEVENTYFIVE_53_RETRY_PROMPT_20260905.txt`。
+
+## 2026-09-05 七十四号审核
+- 执行面 PASS：14:42:25–26 只读汇总，未跑 lua，未写设备，未 sbreload。七项对照都用人审过的证据；六十三/六十九不算完成项。
+- 独立复读约 14:47：四机冻结仍 MATCH，front 都是子砚，session `STOPPED`，无真实 agent lua。pending 还在。profile 仍是七十二的 `agent_observe`。
+- 他们 VERDICT 自标 `AUDIT=PASS`，本审核独立采信事实后仍 PASS。口径 `AGENT_SMOKE_LUA_FAMILY=PASS_PENDING_HUMAN`。不是 MVP。
+- 证据：`tmp_shots/SEVENTYFOUR_AUDIT_20260905/VERDICT.md`。下一阶段 11 刀原文：`tmp_shots/SEVENTYFIVE_PROMPT_20260905.txt` … `EIGHTYFIVE_PROMPT_20260905.txt`，索引 `SEVENTYFIVE_TO_EIGHTYFIVE_INDEX_20260905.md`。
+
+## 2026-09-05 七十三号审核
+- 执行面 PASS：14:25:10–12 只读，未跑 lua，未写设备文件。四机冻结 MATCH，session `STOPPED`，无真实 agent lua，keep/active/stop/user_closed ABSENT。
+- 独立复读约 14:36：冻结仍 MATCH。补查 `.ziyan_agent_active` / `.ziyan_agent_keep` 也是 ABSENT。pending 还在。`.53` 另有短命 zydaemon `90616`，只记。
+- 他们文件标签写成 `iyan_active`，不否决。口径 `AGENT_SMOKE_LEFTOVER=PASS_PENDING_HUMAN`。不是 MVP。
+- 证据：`tmp_shots/SEVENTYTHREE_AUDIT_20260905/VERDICT.md`。
+
+## 2026-09-05 七十二号审核
+- 执行面 PASS：串行 `.101 14:17:09 → .112 14:17:11 → .166 14:17:13 → .53 14:17:16`。req 都是 `mode=observe`，记录都是 `action_count=0 mode=observe`。未开 App。
+- 独立核 raw + 复读约 14:21：冻结 MATCH，session `STOPPED` 不是 `PAUSED_SAFE`。无 lua，stop ABSENT。`.53` 另有短命 zydaemon `82589`，只记。
+- 口径：`AGENT_SMOKE_OBSERVE_REGRESS=PASS_PENDING_HUMAN`。不是 MVP。
+- 证据：`tmp_shots/SEVENTYTWO_AUDIT_20260905/VERDICT.md`。
+
+## 2026-09-05 七十一号审核
+- 执行面 PASS：串行 `.101 14:03:33 → .112 14:03:35 → .166 14:03:38 → .53 14:03:41`。req 都是 `mode=auto`，记录都是 `action_count=1 mode=safe_action`。
+- 独立核 raw + 复读约 14:08：冻结 MATCH，他们写了 `AUTO_DISPATCH_IS_SAFE=1`，没有把别名写成真自研。无 awk，无 lua，stop ABSENT。
+- 口径：`AGENT_SMOKE_AUTO_ALIAS=PASS_PENDING_HUMAN`。不是 `AgentAutonomousEngine`，不是 MVP。
+- 证据：`tmp_shots/SEVENTYONE_AUDIT_20260905/VERDICT.md`。
+
+## 2026-09-05 七十号审核
+- 执行面 PASS：串行 `.101 13:53:17 → .112 13:53:21 → .166 13:53:26 → .53 13:53:31`。四机 `CONFIRMATION=ARGS`，真实 `lua5.3 ... ziyan_agent_run.lua`，`STOP_WRITE=AFTER_CONFIRM_PLUS_2S`。
+- 独立核 raw + 复读约 13:57：冻结 MATCH，记录四机都是 `mode=drill`，不是 `drill_timeout`。无 awk。after 无 lua、stop ABSENT。
+- 六十九没做完的主题这刀补完。口径 `AGENT_SMOKE_DRILL=PASS_PENDING_HUMAN`。不是真演练，不是 MVP。
+- 证据：`tmp_shots/SEVENTY_AUDIT_20260905/VERDICT.md`。
+
+## 2026-09-05 六十九号审核
+- 他们写 PARTIAL 采信，不升 PASS。`.101` leftover stop 已清。四机都启动了 `mode=drill`。
+- 立即 AFTER 四机都是 `DRILLING`。采集器用了设备没有的 awk，又按 `comm=lua5.3` 找进程，所以没写 stop。
+- 约 13:32 的 AFTER_FINAL 才是 `STOPPED`。本审核读记录四机都是 `mode=drill_timeout`。他们写「未空等 36 秒」不成立。
+- 四台在 13 秒内重叠启动，没等上一台停再开下一台。冻结未漂。
+- 复读约 13:40：冻结 MATCH，无 lua，stop ABSENT。不是 MVP。证据：`tmp_shots/SIXTYNINE_AUDIT_20260905/VERDICT.md`。
+
+## 2026-09-05 六十八号审核
+- 执行面 PASS：四机各一次 `mode=learn`，`RUN_RC=0`，`STOPPED`，SB 未变。PRECHECK 用了完整 SpringBoard 行。
+- 独立核 raw + 复读约 13:20：冻结 MATCH，front 都是子砚。四机运行记录都是 `mode=learn_delegate_app`，不是真学习。
+- `.101` 把 SSH wrapper 当成残留 lua，写下 `.ziyan_agent_stop`（13:11 `stop=1`），13:20 仍在。不否决本刀，下一刀必须先删。
+- rootful 三机 RUN 有 mkdir 路径噪声，session 仍写成了。pending 还在。
+- 口径：`AGENT_SMOKE_LEARN=PASS_PENDING_HUMAN`。不是 MVP。证据：`tmp_shots/SIXTYEIGHT_AUDIT_20260905/VERDICT.md`。
+
+## 2026-09-05 六十七号审核
+- 执行面 PASS：`.112/.53` 各一次 `mode=safe`，`RUN_RC=0`，`STOPPED`，SB 仍 `79809`/`46408`。PRECHECK 用了完整 SpringBoard 行，没有再猜三数字。
+- 独立核 raw + 复读约 13:00：四机冻结 MATCH，front 都是子砚，会话 `STOPPED`，无业务 lua。`.101/.166` 只读仍冻结。
+- 加上六十六的 `.101/.166`，四机 `mode=safe` 齐。口径 `AGENT_SMOKE_SAFE=PASS_PENDING_HUMAN`。
+- 证据目录实际名 `SIXTYSEVEN_SAFE_20260905`，不是提示词里的 `SIXTYSEVEN_112_53_SAFE_20260905`，只记命名偏差。
+- `.112` PRECHECK 尾有一次 SSH `Permission denied`，不推翻已落盘的完整 ps。`.53` after 多一个短命 zydaemon `32552`，只记。
+- pending 还在。不是 learn/drill/auto，不是真学习/真自研，不是 `AGENT_MVP_4PHONE_PASS`，不是 G0。
+- 证据：`tmp_shots/SIXTYSEVEN_AUDIT_20260905/VERDICT.md`。下一阶段 6 刀提示词已落盘 `SIXTYEIGHT`…`SEVENTYTHREE_PROMPT_20260905.txt`。
+
+## 2026-09-05 六十六号审核
+- `.101/.166` 执行面 PASS：`mode=safe`、`RUN_RC=0`、`STOPPED`、SB 未变。
+- `.112/.53` 他们写成 `PRE_BLOCKED`（SB=22986/21434）。人审不采信：PRECHECK 没有 SpringBoard 完整行，hooks 仍是 `79809`/`46408`。12:41 复读冻结 PID MATCH，etime 说明 SB 没换过。
+- 总口径仍 `PARTIAL`，不升四机 PASS。不是真 SB 环，不要 sbreload。
+- 证据：`tmp_shots/SIXTYSIX_AUDIT_20260905/VERDICT.md`。
+
+## 2026-09-05 六十五号审核
+- 执行面 PASS：`.112` 确认并删除 Sep 4 `user_closed`，12:11 t=12 开到子砚，`open_app_last` 改为今日 `com.ziyan.ziyan`，observe `RUN_RC=0` / `STOPPED`，SB 仍 79809。
+- 独立核 raw + 复读约 12:16：四机冻结 PID MATCH，前台都是子砚，会话都是 `STOPPED`，无 `user_closed`，各有 ZiYan 进程。
+- 三机只读时间 12:10:43 早于 `.112` 开 App，顺序偏了；复读仍对，不否决。
+- 口径：`AGENT_SMOKE_OBSERVE_STOPPED=PASS_PENDING_HUMAN`。不是 `mode=safe`，不是 MVP。证据：`tmp_shots/SIXTYFIVE_AUDIT_20260905/VERDICT.md`。
+
+## 2026-09-05 六十四号审核
+- 执行面按合同做完：`.101/.166/.53` 开到子砚并 `STOPPED`；`.112` 15 秒仍桌面，未硬跑 observe。
+- 独立核 raw + 复读约 11:59：三机现活仍是 ZiYan + `STOPPED`；`.112` 无 ZiYan 进程，前台仍 SpringBoard。冻结 PID 未漂。
+- 他们写 `PARTIAL` 采信，不升成四机 PASS。提示词里的整刀 `PRE_BLOCKED` 会抹掉三台真结果。
+- `.112` 失败归因他们没写：存在 Sep 4 20:36 `.ziyan_app_user_closed`。消费函数会删开 App 请求且不更新 last。盘上有 `/Applications/ZiYan.app`。
+- 不是 G0，不是 `AGENT_MVP`。证据：`tmp_shots/SIXTYFOUR_AUDIT_20260905/VERDICT.md`。
+
+## 2026-09-05 六十四号：打开子砚 App 后 observe
+- 按 `.101 → .112 → .166 → .53` 串行执行；四机 PRECHECK 均 PASS，冻结 SB/BB/FC/zydaemon 未变，`FC_N=1`。
+- `.101/.166/.53` 成功切到 `com.ziyan.ziyan`，各跑一次 `mode=observe`，会话为 `state=STOPPED`，停后无 Agent Lua、无 active/keep 残留。
+- `.112` 只写一次 `.ziyan_open_app=com.ziyan.ziyan`，15 秒后仍为 `com.apple.springboard`，未启动 observe，分类 `SMOKE=OPEN_FAIL`。
+- 未 sbreload，未登录/支付/聊天，未点游戏，未改产品代码、未装包、未删 pending。
+- 口径：`AGENT_SMOKE_OBSERVE_STOPPED=PARTIAL_PENDING_HUMAN`；不是四机 PASS，不是 G0，不是可发布，不是 `AGENT_MVP_4PHONE_PASS`。
+- 证据：`tmp_shots/SIXTYFOUR_AGENT_OBSERVE_STOPPED_20260905_115207/VERDICT.md` 与 `raw/`。
+
+## 2026-09-05 六十三号审核
+- 执行面 PASS：四机各一次 observe，`LUA_EXIT=0`，会话可回读，无残留 lua，SB/`FC_N` 未变。
+- 独立核 raw + 复读约 11:43：冻结 PID 仍在，会话仍是本次 `PAUSED_SAFE`。
+- 按本刀合同是 `SMOKE=OK`。终态不是对准子砚 App 的 `STOPPED`，不写成 AgentSmoke 已走完。
+- 不是 G0，不是 `AGENT_MVP`。证据：`tmp_shots/SIXTYTHREE_AUDIT_20260905/VERDICT.md`。
+
+## 2026-09-05 六十三号 Agent observe smoke
+- Codex 六十三号进度为零：checkpoint 仍是六十二号，原先只有提示词，没有证据目录。因反复 `stream disconnected / servers overloaded`，本对话直接做完，不再把同一刀退回 Codex。
+- 顺序 `.101 → .112 → .166 → .53`。四机 PRECHECK 冻结 PID MATCH，当日 `unlock_rep=ok`，`FC_N=1`。pending 只记残留。
+- 每台只写 `agent_observe` + `mode=observe`，前台跑一次 `ziyan_agent_run.lua`，`LUA_EXIT=0`，会话可回读，无业务 lua 残留，SB 未变，未 sbreload，未登录支付聊天，未开游戏。
+- 终态四机都是 `PAUSED_SAFE`（前台不是 `com.ziyan.ziyan`，本刀禁止开 App/游戏）。`ziyan_agent_run.lua` 把该状态当成功退出。不是 `OBSERVING→STOPPED` 全路径，也不是 `AGENT_MVP`。
+- 口径：`AGENT_SMOKE_OBSERVE=PASS_PENDING_HUMAN`。证据：`tmp_shots/SIXTYTHREE_AGENT_SMOKE_OBSERVE_20260905/VERDICT.md` 与 `raw/`。
+
+## 2026-09-05 六十二号审核
+- 执行面 PASS：四机各写一次 `unlock_req`，新 `unlock_rep` mtime 为今天 09:40–09:43，内容 `ok`。`lock_state` 也改成今天。SB 未变，`FC_N=1`，未 sbreload，未开 Agent。
+- 独立复读 10:19：四机 SB/hooks/unlock_rep 仍对得上，无业务 lua。
+- `AUTO_UNLOCK_PASS` 成立。pending 残留不否决。不是 G0，不是 `AGENT_MVP`。证据：`tmp_shots/SIXTYTWO_AUDIT_20260905/VERDICT.md`。
+
+## 2026-09-05 六十一号审核
+- 执行面 PASS：`.101/.112/.166` 各一次 `sbreload`，`.53` 只读。未开 Agent，未发解锁，未删 pending。
+- 独立核 raw + 复读现活：after PID 仍在（约 5 分钟），hooks `sb_pid` 等于新 SB，`FC_N=1`，无 SB 环。BB 随 sbreload 换 PID 但存活。
+- 三机不再是 `LOADED_OLD`。pending 文件仍在，只记残留，不否决本刀。
+- 不是 `AUTO_UNLOCK_PASS`，不是可开 Agent。证据：`tmp_shots/SIXTYONE_AUDIT_20260905/VERDICT.md`。
+
+## 2026-09-05 六十号只读锁屏回读
+- 按 `.101 -> .112 -> .166 -> .53` 各一条仅公钥只读 SSH；远端仅 `ps`、`cat`、`ls -l`，四机 raw 已落盘。未写 `.ziyan_unlock_req`，未发解锁手势，未重载、未开 Agent。
+- 四机 `FC_N=1`，SB/BB/FC 均与五十九冻结值一致：`.101=51008/51007/47853`、`.112=68/71/98110`、`.166=32842/32841/52622`、`.53=46408/74318/49176`。
+- 四机均 `display_locked=ABSENT` 且 `lock_state=0`，所以逐机均为 `UNLOCKED_NOW`。`unlock_rep=ok` 的 mtime 是 9 月 3/4 日旧文件，仅记 `STALE`，不是 `AUTO_UNLOCK_PASS`；四机 `unlock_req=ABSENT`。
+- `.53` 仍有五十九 zydaemon `93705`，但同时新增观测到 `39467`。冻结 zydaemon PID 集合不完全一致，严格口径为 `UNLOCK_READBACK=PRE_BLOCKED / REASON=BASELINE_DRIFT`；未作修复。
+- 证据：`tmp_shots/SIXTY_UNLOCK_READBACK_20260905/VERDICT.md` 与 `raw/`。本刀没有发解锁请求，没有授权、也没有执行重载。等待人工最终审核。
+
+## 2026-09-05 六十号审核
+- 执行面 PASS：只读、四机 raw 齐、未写 unlock_req、未重载、未开 Agent。
+- 他们总口径 `PRE_BLOCKED/BASELINE_DRIFT` 不采信。`.53` 的 `39467` 是采集窗短命壳（挨着本刀 sshd），复读已消失，owner 仍是 `93705`。SB/BB/FC 未漂。人审改为 `UNLOCK_READBACK=PASS_PENDING_HUMAN`。
+- 四机按本刀规则为 `UNLOCKED_NOW`。`unlock_rep` 仍是 9 月 3/4 日旧文件，不是 `AUTO_UNLOCK_PASS`。
+- 三机仍 `LOADED_OLD`，pending 仍在，不能开 Agent。证据：`tmp_shots/SIXTY_AUDIT_20260905/VERDICT.md`。
 
 ## 已收
+- 五十一号核心包 30 分钟：`tmp_shots/CORE_PACKAGE_FIND_30M_4PHONE_SSH_RETRY_20260904/VERDICT.md`（原始 `tmp_shots/E4_PROMO_20260904_231155/`）
 - 四机 tap VERDICT：`tmp_shots/FOUR_PHONE_PUBLIC_TAP/VERDICT.md`
 - 触动 16 版证据：`TSDaemon` 直接构造 hand+finger，经 `IOHIDEventSystemClientDispatchEvent`；child mask=3、parent down=35、up=4
 - rootful `...17-113` 已装 `.101/.112/.166`
@@ -24,22 +587,180 @@
 - rootless `…-4+debug` SHA256 `0a65de892eec02a6683e54fbd68cb56a6deb1b8eb2abdc8a982eb981e3673408`
 
 ## 开机清单
-1. 四十号连续十八刀收完剩余应入库文档/合同/工具。禁止 .codex/.codegraph/.serena。三十九号已过，不要再发任务。
-2. 若继续触控验收，下一步只跑未改 `ios7.lua` / `ios8p.lua` 真实业务点击，不改脚本内容
-3. 测试坐标必须来自当前 ScreenTransform；`.53 init(0)` 当前为 `1242x2208`
-4. 长稳结论另跑 30 分钟 CPU/RSS/停止残留门禁；最小 tap PASS 不得升级为 G0
-5. 工作树仍为多主题 dirty，发布范围必须另做归因审核
+1. 冻结现为 `.101=87863/47853` `.112=79809/98110` `.166=25025/52622` `.53=46408/39370`。变了只记，不要停机重启。
+2. `.53` surface 复用已复测：`tmp_shots/STORM_BIZ04_SURF53_20260907/VERDICT.md`。p50=18.3。禁止宣称超越。
+3. 风暴循环一到五号只证明了 `.112` getColor/find 会堵。不是业务风暴，不是超越。
+4. 不要贴十五号/六号夹具纸。禁止 sbreload。Agent 游戏仍暂停。
 
 ## 未闭环
-- 未跑未改业务脚本 `ios7.lua` / `ios8p.lua`
-- 未跑 30 分钟 CPU/RSS、崩溃与停止恢复长稳
-- `...17-113/114` 仍来自混合 dirty-tree，发布范围不可归因
+- 十号开发 HID 家族只读汇总：人审 PASS。口径 `AGENT_TRUE_HID_ZIYAN_FAMILY=PASS_PENDING_HUMAN`。本家族收口。证据：`tmp_shots/DEV10_AUDIT_20260906/VERDICT.md`。不是点游戏，不是 MVP。
+- 十一号开发 P2 分机预检：未开。`.101/.112/.166=com.xztl.ios`，`.53=com.ljzbbadao.game`。禁止等 `.53` 装血战屠龙。提示词：`tmp_shots/DEV11_PROMPT_TRUE_GAME_PREFLIGHT_20260906.txt`。禁止 open/tap。限流没退不要贴 Codex。
+- 九号开发 HID 停后残留：人审 PASS。口径 `AGENT_TRUE_HID_LEFTOVER=PASS_PENDING_HUMAN`。证据：`tmp_shots/DEV09_AUDIT_20260906/VERDICT.md`。不是家族汇总，不是 MVP。
+- 八号开发 HID 安全门：人审 PASS。口径 `AGENT_TRUE_HID_SAFE_GATE=PASS_PENDING_HUMAN`。证据：`tmp_shots/DEV08_AUDIT_20260906/VERDICT.md`。不是家族汇总，不是 MVP。
+- 核心包四机 30 分钟：人审通过，口径仍是 `PASS_PENDING_HUMAN`，不是 G0
+- 五十四点到另测：人审通过，口径 `PASS_PENDING_HUMAN`，登录支 HIT，不是 G0。证据：`tmp_shots/FOUR_PHONE_SCRIPT_TAP_20260905/` + `tmp_shots/FIFTYFOUR_AUDIT_20260905/VERDICT.md`
+- `.112` 启动链：五十五号三次 `menu_run_ok`（2.66/0.77/2.57），人审 `PASS_PENDING_HUMAN`。同一旧包复测，不是新修。证据：`tmp_shots/EMBED_TIMEOUT_112_20260905/` + `tmp_shots/FIFTYFIVE_AUDIT_20260905/VERDICT.md`
+- 六十三号 observe smoke：不开 App，四机 `PAUSED_SAFE`。人审 PASS。不是对准子砚的 STOPPED。证据：`tmp_shots/SIXTYTHREE_AUDIT_20260905/VERDICT.md`
+- 六十五号 observe STOPPED：四机对准子砚后 `STOPPED`。人审 PASS。证据：`tmp_shots/SIXTYFIVE_AUDIT_20260905/VERDICT.md`
+- 六十七号 safe STOPPED：四机齐。人审 PASS。证据：`tmp_shots/SIXTYSEVEN_AUDIT_20260905/VERDICT.md`
+- 六十八号 learn stub STOPPED：四机齐。人审 PASS。证据：`tmp_shots/SIXTYEIGHT_AUDIT_20260905/VERDICT.md`
+- 六十九号 drill：人审 PARTIAL。终态 `drill_timeout`。证据：`tmp_shots/SIXTYNINE_AUDIT_20260905/VERDICT.md`
+- 七十号 drill+stop：人审 PASS。记录 `mode=drill`。证据：`tmp_shots/SEVENTY_AUDIT_20260905/VERDICT.md`
+- 七十一号 auto 别名：人审 PASS。记录 `mode=safe_action`。证据：`tmp_shots/SEVENTYONE_AUDIT_20260905/VERDICT.md`
+- 七十二号 observe 回归：人审 PASS。记录 `mode=observe`。证据：`tmp_shots/SEVENTYTWO_AUDIT_20260905/VERDICT.md`
+- 七十三号 leftover：人审 PASS。只读干净。证据：`tmp_shots/SEVENTYTHREE_AUDIT_20260905/VERDICT.md`。
+- 七十四号 Lua smoke 家族：人审 PASS。证据：`tmp_shots/SEVENTYFOUR_AUDIT_20260905/VERDICT.md`。
+- 七十五号空 profile：人审 PASS。三机嵌套 + `.53` 扁平都是 `no_profile`。证据：`tmp_shots/SEVENTYFIVE_53_FIX_AUDIT_20260905/VERDICT.md`。不是 `AGENT_MVP`。
+- 七十六号错 bundle：人审 PASS。四机 `PAUSED_SAFE` / `bundle_mismatch`，前台仍是子砚。证据：`tmp_shots/SEVENTYSIX_RETRY_AUDIT_20260905/VERDICT.md`。不是 observe STOPPED，不是 `AGENT_MVP`。
+- 七十七号 Home observe：人审 PASS。四机桌面 `PAUSED_SAFE` / `bundle_mismatch`。Home 走 `.ziyan_go_home`。证据：`tmp_shots/SEVENTYSEVEN_RETRY_AUDIT_20260905/VERDICT.md`。不是 observe STOPPED，不是 `AGENT_MVP`。
+- 七十八号 user_closed 门：人审 PASS。桌面挡住 open_app，测完已删。证据：`tmp_shots/SEVENTYEIGHT_AUDIT_20260905/VERDICT.md`。不是开 App 成功，不是 `AGENT_MVP`。
+- 七十九号收回 observe：人审 PASS。四机新记录 `STOPPED` / `mode=observe`。证据：`tmp_shots/SEVENTYNINE_AUDIT_20260905/VERDICT.md`。不是六十五重做，不是 `AGENT_MVP`。
+- 八十号 safe toast：人审 PARTIAL。`.101/.112` 已齐，`.166/.53` 没跑。证据：`tmp_shots/EIGHTY_AUDIT_20260905/VERDICT.md`。
+- 八十补 safe toast：人审 PASS。四机齐。证据：`tmp_shots/EIGHTY_RETRY_AUDIT_20260905/VERDICT.md`。不是 toast 风暴，不是 `AGENT_MVP`。
+- 八十一号缺 mode 默认 observe：人审 PASS。四机 `#no_mode` → `mode=observe`。证据：`tmp_shots/EIGHTYONE_AUDIT_20260905/VERDICT.md`。不是 hidden auto，不是 `AGENT_MVP`。
+- 八十二号报告清单：人审 PARTIAL。`.101` 未进，三机未抽字段。证据：`tmp_shots/EIGHTYTWO_AUDIT_20260905/VERDICT.md`。不是 `AGENT_MVP`。
+- 八十二补报告清单：人审 PARTIAL。`.166` 直读齐；三机采集器自匹配。证据：`tmp_shots/EIGHTYTWO_RETRY_AUDIT_20260905/VERDICT.md`。不是 `AGENT_MVP`。
+- 八十二再补报告清单：人审 PASS。三机本刀直读齐，`.166` 未重抽。证据：`tmp_shots/EIGHTYTWO_RERETRY_AUDIT_20260905/VERDICT.md`。不是 `AGENT_MVP`。
+- 八十三号安全残留：人审 PASS。四机停干净。证据：`tmp_shots/EIGHTYTHREE_AUDIT_20260905/VERDICT.md`。不是 `AGENT_MVP`。
+- 八十四号 pending 残留：人审 PASS。四机 Sep 4 文件仍在。证据：`tmp_shots/EIGHTYFOUR_AUDIT_20260905/VERDICT.md`。不是注入已清，不是 `AGENT_MVP`。
+- 八十五号安全门禁家族汇总：人审 PASS。证据：`tmp_shots/EIGHTYFIVE_AUDIT_20260905/VERDICT.md`。口径 `AGENT_SMOKE_SAFE_GATE=PASS_PENDING_HUMAN`。不是 `AGENT_MVP`。
+- 一号开发真学习：人审 PARTIAL（四机没跑）。证据：`tmp_shots/DEV01_AUDIT_20260905/VERDICT.md`。
+- 一号开发补真学习：人审 PASS。四机 `mode=learn` 学习文件齐。证据：`tmp_shots/DEV01_RETRY_AUDIT_20260905/VERDICT.md`。不是真自研/真演练，不是 `AGENT_MVP`。
+- 注入：三机新 SB 已对 hooks；`.53` 仍 `46408`。六十二号四机当日解锁 PASS。pending 文件还在。不是 `AGENT_MVP`。
+- 五十二号四机点到另测：四机并行只读完成，`.101/.112/.166` 为登录页、`.53` 为 SpringBoard；四机均 `PRE_BLOCKED / SCENE_MISS`，未 SCP、未启动脚本、未 tap。证据：`tmp_shots/FOUR_PHONE_TAP_REACH_20260905/VERDICT.md`
+- 五十二号现场发现当前桌面 `ios8p.lua` SHA `7c739a6f...` 与五十一号记录的 `127d9ff2...` 不一致；未改、未传，记为 `STATE_MISMATCH`
+- `...17-113/114` 与当前候选包仍来自混合 dirty-tree，发布范围不可归因
 - COLOR_PICKER_CONTRACT=FAIL
 - P2_COLOR_CORE=BLOCKED
 - RELEASE_SCOPE 预检未通过（脏树已收为基线后，仍须授权才可部署验收）
 
 ## 默认首条助手动作
-四十号收剩余十八个应入库主题。不要往三十九号发任务。
+只读追溯 `.53` SpringBoard PID 漂移：读取 SpringBoard/framecap PID 与 elapsed、系统 uptime、可访问的 crash/reset/launchd/watchdog 记录、framecap owner/heartbeat 与二进制 SHA；不得部署、重启、杀进程、采样、写日志、建基线、进 Probe、触碰其他设备或改源码。无充分归因证据则保持 `STATE_MISMATCH / FREEZE_INVALID`。
+
+## 2026-09-05 五十五号审核
+- 执行面 PASS：只 `.112` 三次 menu_run；未改产品代码；未重装；未杀 SB/BB。
+- 独立回读：minimize `menu_run_ok 2.66/0.77/2.57`；framecap 05:37/05:38/05:38 三次 embed start；session idle 对上 RUN3；toast 尾有「已启动 ios7.lua」，无 embed_timeout。
+- 本地合同脚本当前跑不起来，不采信他们的 CONTRACT=PASS。
+- 不是启动链已修好，不是 G0。证据：`tmp_shots/EMBED_TIMEOUT_112_20260905/` + `tmp_shots/FIFTYFIVE_AUDIT_20260905/VERDICT.md`
+
+## 2026-09-05 五十四号审核
+- 执行面 PASS：四机同一秒 `menu_run_trig` 启动机上原脚本；无精确 getColor 门；未 scp、未改脚本、未改 lua/objc、未重装、未杀 SB/BB、未开 Agent。
+- 独立回读四机 SB/BB/FC/脚本 SHA/`FINAL last_find` 与 raw 日志一致。`via_color_req_find=0`。停后 `ACTIVE=0 LUA_N=0 FC_N=1`。
+- HIT 都是登录支（toast「登录」+ `class=hit`），不是主色「找到目标」。按本刀授权成立。`TAP_N=4` 无 HID 旁证。
+- `.112` 首次 ACK 失败（`6297` embed_timeout，无「已启动」），`6300` 仍跑起脚本。不否决点到，留给五十五。
+- 不是 G0。证据：`tmp_shots/FOUR_PHONE_SCRIPT_TAP_20260905/` + `tmp_shots/FIFTYFOUR_AUDIT_20260905/VERDICT.md`
+
+## 2026-09-05 .53 SB PORT_SPACE
+- 04:46:46 SB `74320` 被杀：`EXC_RESOURCE PORT_SPACE` 上限 115094。BB 未变。
+- 原因：取色器 `/snapshot` HTTP 线程 `force_recap + HandleOnce`，冷闲 `shm_clear` 后打 UICreate。
+- 已改：只写 `.ziyan_snap_http_want`；无帧 503。仅 `.53` 换 framecap SHA `1f349516…`，FC `49176`，SB 仍 `46408`。
+- 证据：`tmp_shots/SB_RESTART_53_20260905/VERDICT.md`。回滚 `ziyan_framecap.bak.20260905`。
+
+## 2026-09-05 五十三号审核
+- 执行面成立：四机同时只读；`TAP_N=0`；未 scp、未起 lua、未 tap。`PRE_BLOCKED / SCENE_MISS` 按「锚点 getColor 不等于原色」成立。
+- `.101` 人手工跑 ios7 能点到，与本刀 SCENE_MISS 不矛盾：本刀只做精确 getColor，脚本本身是 fuzzy 90。
+- `.53` 前台已是 `com.ljzbbadao.game` 账号登录。HTTP 快照 `1104x621`；`2011,283` / `285,1036` 在快照上越界；`565,487` 快照是 `#979696`，embed getColor 是 `0x0b0b0b`。这是抓色器 HTTP 帧与 embed 逻辑坐标不一致，不是「进游戏就找不到色」。
+- ios8p 机上/桌面现均为 `422af226…`。未改 lua/objc/Makefile，未开 Agent。证据：`tmp_shots/FOUR_PHONE_TAP_REACH_RETRY_20260905/`
+
+## 2026-09-05 五十三号四机同时点到复测
+- 四机第二轮于 `04:04:29+0800` 同时只读前台、机上脚本身份和脚本原始坐标 `getColor`；`.101/.112/.166` 仍为 `com.xztl.ios` 登录场景，`.53` 已为 `com.ljzbbadao.game`，但所有原始锚点均不等于脚本目标色。
+- 结论：`TAP_REACH_GATE=PRE_BLOCKED`、`REASON=SCENE_MISS`、`TAP_N=0`、`PRE_BLOCKED_N=4`、`FAIL_N=0`。没有进入 `find` 或 `tap`，因此没有触控层结论。
+- 最终四机均 `FC_N=1 ACTIVE=0 KEEP=0 LUA_N=0`；SB/BackBoard PID 未变化；未 SCP、未启动脚本、未重装、未重建、未杀 SB/BB、未重载注入、未开 Agent。
+- `.53` 机上 `ios8p.lua` 回读 SHA 为 `422af226...`，与交接的 `7c739a6f...` 不一致；本刀未传输或修改脚本，仅记录 `STATE_MISMATCH`。
+- 证据：`tmp_shots/FOUR_PHONE_TAP_REACH_RETRY_20260905/VERDICT.md`。等待人工审核。
+
+## 2026-09-05 五十二号审核
+- 执行面成立：四机同窗只读；`TAP_N=0`；未启动 lua、未 tap。`PRE_BLOCKED / SCENE_MISS` 判定对。
+- 独立核图：`.101/.112/.166` 都是 `com.xztl.ios` 账号登录页；`.53` 是 SpringBoard。getColor 原值换算与 VERDICT 一致：ios7 `0x2e221c / 0x795233`，`.53` `0xf4f4c7 / 0x3088b2 / 0x0f5acb`。
+- 范围没越权：`lua/` `objc/` `Makefile` 未改；未重装、未杀 SB/BB、未开 Agent、未重跑 30 分钟。
+- `ios8p` `STATE_MISMATCH` 独立成立：桌面与 `.53` 现均为 `7c739a6f…`（935 字节，mtime 03:44），早于五十二开场 03:45。五十一号拉回仍是 `127d9ff2…`（699 字节）。本刀日志未见 scp，不因此判五十二改脚本。
+- 这不是点到 PASS，不是产品 FAIL，不是 G0。证据：`tmp_shots/FOUR_PHONE_TAP_REACH_20260905/`
+
+## 2026-09-05 五十二号四机同时点到另测
+- 四机同窗并行只读前台、快照与脚本原始色坐标；没有机器满足目标色门槛，因此按机写 `PRE_BLOCKED / SCENE_MISS`，没有进入点到阶段。
+- `.101/.112/.166`：`FRONT=com.xztl.ios`，画面为账号登录；主色 ROI `1010,294` 读 `0x2e221c`，登录色 ROI `633,440` 读 `0x795233`。
+- `.53`：`FRONT=com.apple.springboard`，画面为桌面；脚本原始坐标读 `0xf4f4c7 / 0x3088b2 / 0x0f5acb`，均非目标原色。
+- 四机 `FC_N=1`；最终 `LUA_N=0 ACTIVE=0 KEEP=0`；未 SCP、未启动业务脚本、未发 tap；没有改 lua/objc/Makefile/Desktop 脚本，没有重装、重建、杀 SB/BB、重载注入或开 Agent。
+- 当前 Desktop 哈希：ios7 `5f4936d5...` 匹配；ios8p `7c739a6f...` 不匹配五十一号记录 `127d9ff2...`，保留现状并记 `STATE_MISMATCH`。
+- 总证据：`tmp_shots/FOUR_PHONE_TAP_REACH_20260905/VERDICT.md`。口径：`TAP_REACH_GATE=PASS_PENDING_HUMAN`，不是 G0/可发布；等待人工审核。
+
+## 2026-09-05 五十一号审核
+- 执行面 PASS：`ssh_r` 公钥优先、失败回退 sshpass；四机同时 `ZY_E4_MIN=30` 墙钟约 31.7 分钟；`PASS_N=4 FAIL_N=0`。
+- 范围没越权：相对 HEAD `037bb89` 产品树只脏 `tools/zy_e4_promo_gate.sh`（五十号 `scp_r`+sleep60 + 五十一号 `ssh_r`）。`lua/` `objc/` `Makefile` 未改；未重装、未重建、未杀 SB/BB、未开 Agent。
+- 独立回读：SB 仍是 `51008/68/32842/74320`，FC 仍是 `47853/98110/52622/87813`，`FC_N=1`，无 lua。脚本拉回字节相等：ios7 `5f4936d5…`、ios8p `127d9ff2…`。
+- 热路径成立：四机 `via_embed_find>0` 且 `via_color_req_find=0`；RSS/100s 在预算内；停后 keep/active=0。
+- `.101` `/var/jb/.../.ziyan_active` 是 9 月 1 日空文件，不是本刀 keep 残留。窗末 ios7 三机仍 `pixel_miss`，这是点到另测，不是 30 分钟 FAIL。
+- 人审已过。仍不得写成 G0/可发布。证据：`tmp_shots/CORE_PACKAGE_FIND_30M_4PHONE_SSH_RETRY_20260904/` 与 `tmp_shots/E4_PROMO_20260904_231155/`
+
+## 2026-09-05 继承 dd3f10de + 五十一号完成
+- Cursor 会话 `dd3f10de`：五十号审核 PASS（PRE_BLOCKED/NOT_RUN 成立）→ 开出五十一提示词 → 监控五十一。
+- Codex 五十一号：`ssh_r` 公钥优先（失败回退 sshpass）；`ZY_E4_MIN=30` 四机同时跑完；`PASS_N=4 FAIL_N=0`。
+- 独立抽查 gate：`.101` embed_find=2172、`.112`=1810、`.166`=2052、`.53`=2000；四机 `via_color_req_find=0`、`FC_N_MAX=1`、`SB_CHG=0`、停后 keep/active=0。
+- 包身份：rootful SHA `4605f8d3…` / rootless SHA `d8def150…`；未重装、未重建。
+- checkpoint：`stage=4phone-find-30m-ssh-retry-complete`，`nextAction=等待人工最终审核`。
+- 继承时现场：四机 `FC_N=1`，owner 仍为 `47853/98110/52622/87813`；无门禁进程。`.101` 现有 `/var/jb/.../.ziyan_active` 残留路径需人审时留意（门禁窗结束时 ACTIVE=0）。
+
+## 2026-09-04 五十号审核
+- 授权改动做了：`scp_r` 公钥优先；清场后 sleep 60。未改 lua/objc/Makefile。
+- 公钥 SCP 四机 100%：ios7.lua / ios8p.lua 已在 `/private/var/mobile/Media/ZiYan/`（22:51）。
+- 30 分钟仍 NOT_RUN：随后 password-only `ssh_r` 四机 `Permission denied, please try again`。这和四十九号是同一类 sshd 限流，不是密码坏了。审核时密码 SSH 与公钥 SSH 均已通。
+- `PRE_BLOCKED` 成立，不得写成 30 分钟 FAIL 或 PASS。
+- 证据：`tmp_shots/CORE_PACKAGE_FIND_30M_4PHONE_RETRY_20260904/` 与 `tmp_shots/E4_PROMO_20260904_224956/`
+
+## 2026-09-04 四十九号审核
+- 执行面：`.166` `36610→52622`，lua `21071` 已停；四机 pretest CLEAN_OK；未改产品代码；未写 30 分钟 PASS。判定 `PRE_BLOCKED / NOT_RUN` 成立。
+- 「唯一阻塞：四机 SSH/SCP 认证」容易读成密码/密钥坏了。实际是：清场 SSH 已经通，随后 `scp` 强制 `PubkeyAuthentication=no` 只用密码，四机都是 `Permission denied, please try again`（sshd 短时间连太多会限流）。审核时密码 SSH、公钥 SSH、同参数 SCP 均已通。
+- E4 自己把四机记成 FAIL，那是脚本没装上，不是 find 热路径 FAIL。
+- 证据：`tmp_shots/CORE_PACKAGE_FIND_30M_4PHONE_20260904/` 与 `tmp_shots/E4_PROMO_20260904_222601/`
+
+## 2026-09-04 四十八号审核
+- 执行面 PASS：只 `killall ziyan_framecap`；poll 2 即 `FC_N=1`；未重装、未杀 SB/BB、未跑脚本、未停 `.166` lua。
+- 独立回读：PID `98110`，lstart `2026-09-04 22:10:08`，路径 `/usr/lib/ziyan/bin/ziyan_framecap`，`FC_N=1`。SB `68` / BB `71` lstart 仍是 `05:36:23`。
+- `.101` 仍 `47853`，`.53` 仍 `87813`，`.166` 仍 `36610`+lua `21071`。
+- 这不是 `.112` Z1 PASS。用户已改核心包口径：find 热路径 + 装包 + 四机同时 30 分钟；ios7 点到另测。
+- 证据：`tmp_shots/FRAMECAP_RECYCLE_DEVICE_112_20260904/`
+
+## 2026-09-04 四十七号审核
+- 执行面 PASS：只 `killall ziyan_framecap`；未重装、未杀 SB/BB、未跑 ios8p。原始 before/after 日志齐全。
+- 新进程独立回读：PID `87813`，lstart `2026-09-04 21:57:47`，etime 与墙钟一致，路径 `/var/jb/usr/lib/ziyan/bin/ziyan_framecap`，`FC_N=1`，≠ `35986`。
+- `SB_CHG=0`：SB `74320` / BB `74318` 仍从 9 月 2 日 11:56 起。无 lua。`.101` 仍 `47853`，`.112` 仍 `309`，`.166` 仍 `36610`+lua `21071`。
+- 这不是 `.53` Z1 PASS，不是 G0。`.101` 仍为 `SCENE_MISS`。
+- 证据：`tmp_shots/FRAMECAP_RECYCLE_DEVICE_53_20260904/`
+
+## 2026-09-04 四十六号审核
+- 装包身份 PASS：本地与机上 `/tmp/ziyan.deb` SHA 均为 `d8def150412f0c23769eaea96e98d2659ce762d67bdae7b4f30b0574f80681a1`；`ARCH=iphoneos-arm64`；`dpkg rc=0`；`no_auto_respring=1`；pending 路径 `/var/jb/usr/lib/ziyan/var`；用了 `ps -A`+etime，没用 `pgrep`。
+- `SB_CHG=0` 独立成立：SB `74320` lstart `2026-09-02 11:56:10`，etime 从 `02-09:23:46` 增到 `02-09:28:06`。BB `74318` 同样。`.101/.112/.166` 的 SB PID 未被本刀改动。
+- dpkg 提示从 `…17-141+debug-1+debug` **降到** `…17-140+debug`：这是候选包 Version 字段的已知quirk（文件名 17-142，字段 17-140），身份以 SHA 为准，不是装错早上一只 rootful。
+- 无 lua。现役 framecap 仍是 `35986`（9 月 2 日 09:51 起），磁盘二进制已是今晚 `19:22`。ACTIVE=1 符合 postinst `touch`。
+- 这不是 `.53` Z1 PASS，不是四机可发布。
+- 证据：`tmp_shots/INSTALL_ROOTLESS_DEVICE_53_20260904/`
+
+## 2026-09-04 四十五号审核
+- 装包身份 PASS：本地与机上 `/tmp/ziyan_rootful_166.deb` SHA 均为 `4605f8d347c590ceba5cbd29c0ccc755e2059a337ea41969191ad50fd256dd47`；`dpkg rc=0`；`no_auto_respring=1`；未复制整份 deb 进仓库。
+- 他们写 `SB_CHG=UNVERIFIED` 是因为 precheck 用了不存在的 `pgrep`。独立回读：SB 仍是 `32842`，lstart `2026-09-02 11:53:38`，etime `02-09:18:16`，与四十四号下午看到的同一 PID。本审核把 `SB_CHG` 定为 0，不是他们口头说的 unverified。
+- 证据瑕疵：VERDICT 写 `BUSINESS_SCRIPT_PROCESSES=0`，但机上 lua `21071` 从 `12:09:35` 就在跑 `gameplay_gameplay_1788440465666.lua`。这不是本刀新起的脚本，是漏检。`.ziyan_active` 21:09 被碰是 postinst `touch`，不是新开脚本。
+- 这不是 `.166` Z1 PASS，不是 G0。`.101` 仍为 `SCENE_MISS`。
+- 证据：`tmp_shots/INSTALL_ROOTFUL_DEVICE_166_20260904/`
+
+## 2026-09-04 四十四号审核
+- 执行面 PASS：精确 SHA 只装 `.112`；`dpkg rc=0`；`no_auto_respring=1`；SB `68` / BB `71` 未变（etime 约 15.5h）；未跑 lua/ios7/ios8p；未碰 `.101/.166/.53`。
+- 身份独立核对：本地 deb、拉回 `remote_package_copy.deb`、机上 `/tmp/ziyan_rootful_112.deb` 三份 SHA 均为 `4605f8d347c590ceba5cbd29c0ccc755e2059a337ea41969191ad50fd256dd47`。`remote_sha.txt` 里 `REMOTE_COPY_BYTE_EQUAL=0` 是 cmp 成功码，文件相同。
+- 这不是 `.112` Z1 PASS，不是 G0。`.101` 仍为 `SCENE_MISS`。机上 Version 仍显示 `…17-140+debug`，以 SHA 为准。
+- 旁证：`.112` 现役 framecap 仍是 `309`（05:36 起，早于今晚 19:20 二进制）；`ACTIVE=1` 是今早会话残留，本刀未授权清理。
+- 证据：`tmp_shots/INSTALL_ROOTFUL_DEVICE_112_20260904/`
+
+## 2026-09-04 四十三号审核
+- 执行面 PASS：未重装、未杀 SB/BB；framecap `44306 → 47853`，lstart `20:23:36` 晚于装包 `20:07:25`；embed pid 对上；ios7 跑 `20:30:38–20:31:08`（约 30s）；脚本 SHA `5f4936d5…` 未改；无 tap、无「登录」；停后 active/embed/keep=0。
+- 产品面 `SCENE_MISS`：find 热路径有效（`front=shm_bid=com.xztl.ios`，seq `18030→18052`，`keep=0`，`uisurface_ok`，`pixel_miss`）。主色与登录色都不在当前画面。禁止改 fuzzy/坐标/ios7.lua。
+- 独立回读 `.101`（审核时）：包 SHA 字段仍 `…17-140+debug`，FC `47853` `FC_N=1`，SB `51008` BB `51007` 未变，`last_find seq=18052 roi=633,440,634,446`。审核时前台已是 springboard（`onHome=1` 从 `20:36:05` 才出现，门禁窗内 `onHome=0`）。
+- 证据缺口：仓库目录几乎只有 `VERDICT.md`；设备侧日志能对上，不因此判假。下一刀必须把原始安装日志落盘。
+- 证据：`tmp_shots/Z1_MIN_IOS7_DEVICE_101_FRAMECAP_RECYCLE_20260904/VERDICT.md`
+
+## 2026-09-04 四十二号审核
+- 执行面 PASS：精确 SHA `4605f8d347c590ceba5cbd29c0ccc755e2059a337ea41969191ad50fd256dd47` 只装 `.101`；`no_auto_respring=1`；SB `51008` / BB `51007` 未变；脚本 SHA `5f4936d5…` 未改；未改 lua/objc；未推进其他机；未宣称 G0/可发布/Agent。
+- 产品面 `DEVICE_FAIL_NO_FIND`：toast/mSleep/keep 过；find 热路径已跑（`front=shm_bid=com.xztl.ios`，seq 推进，`class=pixel_miss`，`roi=633,440,634,446`）；主色 `1010,294` 与登录色均未命中；`TAP=NOT_REACHED`。
+- 有效性缺口：装后瞬时 `FC_N=2`，Z1 时 embed 仍是装包前 PID `44306`。toast `via=ScreenTransform+8-161-132` 与 `PENDING=1` 一致，禁止本轮重载 SB。
+- 证据：`tmp_shots/Z1_MIN_IOS7_DEVICE_101_20260904/VERDICT.md`
 
 ## 2026-09-02 当前执行结果
 - checkpoint `device-101-capability-chat-deploy` 已执行：rootful `17-125` 受控幂等部署到 `.101`，范围仅 `.101`。
@@ -158,3 +879,55 @@
 - 十七号：`.112` SSH 通，当时前台 springboard，未确认已装 17-140，未复测。十一号 `.112` 仍 FAIL `embed_required embed_timeout`。
 - compact 模板与 checkpoint 已从「九号 Chat / 17-127」改到本阶段；emit 若再读到九号正文会改用 checkpoint。
 - 未授权前不要宣称 embed 已修。唯一下一步见上面「默认首条助手动作」。
+
+## 2026-09-05 五十七号审核（纠正）
+- 执行面成立：只读、未删 pending、未杀 SB、未开 Agent。
+- 他们的脚本四机 `awk`/`stat` 失败，raw 未读到 hooks，却写 `INCONCLUSIVE x4`。不采信。
+- 独立 `cat .ziyan_hooks`：四机 `sb_pid` 都等于现 SB。`.101/.112/.166=LOADED_OLD`；`.53=LOADED_NEW_OR_POST_PENDING_SB`（04:46 崩溃后起的 SB）。
+- 盘上 rootful dylib sha `3ffb625e…`，rootless `c3d7990f…`。当前三机 SB 早于这些文件。
+- 不是可开 Agent。证据：`tmp_shots/FIFTYSEVEN_SB_PENDING_VS_LOADED_20260905/` + `tmp_shots/FIFTYSEVEN_AUDIT_20260905/VERDICT.md`
+
+## 2026-09-05 五十六号审核（纠正）
+- 执行面成立：四机只读表收齐，未开 Agent，未杀 SB，未改代码。
+- **口径不采信**：他们写 `AGENT_PRECHECK=PASS_PENDING_HUMAN`。提示词要求任一 pending 必须 `PRE_BLOCKED`。四机 pending 都在。人审改为 `AGENT_PRECHECK=PRE_BLOCKED REASON=INJECT_PENDING`。
+- `FC_N=1` 与三机单一 zydaemon 成立。解锁只是 9 月 3/4 日旧文件，不是 `AUTO_UNLOCK_PASS`。
+- `.53` SB `46408` 晚于 pending（今早崩溃后），pending 可能是僵尸标记；`.101/.112/.166` SB 早于 pending，当前 SB 未吃新包注入。
+- 证据：`tmp_shots/FIFTYSIX_AGENT_PRECHECK_20260905/` + `tmp_shots/FIFTYSIX_AUDIT_20260905/VERDICT.md`
+
+## 2026-09-05 五十七号：pending vs 当前 SB
+- 执行面成立：按 `.101 → .112 → .166 → .53` 各一次只读 SSH，公钥均成功；未跑 Agent/Chat/脚本，未重装、未重载、未杀 SB/BB、未删 pending。
+- `.101/.112/.166`：SB `51008/68/32842` 分别早于 pending，`SB_STARTED_VS_PENDING=BEFORE`。
+- `.53`：SB `46408`（`2026-09-05 04:46:46 +0800`）晚于 pending（`2026-09-04 21:20:48 +0800`），`SB_STARTED_VS_PENDING=AFTER`；pending 仍可能是僵尸文件。
+- 盘上 ZiYanVol 均存在并取到 SHA：rootful 三机 `3ffb625e...6524f7`，rootless `.53` `c3d7990f...14dab5e`。
+- 四机 `FC_N=1`；本轮 zydaemon 读数 `.101=1/.112=2/.166=1/.53=1`，未处理 `.112` 双 shell。
+- 设备 `lsof` 不可用，且本轮 hooks/cap_diag 年龄探针遇到设备 `stat -f` 兼容问题，未得到当前 SB PID 对齐证据；因此四机严格记 `INJECT_LIVE=INCONCLUSIVE`，不把 `.53` 的 `AFTER` 升级为已载入。
+- 证据：`tmp_shots/FIFTYSEVEN_SB_PENDING_VS_LOADED_20260905/VERDICT.md` + `tmp_shots/FIFTYSEVEN_SB_PENDING_VS_LOADED_20260905/raw/`
+
+## 2026-09-05 五十八号审核
+- 独立解包与四机复读均确认 `DYLIB_IDENTITY=MATCH_CANDIDATE`。他们未把 sha 相等写成三机 SB 已换新包。
+- 本刀目录只有 VERDICT、无 raw。身份以本审核复读为准，不否决。
+- 仍是 `LOADED_OLD` x3 + `.53` 崩溃后新 SB。pending 仍在。不是可开 Agent。
+- 证据：`tmp_shots/FIFTY_EIGHT_DYLIB_IDENTITY_20260905/` + `tmp_shots/FIFTYEIGHT_AUDIT_20260905/VERDICT.md`
+
+## 2026-09-05 五十八号：磁盘 ZiYanVol 与候选包身份对比
+- 候选包已定位且包级 SHA 对齐：rootful `...17-141+debug_iphoneos-arm.deb` = `4605f8d347c590ceba5cbd29c0ccc755e2059a337ea41969191ad50fd256dd47`；rootless `...17-142+debug_iphoneos-arm64.deb` = `d8def150412f0c23769eaea96e98d2659ce762d67bdae7b4f30b0574f80681a1`。
+- Mac 无 `dpkg-deb`，改用 `ar` 取 `data.tar.*` 后只读解包；包内 rootful ZiYanVol SHA=`3ffb625e4619810c5ac105457aa7c5376a123ff8a5ba4bc8c67c74863e6524f7`，rootless SHA=`c3d7990fbbffa0d0116ced52f3521bd782be5f63d5c7f640bcbcd083614dab5e`；临时目录已清理。
+- 四机各一条只读 SSH 复读：`.101/.112/.166` 盘上 SHA 与 rootful 候选包相等；`.53` 盘上 SHA 与 rootless 候选包相等。hooks `sb_pid=` 与当前 SB PID 分别为 `51008/68/32842/46408`。
+- 本刀结论：`.101/.112/.166/.53` 均为 `DYLIB_IDENTITY=MATCH_CANDIDATE`。这只证明磁盘文件身份，不证明新包已在三机 SB 中；沿用 `.101/.112/.166=LOADED_OLD`、`.53=LOADED_NEW_OR_POST_PENDING_SB`。
+- pending 仍在；整体保持 `AGENT_PRECHECK=PRE_BLOCKED REASON=INJECT_PENDING`、`NOT_G0=1`、`NOT_PUBLISHABLE=1`、`NOT_AGENT=1`。未安装、未重载、未删 pending、未启动 Agent/Smoke/Chat。
+- 证据：`tmp_shots/FIFTY_EIGHT_DYLIB_IDENTITY_20260905/VERDICT.md`。
+
+## 2026-09-05 五十九号审核
+- 执行面 PASS：只读、四机 raw 齐、未重载、未删 pending、未开 Agent。口径 `RELOAD_BASELINE=PASS_PENDING_HUMAN` 采信。
+- 独立复读现活 PID 与 08:31 raw 一致：SB `51008/68/32842/46408`，FC `47853/98110/52622/49176`，`FC_N=1` x4。没有本刀窗口换 PID。
+- 三机仍 `LOADED_OLD`，`.53` 仍 `LOADED_NEW_OR_POST_PENDING_SB`。整体保持 `AGENT_PRECHECK=PRE_BLOCKED REASON=INJECT_PENDING`。
+- 证据路径他们写成 `FIFTYNINE_RELOAD_BASELINE_…` 而不是提示词的 `RELOAD_BASELINE_4PHONE_…`；raw 齐，不否决。
+- 不是注入稳定，不是 `AUTO_UNLOCK_PASS`，不是 G0，不是可开 Agent。证据：`tmp_shots/FIFTYNINE_AUDIT_20260905/VERDICT.md`。
+
+## 2026-09-05 五十九号：只采四机重载前基线
+- 按 `.101 -> .112 -> .166 -> .53` 各一条公钥优先只读 SSH；每机 raw 原文已落盘，远端仅用 `ps`、`cat`、`ls -l`、`sha256sum`。
+- 四机 `FC_N=1`：FC 为 `47853/98110/52622/49176`；SB 为 `51008/68/32842/46408`；BB 为 `51007/71/32841/74318`。`.112` 本次只见一只 `ziyan_zydaemond.sh`，未标 `DOUBLE_SHELL`。
+- pending 仍在，hooks `sb_pid=` 分别对齐四机当前 SB；rootful ZiYanVol SHA 仍为 `3ffb625e…6524f7`，rootless `.53` 为 `c3d7990f…14dab5e`。脚本 SHA：ios7 `5f4936d5…`，ios8p `6f750be2…`。
+- 四机 session 均 `state=idle`，`.ziyan_active` 均不存在，前台为 `.101/.112/.166=com.xztl.ios`、`.53=com.ljzbbadao.game`。
+- 口径：`RELOAD_BASELINE=PASS_PENDING_HUMAN`。未执行重载、安装、删除 pending、脚本、Chat、Smoke 或 Agent。
+- 证据：`tmp_shots/FIFTYNINE_RELOAD_BASELINE_20260905_083106/VERDICT.md` 与 `raw/`。

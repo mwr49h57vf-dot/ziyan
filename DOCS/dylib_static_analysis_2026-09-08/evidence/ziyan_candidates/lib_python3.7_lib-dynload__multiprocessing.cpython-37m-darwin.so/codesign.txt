@@ -1,0 +1,20 @@
+Executable=/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/python3.7/lib-dynload/_multiprocessing.cpython-37m-darwin.so
+Identifier=_multiprocessing.cpython-37m-darwin.so
+Format=Mach-O thin (arm64)
+CodeDirectory v=20200 size=583 flags=0x0(none) hashes=13+2 location=embedded
+Hash type=sha256 size=32
+CandidateCDHash sha1=5e44d3d4705ca12293b63ee42f923766608abd1b
+CandidateCDHashFull sha1=5e44d3d4705ca12293b63ee42f923766608abd1b
+CandidateCDHash sha256=d5d9d1ed44a42bc0229c78ba0cd2cbc7e6487fee
+CandidateCDHashFull sha256=d5d9d1ed44a42bc0229c78ba0cd2cbc7e6487feec3aaeb96bfd4101174172638
+Hash choices=sha1,sha256
+CMSDigest=eb8d9e44c92668ce5a53baaff504e0f1a9ce55c598543be1390baead00241ab9
+CMSDigestType=2
+Launch Constraints:
+	None
+CDHash=d5d9d1ed44a42bc0229c78ba0cd2cbc7e6487fee
+/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/python3.7/lib-dynload/_multiprocessing.cpython-37m-darwin.so: no signature
+Info.plist=not bound
+TeamIdentifier=not set
+Sealed Resources=none
+Internal requirements count=0 size=12

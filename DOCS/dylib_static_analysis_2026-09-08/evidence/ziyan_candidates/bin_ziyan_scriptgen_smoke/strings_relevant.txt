@@ -1,0 +1,10 @@
+110:/usr/lib/ziyan/share/media_seed/knowledge/families/%@.json
+111:/var/jb/usr/lib/ziyan/share/media_seed/knowledge/families/%@.json
+194:training_full_lua_no_sidecar
+204:write_lua_fail
+277:/usr/lib/ziyan
+278:rootless
+281:rootful
+282:/var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua
+283:/usr/lib/ziyan/lib/lua/ziyan_run.lua
+291:jailbreak_detect_rootless_path

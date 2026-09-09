@@ -1,0 +1,15 @@
+000000000000c4d8 D _PyBlake2_BLAKE2bType
+000000000000ca08 D _PyBlake2_BLAKE2sType
+00000000000086cc T _PyBlake2_blake2b
+0000000000008384 T _PyBlake2_blake2b_final
+000000000000656c T _PyBlake2_blake2b_init
+0000000000006680 T _PyBlake2_blake2b_init_key
+0000000000006500 T _PyBlake2_blake2b_init_param
+0000000000006834 T _PyBlake2_blake2b_update
+000000000000accc T _PyBlake2_blake2s
+000000000000aa8c T _PyBlake2_blake2s_final
+0000000000009220 T _PyBlake2_blake2s_init
+00000000000092a4 T _PyBlake2_blake2s_init_key
+0000000000009164 T _PyBlake2_blake2s_init_param
+00000000000093b0 T _PyBlake2_blake2s_update
+000000000000613c T _PyInit__blake2

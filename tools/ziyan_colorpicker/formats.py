@@ -57,6 +57,35 @@ def make_fmc(points: Sequence[Point]) -> str:
     return "".join(parts)
 
 
+def resolve_find_roi(
+    ax: int,
+    ay: int,
+    sx: int,
+    sy: int,
+    points: Optional[Sequence[Point]] = None,
+    img_w: int = 0,
+    img_h: int = 0,
+) -> Tuple[int, int, int, int]:
+    """生成 find 的搜索框：完整 A/S 用对角；只钉了一角或全 0 用色点包围盒。"""
+    pts = [enrich(p) for p in (points or [])]
+    ax, ay, sx, sy = int(ax), int(ay), int(sx), int(sy)
+    s_set = (sx, sy) != (0, 0)
+    a_set = (ax, ay) != (0, 0)
+    if s_set:
+        x0, x1 = (ax, sx) if ax <= sx else (sx, ax)
+        y0, y1 = (ay, sy) if ay <= sy else (sy, ay)
+        return x0, y0, x1, y1
+    if pts:
+        xs = [p["x"] for p in pts]
+        ys = [p["y"] for p in pts]
+        return min(xs), min(ys), max(xs), max(ys)
+    if a_set:
+        return ax, ay, ax, ay
+    if img_w > 0 and img_h > 0:
+        return 0, 0, int(img_w) - 1, int(img_h) - 1
+    return ax, ay, sx, sy
+
+
 def make_find_multi_color_in_region_fuzzy(
     points: Sequence[Point],
     ax: int,
@@ -70,10 +99,9 @@ def make_find_multi_color_in_region_fuzzy(
 ) -> str:
     """
     对齐 ColorPicker make_findMultiColorInRegionFuzzy。
-    A/S 全 0 且提供了图像尺寸时，S 落到 (w-1, h-1)。
+    A/S 未成对角时用色点包围盒，禁止把范围写成 x2=0,y2=0。
     """
-    if ax == 0 and ay == 0 and sx == 0 and sy == 0 and img_w > 0 and img_h > 0:
-        sx, sy = img_w - 1, img_h - 1
+    ax, ay, sx, sy = resolve_find_roi(ax, ay, sx, sy, points, img_w, img_h)
     fmc = make_fmc(points)
     return "%s = findMultiColorInRegionFuzzy( %s, %d, %d, %d, %d, %d)" % (
         assign,
@@ -277,12 +305,25 @@ def default_settings(name: str) -> Dict[str, str]:
     return dict(DEFAULT_SETTINGS.get(name, {}))
 
 
+def _xy_hex_dec_rgb(p: Point, nl: bool = False) -> str:
+    """X,Y + 十六进制色 + 十进制色值 + RGB。0xe3c59e → 14927262, 227,197,158。"""
+    p = enrich(p)
+    dec = p["c"] & 0xFFFFFF
+    line = " %4d, %4d, 0x%06x, %d, %d, %d, %d" % (
+        p["x"], p["y"], dec, dec, p["r"], p["g"], p["b"]
+    )
+    return (line + "\n") if nl else (line + " ")
+
+
 def slot_text(name: str, p: Point, setv: Optional[Dict[str, str]] = None) -> str:
     """多点寄存行（对齐 multiPosFormatRule）。"""
     setv = setv or default_settings(name)
     p = enrich(p)
     if name == FMT_BRACE:
-        fmt = "{ %4d, %4d, 0x%06x },\n" % (p["x"], p["y"], p["c"])
+        dec = p["c"] & 0xFFFFFF
+        fmt = "{ %4d, %4d, 0x%06x, %d, %d, %d, %d },\n" % (
+            p["x"], p["y"], dec, dec, p["r"], p["g"], p["b"]
+        )
         fmt = _maybe_strip_nl(fmt, setv)
         return _maybe_strip_space(fmt, setv)
     if name == FMT_POSNEW:
@@ -293,7 +334,7 @@ def slot_text(name: str, p: Point, setv: Optional[Dict[str, str]] = None) -> str
         return "%d,%d,0x%06x\n" % (p["x"], p["y"], p["c"])
     if name == FMT_OLD:
         return _old_pos("{ #X#, #Y#, #C#},\n", p)
-    fmt = " %4d, %4d, 0x%06x \n" % (p["x"], p["y"], p["c"])
+    fmt = _xy_hex_dec_rgb(p, nl=True)
     fmt = _maybe_strip_nl(fmt, setv)
     return _maybe_strip_space(fmt, setv)
 
@@ -303,7 +344,10 @@ def single_text(name: str, p: Point, setv: Optional[Dict[str, str]] = None) -> s
     setv = setv or default_settings(name)
     p = enrich(p)
     if name == FMT_BRACE:
-        fmt = "{ %4d, %4d, 0x%06x }" % (p["x"], p["y"], p["c"])
+        dec = p["c"] & 0xFFFFFF
+        fmt = "{ %4d, %4d, 0x%06x, %d, %d, %d, %d }" % (
+            p["x"], p["y"], dec, dec, p["r"], p["g"], p["b"]
+        )
         return _maybe_strip_space(fmt, setv)
     if name == FMT_POSNEW:
         return "pos.new( %4d, %4d, 0x%06x)" % (p["x"], p["y"], p["c"])
@@ -313,7 +357,7 @@ def single_text(name: str, p: Point, setv: Optional[Dict[str, str]] = None) -> s
         return "%d,%d,0x%06x" % (p["x"], p["y"], p["c"])
     if name == FMT_OLD:
         return _old_pos("{ #X#, #Y#, #C#}", p)
-    fmt = " %4d, %4d, 0x%06x " % (p["x"], p["y"], p["c"])
+    fmt = _xy_hex_dec_rgb(p, nl=False)
     return _maybe_strip_space(fmt, setv)
 
 
@@ -381,11 +425,9 @@ def make_scripts(
     """生成触动三路脚本框：表 / 比色 if / findMultiColorInRegionFuzzy。"""
     setv = setv or default_settings(name)
     pts = [enrich(p) for p in points]
+    ax, ay, sx, sy = resolve_find_roi(ax, ay, sx, sy, pts, img_w, img_h)
     a = {"x": int(ax), "y": int(ay), "c": 0}
     s = {"x": int(sx), "y": int(sy), "c": 0}
-    if ax == 0 and ay == 0 and sx == 0 and sy == 0 and img_w > 0 and img_h > 0:
-        sx, sy = img_w - 1, img_h - 1
-        s = {"x": sx, "y": sy, "c": 0}
     fmc_line = make_find_multi_color_in_region_fuzzy(
         pts, ax, ay, sx, sy, degree=degree, img_w=img_w, img_h=img_h
     )

@@ -1,0 +1,64 @@
+374-Load command 3
+375:          cmd LC_ID_DYLIB
+376-      cmdsize 64
+377-         name /usr/local/lib/OcrPlugin64.dylib (offset 24)
+378-   time stamp 1 Thu Jan  1 08:00:01 1970
+379-      current version 1.0.0
+380-compatibility version 1.0.0
+--
+442-Load command 11
+443:          cmd LC_LOAD_DYLIB
+444-      cmdsize 48
+445-         name /usr/lib/libc++.1.dylib (offset 24)
+446-   time stamp 2 Thu Jan  1 08:00:02 1970
+447-      current version 1300.32.0
+448-compatibility version 1.0.0
+449-Load command 12
+450:          cmd LC_LOAD_DYLIB
+451-      cmdsize 88
+452-         name /System/Library/Frameworks/QuartzCore.framework/QuartzCore (offset 24)
+453-   time stamp 2 Thu Jan  1 08:00:02 1970
+454-      current version 1.11.0
+455-compatibility version 1.2.0
+456-Load command 13
+457:          cmd LC_LOAD_DYLIB
+458-      cmdsize 88
+459-         name /System/Library/Frameworks/CoreGraphics.framework/CoreGraphics (offset 24)
+460-   time stamp 2 Thu Jan  1 08:00:02 1970
+461-      current version 1673.1.2
+462-compatibility version 64.0.0
+463-Load command 14
+464:          cmd LC_LOAD_DYLIB
+465-      cmdsize 80
+466-         name /System/Library/Frameworks/UIKit.framework/UIKit (offset 24)
+467-   time stamp 2 Thu Jan  1 08:00:02 1970
+468-      current version 6092.1.111
+469-compatibility version 1.0.0
+470-Load command 15
+471:          cmd LC_LOAD_DYLIB
+472-      cmdsize 88
+473-         name /System/Library/Frameworks/Foundation.framework/Foundation (offset 24)
+474-   time stamp 2 Thu Jan  1 08:00:02 1970
+475-      current version 1946.102.0
+476-compatibility version 300.0.0
+477-Load command 16
+478:          cmd LC_LOAD_DYLIB
+479-      cmdsize 56
+480-         name /usr/lib/libobjc.A.dylib (offset 24)
+481-   time stamp 2 Thu Jan  1 08:00:02 1970
+482-      current version 228.0.0
+483-compatibility version 1.0.0
+484-Load command 17
+485:          cmd LC_LOAD_DYLIB
+486-      cmdsize 56
+487-         name /usr/lib/libSystem.B.dylib (offset 24)
+488-   time stamp 2 Thu Jan  1 08:00:02 1970
+489-      current version 1319.0.0
+490-compatibility version 1.0.0
+491-Load command 18
+492:          cmd LC_LOAD_DYLIB
+493-      cmdsize 96
+494-         name /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (offset 24)
+495-   time stamp 2 Thu Jan  1 08:00:02 1970
+496-      current version 1946.102.0
+497-compatibility version 150.0.0

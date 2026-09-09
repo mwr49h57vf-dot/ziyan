@@ -1,0 +1,20 @@
+Executable=/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/sz.so
+Identifier=sz64.so
+Format=Mach-O universal (armv7 arm64)
+CodeDirectory v=20400 size=5408 flags=0x0(none) hashes=164+2 location=embedded
+Hash type=sha256 size=32
+CandidateCDHash sha1=b82eef96ae17f950aa5e6cb82581583160dc7eac
+CandidateCDHashFull sha1=b82eef96ae17f950aa5e6cb82581583160dc7eac
+CandidateCDHash sha256=e9ed4665d77b026df0c46c50e65410b106f0240c
+CandidateCDHashFull sha256=e9ed4665d77b026df0c46c50e65410b106f0240cc076ea36044b21e33bdb69e3
+Hash choices=sha1,sha256
+CMSDigest=e027a73c70b52aa6a22316f707dd5b4fa6f79d422e145468699deddb882c8235
+CMSDigestType=2
+Launch Constraints:
+	None
+CDHash=e9ed4665d77b026df0c46c50e65410b106f0240c
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/sz.so: no signature
+Info.plist=not bound
+TeamIdentifier=not set
+Sealed Resources=none
+Internal requirements count=1 size=124

@@ -1,0 +1,1 @@
+Non-fat file: vendor/lib/libreadline.8.0.dylib is architecture: arm64

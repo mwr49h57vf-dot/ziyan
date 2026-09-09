@@ -18,6 +18,7 @@
 #import <stdlib.h>
 #import <string.h>
 #import <sys/stat.h>
+#import <sys/time.h>
 #import <sys/wait.h>
 #import <unistd.h>
 
@@ -377,6 +378,41 @@ BOOL ZiYanDisplayIsLocked(void) {
 /// IOMFB 层0 默认关闭（须 `.ziyan_iomfb_accel_on`）。
 /// `createScreenIOSurface` 压缩面传 force=YES：那是触动同名路径，线性读必伪色。
 static uint8_t sLastSurfPixFmt = ZiYanFramePixelFormatBGRA8888;
+static double sLastCapCreateMs;
+static double sLastCapXferMs;
+static double sLastCapCopyMs;
+static double sLastCapDestLockMs;
+static double sLastCapSrcLockMs;
+static double sLastCapReleaseMs;
+static double sLastCapPublishMs;
+
+static double ZiYanNowMs(void) {
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+  return (double)tv.tv_sec * 1000.0 + (double)tv.tv_usec / 1000.0;
+}
+
+void ZiYanFrameCaptureLastCapStages(double *createMs, double *xferMs,
+                                    double *copyMs, double *destLockMs) {
+  if (createMs) {
+    *createMs = sLastCapCreateMs;
+  }
+  if (xferMs) {
+    *xferMs = sLastCapXferMs;
+  }
+  if (copyMs) {
+    *copyMs = sLastCapCopyMs;
+  }
+  if (destLockMs) {
+    *destLockMs = sLastCapDestLockMs;
+  }
+}
+
+double ZiYanFrameCaptureLastSrcLockMs(void) { return sLastCapSrcLockMs; }
+
+double ZiYanFrameCaptureLastReleaseMs(void) { return sLastCapReleaseMs; }
+
+double ZiYanFrameCaptureLastPublishMs(void) { return sLastCapPublishMs; }
 
 static NSMutableData *ZiYanCaptureCompressedIOMFBViaAccel(
     void *srcSurf, void *iosurf, size_t w, size_t h, size_t *outBPR,
@@ -493,11 +529,15 @@ static NSMutableData *ZiYanCaptureCompressedIOMFBViaAccel(
   uint32_t seed = 0;
   NSTimeInterval tBeforeSrcLock =
       profileAccel ? NSDate.date.timeIntervalSince1970 : 0;
+  double tSrcLock0 = ZiYanNowMs();
   lockSurf(srcSurf, 0x1, &seed);
+  sLastCapSrcLockMs = ZiYanNowMs() - tSrcLock0;
   NSTimeInterval tAfterSrcLock =
       profileAccel ? NSDate.date.timeIntervalSince1970 : 0;
+  double tXfer0 = ZiYanNowMs();
   unsigned int xrc =
       accelTransfer(accel, srcSurf, dst, sAccelProps, NULL, NULL, NULL);
+  sLastCapXferMs = ZiYanNowMs() - tXfer0;
   NSTimeInterval tAfterTransfer =
       profileAccel ? NSDate.date.timeIntervalSince1970 : 0;
   unlockSurf(srcSurf, 0x1, &seed);
@@ -505,7 +545,9 @@ static NSMutableData *ZiYanCaptureCompressedIOMFBViaAccel(
   NSTimeInterval tAfterDstLock = 0;
   NSTimeInterval tAfterCopy = 0;
   if (xrc == 0) {
+    double tDestLock0 = ZiYanNowMs();
     lockSurf(dst, 0x1, NULL);
+    sLastCapDestLockMs = ZiYanNowMs() - tDestLock0;
     tAfterDstLock =
         profileAccel ? NSDate.date.timeIntervalSince1970 : 0;
     const uint8_t *src = (const uint8_t *)baseFn(dst);
@@ -521,6 +563,7 @@ static NSMutableData *ZiYanCaptureCompressedIOMFBViaAccel(
       if (out) {
         // Accelerator 输出 BGRA。必须写成 RGBA，否则 find 全 miss（10-21）。
         // 按 uint32 换 R/B，不再逐字节。
+        double tCopy0 = ZiYanNowMs();
         for (size_t y = 0; y < h; y++) {
           const uint32_t *srow = (const uint32_t *)(src + y * srcBpr);
           uint32_t *drow = (uint32_t *)(out + y * w * 4);
@@ -530,6 +573,7 @@ static NSMutableData *ZiYanCaptureCompressedIOMFBViaAccel(
                       ((v >> 16) & 0x000000FFu);
           }
         }
+        sLastCapCopyMs = ZiYanNowMs() - tCopy0;
         rgba = sAccelRgba;
         sLastSurfPixFmt = ZiYanFramePixelFormatRGBA8888;
       }
@@ -607,7 +651,11 @@ static NSMutableData *ZiYanCaptureViaCreateScreenIOSurface(size_t *outW,
     }
     return nil;
   }
+  sLastCapCreateMs = sLastCapXferMs = sLastCapCopyMs = sLastCapDestLockMs =
+      sLastCapSrcLockMs = sLastCapReleaseMs = 0;
+  double tCreate0 = ZiYanNowMs();
   void *surf = ((void *(*)(id, SEL))objc_msgSend)(winCls, sel);
+  sLastCapCreateMs = ZiYanNowMs() - tCreate0;
   if (!surf) {
     if (stageErr) {
       *stageErr = @"uisurface_nil";
@@ -635,7 +683,9 @@ static NSMutableData *ZiYanCaptureViaCreateScreenIOSurface(size_t *outW,
   } else {
     sLastSurfPixFmt = ZiYanFramePixelFormatRGBA8888;
     uint32_t seed = 0;
+    double tSrcLock0 = ZiYanNowMs();
     lockSurf(surf, 0x1, &seed);
+    sLastCapSrcLockMs = ZiYanNowMs() - tSrcLock0;
     const uint8_t *src = (const uint8_t *)baseFn(surf);
     size_t srcBpr = bprFn(surf);
     if (src && srcBpr >= w * 4) {
@@ -648,6 +698,7 @@ static NSMutableData *ZiYanCaptureViaCreateScreenIOSurface(size_t *outW,
       uint8_t *out = (uint8_t *)sLinearRgba.mutableBytes;
       if (out) {
         BOOL srcBGRA = (fmt == 0x42475241);
+        double tCopy0 = ZiYanNowMs();
         for (size_t y = 0; y < h; y++) {
           if (!srcBGRA) {
             memcpy(out + y * w * 4, src + y * srcBpr, w * 4);
@@ -661,6 +712,7 @@ static NSMutableData *ZiYanCaptureViaCreateScreenIOSurface(size_t *outW,
                       ((v >> 16) & 0x000000FFu);
           }
         }
+        sLastCapCopyMs = ZiYanNowMs() - tCopy0;
         rgba = sLinearRgba;
         abpr = w * 4;
       }
@@ -670,7 +722,12 @@ static NSMutableData *ZiYanCaptureViaCreateScreenIOSurface(size_t *outW,
       *stageErr = @"uisurface_linear_copy";
     }
   }
-  CFRelease(surf);
+  {
+    // BIZ10：仍立即 CFRelease，禁止持有系统面。只记墙钟。
+    double tRel0 = ZiYanNowMs();
+    CFRelease(surf);
+    sLastCapReleaseMs = ZiYanNowMs() - tRel0;
+  }
   if (rgba) {
     if (outW) {
       *outW = w;
@@ -2562,16 +2619,23 @@ BOOL ZiYanFrameCapturePublishPixels(NSMutableData *pixels, size_t w, size_t h,
                                     size_t bpr, uint8_t provider,
                                     uint8_t pixFmt, uint32_t frontHash,
                                     NSString **outErr) {
-  if (!pixels || w < 2 || h < 2 || bpr < 8) {
-    if (outErr) {
-      *outErr = @"publish_empty";
+  double tPublish0 = ZiYanNowMs();
+  sLastCapPublishMs = 0;
+  BOOL ok = NO;
+  do {
+    if (!pixels || w < 2 || h < 2 || bpr < 8) {
+      if (outErr) {
+        *outErr = @"publish_empty";
+      }
+      break;
     }
-    return NO;
-  }
-  CGFloat scale = 1;
-  size_t iw = 0, ih = 0;
-  ZiYanResolveCaptureSize(&iw, &ih, &scale);
-  return ZiYanLogicRotateAndWriteEx(pixels, w, h, bpr, scale, provider,
-                                    ZiYanFrameStatusValid, frontHash, pixFmt,
-                                    outErr);
+    CGFloat scale = 1;
+    size_t iw = 0, ih = 0;
+    ZiYanResolveCaptureSize(&iw, &ih, &scale);
+    ok = ZiYanLogicRotateAndWriteEx(
+        pixels, w, h, bpr, scale, provider, ZiYanFrameStatusValid, frontHash,
+        pixFmt, outErr);
+  } while (0);
+  sLastCapPublishMs = ZiYanNowMs() - tPublish0;
+  return ok;
 }

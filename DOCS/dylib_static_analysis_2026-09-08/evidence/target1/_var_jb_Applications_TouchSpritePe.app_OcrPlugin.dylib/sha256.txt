@@ -1,0 +1,1 @@
+39edd4cf95b5fbca3c390fe19bd30998bfe4da9f767498de9d5b1e1697257625  /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/OcrPlugin.dylib

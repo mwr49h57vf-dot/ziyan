@@ -1,0 +1,20 @@
+Executable=/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/python3.7/lib-dynload/_pickle.cpython-37m-darwin.so
+Identifier=_pickle.cpython-37m-darwin.so
+Format=Mach-O thin (arm64)
+CodeDirectory v=20200 size=1214 flags=0x0(none) hashes=33+2 location=embedded
+Hash type=sha256 size=32
+CandidateCDHash sha1=7cb857c8b933c8ab4e489c02ad6e676fff4869e8
+CandidateCDHashFull sha1=7cb857c8b933c8ab4e489c02ad6e676fff4869e8
+CandidateCDHash sha256=31da146665f615cc18903a3ad5ffbb246a2a8b01
+CandidateCDHashFull sha256=31da146665f615cc18903a3ad5ffbb246a2a8b01623e9f878c9832ecd9463ec1
+Hash choices=sha1,sha256
+CMSDigest=859a4327ed527873adbf6a3b8303e4a3b2fb43700f53645c63a90d3e7352f156
+CMSDigestType=2
+Launch Constraints:
+	None
+CDHash=31da146665f615cc18903a3ad5ffbb246a2a8b01
+/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/python3.7/lib-dynload/_pickle.cpython-37m-darwin.so: no signature
+Info.plist=not bound
+TeamIdentifier=not set
+Sealed Resources=none
+Internal requirements count=0 size=12

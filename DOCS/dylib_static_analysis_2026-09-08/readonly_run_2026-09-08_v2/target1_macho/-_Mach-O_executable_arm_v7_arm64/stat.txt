@@ -1,0 +1,2 @@
+stat: illegal option --  
+usage: stat [-FLnq] [-f format | -l | -r | -s | -x] [-t timefmt] [file ...]

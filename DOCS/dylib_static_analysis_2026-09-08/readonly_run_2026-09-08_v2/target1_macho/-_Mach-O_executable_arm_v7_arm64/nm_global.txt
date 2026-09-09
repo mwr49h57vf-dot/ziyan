@@ -1,0 +1,2 @@
+nm: Unknown command line argument '- Mach-O executable arm_v7] [arm64]'.  Try: '/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/nm --help'
+nm: Did you mean '--print-file-name'?

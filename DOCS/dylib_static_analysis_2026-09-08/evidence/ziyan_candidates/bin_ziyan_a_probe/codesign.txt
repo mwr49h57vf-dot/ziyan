@@ -1,0 +1,20 @@
+Executable=/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/bin/ziyan_a_probe
+Identifier=ziyan_a_probe.d279fea9.unsigned
+Format=Mach-O thin (arm64)
+CodeDirectory v=20400 size=1784 flags=0x0(none) hashes=45+7 location=embedded
+Hash type=sha256 size=32
+CandidateCDHash sha1=4a68e73078dc7c748aaddf233532626c791f3f4e
+CandidateCDHashFull sha1=4a68e73078dc7c748aaddf233532626c791f3f4e
+CandidateCDHash sha256=5683d4073fa84ab798d9fea7bd371a70c449689d
+CandidateCDHashFull sha256=5683d4073fa84ab798d9fea7bd371a70c449689da23c5747e16ea2e7aac62e8a
+Hash choices=sha1,sha256
+CMSDigest=fbafd68e5930c354adfa3a5ac5cc423ad1be9c50fb8ca32a0009cb019789f3f6
+CMSDigestType=2
+Launch Constraints:
+	None
+CDHash=5683d4073fa84ab798d9fea7bd371a70c449689d
+/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/bin/ziyan_a_probe: no signature
+Info.plist=not bound
+TeamIdentifier=not set
+Sealed Resources=none
+Internal requirements count=1 size=148

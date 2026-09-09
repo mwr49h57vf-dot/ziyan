@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-子砚取点抓色器 v1.7.4
+子砚取点抓色器 v1.7.5
 抄触动 TSColorPicker 1.7.10（.48 实操对照）：
   主窗 MDI 只放图页，标签/关闭可点
   取色面板 = 进程内独立对话框（触动 class #32770），关闭不盖图、不强制再弹出
@@ -47,6 +47,7 @@ from formats import (  # noqa: E402
     make_scripts,
     ordered_registers,
     preview_info,
+    resolve_find_roi,
     rgb_to_c,
     single_text,
     slot_text,
@@ -57,7 +58,7 @@ MARKS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"]
 SLOT_ORDER = list(range(1, 10)) + [0]
 # 触动取色面板右侧数字钮：①…⑨⓪（0 号在最后）
 CIRCLED = ["⓪", "①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨"]
-APP_VER = "1.7.4"
+APP_VER = "1.7.5"
 
 # 触动 default_keymap.lua：VK UP/DOWN/LEFT/RIGHT → moveMouseToXY(getCurrentXY()±1)
 # Shift ×10、Ctrl/Alt ×100。
@@ -101,6 +102,58 @@ def _win_dpi_aware() -> None:
         pass
 
 
+def _bundle_dir() -> str:
+    """源码目录，或 PyInstaller 解包目录。"""
+    if getattr(sys, "frozen", False):
+        return getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(sys.executable)))
+    return _HERE
+
+
+def apply_window_icon(win: tk.Misc) -> None:
+    """任务栏/窗口用子砚 ZY 图标；发行 exe 与源码共用 ziyan.ico。"""
+    ico = os.path.join(_bundle_dir(), "ziyan.ico")
+    png = os.path.join(_bundle_dir(), "ziyan_picker_icon.png")
+    try:
+        if os.path.isfile(ico):
+            win.iconbitmap(default=ico)
+    except Exception:
+        try:
+            if os.path.isfile(ico):
+                win.iconbitmap(ico)
+        except Exception:
+            pass
+    try:
+        src = ico if os.path.isfile(ico) else png
+        if not os.path.isfile(src):
+            return
+        im = Image.open(src).convert("RGBA")
+        resample = getattr(Image, "LANCZOS", Image.BICUBIC)
+        im = im.resize((32, 32), resample)
+        photo = ImageTk.PhotoImage(im)
+        win.iconphoto(True, photo)
+        setattr(win, "_ziyan_icon_ref", photo)
+    except Exception:
+        pass
+
+
+def apply_snapshot_orient(im: Image.Image, orient: int) -> Image.Image:
+    """把 HTTP 原图转到 init 坐标系。方向1=横屏 HOME 在右。
+    手机 /snapshot 只写 .ziyan_orient，PNG 仍是竖图，必须在抓色器转。
+    PIL ROTATE_90 把竖图底边转到右边（与 init(1) 一致）。"""
+    if im is None:
+        return im
+    o = int(orient)
+    w, h = im.size
+    portrait = h >= w
+    if o == 0:
+        return im if portrait else im.transpose(Image.ROTATE_270)
+    if o == 1:
+        return im.transpose(Image.ROTATE_90) if portrait else im
+    if o == 2:
+        return im.transpose(Image.ROTATE_270) if portrait else im.transpose(Image.ROTATE_180)
+    return im
+
+
 def _checkerboard(w: int, h: int, cell: int = 8) -> Image.Image:
     """触动图页衬底：灰白棋盘格（只做读图模块背景，不是找色像素）。"""
     im = Image.new("RGB", (max(1, w), max(1, h)), (192, 192, 192))
@@ -133,6 +186,11 @@ def roi_bbox(points: List[dict]) -> Tuple[int, int, int, int]:
     xs = [p["x"] for p in points]
     ys = [p["y"] for p in points]
     return min(xs), min(ys), max(xs), max(ys)
+
+
+def arrow_stick_after_nudge(warp_ok: bool = False) -> bool:
+    """方向键改的是取样点；无论系统鼠标有没有跟上，都锁到下一次单击。"""
+    return True
 
 
 def make_find_line(
@@ -276,7 +334,8 @@ class DeviceClient:
                     with self._lock:
                         self.port = p
                     self.last_ms = int((time.time() - t0) * 1000)
-                    return Image.open(io.BytesIO(body)).convert("RGB")
+                    im = Image.open(io.BytesIO(body)).convert("RGB")
+                    return apply_snapshot_orient(im, int(orient))
                 last = "HTTP %s len=%d" % (resp.status, len(body))
             except Exception as e:
                 last = str(e)
@@ -437,10 +496,12 @@ class ColorPanel(tk.Toplevel):
             ).pack(side=tk.LEFT)
             var = tk.StringVar(value="")
             self.slot_vars[i] = var
-            # 色点文本区适中宽度（对齐触动左栏，勿再压成竖条）
-            ent = tk.Entry(row, textvariable=var, width=22, font=("Consolas", 9))
+            # 要放下 坐标+十六进制+十进制色值+RGB，勿再压成 22 列
+            ent = tk.Entry(row, textvariable=var, width=48, font=("Consolas", 9))
             ent.pack(side=tk.LEFT, padx=3, fill=tk.X, expand=True)
             ent.configure(state="readonly")
+            ent.bind("<Double-Button-1>", lambda e, n=i: (self._copy_slot(n), "break")[-1])
+            ent.bind("<Control-c>", lambda e, n=i: (self._copy_slot(n), "break")[-1])
             self.slot_entries[i] = ent
             sw = tk.Canvas(row, width=16, height=14, bg="#808080", highlightthickness=1)
             sw.pack(side=tk.LEFT, padx=2)
@@ -485,7 +546,7 @@ class ColorPanel(tk.Toplevel):
                 font=("Consolas", 9),
                 bg="#fff",
                 fg="#000",
-                wrap=tk.CHAR,
+                wrap=tk.NONE,
                 cursor="xterm",
                 exportselection=True,
                 undo=False,
@@ -629,6 +690,14 @@ class ColorPanel(tk.Toplevel):
         text = t.get("1.0", "end-1c").strip()
         if not text:
             self.app.status_set("输出框为空，无可复制内容")
+            return
+        self.app.copy_clipboard(text)
+
+    def _copy_slot(self, idx: int) -> None:
+        text = (self.slot_vars.get(idx).get() if idx in self.slot_vars else "") or ""
+        text = text.strip()
+        if not text:
+            self.app.status_set("该行没有可复制的色点")
             return
         self.app.copy_clipboard(text)
 
@@ -1079,6 +1148,7 @@ class App(tk.Tk):
         _win_dpi_aware()
         super().__init__()
         self.title(MAIN_TITLE)
+        apply_window_icon(self)
         # 不要盖在触动抓色器默认左上角；.48 上触动常在 +1+4
         self.geometry("960x700+470+8")
         self.minsize(640, 480)
@@ -1469,7 +1539,8 @@ class App(tk.Tk):
         return self.nudge_active(dx, dy)
 
     def _steal_arrow_class(self, cls: str) -> None:
-        for seq, dx, dy in ARROW_BINDS:
+        extra = (("<Left>", -1, 0), ("<Right>", 1, 0), ("<Up>", 0, -1), ("<Down>", 0, 1))
+        for seq, dx, dy in ARROW_BINDS + extra:
             try:
                 self.bind_class(cls, seq, lambda e, x=dx, y=dy: self._on_arrow_event(x, y, e))
             except tk.TclError:
@@ -1478,6 +1549,14 @@ class App(tk.Tk):
     def _bind_keys(self) -> None:
         # 只 bind_all + 抢会吃方向键的类。控件上再 bind 一次会在这台机连走 3 格。
         for seq, dx, dy in ARROW_BINDS:
+            self.bind_all(seq, lambda e, x=dx, y=dy: self._on_arrow_event(x, y, e))
+        # Windows 部分机只认 <Left> 不认 <KeyPress-Left>
+        for seq, dx, dy in (
+            ("<Left>", -1, 0),
+            ("<Right>", 1, 0),
+            ("<Up>", 0, -1),
+            ("<Down>", 0, 1),
+        ):
             self.bind_all(seq, lambda e, x=dx, y=dy: self._on_arrow_event(x, y, e))
         for cls in ("Text", "TCombobox", "TNotebook", "Combobox", "Listbox", "Entry"):
             self._steal_arrow_class(cls)
@@ -1517,14 +1596,22 @@ class App(tk.Tk):
         self.status.configure(text=s)
 
     def copy_clipboard(self, text: str) -> None:
-        """写入系统剪贴板；Windows 下须 update 后内容才可粘到外部编辑器。"""
+        """写入系统剪贴板一份。禁止 append 两次，否则 705, 450 会黏成 705, 450705, 450。"""
+        text = "" if text is None else str(text)
         try:
             self.clipboard_clear()
-            self.clipboard_append(text)
             self.update_idletasks()
-            # 再触一次，避免部分 Win 环境丢失剪贴板
             self.clipboard_append(text)
             self.update()
+            try:
+                got = self.clipboard_get()
+            except tk.TclError:
+                got = ""
+            if got != text:
+                self.clipboard_clear()
+                self.update_idletasks()
+                self.clipboard_append(text)
+                self.update()
             self.status_set("已复制到剪贴板（%d 字）" % len(text))
         except tk.TclError as e:
             self.status_set("复制失败: %s" % e)
@@ -2083,15 +2170,11 @@ class App(tk.Tk):
         self.sample_active_pixel()
         win.warp_os_mouse()
         self.sample_active_pixel()
-        try:
-            sx, sy = win.logical_to_screen(x, y)
-            now = get_system_mouse()
-            if now and abs(now[0] - sx) < 10 and abs(now[1] - sy) < 10:
-                self._arrow_stick = False
-        except Exception:
-            pass
+        self._arrow_stick = arrow_stick_after_nudge(True)
 
         def unlock(n=lock_n) -> None:
+            if getattr(self, "_arrow_stick", False):
+                return
             if getattr(self, "_pick_lock", 0) == n:
                 self._pick_lock = 0
 
@@ -2106,11 +2189,13 @@ class App(tk.Tk):
             self.sync_as_from_entries()
         except Exception:
             pass
-        ax, ay = self.reg_a
-        sx, sy = self.reg_s
-        # 触动：A/S 全 0 → ROI 为整图 (0,0,w-1,h-1)，不把 bbox 写回 A/S
-        if ax == ay == sx == sy == 0 and self.active_win:
-            sx, sy = self.active_win.img.width - 1, self.active_win.img.height - 1
+        img_w = self.active_win.img.width if self.active_win else 0
+        img_h = self.active_win.img.height if self.active_win else 0
+        ax, ay, sx, sy = resolve_find_roi(
+            self.reg_a[0], self.reg_a[1], self.reg_s[0], self.reg_s[1], pts, img_w, img_h
+        )
+        self.reg_a = (ax, ay)
+        self.reg_s = (sx, sy)
         try:
             deg = int(self.degree.get())
         except Exception:
@@ -2190,14 +2275,14 @@ class App(tk.Tk):
             self.panel.write_as_entries()
             self.panel.set_outputs(s1, s2, s3)
             self.panel.refresh_slots()
-            self.copy_clipboard(s1)
+            self.copy_clipboard(s3)
             try:
-                t0 = self.panel.out_lines[0]
-                t0.focus_set()
-                self.panel._select_all_text(t0)
+                t2 = self.panel.out_lines[2]
+                t2.focus_set()
+                self.panel._select_all_text(t2)
             except Exception:
                 pass
-            self.status_set("已生成三路脚本并复制第1框 · ROI %d,%d,%d,%d" % (ax, ay, sx, sy))
+            self.status_set("已生成并复制 find 行 · ROI %d,%d,%d,%d" % (ax, ay, sx, sy))
         except Exception as e:
             messagebox.showerror("生成失败", str(e))
 
@@ -2206,7 +2291,7 @@ def _selftest_desktop() -> None:
     """自测只认 Desktop ios7/ios8p（ZiYanColorPicker 产出），禁止触动色参样例。"""
     import re
 
-    assert APP_VER == "1.7.4"
+    assert APP_VER == "1.7.5"
     src = open(__file__, "r", encoding="utf-8").read()
     assert "sample_active_pixel" in src
     assert "moveMouseToXY" in src

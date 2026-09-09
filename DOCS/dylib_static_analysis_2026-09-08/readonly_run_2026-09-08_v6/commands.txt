@@ -1,0 +1,14 @@
+python3 tools/ziyan_codex_checkpoint.py show
+git status --short
+find TARGET -type f -print | sort
+file each regular file
+tar -tzvf each compressed archive
+lipo -info each Mach-O
+otool -L each Mach-O
+otool -D each Mach-O
+otool -l each Mach-O
+nm -gU each Mach-O
+strings -a each Mach-O filtered for requested dynamic-library paths
+shasum -a 256 each candidate
+rg -n -I -i for /usr/lib/ziyan, /var/jb/usr/lib/ziyan, liblua5.3, lua5.3, DYLD_LIBRARY_PATH, install name, rootful, rootless
+cmp -s vendor and Theos staged ZiYan artifacts

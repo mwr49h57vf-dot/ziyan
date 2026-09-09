@@ -1,0 +1,259 @@
+/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/python3.7/lib-dynload/_ctypes.cpython-37m-darwin.so:
+Load command 0
+      cmd LC_SEGMENT_64
+  cmdsize 552
+  segname __TEXT
+   vmaddr 0x0000000000000000
+   vmsize 0x0000000000018000
+  fileoff 0
+ filesize 98304
+  maxprot 0x00000005
+ initprot 0x00000005
+   nsects 6
+    flags 0x0
+Section
+  sectname __text
+   segname __TEXT
+      addr 0x0000000000007920
+      size 0x000000000000d4ac
+    offset 31008
+     align 2^2 (4)
+    reloff 0
+    nreloc 0
+     flags 0x80000400
+ reserved1 0
+ reserved2 0
+Section
+  sectname __stubs
+   segname __TEXT
+      addr 0x0000000000014dcc
+      size 0x0000000000000750
+    offset 85452
+     align 2^2 (4)
+    reloff 0
+    nreloc 0
+     flags 0x80000408
+ reserved1 0 (index into indirect symbol table)
+ reserved2 12 (size of stubs)
+Section
+  sectname __stub_helper
+   segname __TEXT
+      addr 0x000000000001551c
+      size 0x0000000000000768
+    offset 87324
+     align 2^2 (4)
+    reloff 0
+    nreloc 0
+     flags 0x80000400
+ reserved1 0
+ reserved2 0
+Section
+  sectname __cstring
+   segname __TEXT
+      addr 0x0000000000015c84
+      size 0x0000000000001cd0
+    offset 89220
+     align 2^0 (1)
+    reloff 0
+    nreloc 0
+     flags 0x00000002
+ reserved1 0
+ reserved2 0
+Section
+  sectname __const
+   segname __TEXT
+      addr 0x0000000000017954
+      size 0x0000000000000385
+    offset 96596
+     align 2^0 (1)
+    reloff 0
+    nreloc 0
+     flags 0x00000000
+ reserved1 0
+ reserved2 0
+Section
+  sectname __unwind_info
+   segname __TEXT
+      addr 0x0000000000017cdc
+      size 0x0000000000000324
+    offset 97500
+     align 2^2 (4)
+    reloff 0
+    nreloc 0
+     flags 0x00000000
+ reserved1 0
+ reserved2 0
+Load command 1
+      cmd LC_SEGMENT_64
+  cmdsize 472
+  segname __DATA
+   vmaddr 0x0000000000018000
+   vmsize 0x0000000000004000
+  fileoff 98304
+ filesize 16384
+  maxprot 0x00000003
+ initprot 0x00000003
+   nsects 5
+    flags 0x0
+Section
+  sectname __got
+   segname __DATA
+      addr 0x0000000000018000
+      size 0x00000000000000d8
+    offset 98304
+     align 2^3 (8)
+    reloff 0
+    nreloc 0
+     flags 0x00000006
+ reserved1 156 (index into indirect symbol table)
+ reserved2 0
+Section
+  sectname __la_symbol_ptr
+   segname __DATA
+      addr 0x00000000000180d8
+      size 0x00000000000004e0
+    offset 98520
+     align 2^3 (8)
+    reloff 0
+    nreloc 0
+     flags 0x00000007
+ reserved1 183 (index into indirect symbol table)
+ reserved2 0
+Section
+  sectname __data
+   segname __DATA
+      addr 0x00000000000185b8
+      size 0x0000000000003098
+    offset 99768
+     align 2^3 (8)
+    reloff 0
+    nreloc 0
+     flags 0x00000000
+ reserved1 0
+ reserved2 0
+Section
+  sectname __common
+   segname __DATA
+      addr 0x000000000001b650
+      size 0x0000000000000010
+    offset 0
+     align 2^3 (8)
+    reloff 0
+    nreloc 0
+     flags 0x00000001
+ reserved1 0
+ reserved2 0
+Section
+  sectname __bss
+   segname __DATA
+      addr 0x000000000001b660
+      size 0x0000000000000021
+    offset 0
+     align 2^3 (8)
+    reloff 0
+    nreloc 0
+     flags 0x00000001
+ reserved1 0
+ reserved2 0
+Load command 2
+      cmd LC_SEGMENT_64
+  cmdsize 72
+  segname __LINKEDIT
+   vmaddr 0x000000000001c000
+   vmsize 0x0000000000008000
+  fileoff 114688
+ filesize 25792
+  maxprot 0x00000001
+ initprot 0x00000001
+   nsects 0
+    flags 0x0
+Load command 3
+            cmd LC_DYLD_INFO_ONLY
+        cmdsize 48
+     rebase_off 114688
+    rebase_size 424
+       bind_off 115112
+      bind_size 520
+  weak_bind_off 0
+ weak_bind_size 0
+  lazy_bind_off 115632
+ lazy_bind_size 4016
+     export_off 119648
+    export_size 1088
+Load command 4
+     cmd LC_SYMTAB
+ cmdsize 24
+  symoff 121096
+   nsyms 481
+  stroff 130148
+ strsize 8200
+Load command 5
+            cmd LC_DYSYMTAB
+        cmdsize 80
+      ilocalsym 0
+      nlocalsym 248
+     iextdefsym 248
+     nextdefsym 52
+      iundefsym 300
+      nundefsym 181
+         tocoff 0
+           ntoc 0
+      modtaboff 0
+        nmodtab 0
+   extrefsymoff 0
+    nextrefsyms 0
+ indirectsymoff 128792
+  nindirectsyms 339
+      extreloff 0
+        nextrel 0
+      locreloff 0
+        nlocrel 0
+Load command 6
+     cmd LC_UUID
+ cmdsize 24
+    uuid 05EA2DB3-6280-320E-97D3-7DCB9B6A49D0
+Load command 7
+      cmd LC_VERSION_MIN_IPHONEOS
+  cmdsize 16
+  version 11.0
+      sdk 11.0
+Load command 8
+      cmd LC_SOURCE_VERSION
+  cmdsize 16
+  version 0.0
+Load command 9
+          cmd LC_ENCRYPTION_INFO_64
+      cmdsize 24
+     cryptoff 16384
+    cryptsize 81920
+      cryptid 0
+          pad 0
+Load command 10
+          cmd LC_LOAD_DYLIB
+      cmdsize 48
+         name /usr/lib/libffi.6.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 7.4.0
+compatibility version 7.0.0
+Load command 11
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libSystem.B.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1252.0.0
+compatibility version 1.0.0
+Load command 12
+      cmd LC_FUNCTION_STARTS
+  cmdsize 16
+  dataoff 120736
+ datasize 336
+Load command 13
+      cmd LC_DATA_IN_CODE
+  cmdsize 16
+  dataoff 121072
+ datasize 24
+Load command 14
+      cmd LC_CODE_SIGNATURE
+  cmdsize 16
+  dataoff 138352
+ datasize 2128

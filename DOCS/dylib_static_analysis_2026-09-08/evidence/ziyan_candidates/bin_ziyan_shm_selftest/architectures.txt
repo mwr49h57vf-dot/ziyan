@@ -1,0 +1,2 @@
+Non-fat file: /Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/bin/ziyan_shm_selftest is architecture: arm64
+arm64

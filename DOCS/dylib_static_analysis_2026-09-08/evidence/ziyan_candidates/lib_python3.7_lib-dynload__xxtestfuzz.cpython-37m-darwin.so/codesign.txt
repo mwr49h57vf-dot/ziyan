@@ -1,0 +1,20 @@
+Executable=/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/python3.7/lib-dynload/_xxtestfuzz.cpython-37m-darwin.so
+Identifier=_xxtestfuzz.cpython-37m-darwin.so
+Format=Mach-O thin (arm64)
+CodeDirectory v=20200 size=578 flags=0x0(none) hashes=13+2 location=embedded
+Hash type=sha256 size=32
+CandidateCDHash sha1=eca60d40ab7faffe36af68e5978b2b1f0daf979d
+CandidateCDHashFull sha1=eca60d40ab7faffe36af68e5978b2b1f0daf979d
+CandidateCDHash sha256=68e82964a3777ae59beb914dd4e1e69336ca36ca
+CandidateCDHashFull sha256=68e82964a3777ae59beb914dd4e1e69336ca36ca5947e13f997c47ab0eea8241
+Hash choices=sha1,sha256
+CMSDigest=16ebb4b62fc1923461a5f19b0996594c51b82359a277f40f13ac330fa8e2b1d9
+CMSDigestType=2
+Launch Constraints:
+	None
+CDHash=68e82964a3777ae59beb914dd4e1e69336ca36ca
+/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/python3.7/lib-dynload/_xxtestfuzz.cpython-37m-darwin.so: no signature
+Info.plist=not bound
+TeamIdentifier=not set
+Sealed Resources=none
+Internal requirements count=0 size=12

@@ -1,0 +1,70 @@
+475-Load command 10
+476:          cmd LC_LOAD_DYLIB
+477-      cmdsize 48
+478-         name /usr/lib/libc++.1.dylib (offset 24)
+479-   time stamp 2 Thu Jan  1 08:00:02 1970
+480-      current version 800.7.0
+481-compatibility version 1.0.0
+482-Load command 11
+483:          cmd LC_LOAD_DYLIB
+484-      cmdsize 88
+485-         name /System/Library/Frameworks/CoreMedia.framework/CoreMedia (offset 24)
+486-   time stamp 2 Thu Jan  1 08:00:02 1970
+487-      current version 1.0.0
+488-compatibility version 1.0.0
+489-Load command 12
+490:          cmd LC_LOAD_DYLIB
+491-      cmdsize 96
+492-         name /System/Library/Frameworks/AssetsLibrary.framework/AssetsLibrary (offset 24)
+493-   time stamp 2 Thu Jan  1 08:00:02 1970
+494-      current version 1.0.0
+495-compatibility version 1.0.0
+496-Load command 13
+497:          cmd LC_LOAD_DYLIB
+498-      cmdsize 88
+499-         name /System/Library/Frameworks/AVFoundation.framework/AVFoundation (offset 24)
+500-   time stamp 2 Thu Jan  1 08:00:02 1970
+501-      current version 2.0.0
+502-compatibility version 1.0.0
+503-Load command 14
+504:          cmd LC_LOAD_DYLIB
+505-      cmdsize 88
+506-         name /System/Library/Frameworks/CoreGraphics.framework/CoreGraphics (offset 24)
+507-   time stamp 2 Thu Jan  1 08:00:02 1970
+508-      current version 1673.1.2
+509-compatibility version 64.0.0
+510-Load command 15
+511:          cmd LC_LOAD_DYLIB
+512-      cmdsize 80
+513-         name /System/Library/Frameworks/UIKit.framework/UIKit (offset 24)
+514-   time stamp 2 Thu Jan  1 08:00:02 1970
+515-      current version 6092.1.111
+516-compatibility version 1.0.0
+517-Load command 16
+518:          cmd LC_LOAD_DYLIB
+519-      cmdsize 88
+520-         name /System/Library/Frameworks/Foundation.framework/Foundation (offset 24)
+521-   time stamp 2 Thu Jan  1 08:00:02 1970
+522-      current version 1946.102.0
+523-compatibility version 300.0.0
+524-Load command 17
+525:          cmd LC_LOAD_DYLIB
+526-      cmdsize 56
+527-         name /usr/lib/libobjc.A.dylib (offset 24)
+528-   time stamp 2 Thu Jan  1 08:00:02 1970
+529-      current version 228.0.0
+530-compatibility version 1.0.0
+531-Load command 18
+532:          cmd LC_LOAD_DYLIB
+533-      cmdsize 56
+534-         name /usr/lib/libSystem.B.dylib (offset 24)
+535-   time stamp 2 Thu Jan  1 08:00:02 1970
+536-      current version 1281.0.0
+537-compatibility version 1.0.0
+538-Load command 19
+539:          cmd LC_LOAD_DYLIB
+540-      cmdsize 96
+541-         name /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (offset 24)
+542-   time stamp 2 Thu Jan  1 08:00:02 1970
+543-      current version 1946.102.0
+544-compatibility version 150.0.0

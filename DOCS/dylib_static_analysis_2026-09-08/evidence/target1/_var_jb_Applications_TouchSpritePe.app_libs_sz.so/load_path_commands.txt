@@ -1,0 +1,101 @@
+314-Load command 10
+315:          cmd LC_LOAD_DYLIB
+316-      cmdsize 56
+317-         name /usr/lib/libMobileGestalt.dylib (offset 24)
+318-   time stamp 2 Thu Jan  1 08:00:02 1970
+319-      current version 1.0.0
+320-compatibility version 1.0.0
+321-Load command 11
+322:          cmd LC_LOAD_DYLIB
+323-      cmdsize 52
+324-         name /usr/lib/libsqlite3.dylib (offset 24)
+325-   time stamp 2 Thu Jan  1 08:00:02 1970
+326-      current version 274.8.1
+327-compatibility version 9.0.0
+--
+335-Load command 13
+336:          cmd LC_LOAD_DYLIB
+337-      cmdsize 52
+338-         name /usr/lib/libiconv.2.dylib (offset 24)
+339-   time stamp 2 Thu Jan  1 08:00:02 1970
+340-      current version 7.0.0
+341-compatibility version 7.0.0
+342-Load command 14
+343:          cmd LC_LOAD_DYLIB
+344-      cmdsize 84
+345-         name /System/Library/Frameworks/Foundation.framework/Foundation (offset 24)
+346-   time stamp 2 Thu Jan  1 08:00:02 1970
+347-      current version 1452.23.0
+348-compatibility version 300.0.0
+349-Load command 15
+350:          cmd LC_LOAD_DYLIB
+351-      cmdsize 48
+352-         name /usr/lib/libc++.1.dylib (offset 24)
+353-   time stamp 2 Thu Jan  1 08:00:02 1970
+354-      current version 400.9.1
+355-compatibility version 1.0.0
+356-Load command 16
+357:          cmd LC_LOAD_DYLIB
+358-      cmdsize 92
+359-         name /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (offset 24)
+360-   time stamp 2 Thu Jan  1 08:00:02 1970
+361-      current version 1452.23.0
+362-compatibility version 150.0.0
+363-Load command 17
+364:          cmd LC_LOAD_DYLIB
+365-      cmdsize 52
+366-         name /usr/lib/libobjc.A.dylib (offset 24)
+367-   time stamp 2 Thu Jan  1 08:00:02 1970
+368-      current version 228.0.0
+369-compatibility version 1.0.0
+--
+711-Load command 10
+712:          cmd LC_LOAD_DYLIB
+713-      cmdsize 56
+714-         name /usr/lib/libMobileGestalt.dylib (offset 24)
+715-   time stamp 2 Thu Jan  1 08:00:02 1970
+716-      current version 1.0.0
+717-compatibility version 1.0.0
+718-Load command 11
+719:          cmd LC_LOAD_DYLIB
+720-      cmdsize 56
+721-         name /usr/lib/libsqlite3.dylib (offset 24)
+722-   time stamp 2 Thu Jan  1 08:00:02 1970
+723-      current version 274.8.1
+724-compatibility version 9.0.0
+--
+732-Load command 13
+733:          cmd LC_LOAD_DYLIB
+734-      cmdsize 56
+735-         name /usr/lib/libiconv.2.dylib (offset 24)
+736-   time stamp 2 Thu Jan  1 08:00:02 1970
+737-      current version 7.0.0
+738-compatibility version 7.0.0
+739-Load command 14
+740:          cmd LC_LOAD_DYLIB
+741-      cmdsize 88
+742-         name /System/Library/Frameworks/Foundation.framework/Foundation (offset 24)
+743-   time stamp 2 Thu Jan  1 08:00:02 1970
+744-      current version 1452.23.0
+745-compatibility version 300.0.0
+746-Load command 15
+747:          cmd LC_LOAD_DYLIB
+748-      cmdsize 48
+749-         name /usr/lib/libc++.1.dylib (offset 24)
+750-   time stamp 2 Thu Jan  1 08:00:02 1970
+751-      current version 400.9.1
+752-compatibility version 1.0.0
+753-Load command 16
+754:          cmd LC_LOAD_DYLIB
+755-      cmdsize 96
+756-         name /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (offset 24)
+757-   time stamp 2 Thu Jan  1 08:00:02 1970
+758-      current version 1452.23.0
+759-compatibility version 150.0.0
+760-Load command 17
+761:          cmd LC_LOAD_DYLIB
+762-      cmdsize 56
+763-         name /usr/lib/libobjc.A.dylib (offset 24)
+764-   time stamp 2 Thu Jan  1 08:00:02 1970
+765-      current version 228.0.0
+766-compatibility version 1.0.0

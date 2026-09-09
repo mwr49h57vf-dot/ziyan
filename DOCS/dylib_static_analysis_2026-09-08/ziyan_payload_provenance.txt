@@ -1,0 +1,512 @@
+## Makefile payload construction
+   360			! -path '*/.theos/*' ! -path '*/vendor/*' ! -path '*/.git/*' \
+   361			! -path '*/packages/*' ! -path '*/layout/*' ! -path '*/tools/*' \
+   362			! -name '*.sh' ! -name '*.py' ! -name '*.lua' \
+   363			-exec sh -c 'file "$$1" | grep -qE "Mach-O|PE32|ELF" && rm -f "$$1" && echo "  rm $$1"' _ {} \; \
+   364			2>/dev/null || true
+   365	
+   366	before-all:: validate-substrate-plists clean-user-bins
+   367	
+   368	clean:: clean-user-bins
+   369	
+   370	# DEST = staging 根（已含 /var/jb）；JB = 设备上绝对前缀（用于 symlink/plist）
+   371	# rootless：after-stage 必须写到「未加 /var/jb」的经典路径（$STAGING/usr/...）。
+   372	# Theos/dm.pl 会再 remap 一次到 $STAGING/var/jb/...；若这里已写 /var/jb 会变成 var/jb/var/jb。
+   373	# 绝对 symlink（/var/jb/...）与 plist 内 jb 前缀也勿在 staging 写入；postinst 在真机补齐。
+   374	stage-runtime:
+   375		@DEST="$(THEOS_STAGING_DIR)"; \
+   376		mkdir -p "$$DEST/usr/lib/ziyan/bin" \
+   377			"$$DEST/usr/lib/ziyan/lib/lua" \
+   378			"$$DEST/usr/lib/ziyan/engine" \
+   379			"$$DEST/usr/lib/ziyan/runtime" \
+   380			"$$DEST/usr/lib/ziyan/hook" \
+   381			"$$DEST/usr/lib/ziyan/var" \
+   382			"$$DEST/usr/lib/ziyan/modules" \
+   383			"$$DEST/usr/lib/ziyan/models" \
+   384			"$$DEST/Library/LaunchDaemons" \
+   385			"$$DEST/usr/lib/ziyan/share/media_seed"; \
+   386		rsync -a vendor/bin/ "$$DEST/usr/lib/ziyan/bin/"; \
+   387		rsync -a --exclude='lua' vendor/lib/ "$$DEST/usr/lib/ziyan/lib/"; \
+   388		rsync -a --delete lua/ "$$DEST/usr/lib/ziyan/lib/lua/"; \
+   389		mkdir -p "$$DEST/usr/lib/ziyan/lib/lua/agent"; \
+   390		rsync -a Agent/ "$$DEST/usr/lib/ziyan/lib/lua/agent/"; \
+   391		chmod 755 "$$DEST/usr/lib/ziyan/bin/lua5.3" \
+   392			"$$DEST/usr/lib/ziyan/bin/python3.7" 2>/dev/null || true; \
+   393		ln -sfn lua5.3 "$$DEST/usr/lib/ziyan/bin/lua"; \
+   394		ln -sfn python3.7 "$$DEST/usr/lib/ziyan/bin/python3"; \
+   395		ln -sfn libreadline.8.0.dylib "$$DEST/usr/lib/ziyan/lib/libreadline.8.dylib"; \
+   396		cp -f vendor/runtime/engine/wnriakwyww "$$DEST/usr/lib/ziyan/engine/wnriakwyww"; \
+   397		cp -f vendor/runtime/engine/wnriakwyww.dylib "$$DEST/usr/lib/ziyan/engine/wnriakwyww.dylib"; \
+   398		chmod 755 "$$DEST/usr/lib/ziyan/engine/wnriakwyww" \
+   399			"$$DEST/usr/lib/ziyan/engine/wnriakwyww.dylib"; \
+   400		# legacy engine links /bin/wnriakwyww.dylib. Rootful keeps that via postinst;
+   401		# rootless cannot write /bin, so rewrite both the executable load command and
+   402		# dylib install name to /var/jb/bin, then re-sign the modified artifacts. \
+   403		if [ -n "$(THEOS_PACKAGE_INSTALL_PREFIX)" ]; then \
+   404			install_name_tool -change /bin/wnriakwyww.dylib "$(THEOS_PACKAGE_INSTALL_PREFIX)/bin/wnriakwyww.dylib" \
+   405				"$$DEST/usr/lib/ziyan/engine/wnriakwyww"; \
+## rootless runtime-root selection
+     1	#!/bin/sh
+     2	# Source-only runtime scheme resolver. postinst writes the marker from the
+     3	# installed deb Architecture; `/var/jb` may exist on a rootful device.
+     4	
+     5	ZIYAN_RUNTIME_SCHEME_MARKER="/var/mobile/Library/Preferences/com.ziyan.ziyan.runtime_scheme"
+     6	ZIYAN_RUNTIME_SCHEME=""
+     7	if [ -r "$ZIYAN_RUNTIME_SCHEME_MARKER" ]; then
+     8	  IFS= read -r ZIYAN_RUNTIME_SCHEME <"$ZIYAN_RUNTIME_SCHEME_MARKER" || true
+     9	fi
+    10	
+    11	case "$ZIYAN_RUNTIME_SCHEME" in
+    12	  rootless) ZIYAN_RUNTIME_ROOT="/var/jb/usr/lib/ziyan" ;;
+    13	  rootful) ZIYAN_RUNTIME_ROOT="/usr/lib/ziyan" ;;
+    14	  *)
+    15	    # Legacy fallback before a marker exists. A newly installed package always
+    16	    # has one, so the ambiguous dual-tree case never reaches this branch.
+    17	    if [ -f /var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua ] &&
+    18	       [ ! -f /usr/lib/ziyan/lib/lua/ziyan_run.lua ]; then
+    19	      ZIYAN_RUNTIME_SCHEME="rootless"
+    20	      ZIYAN_RUNTIME_ROOT="/var/jb/usr/lib/ziyan"
+    21	    else
+    22	      ZIYAN_RUNTIME_SCHEME="rootful"
+    23	      ZIYAN_RUNTIME_ROOT="/usr/lib/ziyan"
+    24	    fi
+    25	    ;;
+    26	esac
+    27	export ZIYAN_RUNTIME_SCHEME ZIYAN_RUNTIME_ROOT
+## postinst root selection and package wiring
+     1	#!/bin/bash
+     2	set -e
+     3	
+     4	# 安装方案必须以当前已配置 deb 的 Architecture 为准，不能依据 `/var/jb`
+     5	# 是否存在：rootful 设备也可能遗留 rootless runtime，目录探测会令 SB/BB/
+     6	# framecap 把同一套 IPC 分到两个 var 树。
+     7	PKG_ARCH="$(dpkg-query -W -f='${Architecture}' com.ziyan.ziyan 2>/dev/null || true)"
+     8	case "$PKG_ARCH" in
+     9	  iphoneos-arm64*|arm64*) SCHEME="rootless"; JB="/var/jb" ;;
+    10	  iphoneos-arm*|arm*) SCHEME="rootful"; JB="" ;;
+    11	  *)
+    12	    # 仅兼容旧 dpkg 环境；正常安装必须命中上面的 package Architecture。
+    13	    if [ -f /usr/lib/ziyan/lib/lua/ziyan_run.lua ] &&
+    14	       [ ! -f /var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua ]; then
+    15	      SCHEME="rootful"; JB=""
+    16	    else
+    17	      SCHEME="rootless"; JB="/var/jb"
+    18	    fi
+    19	    ;;
+    20	esac
+    21	SCHEME_MARKER="/var/mobile/Library/Preferences/com.ziyan.ziyan.runtime_scheme"
+    22	mkdir -p "$(dirname "$SCHEME_MARKER")" 2>/dev/null || true
+    23	tmp_marker="${SCHEME_MARKER}.$$"
+    24	printf '%s\n' "$SCHEME" >"$tmp_marker" 2>/dev/null &&
+    25	  mv -f "$tmp_marker" "$SCHEME_MARKER" 2>/dev/null || true
+    26	rm -f "$tmp_marker" 2>/dev/null || true
+    27	chmod 644 "$SCHEME_MARKER" 2>/dev/null || true
+    28	ROOT="${JB}/usr/lib/ziyan"
+    29	MS="${JB}/Library/MobileSubstrate/DynamicLibraries"
+    30	LD="${JB}/Library/LaunchDaemons"
+    31	DIR="/private/var/mobile/Media/ZiYan"
+    32	ZYCV="$DIR/ZYCV"
+    33	
+    34	mkdir -p "$DIR" "$DIR/lua" \
+    35	  "$ZYCV" "$ZYCV/config" "$ZYCV/log" "$ZYCV/tmp" "$ZYCV/res"
+    36	mkdir -p "$DIR/Agent游戏/游戏配置" "$DIR/Agent游戏/人工学习" \
+    37	  "$DIR/Agent游戏/学习数据" "$DIR/Agent游戏/运行记录" \
+    38	  "$DIR/Agent游戏/错误报告" "$DIR/Agent游戏/生成脚本" \
+    39	  "$DIR/Agent游戏/临时缓存"
+    40	mkdir -p "$ROOT/bin" "$ROOT/lib" "$ROOT/engine" "$ROOT/var" \
+    41	  "$ROOT/runtime/scripts" "$ROOT/runtime/var/lib" \
+    42	  "$ROOT/runtime/var/log" "$ROOT/runtime/var/tmp" \
+    43	  "$ROOT/hook"
+    44	printf '%s\n' "$SCHEME" >"$ROOT/var/.ziyan_runtime_scheme" 2>/dev/null || true
+    45	chmod 644 "$ROOT/var/.ziyan_runtime_scheme" 2>/dev/null || true
+   200	    _zy_*|_ziyan_*|login_*.lua|hello.lua|config.plist|defense_*|cleanup_flag)
+   201	      if [ ! -f "$ZYCV/res/$base" ]; then
+   202	        mv -f "$f" "$ZYCV/res/$base" 2>/dev/null || true
+   203	      else
+   204	        rm -f "$f" 2>/dev/null || true
+   205	      fi
+   206	      ;;
+   207	  esac
+   208	done
+   209	
+   210	chmod 777 "$ROOT/var" 2>/dev/null || true
+   211	if [ -d "$DIR" ]; then
+   212	  for f in "$DIR"/.ziyan_*; do
+   213	    [ -e "$f" ] || continue
+   214	    mv -f "$f" "$ROOT/var/" 2>/dev/null || true
+   215	  done
+   216	fi
+   217	chown -R mobile:mobile "$DIR" 2>/dev/null || true
+   218	chmod 755 "$DIR" "$DIR/lua" "$DIR/models" "$ZYCV" "$ZYCV/config" "$ZYCV/log" "$ZYCV/tmp" "$ZYCV/res" 2>/dev/null || true
+   219	
+   220	if [ -d "$ROOT/bin" ]; then
+   221	  chmod 755 "$ROOT/bin/"* 2>/dev/null || true
+   222	  ln -sfn lua5.3 "$ROOT/bin/lua" 2>/dev/null || true
+   223	  ln -sfn python3.7 "$ROOT/bin/python3" 2>/dev/null || true
+   224	fi
+   225	
+   226	if [ ! -e "$ROOT/lib/libncurses.6.dylib" ]; then
+   227	  if [ -f "${JB}/usr/lib/libncursesw.6.dylib" ]; then
+   228	    ln -sfn "${JB}/usr/lib/libncursesw.6.dylib" "$ROOT/lib/libncurses.6.dylib" 2>/dev/null || true
+   229	  elif [ -f "${JB}/usr/lib/libncurses.6.dylib" ]; then
+   230	    ln -sfn "${JB}/usr/lib/libncurses.6.dylib" "$ROOT/lib/libncurses.6.dylib" 2>/dev/null || true
+   231	  fi
+   232	fi
+   233	if [ -n "$JB" ] && [ ! -e "${JB}/usr/lib/libncurses.6.dylib" ] && [ -f "${JB}/usr/lib/libncursesw.6.dylib" ]; then
+   234	  ln -sfn libncursesw.6.dylib "${JB}/usr/lib/libncurses.6.dylib" 2>/dev/null || true
+   235	fi
+   500	chown mobile:mobile "$ROOT/var/.ziyan_active" 2>/dev/null || true
+   501	chmod 777 "$ROOT/var" 2>/dev/null || true
+   502	# 8-161-112：升级后若缺会话基线则补 idle（旧 prerm 曾掏空 var）
+   503	if [ ! -f "$ROOT/var/.ziyan_session" ]; then
+   504	  printf 'state=idle\npath=\norient=-1\ngen=0\n' >"$ROOT/var/.ziyan_session"
+   505	fi
+   506	if [ ! -f "$ROOT/var/.ziyan_run_intent" ]; then
+   507	  printf 'stop=1\n' >"$ROOT/var/.ziyan_run_intent"
+   508	fi
+   509	chmod 666 "$ROOT/var/.ziyan_session" "$ROOT/var/.ziyan_run_intent" 2>/dev/null || true
+   510	# 8-136：orient 必须 mobile 可写，否则 init(1) 失败 → toast/找色方向错
+   511	chmod 666 "$ROOT/var/.ziyan_orient" 2>/dev/null || true
+   512	chown mobile:mobile "$ROOT/var/.ziyan_orient" 2>/dev/null || true
+   513	chmod 666 "$ROOT/var/.ziyan_buf_wh" "$ROOT/var/.ziyan_native_wh" 2>/dev/null || true
+   514	
+   515	# Dopamine/Ellekit 从 /var/jb/usr/lib/TweakInject 装载。只写
+   516	# MobileSubstrate/DynamicLibraries 时 SpringBoard 看不到 ZiYanVol，
+   517	# Home/front_bid/Toast 会停在旧文件。BBFrame 默认不链进 TweakInject。
+   518	if [ -n "$JB" ] && [ -d "${JB}/usr/lib/TweakInject" ]; then
+   519	  TI="${JB}/usr/lib/TweakInject"
+   520	  for name in ZiYanVol ZiYanFrameRelay ZiYanAppTouch ZiYanDefense ZiYanFsCloak; do
+   521	    if [ -f "$MS/$name.dylib" ]; then
+   522	      ln -sfn "$MS/$name.dylib" "$TI/$name.dylib"
+   523	      ln -sfn "$MS/$name.plist" "$TI/$name.plist"
+   524	    fi
+   525	  done
+   526	  if [ ! -f "$ROOT/var/.ziyan_bbframe_on" ]; then
+   527	    rm -f "$TI/ZiYanBBFrame.dylib" "$TI/ZiYanBBFrame.plist"
+   528	  fi
+   529	  echo "TweakInject linked from $MS (BBFrame off)"
+   530	fi
+   531	
+   532	echo "ZiYan installed ROOT=$ROOT JB=${JB:-/} (lua5.3 primary; TE optional)"
+   533	# 触发一次自动解锁（无密码）。不得因此重启 SpringBoard。
+   534	touch "$ROOT/var/.ziyan_unlock_req" 2>/dev/null || true
+   535	chmod 666 "$ROOT/var/.ziyan_unlock_req" 2>/dev/null || true
+   536	
+   537	# 安装不得自动重启 SB/BB，不得杀 ZiYan/Lua，不得后台 nohup respring。
+   538	# 注入重载必须由人工确认后的独立步骤完成。
+   539	MARKER="$ROOT/var/.ziyan_inject_reload_pending"
+   540	{
+## package build output inventory
+.theos/obj/debug/ziyan_a_probe
+.theos/obj/debug/ziyan_framecap
+.theos/obj/debug/ziyan_framecap_bootstrap
+.theos/obj/debug/ziyan_iomfb_diag
+.theos/obj/debug/ziyan_mem
+.theos/obj/debug/ziyan_ocr
+.theos/obj/debug/ziyan_portspace
+.theos/obj/debug/ziyan_scriptgen_smoke
+.theos/obj/debug/ziyan_shm_selftest
+.theos/obj/debug/ziyanctl
+.theos/packages/com.ziyan.ziyan-0.0.92-8-161-205-C-65.11-98+debug-10-38-15
+.theos/packages/com.ziyan.ziyan-0.0.92-8-161-205-C-65.11-98+debug-10-38-16
+.theos/packages/com.ziyan.ziyan-0.0.92-8-161-205-C-65.11-98+debug-10-38-17
+.theos/packages/com.ziyan.ziyan-0.0.92-8-161-205-C-65.11-98+debug-10-38-18
+.theos/packages/com.ziyan.ziyan-0.0.92-8-161-205-C-65.11-98+debug-10-38-19
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-15-1+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-15-11+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-15-12+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-15-13+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-15-2+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-15-3+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-15-4+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-15-5+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-15-6+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-15-7+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-15-8+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-15-9+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-15_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-15_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-16-1+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-16-2+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-10+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-100+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-101+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-102+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-103+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-104+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-105+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-106+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-107+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-108+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-109+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-110+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-111+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-112+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-113+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-114+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-115+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-116+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-117+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-118+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-119+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-12+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-120+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-121+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-122+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-123+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-124+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-125+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-126+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-127+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-128+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-129+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-13+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-130+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-131+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-132+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-133+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-134+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-135+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-136+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-137+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-138+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-139+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-14+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-140+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-141+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-142+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-15+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-16+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-17+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-18+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-19+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-20+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-21+debug-rfmeta_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-21+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-22+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-23+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-24+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-25+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-26+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-27+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-30+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-31+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-32+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-33+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-34+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-35+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-36+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-37+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-38+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-39+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-40+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-41+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-42+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-43+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-44+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-45+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-46+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-47+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-48+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-49+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-5+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-50+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-51+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-52+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-53+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-54+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-55+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-56+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-57+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-58+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-59+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-6+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-60+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-61+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-62+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-63+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-64+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-65+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-66+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-67+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-68+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-69+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-7+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-70+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-71+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-72+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-73+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-74+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-75+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-76+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-77+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-78+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-79+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-8+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-80+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-81+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-82+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-83+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-84+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-85+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-86+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-87+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-88+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-89+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-9+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-90+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-91+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-92+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-93+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-94+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-95+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-96+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-97+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-98+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-99+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-100+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-101+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-102+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-103+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-104+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-105+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-106+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-107+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-108+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-109+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-110+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-111+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-113+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-114+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-115+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-116+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-117+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-118+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-119+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-120+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-121+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-122+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-123+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-124+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-125+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-126+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-127+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-42+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-43+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-44+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-45+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-46+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-47+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-48+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-49+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-50+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-51+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-52+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-53+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-54+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-55+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-56+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-57+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-58+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-59+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-60+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-61+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-62+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-63+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-64+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-65+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-66+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-67+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-68+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-69+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-70+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-71+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-72+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-73+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-74+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-75+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-76+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-77+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-78+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-79+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-80+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-81+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-82+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-83+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-84+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-85+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-86+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-87+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-88+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-89+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-90+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-91+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-92+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-93+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-94+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-95+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-96+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-97+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-98+debug_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19-99+debug_iphoneos-arm64.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19_iphoneos-arm.deb
+packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-19_iphoneos-arm64.deb
+packages/p3_candidates/P3_D1_CAPHEALTH_20260824/com.ziyan.ziyan_P3_D1_CAPHEALTH_20260824_iphoneos-arm.deb
+packages/p3_candidates/P3_D1_CAPHEALTH_20260824/com.ziyan.ziyan_P3_D1_CAPHEALTH_20260824_iphoneos-arm.deb.manifest.json
+packages/p3_candidates/P3_D1_CAPHEALTH_20260824/com.ziyan.ziyan_P3_D1_CAPHEALTH_20260824_iphoneos-arm64.deb
+packages/p3_candidates/P3_D1_CAPHEALTH_20260824/com.ziyan.ziyan_P3_D1_CAPHEALTH_20260824_iphoneos-arm64.deb.manifest.json
+packages/p3_candidates/P3_D1_CAPHEALTH_20260824/ziyan_framecap.rootful
+packages/p3_candidates/P3_D1_CAPHEALTH_GUARD_20260824/com.ziyan.ziyan_P3_D1_CAPHEALTH_GUARD_20260824_iphoneos-arm.deb
+packages/p3_candidates/P3_D1_CAPHEALTH_GUARD_20260824/com.ziyan.ziyan_P3_D1_CAPHEALTH_GUARD_20260824_iphoneos-arm.deb.manifest.json
+packages/p3_candidates/P3_D1_CAPHEALTH_GUARD_20260824/com.ziyan.ziyan_P3_D1_CAPHEALTH_GUARD_20260824_iphoneos-arm64.deb
+packages/p3_candidates/P3_D1_CAPHEALTH_GUARD_20260824/com.ziyan.ziyan_P3_D1_CAPHEALTH_GUARD_20260824_iphoneos-arm64.deb.manifest.json
+packages/p3_candidates/P3_D1_CURRENTFRAME_SCHEMA2_20260825/com.ziyan.ziyan_P3_D1_CURRENTFRAME_SCHEMA2_20260825_iphoneos-arm.deb
+packages/p3_candidates/P3_D1_CURRENTFRAME_SCHEMA2_20260825/com.ziyan.ziyan_P3_D1_CURRENTFRAME_SCHEMA2_20260825_iphoneos-arm.deb.manifest.json
+packages/p3_candidates/P3_D1_CURRENTFRAME_SCHEMA2_20260825/com.ziyan.ziyan_P3_D1_CURRENTFRAME_SCHEMA2_20260825_iphoneos-arm64.deb
+packages/p3_candidates/P3_D1_CURRENTFRAME_SCHEMA2_20260825/com.ziyan.ziyan_P3_D1_CURRENTFRAME_SCHEMA2_20260825_iphoneos-arm64.deb.manifest.json
+packages/p3_candidates/P3_D1_FRAME_TRUTH_SCHEMA3_20260825/com.ziyan.ziyan_P3_D1_FRAME_TRUTH_SCHEMA3_20260825_iphoneos-arm.deb
+packages/p3_candidates/P3_D1_FRAME_TRUTH_SCHEMA3_20260825/com.ziyan.ziyan_P3_D1_FRAME_TRUTH_SCHEMA3_20260825_iphoneos-arm.deb.manifest.json
+packages/p3_candidates/P3_D1_FRAME_TRUTH_SCHEMA3_20260825/com.ziyan.ziyan_P3_D1_FRAME_TRUTH_SCHEMA3_20260825_iphoneos-arm64.deb
+packages/p3_candidates/P3_D1_FRAME_TRUTH_SCHEMA3_20260825/com.ziyan.ziyan_P3_D1_FRAME_TRUTH_SCHEMA3_20260825_iphoneos-arm64.deb.manifest.json
+packages/p3_candidates/P3_D1_FRAME_TRUTH_SCHEMA3_ROOTFUL_PATHFIX_20260825/com.ziyan.ziyan_P3_D1_FRAME_TRUTH_SCHEMA3_ROOTFUL_PATHFIX_20260825_iphoneos-arm.deb
+packages/p3_candidates/P3_D1_FRAME_TRUTH_SCHEMA3_ROOTFUL_PATHFIX_20260825/com.ziyan.ziyan_P3_D1_FRAME_TRUTH_SCHEMA3_ROOTFUL_PATHFIX_20260825_iphoneos-arm.deb.manifest.json
+packages/p3_candidates/P3_D1_FRAME_TRUTH_SCHEMA3_ROOTFUL_PATHFIX_20260825/com.ziyan.ziyan_P3_D1_FRAME_TRUTH_SCHEMA3_ROOTFUL_PATHFIX_20260825_iphoneos-arm64.deb
+packages/p3_candidates/P3_D1_FRAME_TRUTH_SCHEMA3_ROOTFUL_PATHFIX_20260825/com.ziyan.ziyan_P3_D1_FRAME_TRUTH_SCHEMA3_ROOTFUL_PATHFIX_20260825_iphoneos-arm64.deb.manifest.json
+packages/p3_candidates/P3_D1_FRAME_TRUTH_SCHEMA3_ROOTFUL_PATHFIX_20260825_R2/com.ziyan.ziyan_P3_D1_FRAME_TRUTH_SCHEMA3_ROOTFUL_PATHFIX_20260825_R2_iphoneos-arm.deb
+packages/p3_candidates/P3_D1_FRAME_TRUTH_SCHEMA3_ROOTFUL_PATHFIX_20260825_R2/com.ziyan.ziyan_P3_D1_FRAME_TRUTH_SCHEMA3_ROOTFUL_PATHFIX_20260825_R2_iphoneos-arm.deb.manifest.json
+packages/p3_candidates/P3_D1_FRAME_TRUTH_SCHEMA3_ROOTFUL_PATHFIX_20260825_R2/com.ziyan.ziyan_P3_D1_FRAME_TRUTH_SCHEMA3_ROOTFUL_PATHFIX_20260825_R2_iphoneos-arm64.deb
+packages/p3_candidates/P3_D1_FRAME_TRUTH_SCHEMA3_ROOTFUL_PATHFIX_20260825_R2/com.ziyan.ziyan_P3_D1_FRAME_TRUTH_SCHEMA3_ROOTFUL_PATHFIX_20260825_R2_iphoneos-arm64.deb.manifest.json
+packages/p3_candidates/P3_D1_RELEASETRACE_20260824/com.ziyan.ziyan_P3_D1_RELEASETRACE_20260824_iphoneos-arm.deb
+packages/p3_candidates/P3_D1_RELEASETRACE_20260824/com.ziyan.ziyan_P3_D1_RELEASETRACE_20260824_iphoneos-arm.deb.manifest.json
+packages/p3_candidates/P3_D1_RELEASETRACE_20260824/com.ziyan.ziyan_P3_D1_RELEASETRACE_20260824_iphoneos-arm64.deb
+packages/p3_candidates/P3_D1_RELEASETRACE_20260824/com.ziyan.ziyan_P3_D1_RELEASETRACE_20260824_iphoneos-arm64.deb.manifest.json
+packages/p3_candidates/P3_D1_SNAPTRACE_20260824/com.ziyan.ziyan_P3_D1_SNAPTRACE_20260824_iphoneos-arm.deb
+packages/p3_candidates/P3_D1_SNAPTRACE_20260824/com.ziyan.ziyan_P3_D1_SNAPTRACE_20260824_iphoneos-arm.deb.manifest.json
+packages/p3_candidates/P3_D1_SNAPTRACE_20260824/com.ziyan.ziyan_P3_D1_SNAPTRACE_20260824_iphoneos-arm64.deb
+packages/p3_candidates/P3_D1_SNAPTRACE_20260824/com.ziyan.ziyan_P3_D1_SNAPTRACE_20260824_iphoneos-arm64.deb.manifest.json
+packages/p3_candidates/P3_D2_CAPTURE_LEASE_20260824/com.ziyan.ziyan_P3_D2_CAPTURE_LEASE_20260824_iphoneos-arm.deb
+packages/p3_candidates/P3_D2_CAPTURE_LEASE_20260824/com.ziyan.ziyan_P3_D2_CAPTURE_LEASE_20260824_iphoneos-arm.deb.manifest.json
+packages/p3_candidates/P3_D2_CAPTURE_LEASE_20260824/com.ziyan.ziyan_P3_D2_CAPTURE_LEASE_20260824_iphoneos-arm64.deb
+packages/p3_candidates/P3_D2_CAPTURE_LEASE_20260824/com.ziyan.ziyan_P3_D2_CAPTURE_LEASE_20260824_iphoneos-arm64.deb.manifest.json
+packages/p3_candidates/P3_GAME_ENTRY_FRAMECAP_WRITE_REPAIR_20260827/com.ziyan.ziyan_P3_GAME_ENTRY_FRAMECAP_WRITE_REPAIR_20260827_iphoneos-arm.deb
+packages/p3_candidates/P3_GAME_ENTRY_FRAMECAP_WRITE_REPAIR_20260827/com.ziyan.ziyan_P3_GAME_ENTRY_FRAMECAP_WRITE_REPAIR_20260827_iphoneos-arm.deb.manifest.json
+packages/p3_candidates/P3_NEW_BASELINE_20260825_211759/com.ziyan.ziyan_P3_NEW_BASELINE_20260825_211759_iphoneos-arm.deb
+packages/p3_candidates/P3_NEW_BASELINE_20260825_211759/com.ziyan.ziyan_P3_NEW_BASELINE_20260825_211759_iphoneos-arm.deb.manifest.json
+packages/p3_candidates/P3_NEW_BASELINE_20260825_211759/com.ziyan.ziyan_P3_NEW_BASELINE_20260825_211759_iphoneos-arm64.deb
+packages/p3_candidates/P3_NEW_BASELINE_20260825_211759/com.ziyan.ziyan_P3_NEW_BASELINE_20260825_211759_iphoneos-arm64.deb.manifest.json
+packages/p3_candidates/P3_NEW_BASELINE_20260825_211759/rollback_rootful.deb
+packages/p3_candidates/P3_NEW_BASELINE_20260825_211759/rollback_rootless.deb
+packages/p3_candidates/P3_SCHEMA3_CLEAN2_20260825_224519/com.ziyan.ziyan_P3_SCHEMA3_CLEAN2_20260825_224519_iphoneos-arm.deb
+packages/p3_candidates/P3_SCHEMA3_CLEAN2_20260825_224519/com.ziyan.ziyan_P3_SCHEMA3_CLEAN2_20260825_224519_iphoneos-arm.deb.manifest.json
+packages/p3_candidates/P3_SCHEMA3_CLEAN2_20260825_224519/com.ziyan.ziyan_P3_SCHEMA3_CLEAN2_20260825_224519_iphoneos-arm64.deb
+packages/p3_candidates/P3_SCHEMA3_CLEAN2_20260825_224519/com.ziyan.ziyan_P3_SCHEMA3_CLEAN2_20260825_224519_iphoneos-arm64.deb.manifest.json
+packages/p3_candidates/P3_SCHEMA3_CLEAN2_20260825_224519/rollback_rootful.deb
+packages/p3_candidates/P3_SCHEMA3_CLEAN2_20260825_224519/rollback_rootless.deb
+packages/p3_candidates/P3_SCHEMA3_CLEAN_20260825_224519/com.ziyan.ziyan_P3_SCHEMA3_CLEAN_20260825_224519_iphoneos-arm.deb
+packages/p3_candidates/P3_SCHEMA3_CLEAN_20260825_224519/com.ziyan.ziyan_P3_SCHEMA3_CLEAN_20260825_224519_iphoneos-arm.deb.manifest.json
+packages/p3_candidates/P3_SCHEMA3_CLEAN_20260825_224519/com.ziyan.ziyan_P3_SCHEMA3_CLEAN_20260825_224519_iphoneos-arm64.deb
+packages/p3_candidates/P3_SCHEMA3_CLEAN_20260825_224519/com.ziyan.ziyan_P3_SCHEMA3_CLEAN_20260825_224519_iphoneos-arm64.deb.manifest.json
+packages/p3_candidates/P3_SCHEMA3_CLEAN_20260825_224519/rollback_rootful.deb
+packages/p3_candidates/P3_SCHEMA3_CLEAN_20260825_224519/rollback_rootless.deb

@@ -1,0 +1,14 @@
+46:/usr/lib/ziyan
+47:rootless
+49:rootful
+50:/var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua
+51:/usr/lib/ziyan/lib/lua/ziyan_run.lua
+107:.ziyan_lua_run.pid
+109:orphan_lua_kill n=%d
+110:.ziyan_lua_hung
+111:lua_hung_seen
+129:.ziyan_lua_embedded
+130:lua_hung_cleared_embed_hot
+131:.ziyan_watchdog_lua_kick
+132:lua_hung_kick
+133:lua_hung_hold_session_no_embed

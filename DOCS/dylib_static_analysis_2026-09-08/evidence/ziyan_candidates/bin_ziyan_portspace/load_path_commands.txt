@@ -1,0 +1,47 @@
+244-Load command 14
+245:          cmd LC_LOAD_DYLIB
+246-      cmdsize 56
+247-         name /usr/lib/libobjc.A.dylib (offset 24)
+248-   time stamp 2 Thu Jan  1 08:00:02 1970
+249-      current version 228.0.0
+250-compatibility version 1.0.0
+251-Load command 15
+252:          cmd LC_LOAD_DYLIB
+253-      cmdsize 88
+254-         name /System/Library/Frameworks/Foundation.framework/Foundation (offset 24)
+255-   time stamp 2 Thu Jan  1 08:00:02 1970
+256-      current version 1953.255.0
+257-compatibility version 300.0.0
+258-Load command 16
+259:          cmd LC_LOAD_DYLIB
+260-      cmdsize 96
+261-         name /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (offset 24)
+262-   time stamp 2 Thu Jan  1 08:00:02 1970
+263-      current version 1953.255.0
+264-compatibility version 150.0.0
+265-Load command 17
+266:          cmd LC_LOAD_DYLIB
+267-      cmdsize 56
+268-         name /usr/lib/libSystem.B.dylib (offset 24)
+269-   time stamp 2 Thu Jan  1 08:00:02 1970
+270-      current version 1319.0.0
+271-compatibility version 1.0.0
+272-Load command 18
+273:          cmd LC_RPATH
+274-      cmdsize 40
+275-         path /var/jb/Library/Frameworks (offset 12)
+276-Load command 19
+277:          cmd LC_RPATH
+278-      cmdsize 32
+279-         path /var/jb/usr/lib (offset 12)
+280-Load command 20
+281:          cmd LC_RPATH
+282-      cmdsize 56
+283-         path @loader_path/.jbroot/Library/Frameworks (offset 12)
+284-Load command 21
+285:          cmd LC_RPATH
+286-      cmdsize 48
+287-         path @loader_path/.jbroot/usr/lib (offset 12)
+288-Load command 22
+289-      cmd LC_FUNCTION_STARTS
+290-  cmdsize 16

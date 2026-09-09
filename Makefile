@@ -393,6 +393,24 @@ stage-runtime:
 	ln -sfn lua5.3 "$$DEST/usr/lib/ziyan/bin/lua"; \
 	ln -sfn python3.7 "$$DEST/usr/lib/ziyan/bin/python3"; \
 	ln -sfn libreadline.8.0.dylib "$$DEST/usr/lib/ziyan/lib/libreadline.8.dylib"; \
+	if [ -n "$(THEOS_PACKAGE_INSTALL_PREFIX)" ]; then \
+		ROOTLESS_LIB="$(THEOS_PACKAGE_INSTALL_PREFIX)/usr/lib/ziyan/lib"; \
+		ROOTLESS_SYS="$(THEOS_PACKAGE_INSTALL_PREFIX)/usr/lib"; \
+		install_name_tool -change /usr/lib/ziyan/lib/liblua5.3.dylib \
+			"$$ROOTLESS_LIB/liblua5.3.dylib" "$$DEST/usr/lib/ziyan/bin/lua5.3"; \
+		install_name_tool -change /usr/lib/ziyan/lib/libreadline.8.dylib \
+			"$$ROOTLESS_LIB/libreadline.8.dylib" "$$DEST/usr/lib/ziyan/bin/lua5.3"; \
+		install_name_tool -id "$$ROOTLESS_LIB/liblua5.3.dylib" \
+			"$$DEST/usr/lib/ziyan/lib/liblua5.3.dylib"; \
+		install_name_tool -id "$$ROOTLESS_LIB/libreadline.8.0.dylib" \
+			"$$DEST/usr/lib/ziyan/lib/libreadline.8.0.dylib"; \
+		install_name_tool -change /usr/lib/libncurses.6.dylib \
+			"$$ROOTLESS_SYS/libncurses.6.dylib" \
+			"$$DEST/usr/lib/ziyan/lib/libreadline.8.0.dylib"; \
+		ldid -S "$$DEST/usr/lib/ziyan/bin/lua5.3" \
+			"$$DEST/usr/lib/ziyan/lib/liblua5.3.dylib" \
+			"$$DEST/usr/lib/ziyan/lib/libreadline.8.0.dylib"; \
+	fi; \
 	cp -f vendor/runtime/engine/wnriakwyww "$$DEST/usr/lib/ziyan/engine/wnriakwyww"; \
 	cp -f vendor/runtime/engine/wnriakwyww.dylib "$$DEST/usr/lib/ziyan/engine/wnriakwyww.dylib"; \
 	chmod 755 "$$DEST/usr/lib/ziyan/engine/wnriakwyww" \

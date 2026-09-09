@@ -1,0 +1,1 @@
+.theos/_/var/jb/usr/lib/ziyan/lib/liblua5.3.dylib: Mach-O 64-bit dynamically linked shared library arm64

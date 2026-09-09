@@ -25,6 +25,9 @@ BOOL ZiYanFrameResidentRenew(const void *pixels, size_t width, size_t height,
                              uint32_t frontHash, uint8_t status, uint32_t seq,
                              uint64_t ts_ms);
 
+/// BIZ08：上一笔 Renew 墙钟（ms）。含读票等待 + 3MB 预算降采样。
+double ZiYanFrameResidentLastRenewMs(void);
+
 void ZiYanFrameResidentMarkStatus(uint8_t status, BOOL touchTs);
 void ZiYanFrameResidentClear(void);
 

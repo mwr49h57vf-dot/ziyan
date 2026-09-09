@@ -1,0 +1,5 @@
+40:/usr/lib/ziyan
+41:rootless
+44:rootful
+45:/var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua
+46:/usr/lib/ziyan/lib/lua/ziyan_run.lua

@@ -1,0 +1,2 @@
+error: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/strings: unknown flag: - Mach-O executable arm_v7] [arm64:Mach-O 64-bit executable arm64]
+Usage: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/strings [-] [-a] [-o] [-t format] [-number] [-n number] [[-arch <arch_flag>] ...] [--] [file ...]

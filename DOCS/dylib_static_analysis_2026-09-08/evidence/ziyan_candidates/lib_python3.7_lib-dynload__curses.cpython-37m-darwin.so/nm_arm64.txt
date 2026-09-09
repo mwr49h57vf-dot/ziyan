@@ -1,0 +1,2 @@
+0000000000015040 D _PyCursesWindow_Type
+0000000000007d58 T _PyInit__curses

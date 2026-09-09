@@ -1,0 +1,20 @@
+Executable=/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/engine/wnriakwyww.dylib
+Identifier=wnriakwyww.dylib.47ba6b93.unsigned
+Format=Mach-O universal (armv7 arm64)
+CodeDirectory v=20200 size=567 flags=0x0(none) hashes=13+2 location=embedded
+Hash type=sha256 size=32
+CandidateCDHash sha1=876e6aa1c25e4aa54dbb9337c007ba520956c8ef
+CandidateCDHashFull sha1=876e6aa1c25e4aa54dbb9337c007ba520956c8ef
+CandidateCDHash sha256=20431d37f1f46e0bb5a26c5e7634116d38af0345
+CandidateCDHashFull sha256=20431d37f1f46e0bb5a26c5e7634116d38af034518658cda22986dd625109fed
+Hash choices=sha1,sha256
+CMSDigest=a44b9c991282e164944dcc428c72395dbb16d93dcaea8a1880ba084f7131da53
+CMSDigestType=2
+Launch Constraints:
+	None
+CDHash=20431d37f1f46e0bb5a26c5e7634116d38af0345
+/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/engine/wnriakwyww.dylib: no signature
+Info.plist=not bound
+TeamIdentifier=not set
+Sealed Resources=none
+Internal requirements count=1 size=152

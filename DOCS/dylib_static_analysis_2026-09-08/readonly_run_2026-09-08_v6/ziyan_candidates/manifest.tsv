@@ -1,0 +1,6 @@
+01_lua5.3_	vendor/bin/lua5.3	7f73822f9fb7461e1b0e7b73911ba05210e070a19a4f51504b527f41e6fa049e	Non-fat file: vendor/bin/lua5.3 is architecture: arm64 
+02_liblua5.3.dylib_	vendor/lib/liblua5.3.dylib	51ca786549e916d89a4b1264b1398c5abbe516dc3a501fc326ea4bb3f3003ae5	Non-fat file: vendor/lib/liblua5.3.dylib is architecture: arm64 
+03_libreadline.8.0.dylib_	vendor/lib/libreadline.8.0.dylib	e7e5375f077da88f6165313175b6ba51b4db81f77fc7763fe1ca3ddf1e1e8560	Non-fat file: vendor/lib/libreadline.8.0.dylib is architecture: arm64 
+04_lua5.3_	.theos/_/var/jb/usr/lib/ziyan/bin/lua5.3	7f73822f9fb7461e1b0e7b73911ba05210e070a19a4f51504b527f41e6fa049e	Non-fat file: .theos/_/var/jb/usr/lib/ziyan/bin/lua5.3 is architecture: arm64 
+05_liblua5.3.dylib_	.theos/_/var/jb/usr/lib/ziyan/lib/liblua5.3.dylib	51ca786549e916d89a4b1264b1398c5abbe516dc3a501fc326ea4bb3f3003ae5	Non-fat file: .theos/_/var/jb/usr/lib/ziyan/lib/liblua5.3.dylib is architecture: arm64 
+06_libreadline.8.0.dylib_	.theos/_/var/jb/usr/lib/ziyan/lib/libreadline.8.0.dylib	e7e5375f077da88f6165313175b6ba51b4db81f77fc7763fe1ca3ddf1e1e8560	Non-fat file: .theos/_/var/jb/usr/lib/ziyan/lib/libreadline.8.0.dylib is architecture: arm64 

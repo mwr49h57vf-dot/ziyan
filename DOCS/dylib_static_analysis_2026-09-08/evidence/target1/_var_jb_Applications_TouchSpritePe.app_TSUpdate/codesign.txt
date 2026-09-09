@@ -1,0 +1,20 @@
+Executable=/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSUpdate
+Identifier=TSUpdate
+Format=Mach-O universal (armv7 arm64)
+CodeDirectory v=20400 size=865 flags=0x0(none) hashes=17+7 location=embedded
+Hash type=sha256 size=32
+CandidateCDHash sha1=d50129c8ce6182ff57025dfdb88020b73c101c86
+CandidateCDHashFull sha1=d50129c8ce6182ff57025dfdb88020b73c101c86
+CandidateCDHash sha256=baddfba162df04f1b3a4c74f433c2ea818bc987f
+CandidateCDHashFull sha256=baddfba162df04f1b3a4c74f433c2ea818bc987f3205d3c84487f31ef15da6ba
+Hash choices=sha1,sha256
+CMSDigest=fa800de8ba460e1d6cbf0f9bd22ddf3b113d5ece22b7f31412edff3ed8723f7a
+CMSDigestType=2
+Launch Constraints:
+	None
+CDHash=baddfba162df04f1b3a4c74f433c2ea818bc987f
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSUpdate: no signature
+Info.plist=not bound
+TeamIdentifier=not set
+Sealed Resources=none
+Internal requirements count=1 size=124

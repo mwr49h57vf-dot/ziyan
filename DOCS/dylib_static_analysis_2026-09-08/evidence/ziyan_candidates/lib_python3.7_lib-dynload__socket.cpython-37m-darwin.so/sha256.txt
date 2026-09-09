@@ -1,0 +1,1 @@
+ffac8ab7c4ee0300f74a317e25351a1513233c3d44f0c7c2e322547f3f60f250  /Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/python3.7/lib-dynload/_socket.cpython-37m-darwin.so

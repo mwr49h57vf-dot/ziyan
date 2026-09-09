@@ -1,0 +1,14 @@
+207-Load command 10
+208:          cmd LC_LOAD_DYLIB
+209-      cmdsize 56
+210-         name /usr/lib/libbz2.1.0.dylib (offset 24)
+211-   time stamp 2 Thu Jan  1 08:00:02 1970
+212-      current version 1.0.5
+213-compatibility version 1.0.0
+214-Load command 11
+215:          cmd LC_LOAD_DYLIB
+216-      cmdsize 56
+217-         name /usr/lib/libSystem.B.dylib (offset 24)
+218-   time stamp 2 Thu Jan  1 08:00:02 1970
+219-      current version 1252.0.0
+220-compatibility version 1.0.0

@@ -1,0 +1,86 @@
+?@9)
+N9I)@
+(i*8
+@9))@
+ii8I)@
+)ij8
+OG9H
+ziyan_shm_st
+ZIYAN_SHM_SELFTEST=%s work=%s sizeof_hdr=%zu
+PASS
+FAIL
+.tmp
+.clr.%d.tmp
+.%d.tmp
+.ziyan_sb_capture_throttle
+.ziyan_sb_mem_cooldown
+until=%.0f
+until=
+[PASS] %@
+v16@?0@"NSString"8
+[FAIL] %@
+workDir empty
+test_frame_shm
+com.example.app
+write_ex ok
+write_ex
+peek meta
+map_read intact
+truncated reject
+bad_bpr write reject
+bad_payload reject
+v1 compat read
+writing reject
+com.apple.springboard
+invalidate released
+seq bump in-place
+seq bump in-place s1=%u s2=%u
+released_v1 offset40 clear
+summary fail=%d sizeof_hdr=%zu
+/usr/lib/ziyan
+rootless
+/var/jb
+v8@?0
+rootful
+/var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua
+/usr/lib/ziyan/lib/lua/ziyan_run.lua
+/var/mobile/Library/Preferences/com.ziyan.ziyan.runtime_scheme
+.ziyan_frame_shm
+defaultManager
+countByEnumeratingWithState:objects:count:
+stringWithFormat:
+stringByTrimmingCharactersInSet:
+stringWithUTF8String:
+fileSystemRepresentation
+stringByAppendingString:
+removeItemAtPath:error:
+whitespaceAndNewlineCharacterSet
+lastPathComponent
+fileExistsAtPath:
+copy
+timeIntervalSince1970
+componentsSeparatedByString:
+objectForKeyedSubscript:
+stringByAppendingPathComponent:
+numberWithInt:
+attributesOfItemAtPath:error:
+date
+UTF8String
+hasSuffix:
+contentsOfDirectoryAtPath:error:
+timeIntervalSinceNow
+writeToFile:atomically:encoding:error:
+doubleValue
+substringFromIndex:
+stringWithContentsOfFile:encoding:error:
+mutableBytes
+stringByDeletingLastPathComponent
+unsignedLongLongValue
+createDirectoryAtPath:withIntermediateDirectories:attributes:error:
+appendFormat:
+dataWithLength:
+length
+dictionaryWithObjects:forKeys:count:
+string
+isEqualToString:
+hasPrefix:

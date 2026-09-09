@@ -1,0 +1,8 @@
+target1=/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版
+target2=/Users/mac/Desktop/ZiYan_副本/ZiYan学习/逆向学习/corpus/touchsprite_helpdoc
+target1_files=178
+target2_files=37
+target1_macho=25
+target2_macho=0
+target1_archives=2
+target2_archives=0

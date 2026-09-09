@@ -1,0 +1,18 @@
+Executable=/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSLn
+Identifier=TSLn
+Format=Mach-O thin (arm64)
+CodeDirectory v=20400 size=765 flags=0x0(none) hashes=14+7 location=embedded
+Hash type=sha256 size=32
+CandidateCDHash sha256=7058156985959a9a98987e4a4fadbef0ea9a4930
+CandidateCDHashFull sha256=7058156985959a9a98987e4a4fadbef0ea9a4930a0ee404c3049c00a4fdb5a00
+Hash choices=sha256
+CMSDigest=7058156985959a9a98987e4a4fadbef0ea9a4930a0ee404c3049c00a4fdb5a00
+CMSDigestType=2
+Launch Constraints:
+	None
+CDHash=7058156985959a9a98987e4a4fadbef0ea9a4930
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSLn: no signature
+Info.plist=not bound
+TeamIdentifier=not set
+Sealed Resources=none
+Internal requirements count=1 size=120

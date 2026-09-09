@@ -1,0 +1,103 @@
+400-Load command 14
+401:          cmd LC_LOAD_DYLIB
+402-      cmdsize 56
+403-         name /usr/lib/libobjc.A.dylib (offset 24)
+404-   time stamp 2 Thu Jan  1 08:00:02 1970
+405-      current version 228.0.0
+406-compatibility version 1.0.0
+407-Load command 15
+408:          cmd LC_LOAD_DYLIB
+409-      cmdsize 88
+410-         name /System/Library/Frameworks/Foundation.framework/Foundation (offset 24)
+411-   time stamp 2 Thu Jan  1 08:00:02 1970
+412-      current version 1953.255.0
+413-compatibility version 300.0.0
+414-Load command 16
+415:          cmd LC_LOAD_DYLIB
+416-      cmdsize 96
+417-         name /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (offset 24)
+418-   time stamp 2 Thu Jan  1 08:00:02 1970
+419-      current version 1953.255.0
+420-compatibility version 150.0.0
+421-Load command 17
+422:          cmd LC_LOAD_DYLIB
+423-      cmdsize 80
+424-         name /System/Library/Frameworks/UIKit.framework/UIKit (offset 24)
+425-   time stamp 2 Thu Jan  1 08:00:02 1970
+426-      current version 6209.0.0
+427-compatibility version 1.0.0
+428-Load command 18
+429:          cmd LC_LOAD_DYLIB
+430-      cmdsize 80
+431-         name /System/Library/Frameworks/Vision.framework/Vision (offset 24)
+432-   time stamp 2 Thu Jan  1 08:00:02 1970
+433-      current version 6.0.48
+434-compatibility version 1.0.0
+435-Load command 19
+436:          cmd LC_LOAD_DYLIB
+437-      cmdsize 88
+438-         name /System/Library/Frameworks/CoreGraphics.framework/CoreGraphics (offset 24)
+439-   time stamp 2 Thu Jan  1 08:00:02 1970
+440-      current version 1690.3.1
+441-compatibility version 64.0.0
+442-Load command 20
+443:          cmd LC_LOAD_DYLIB
+444-      cmdsize 80
+445-         name /System/Library/Frameworks/ImageIO.framework/ImageIO (offset 24)
+446-   time stamp 2 Thu Jan  1 08:00:02 1970
+447-      current version 1.0.0
+448-compatibility version 1.0.0
+449-Load command 21
+450:          cmd LC_LOAD_DYLIB
+451-      cmdsize 88
+452-         name /System/Library/Frameworks/CoreImage.framework/CoreImage (offset 24)
+453-   time stamp 2 Thu Jan  1 08:00:02 1970
+454-      current version 5.0.0
+455-compatibility version 1.0.0
+456-Load command 22
+457:          cmd LC_LOAD_DYLIB
+458-      cmdsize 80
+459-         name /System/Library/Frameworks/CoreText.framework/CoreText (offset 24)
+460-   time stamp 2 Thu Jan  1 08:00:02 1970
+461-      current version 1.0.0
+462-compatibility version 1.0.0
+463-Load command 23
+464:          cmd LC_LOAD_DYLIB
+465-      cmdsize 48
+466-         name /usr/lib/libc++.1.dylib (offset 24)
+467-   time stamp 2 Thu Jan  1 08:00:02 1970
+468-      current version 1300.36.0
+469-compatibility version 1.0.0
+470-Load command 24
+471:          cmd LC_LOAD_DYLIB
+472-      cmdsize 48
+473-         name /usr/lib/libz.1.dylib (offset 24)
+474-   time stamp 2 Thu Jan  1 08:00:02 1970
+475-      current version 1.2.11
+476-compatibility version 1.0.0
+477-Load command 25
+478:          cmd LC_LOAD_DYLIB
+479-      cmdsize 56
+480-         name /usr/lib/libSystem.B.dylib (offset 24)
+481-   time stamp 2 Thu Jan  1 08:00:02 1970
+482-      current version 1319.0.0
+483-compatibility version 1.0.0
+484-Load command 26
+485:          cmd LC_RPATH
+486-      cmdsize 40
+487-         path /var/jb/Library/Frameworks (offset 12)
+488-Load command 27
+489:          cmd LC_RPATH
+490-      cmdsize 32
+491-         path /var/jb/usr/lib (offset 12)
+492-Load command 28
+493:          cmd LC_RPATH
+494-      cmdsize 56
+495-         path @loader_path/.jbroot/Library/Frameworks (offset 12)
+496-Load command 29
+497:          cmd LC_RPATH
+498-      cmdsize 48
+499-         path @loader_path/.jbroot/usr/lib (offset 12)
+500-Load command 30
+501-      cmd LC_FUNCTION_STARTS
+502-  cmdsize 16

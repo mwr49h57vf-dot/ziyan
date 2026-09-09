@@ -1,0 +1,26 @@
+65733:lib%s.dylib
+65734:%s.dylib
+74813:lua_debug> 
+75100:/tmp/lua_XXXXXX
+75104:LUA_PATH_5_2
+75105:LUA_PATH
+75108:LUA_CPATH_5_2
+75109:LUA_CPATH
+75122:LUA_NOENV
+75127:invalid option '%%%c' to 'lua_pushfstring'
+82686:/usr/lib/libjailbreak.dylib
+108060:NSt3__110__function6__funcIZN10PlayerBase7RunOnceEbE3$_1NS_9allocatorIS3_EEFbP9lua_StateRKNS_12basic_stringIcNS_11char_traitsIcEENS4_IcEEEEEEE
+108061:NSt3__110__function6__baseIFbP9lua_StateRKNS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEEEEE
+159602:NSt3__110__function6__funcIZN10PlayerBase7RunOnceEbE3$_1NS_9allocatorIS3_EEFbP9lua_StateRKNS_12basic_stringIcNS_11char_traitsIcEENS4_IcEEEEEEE
+159603:NSt3__110__function6__baseIFbP9lua_StateRKNS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEEEEE
+161973:lib%s.dylib
+161974:%s.dylib
+171031:lua_debug> 
+171318:/tmp/lua_XXXXXX
+171322:LUA_PATH_5_2
+171323:LUA_PATH
+171326:LUA_CPATH_5_2
+171327:LUA_CPATH
+171340:LUA_NOENV
+171345:invalid option '%%%c' to 'lua_pushfstring'
+178904:/usr/lib/libjailbreak.dylib

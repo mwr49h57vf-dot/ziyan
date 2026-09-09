@@ -1,0 +1,11 @@
+
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSUpdate (for architecture armv7):
+0000c380 S _NXArgc
+0000c384 S _NXArgv
+0000c38c S ___progname
+00004000 T __mh_execute_header
+0000c388 S _environ
+00009280 T start
+
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSUpdate (for architecture arm64):
+0000000100000000 T __mh_execute_header

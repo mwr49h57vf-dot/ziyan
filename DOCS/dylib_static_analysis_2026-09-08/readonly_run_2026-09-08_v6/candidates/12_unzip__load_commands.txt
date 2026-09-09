@@ -1,0 +1,10 @@
+          cmd LC_LOAD_DYLIB
+      cmdsize 52
+         name /usr/lib/libgcc_s.1.dylib (offset 24)
+   time stamp 1213336007 Fri Jun 13 13:46:47 2008
+      current version 1.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 52
+         name /usr/lib/libSystem.B.dylib (offset 24)
+   time stamp 1211709570 Sun May 25 17:59:30 2008
+      current version 111.0.10

@@ -1,0 +1,5 @@
+--- ZiYan candidate paths ---
+./.theos/_/var/jb/usr/lib/ziyan/bin/lua5.3
+./.theos/_/var/jb/usr/lib/ziyan/lib/liblua5.3.dylib
+./vendor/bin/lua5.3
+./vendor/lib/liblua5.3.dylib

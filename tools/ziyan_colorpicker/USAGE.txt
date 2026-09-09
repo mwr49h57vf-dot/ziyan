@@ -1,4 +1,4 @@
-子砚取点抓色器 v1.7.4
+子砚取点抓色器 v1.7.5
 ====================
 唯一主程序：ZiYanColorPicker.py
 色串唯一源：formats.py
@@ -12,6 +12,7 @@
   Mac:    ./run.sh
           或 python3 ZiYanColorPicker.py
   Windows: 双击 启动取色器.bat
+发给别人：只发 ZiYan.zip（里面只有 ZiYan.exe，没有源码）
 
 设备截屏（不需要 SSH）
   1. 手机子砚 framecap 监听 50005（占用则 50015）

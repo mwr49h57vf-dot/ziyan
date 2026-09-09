@@ -1,0 +1,18 @@
+Executable=/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Library/MobileSubstrate/DynamicLibraries/TSTweak.dylib
+Identifier=TSTweakNoRoot.dylib.98e901ad.unsigned
+Format=Mach-O universal (arm64e arm64)
+CodeDirectory v=20400 size=2430 flags=0x0(none) hashes=70+2 location=embedded
+Hash type=sha256 size=32
+CandidateCDHash sha256=33ff1bfa770699e9dbd8429f0bf471cddef2601b
+CandidateCDHashFull sha256=33ff1bfa770699e9dbd8429f0bf471cddef2601be6f007de86f6512bf504e134
+Hash choices=sha256
+CMSDigest=33ff1bfa770699e9dbd8429f0bf471cddef2601be6f007de86f6512bf504e134
+CMSDigestType=2
+Launch Constraints:
+	None
+CDHash=33ff1bfa770699e9dbd8429f0bf471cddef2601b
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Library/MobileSubstrate/DynamicLibraries/TSTweak.dylib: no signature
+Info.plist=not bound
+TeamIdentifier=not set
+Sealed Resources=none
+Internal requirements count=1 size=156

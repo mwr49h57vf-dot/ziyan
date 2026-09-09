@@ -1,0 +1,18 @@
+Executable=/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/bin/lua5.3
+Identifier=lua5-555549442287ea9ac16e31cabd9ef75a576ee684
+Format=Mach-O thin (arm64)
+CodeDirectory v=20400 size=614 flags=0x2(adhoc) hashes=13+2 location=embedded
+Hash type=sha256 size=32
+CandidateCDHash sha256=11cd30527b6d028b965398c6e9c0286d8bd7d483
+CandidateCDHashFull sha256=11cd30527b6d028b965398c6e9c0286d8bd7d483ef231c07fa805e5cceb14bcb
+Hash choices=sha256
+CMSDigest=11cd30527b6d028b965398c6e9c0286d8bd7d483ef231c07fa805e5cceb14bcb
+CMSDigestType=2
+Launch Constraints:
+	None
+CDHash=11cd30527b6d028b965398c6e9c0286d8bd7d483
+Signature=adhoc
+Info.plist=not bound
+TeamIdentifier=not set
+Sealed Resources=none
+Internal requirements count=0 size=12

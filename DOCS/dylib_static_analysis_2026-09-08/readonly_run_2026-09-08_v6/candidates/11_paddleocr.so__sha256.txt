@@ -1,0 +1,1 @@
+c2e9f6e65741e79f379515027f2adfeee0b6f2a3e2ed4b475c4e2e17c158665c  /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/paddleocr.so

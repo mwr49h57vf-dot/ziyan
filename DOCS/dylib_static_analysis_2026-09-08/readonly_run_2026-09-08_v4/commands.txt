@@ -1,0 +1,9 @@
+python3 tools/ziyan_codex_checkpoint.py show
+git status --short
+find target1 -type f -print | sort
+find target2 -type f -print | sort
+file each target file
+tar -tzvf each target archive
+lipo -info, otool -L, otool -l, otool -D, nm -gU, strings, shasum -a 256, stat for each Mach-O
+rg requested tokens and config/script path search
+find ZiYan-owned candidates; cmp vendor and staged exact candidates

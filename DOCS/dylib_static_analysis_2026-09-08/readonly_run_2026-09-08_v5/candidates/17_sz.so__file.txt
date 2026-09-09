@@ -1,0 +1,3 @@
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/sz.so: Mach-O universal binary with 2 architectures: [arm_v7:Mach-O bundle arm_v7] [arm64:Mach-O 64-bit bundle arm64]
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/sz.so (for architecture armv7):	Mach-O bundle arm_v7
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/sz.so (for architecture arm64):	Mach-O 64-bit bundle arm64

@@ -91,4 +91,18 @@ BOOL ZiYanFrameCapturePublishPixels(NSMutableData *pixels, size_t w, size_t h,
                                     uint8_t pixFmt, uint32_t frontHash,
                                     NSString *_Nullable *_Nullable outErr);
 
+/// BIZ05/BIZ06：最近一次 createScreenIOSurface 的墙钟（ms）。复用路径为 0。
+/// destLockMs = Transfer 之后、换色之前的 IOSurfaceLock(dst)。
+void ZiYanFrameCaptureLastCapStages(double *createMs, double *xferMs,
+                                    double *copyMs, double *destLockMs);
+
+/// BIZ09：系统源面 IOSurfaceLock(src) 墙钟（ms）。复用路径为 0。
+double ZiYanFrameCaptureLastSrcLockMs(void);
+
+/// BIZ10：系统源面 CFRelease 墙钟（ms）。仍立即释放，只记账。
+double ZiYanFrameCaptureLastReleaseMs(void);
+
+/// BIZ11：整笔 PublishPixels 墙钟（ms），包含既有 ResidentRenew。复用路径为 0。
+double ZiYanFrameCaptureLastPublishMs(void);
+
 NS_ASSUME_NONNULL_END

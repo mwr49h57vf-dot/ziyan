@@ -1,0 +1,346 @@
+
+[/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/bin/lua5.3]
+file/arch/hash:
+/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/bin/lua5.3: Mach-O 64-bit executable arm64
+Non-fat file: /Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/bin/lua5.3 is architecture: arm64
+perl: warning: Setting locale failed.
+perl: warning: Please check that your locale settings:
+	LC_ALL = "C.UTF-8",
+	LC_CTYPE = "C.UTF-8",
+	LC_NUMERIC = (unset),
+	LC_COLLATE = (unset),
+	LC_TIME = (unset),
+	LC_MESSAGES = (unset),
+	LC_MONETARY = (unset),
+	LANG = "C.UTF-8"
+    are supported and installed on your system.
+perl: warning: Falling back to the standard locale ("C").
+7f73822f9fb7461e1b0e7b73911ba05210e070a19a4f51504b527f41e6fa049e  /Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/bin/lua5.3
+deps:
+	/usr/lib/ziyan/lib/liblua5.3.dylib (compatibility version 5.3.0, current version 5.3.5)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1252.0.0)
+	/usr/lib/ziyan/lib/libreadline.8.dylib (compatibility version 8.0.0, current version 8.0.0)
+load commands:
+214:         name /usr/lib/dyld (offset 12)
+215-Load command 8
+216-     cmd LC_UUID
+217- cmdsize 24
+218-    uuid 2287EA9A-C16E-31CA-BD9E-F75A576EE684
+--
+241:          cmd LC_LOAD_DYLIB
+242-      cmdsize 64
+243:         name /usr/lib/ziyan/lib/liblua5.3.dylib (offset 24)
+244-   time stamp 2 Thu Jan  1 08:00:02 1970
+245-      current version 5.3.5
+246-compatibility version 5.3.0
+247-Load command 14
+248:          cmd LC_LOAD_DYLIB
+249-      cmdsize 56
+250:         name /usr/lib/libSystem.B.dylib (offset 24)
+251-   time stamp 2 Thu Jan  1 08:00:02 1970
+252-      current version 1252.0.0
+253-compatibility version 1.0.0
+254-Load command 15
+255:          cmd LC_LOAD_DYLIB
+256-      cmdsize 64
+257:         name /usr/lib/ziyan/lib/libreadline.8.dylib (offset 24)
+258-   time stamp 2 Thu Jan  1 08:00:02 1970
+259-      current version 8.0.0
+260-compatibility version 8.0.0
+261-Load command 16
+--
+277:          cmd LC_RPATH
+278-      cmdsize 32
+279:         path /usr/lib/ziyan/lib (offset 12)
+lua exports:
+
+[/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/liblua5.3.dylib]
+file/arch/hash:
+/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/liblua5.3.dylib: Mach-O 64-bit dynamically linked shared library arm64
+Non-fat file: /Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/liblua5.3.dylib is architecture: arm64
+perl: warning: Setting locale failed.
+perl: warning: Please check that your locale settings:
+	LC_ALL = "C.UTF-8",
+	LC_CTYPE = "C.UTF-8",
+	LC_NUMERIC = (unset),
+	LC_COLLATE = (unset),
+	LC_TIME = (unset),
+	LC_MESSAGES = (unset),
+	LC_MONETARY = (unset),
+	LANG = "C.UTF-8"
+    are supported and installed on your system.
+perl: warning: Falling back to the standard locale ("C").
+51ca786549e916d89a4b1264b1398c5abbe516dc3a501fc326ea4bb3f3003ae5  /Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/liblua5.3.dylib
+deps:
+	/usr/lib/ziyan/lib/liblua5.3.dylib (compatibility version 5.3.0, current version 5.3.5)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1252.0.0)
+load commands:
+147:          cmd LC_ID_DYLIB
+148-      cmdsize 64
+149:         name /usr/lib/ziyan/lib/liblua5.3.dylib (offset 24)
+150-   time stamp 1 Thu Jan  1 08:00:01 1970
+151-      current version 5.3.5
+152-compatibility version 5.3.0
+153-Load command 4
+--
+220:          cmd LC_LOAD_DYLIB
+221-      cmdsize 56
+222:         name /usr/lib/libSystem.B.dylib (offset 24)
+223-   time stamp 2 Thu Jan  1 08:00:02 1970
+224-      current version 1252.0.0
+225-compatibility version 1.0.0
+226-Load command 13
+lua exports:
+000000000000ed5c T _luaC_barrier_
+000000000000ef28 T _luaC_barrierback_
+000000000000f01c T _luaC_checkfinalizer
+000000000000ef74 T _luaC_fix
+000000000000f0f4 T _luaC_freeallobjects
+000000000000fbf0 T _luaC_fullgc
+000000000000ef9c T _luaC_newobj
+000000000000f408 T _luaC_runtilstate
+000000000000fa84 T _luaC_step
+000000000000ef48 T _luaC_upvalbarrier_
+000000000000efec T _luaC_upvdeccount
+000000000000d788 T _luaD_call
+000000000000d808 T _luaD_callnoyield
+000000000000cc54 T _luaD_growstack
+000000000000cde0 T _luaD_hook
+000000000000cd98 T _luaD_inctop
+000000000000ddd4 T _luaD_pcall
+000000000000cee0 T _luaD_poscall
+000000000000d15c T _luaD_precall
+000000000000debc T _luaD_protectedparser
+000000000000caa8 T _luaD_rawrunprotected
+000000000000cb24 T _luaD_reallocstack
+000000000000ccd8 T _luaD_shrinkstack
+000000000000c9c0 T _luaD_throw
+0000000000017e0c T _luaE_extendCI
+0000000000017e50 T _luaE_freeCI
+0000000000018108 T _luaE_freethread
+0000000000017de8 T _luaE_setdebt
+0000000000017ea4 T _luaE_shrinkCI
+000000000000eb70 T _luaF_close
+000000000000ead0 T _luaF_findupval
+000000000000ec44 T _luaF_freeproto
+000000000000ed00 T _luaF_getlocalname
+000000000000ea58 T _luaF_initupvals
+000000000000e9c0 T _luaF_newCclosure
+000000000000e9f4 T _luaF_newLclosure
+000000000000ebf8 T _luaF_newproto
+000000000000c320 T _luaG_addinfo
+000000000000c1bc T _luaG_concaterror
+000000000000c3bc T _luaG_errormsg
+000000000000c1e4 T _luaG_opinterror
+000000000000c2b4 T _luaG_ordererror
+000000000000bfd4 T _luaG_runerror
+000000000000c244 T _luaG_tointerror
+000000000000c418 T _luaG_traceexec
+000000000000bf88 T _luaG_typeerror
+0000000000019354 T _luaH_free
+0000000000019b3c T _luaH_get
+00000000000199a8 T _luaH_getint
+0000000000019d70 T _luaH_getn
+0000000000019a18 T _luaH_getshortstr
+0000000000019a70 T _luaH_getstr
+000000000001921c T _luaH_new
+00000000000193c4 T _luaH_newkey
+0000000000018c28 T _luaH_next
+0000000000018db4 T _luaH_resize
+00000000000191fc T _luaH_resizearray
+0000000000019198 T _luaH_set
+00000000000190e0 T _luaH_setint
+0000000000009390 T _luaK_checkstack
+0000000000008d5c T _luaK_codeABC
+0000000000008eb4 T _luaK_codeABx
+000000000000931c T _luaK_codek
+0000000000008d6c T _luaK_concat
+000000000000975c T _luaK_dischargevars
+0000000000009f5c T _luaK_exp2RK
+0000000000009db8 T _luaK_exp2anyreg
+0000000000009e2c T _luaK_exp2anyregup
+0000000000009884 T _luaK_exp2nextreg
+0000000000009ec0 T _luaK_exp2val
+000000000000b358 T _luaK_fixline
+0000000000008ed8 T _luaK_getlabel
+000000000000a644 T _luaK_goiffalse
+000000000000a364 T _luaK_goiftrue
+000000000000a7ac T _luaK_indexed
+000000000000ad58 T _luaK_infix
+0000000000009608 T _luaK_intK
+0000000000008dfc T _luaK_jump
+0000000000008cbc T _luaK_nil
+0000000000009108 T _luaK_patchclose
+
+[/Users/mac/Desktop/ZiYan_副本/vendor/bin/lua5.3]
+file/arch/hash:
+/Users/mac/Desktop/ZiYan_副本/vendor/bin/lua5.3: Mach-O 64-bit executable arm64
+Non-fat file: /Users/mac/Desktop/ZiYan_副本/vendor/bin/lua5.3 is architecture: arm64
+perl: warning: Setting locale failed.
+perl: warning: Please check that your locale settings:
+	LC_ALL = "C.UTF-8",
+	LC_CTYPE = "C.UTF-8",
+	LC_NUMERIC = (unset),
+	LC_COLLATE = (unset),
+	LC_TIME = (unset),
+	LC_MESSAGES = (unset),
+	LC_MONETARY = (unset),
+	LANG = "C.UTF-8"
+    are supported and installed on your system.
+perl: warning: Falling back to the standard locale ("C").
+7f73822f9fb7461e1b0e7b73911ba05210e070a19a4f51504b527f41e6fa049e  /Users/mac/Desktop/ZiYan_副本/vendor/bin/lua5.3
+deps:
+	/usr/lib/ziyan/lib/liblua5.3.dylib (compatibility version 5.3.0, current version 5.3.5)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1252.0.0)
+	/usr/lib/ziyan/lib/libreadline.8.dylib (compatibility version 8.0.0, current version 8.0.0)
+load commands:
+214:         name /usr/lib/dyld (offset 12)
+215-Load command 8
+216-     cmd LC_UUID
+217- cmdsize 24
+218-    uuid 2287EA9A-C16E-31CA-BD9E-F75A576EE684
+--
+241:          cmd LC_LOAD_DYLIB
+242-      cmdsize 64
+243:         name /usr/lib/ziyan/lib/liblua5.3.dylib (offset 24)
+244-   time stamp 2 Thu Jan  1 08:00:02 1970
+245-      current version 5.3.5
+246-compatibility version 5.3.0
+247-Load command 14
+248:          cmd LC_LOAD_DYLIB
+249-      cmdsize 56
+250:         name /usr/lib/libSystem.B.dylib (offset 24)
+251-   time stamp 2 Thu Jan  1 08:00:02 1970
+252-      current version 1252.0.0
+253-compatibility version 1.0.0
+254-Load command 15
+255:          cmd LC_LOAD_DYLIB
+256-      cmdsize 64
+257:         name /usr/lib/ziyan/lib/libreadline.8.dylib (offset 24)
+258-   time stamp 2 Thu Jan  1 08:00:02 1970
+259-      current version 8.0.0
+260-compatibility version 8.0.0
+261-Load command 16
+--
+277:          cmd LC_RPATH
+278-      cmdsize 32
+279:         path /usr/lib/ziyan/lib (offset 12)
+lua exports:
+
+[/Users/mac/Desktop/ZiYan_副本/vendor/lib/liblua5.3.dylib]
+file/arch/hash:
+/Users/mac/Desktop/ZiYan_副本/vendor/lib/liblua5.3.dylib: Mach-O 64-bit dynamically linked shared library arm64
+Non-fat file: /Users/mac/Desktop/ZiYan_副本/vendor/lib/liblua5.3.dylib is architecture: arm64
+perl: warning: Setting locale failed.
+perl: warning: Please check that your locale settings:
+	LC_ALL = "C.UTF-8",
+	LC_CTYPE = "C.UTF-8",
+	LC_NUMERIC = (unset),
+	LC_COLLATE = (unset),
+	LC_TIME = (unset),
+	LC_MESSAGES = (unset),
+	LC_MONETARY = (unset),
+	LANG = "C.UTF-8"
+    are supported and installed on your system.
+perl: warning: Falling back to the standard locale ("C").
+51ca786549e916d89a4b1264b1398c5abbe516dc3a501fc326ea4bb3f3003ae5  /Users/mac/Desktop/ZiYan_副本/vendor/lib/liblua5.3.dylib
+deps:
+	/usr/lib/ziyan/lib/liblua5.3.dylib (compatibility version 5.3.0, current version 5.3.5)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1252.0.0)
+load commands:
+147:          cmd LC_ID_DYLIB
+148-      cmdsize 64
+149:         name /usr/lib/ziyan/lib/liblua5.3.dylib (offset 24)
+150-   time stamp 1 Thu Jan  1 08:00:01 1970
+151-      current version 5.3.5
+152-compatibility version 5.3.0
+153-Load command 4
+--
+220:          cmd LC_LOAD_DYLIB
+221-      cmdsize 56
+222:         name /usr/lib/libSystem.B.dylib (offset 24)
+223-   time stamp 2 Thu Jan  1 08:00:02 1970
+224-      current version 1252.0.0
+225-compatibility version 1.0.0
+226-Load command 13
+lua exports:
+000000000000ed5c T _luaC_barrier_
+000000000000ef28 T _luaC_barrierback_
+000000000000f01c T _luaC_checkfinalizer
+000000000000ef74 T _luaC_fix
+000000000000f0f4 T _luaC_freeallobjects
+000000000000fbf0 T _luaC_fullgc
+000000000000ef9c T _luaC_newobj
+000000000000f408 T _luaC_runtilstate
+000000000000fa84 T _luaC_step
+000000000000ef48 T _luaC_upvalbarrier_
+000000000000efec T _luaC_upvdeccount
+000000000000d788 T _luaD_call
+000000000000d808 T _luaD_callnoyield
+000000000000cc54 T _luaD_growstack
+000000000000cde0 T _luaD_hook
+000000000000cd98 T _luaD_inctop
+000000000000ddd4 T _luaD_pcall
+000000000000cee0 T _luaD_poscall
+000000000000d15c T _luaD_precall
+000000000000debc T _luaD_protectedparser
+000000000000caa8 T _luaD_rawrunprotected
+000000000000cb24 T _luaD_reallocstack
+000000000000ccd8 T _luaD_shrinkstack
+000000000000c9c0 T _luaD_throw
+0000000000017e0c T _luaE_extendCI
+0000000000017e50 T _luaE_freeCI
+0000000000018108 T _luaE_freethread
+0000000000017de8 T _luaE_setdebt
+0000000000017ea4 T _luaE_shrinkCI
+000000000000eb70 T _luaF_close
+000000000000ead0 T _luaF_findupval
+000000000000ec44 T _luaF_freeproto
+000000000000ed00 T _luaF_getlocalname
+000000000000ea58 T _luaF_initupvals
+000000000000e9c0 T _luaF_newCclosure
+000000000000e9f4 T _luaF_newLclosure
+000000000000ebf8 T _luaF_newproto
+000000000000c320 T _luaG_addinfo
+000000000000c1bc T _luaG_concaterror
+000000000000c3bc T _luaG_errormsg
+000000000000c1e4 T _luaG_opinterror
+000000000000c2b4 T _luaG_ordererror
+000000000000bfd4 T _luaG_runerror
+000000000000c244 T _luaG_tointerror
+000000000000c418 T _luaG_traceexec
+000000000000bf88 T _luaG_typeerror
+0000000000019354 T _luaH_free
+0000000000019b3c T _luaH_get
+00000000000199a8 T _luaH_getint
+0000000000019d70 T _luaH_getn
+0000000000019a18 T _luaH_getshortstr
+0000000000019a70 T _luaH_getstr
+000000000001921c T _luaH_new
+00000000000193c4 T _luaH_newkey
+0000000000018c28 T _luaH_next
+0000000000018db4 T _luaH_resize
+00000000000191fc T _luaH_resizearray
+0000000000019198 T _luaH_set
+00000000000190e0 T _luaH_setint
+0000000000009390 T _luaK_checkstack
+0000000000008d5c T _luaK_codeABC
+0000000000008eb4 T _luaK_codeABx
+000000000000931c T _luaK_codek
+0000000000008d6c T _luaK_concat
+000000000000975c T _luaK_dischargevars
+0000000000009f5c T _luaK_exp2RK
+0000000000009db8 T _luaK_exp2anyreg
+0000000000009e2c T _luaK_exp2anyregup
+0000000000009884 T _luaK_exp2nextreg
+0000000000009ec0 T _luaK_exp2val
+000000000000b358 T _luaK_fixline
+0000000000008ed8 T _luaK_getlabel
+000000000000a644 T _luaK_goiffalse
+000000000000a364 T _luaK_goiftrue
+000000000000a7ac T _luaK_indexed
+000000000000ad58 T _luaK_infix
+0000000000009608 T _luaK_intK
+0000000000008dfc T _luaK_jump
+0000000000008cbc T _luaK_nil
+0000000000009108 T _luaK_patchclose

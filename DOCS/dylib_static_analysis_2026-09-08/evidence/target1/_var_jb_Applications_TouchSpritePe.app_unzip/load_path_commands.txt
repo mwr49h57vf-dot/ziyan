@@ -1,0 +1,14 @@
+222-Load command 6
+223:          cmd LC_LOAD_DYLIB
+224-      cmdsize 52
+225-         name /usr/lib/libgcc_s.1.dylib (offset 24)
+226-   time stamp 1213336007 Fri Jun 13 13:46:47 2008
+227-      current version 1.0.0
+228-compatibility version 1.0.0
+229-Load command 7
+230:          cmd LC_LOAD_DYLIB
+231-      cmdsize 52
+232-         name /usr/lib/libSystem.B.dylib (offset 24)
+233-   time stamp 1211709570 Sun May 25 17:59:30 2008
+234-      current version 111.0.10
+235-compatibility version 1.0.0

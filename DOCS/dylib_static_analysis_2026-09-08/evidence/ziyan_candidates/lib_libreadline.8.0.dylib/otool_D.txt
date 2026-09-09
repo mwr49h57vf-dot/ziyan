@@ -1,0 +1,2 @@
+/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/libreadline.8.0.dylib:
+/usr/lib/ziyan/lib/libreadline.8.0.dylib

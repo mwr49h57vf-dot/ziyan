@@ -1,0 +1,120 @@
+===== vendor/bin/lua5.3 =====
+vendor/bin/lua5.3: Mach-O 64-bit executable arm64
+Non-fat file: vendor/bin/lua5.3 is architecture: arm64
+7f73822f9fb7461e1b0e7b73911ba05210e070a19a4f51504b527f41e6fa049e  vendor/bin/lua5.3
+vendor/bin/lua5.3:
+          cmd LC_LOAD_DYLIB
+      cmdsize 64
+         name /usr/lib/ziyan/lib/liblua5.3.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 5.3.5
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libSystem.B.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1252.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 64
+         name /usr/lib/ziyan/lib/libreadline.8.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 8.0.0
+          cmd LC_RPATH
+      cmdsize 32
+         path /usr/lib/ziyan/lib (offset 12)
+===== vendor/lib/liblua5.3.dylib =====
+vendor/lib/liblua5.3.dylib: Mach-O 64-bit dynamically linked shared library arm64
+Non-fat file: vendor/lib/liblua5.3.dylib is architecture: arm64
+51ca786549e916d89a4b1264b1398c5abbe516dc3a501fc326ea4bb3f3003ae5  vendor/lib/liblua5.3.dylib
+vendor/lib/liblua5.3.dylib:
+/usr/lib/ziyan/lib/liblua5.3.dylib
+          cmd LC_ID_DYLIB
+      cmdsize 64
+         name /usr/lib/ziyan/lib/liblua5.3.dylib (offset 24)
+   time stamp 1 Thu Jan  1 08:00:01 1970
+      current version 5.3.5
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libSystem.B.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1252.0.0
+===== vendor/lib/libreadline.8.0.dylib =====
+vendor/lib/libreadline.8.0.dylib: Mach-O 64-bit dynamically linked shared library arm64
+Non-fat file: vendor/lib/libreadline.8.0.dylib is architecture: arm64
+e7e5375f077da88f6165313175b6ba51b4db81f77fc7763fe1ca3ddf1e1e8560  vendor/lib/libreadline.8.0.dylib
+vendor/lib/libreadline.8.0.dylib:
+/usr/lib/ziyan/lib/libreadline.8.0.dylib
+          cmd LC_ID_DYLIB
+      cmdsize 72
+         name /usr/lib/ziyan/lib/libreadline.8.0.dylib (offset 24)
+   time stamp 1 Thu Jan  1 08:00:01 1970
+      current version 8.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libncurses.6.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 6.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libSystem.B.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1252.0.0
+===== .theos/_/var/jb/usr/lib/ziyan/bin/lua5.3 =====
+.theos/_/var/jb/usr/lib/ziyan/bin/lua5.3: Mach-O 64-bit executable arm64
+Non-fat file: .theos/_/var/jb/usr/lib/ziyan/bin/lua5.3 is architecture: arm64
+7f73822f9fb7461e1b0e7b73911ba05210e070a19a4f51504b527f41e6fa049e  .theos/_/var/jb/usr/lib/ziyan/bin/lua5.3
+.theos/_/var/jb/usr/lib/ziyan/bin/lua5.3:
+          cmd LC_LOAD_DYLIB
+      cmdsize 64
+         name /usr/lib/ziyan/lib/liblua5.3.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 5.3.5
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libSystem.B.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1252.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 64
+         name /usr/lib/ziyan/lib/libreadline.8.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 8.0.0
+          cmd LC_RPATH
+      cmdsize 32
+         path /usr/lib/ziyan/lib (offset 12)
+===== .theos/_/var/jb/usr/lib/ziyan/lib/liblua5.3.dylib =====
+.theos/_/var/jb/usr/lib/ziyan/lib/liblua5.3.dylib: Mach-O 64-bit dynamically linked shared library arm64
+Non-fat file: .theos/_/var/jb/usr/lib/ziyan/lib/liblua5.3.dylib is architecture: arm64
+51ca786549e916d89a4b1264b1398c5abbe516dc3a501fc326ea4bb3f3003ae5  .theos/_/var/jb/usr/lib/ziyan/lib/liblua5.3.dylib
+.theos/_/var/jb/usr/lib/ziyan/lib/liblua5.3.dylib:
+/usr/lib/ziyan/lib/liblua5.3.dylib
+          cmd LC_ID_DYLIB
+      cmdsize 64
+         name /usr/lib/ziyan/lib/liblua5.3.dylib (offset 24)
+   time stamp 1 Thu Jan  1 08:00:01 1970
+      current version 5.3.5
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libSystem.B.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1252.0.0
+===== .theos/_/var/jb/usr/lib/ziyan/lib/libreadline.8.0.dylib =====
+.theos/_/var/jb/usr/lib/ziyan/lib/libreadline.8.0.dylib: Mach-O 64-bit dynamically linked shared library arm64
+Non-fat file: .theos/_/var/jb/usr/lib/ziyan/lib/libreadline.8.0.dylib is architecture: arm64
+e7e5375f077da88f6165313175b6ba51b4db81f77fc7763fe1ca3ddf1e1e8560  .theos/_/var/jb/usr/lib/ziyan/lib/libreadline.8.0.dylib
+.theos/_/var/jb/usr/lib/ziyan/lib/libreadline.8.0.dylib:
+/usr/lib/ziyan/lib/libreadline.8.0.dylib
+          cmd LC_ID_DYLIB
+      cmdsize 72
+         name /usr/lib/ziyan/lib/libreadline.8.0.dylib (offset 24)
+   time stamp 1 Thu Jan  1 08:00:01 1970
+      current version 8.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libncurses.6.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 6.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libSystem.B.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1252.0.0

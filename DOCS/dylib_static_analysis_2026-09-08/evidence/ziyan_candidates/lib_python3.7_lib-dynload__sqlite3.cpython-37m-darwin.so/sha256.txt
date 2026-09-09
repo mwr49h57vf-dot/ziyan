@@ -1,0 +1,1 @@
+b27d8f825323a7be830de3b19ea3a5f01c91dfa2fef8fee13d57ee9ca150ff8a  /Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/python3.7/lib-dynload/_sqlite3.cpython-37m-darwin.so

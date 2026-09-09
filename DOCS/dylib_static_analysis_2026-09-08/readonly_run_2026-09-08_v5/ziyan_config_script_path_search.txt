@@ -1,0 +1,2803 @@
+4:    "/usr/lib/ziyan/lib/lua/agent/Core/agent_runtime.lua",
+5:    "/var/jb/usr/lib/ziyan/lib/lua/agent/Core/agent_runtime.lua",
+12:    "/var/jb/usr/lib/ziyan/lib/lua",
+13:    "/usr/lib/ziyan/lib/lua",
+22:  return "/usr/lib/ziyan/lib/lua"
+5:  -- 先加载与当前 runner 同目录的 helper。rootful 设备可能残留
+6:  -- `/var/jb/usr/lib/ziyan`，若固定 rootless-first，会把本次 rootful 会话
+20:    "/var/jb/usr/lib/ziyan/lib/lua/ziyan_paths.lua",
+21:    "/usr/lib/ziyan/lib/lua/ziyan_paths.lua",
+35:      return (io.open("/var/jb/usr/lib/ziyan/bin/lua5.3", "r") and "/var/jb/usr/lib/ziyan")
+36:        or "/usr/lib/ziyan"
+39:      return (self or {})._r and (self._r .. "/var") or "/usr/lib/ziyan/var"
+42:      local r = (io.open("/var/jb/usr/lib/ziyan/bin/lua5.3", "r") and "/var/jb/usr/lib/ziyan")
+43:        or "/usr/lib/ziyan"
+59:-- 8-156：rootless 真实 sleep（禁 busy-wait 抢 CPU / 胀 os.clock）
+106:-- USB rootless：libc system() 依赖 /bin/sh（不存在）→ os.execute 全失败；用 clock busy-wait
+107:-- LAN rootful：优先真实 sleep，省 CPU
+304:-- R8.1：Lua5.3 无 os.getpid → 子 shell 的 $PPID 即本进程
+442:      .. '"rootless":%s,"progress":"%s","reason":"%s"}\n',
+457:  -- rootless：预写重越狱提示（冷启后文件仍在，人工重激活后读 resume_ready）
+460:      "ts=%s\nscheme=rootless\nneed=manual_rejailbreak_after_cold_boot\n"
+11:  return io.open("/var/jb/usr/lib/ziyan/var", "r") and "/var/jb/usr/lib/ziyan/var"
+12:      or "/usr/lib/ziyan/var"
+8:  return _G.ZIYAN_VAR or "/usr/lib/ziyan/var"
+11:  local f = io.open("/var/jb/usr/lib/ziyan/var", "r")
+14:    return "/var/jb/usr/lib/ziyan/var"
+16:  return "/usr/lib/ziyan/var"
+17:  return _G.ZIYAN_VAR or (io.open("/var/jb/usr/lib/ziyan/var", "r") and "/var/jb/usr/lib/ziyan/var" or "/usr/lib/ziyan/var")
+23:VAR=/usr/lib/ziyan/var
+24:[ -d /var/jb/usr/lib/ziyan/var ] && VAR=/var/jb/usr/lib/ziyan/var
+22:if [ "$SCHEME" = rootless ]; then
+23:  V=/var/jb/usr/lib/ziyan/var
+25:  V=/usr/lib/ziyan/var
+185:  all) run_one 53 192.168.31.53 rootless; run_one 112 192.168.31.112 rootful; run_one 166 192.168.31.166 rootful ;;
+186:  53) run_one 53 192.168.31.53 rootless ;;
+187:  112) run_one 112 192.168.31.112 rootful ;;
+188:  166) run_one 166 192.168.31.166 rootful ;;
+31:if [ "$SCHEME" = rootless ]; then
+32:  VAR=/var/jb/usr/lib/ziyan/var
+33:  export PATH=/var/jb/usr/lib/ziyan/bin:/var/jb/bin:$PATH
+34:  export DYLD_LIBRARY_PATH=/var/jb/usr/lib/ziyan/lib:/var/jb/usr/lib
+36:  VAR=/usr/lib/ziyan/var
+37:  export PATH=/usr/lib/ziyan/bin:/bin:$PATH
+77:cold_clean 53 192.168.31.53 rootless &
+78:cold_clean 101 192.168.31.101 rootful &
+79:cold_clean 112 192.168.31.112 rootful &
+80:cold_clean 166 192.168.31.166 rootful &
+184:  if [[ "$scheme" == rootless ]]; then
+185:    VAR=/var/jb/usr/lib/ziyan/var
+186:    LUA=/var/jb/usr/lib/ziyan/bin/lua5.3
+187:    RUN=/var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua
+188:    LUALIB=/var/jb/usr/lib/ziyan/lib/lua
+190:    VAR=/usr/lib/ziyan/var
+191:    LUA=/usr/lib/ziyan/bin/lua5.3
+192:    RUN=/usr/lib/ziyan/lib/lua/ziyan_run.lua
+193:    LUALIB=/usr/lib/ziyan/lib/lua
+202:if [ "$SCHEME" = rootless ]; then
+203:  export DYLD_LIBRARY_PATH=/var/jb/usr/lib/ziyan/lib:/var/jb/usr/lib
+204:  export PATH=/var/jb/usr/lib/ziyan/bin:/var/jb/bin:$PATH
+243:launch_one 53 192.168.31.53 rootless ios8p.lua &
+244:launch_one 101 192.168.31.101 rootful ios7.lua &
+245:launch_one 112 192.168.31.112 rootful ios7.lua &
+246:launch_one 166 192.168.31.166 rootful ios7.lua &
+254:VAR=/usr/lib/ziyan/var
+275:  /usr/lib/ziyan/bin/lua5.3 -e "
+276:package.path='/usr/lib/ziyan/lib/lua/?.lua;/usr/lib/ziyan/lib/lua/?/init.lua;/usr/lib/ziyan/lib/lua/modules/?.lua;'..package.path
+277:_G.ZIYAN_VAR='$VAR'; _G.ZIYAN_LUA='/usr/lib/ziyan/lib/lua'
+285:    nohup /usr/lib/ziyan/bin/lua5.3 /usr/lib/ziyan/lib/lua/ziyan_run.lua /var/mobile/Media/ZiYan/ios7.lua >/tmp/ios7_cold.log 2>&1 </dev/null &
+300:if [ "$SCHEME" = rootless ]; then
+301:  VAR=/var/jb/usr/lib/ziyan/var
+303:  VAR=/usr/lib/ziyan/var
+353:sample_zy 53 192.168.31.53 rootless &
+354:sample_zy 101 192.168.31.101 rootful &
+355:sample_zy 112 192.168.31.112 rootful &
+356:sample_zy 166 192.168.31.166 rootful &
+7:OUT=/usr/lib/ziyan/var/.ziyan_res_interop_test.txt
+11:LUA=/usr/lib/ziyan/bin/lua5.3
+12:PY=/usr/lib/ziyan/bin/python3
+13:RUN=/usr/lib/ziyan/lib/lua/ziyan_run.lua
+19:test -f /usr/lib/ziyan/bin/ziyan_cv/ziyan_res.py
+20:test -f /usr/lib/ziyan/bin/ziyan_cv/py_boot.py
+21:test -f /usr/lib/ziyan/lib/lua/ziyan_res_bridge.lua
+22:test -f /usr/lib/ziyan/lib/lua/ziyan_engine/res_interop.lua
+30:package.path="/usr/lib/ziyan/lib/lua/?.lua;/usr/lib/ziyan/lib/lua/?/init.lua;/usr/lib/ziyan/lib/lua/ziyan_engine/?.lua;/private/var/mobile/Media/ZiYan/ZYCV/res/?.lua"
+31:dofile("/usr/lib/ziyan/lib/lua/ziyan_te_boot.lua")
+41:PYTHONPATH="/usr/lib/ziyan/bin/ziyan_cv:/usr/lib/ziyan/bin:/private/var/mobile/Media/ZiYan/ZYCV/res" \
+42:  \$PY /usr/lib/ziyan/bin/ziyan_cv/py_boot.py "\$RES/demo_from_py.py"
+25:  return _G.ZIYAN_VAR or "/usr/lib/ziyan/var"
+87:    local var = (Zy and Zy.File and Zy.File.varDir()) or (_G.ZIYAN_VAR or "/usr/lib/ziyan/var")
+59:if [ -d /var/jb/usr/lib/ziyan/var ]; then
+60:  V=/var/jb/usr/lib/ziyan/var
+62:  V=/usr/lib/ziyan/var
+367:        _v=/var/jb/usr/lib/ziyan/var
+369:        _v=/usr/lib/ziyan/var
+31:if [ "$SCHEME" = rootless ]; then
+32:  VAR=/var/jb/usr/lib/ziyan/var
+35:  VAR=/usr/lib/ziyan/var
+58:launch_one 53 192.168.31.53 rootless ios8p.lua &
+59:launch_one 101 192.168.31.101 rootful ios7.lua &
+60:launch_one 112 192.168.31.112 rootful ios7.lua &
+61:launch_one 166 192.168.31.166 rootful ios7.lua &
+70:if [ "$SCHEME" = rootless ]; then
+71:  VAR=/var/jb/usr/lib/ziyan/var
+73:  VAR=/usr/lib/ziyan/var
+105:sample_one 53 192.168.31.53 rootless &
+106:sample_one 101 192.168.31.101 rootful &
+107:sample_one 112 192.168.31.112 rootful &
+108:sample_one 166 192.168.31.166 rootful &
+41:if [ "$SCHEME" = rootless ]; then
+42:  VAR=/var/jb/usr/lib/ziyan/var
+43:  BIN=/var/jb/usr/lib/ziyan/bin
+45:  VAR=/usr/lib/ziyan/var
+46:  BIN=/usr/lib/ziyan/bin
+253:    run_one 53 192.168.31.53 rootless ios8p.lua com.ljzbbadao.game 'xqhyios://'
+254:    run_one 101 192.168.31.101 rootful ios7.lua com.xztl.ios 'xztl://'
+255:    run_one 112 192.168.31.112 rootful ios7.lua com.xztl.ios 'xztl://'
+256:    run_one 166 192.168.31.166 rootful ios7.lua com.xztl.ios 'xztl://'
+258:  53) run_one 53 192.168.31.53 rootless ios8p.lua com.ljzbbadao.game 'xqhyios://' ;;
+259:  101) run_one 101 192.168.31.101 rootful ios7.lua com.xztl.ios 'xztl://' ;;
+260:  112) run_one 112 192.168.31.112 rootful ios7.lua com.xztl.ios 'xztl://' ;;
+261:  166) run_one 166 192.168.31.166 rootful ios7.lua com.xztl.ios 'xztl://' ;;
+83:  if io.open("/var/jb/usr/lib/ziyan/var", "r") then
+84:    return "/var/jb/usr/lib/ziyan/var"
+86:  return "/usr/lib/ziyan/var"
+561:      local f = io.open(var_dir() .. "/.ziyan_heartbeat_lua5.3", "w")
+14:VAR=/usr/lib/ziyan/var
+15:[ -d /var/jb/usr/lib/ziyan ] && VAR=/var/jb/usr/lib/ziyan/var
+9:  return _G.ZIYAN_VAR or "/usr/lib/ziyan/var"
+98:    if "lua5.3" in args and "ziyan_agent_run.lua" in args:
+100:    if "lua5.3" in args and "ziyan_run.lua" in args:
+149:  if [ "$scheme" = rootless ]; then
+150:    var=/var/jb/usr/lib/ziyan/var
+154:    var=/usr/lib/ziyan/var
+203:  if [ "$scheme" = rootless ]; then
+235:run_one 101 192.168.31.101 rootful 87863 87862 47853 96 1788698375 com.xztl.ios '血战屠龙' || { overall=0; reasons+=(.101); }
+236:run_one 112 192.168.31.112 rootful 79809 79808 98110 92 1788698390 com.xztl.ios '血战屠龙' || { overall=0; reasons+=(.112); }
+237:run_one 166 192.168.31.166 rootful 25025 25024 52622 82626 1788698406 com.xztl.ios '血战屠龙' || { overall=0; reasons+=(.166); }
+238:run_one 53 192.168.31.53 rootless 46408 74318 49176 93705 1788698418 com.ljzbbadao.game '龙界争霸-拔刀传奇' || { overall=0; reasons+=(.53); }
+8:  if io.open("/var/jb/usr/lib/ziyan/var", "r") then
+9:    return "/var/jb/usr/lib/ziyan/var"
+11:  return "/usr/lib/ziyan/var"
+6:  VAR=/var/jb/usr/lib/ziyan/var
+12:  VAR=/usr/lib/ziyan/var
+18:killall -9 ZiYan lua5.3 2>/dev/null || true
+40:  killall -9 lua5.3 2>/dev/null || true
+87:killall -9 lua5.3 2>/dev/null || true
+94:killall -9 lua5.3 2>/dev/null || true
+112:export DYLD_LIBRARY_PATH="${VAR%/var}/lib${DYLD_LIBRARY_PATH:+:$DYLD_LIBRARY_PATH}"
+113:LUA="${VAR%/var}/bin/lua5.3"
+122:  local f=io.open("/var/jb/usr/lib/ziyan/var/.ziyan_color_p.txt","w")
+134:  local f=io.open("/usr/lib/ziyan/var/.ziyan_color_p.txt","w")
+140:killall -9 lua5.3 2>/dev/null || true
+150:killall -9 lua5.3 2>/dev/null || true
+14:  if io.open("/var/jb/usr/lib/ziyan/var", "r") then return "/var/jb/usr/lib/ziyan/var" end
+15:  return "/usr/lib/ziyan/var"
+11:  if io.open("/var/jb/usr/lib/ziyan/bin/lua5.3", "r") then
+12:    return "/var/jb/usr/lib/ziyan/var"
+14:  return "/usr/lib/ziyan/var"
+31:echo "===JB==="; [ -d /var/jb ] && echo rootless || echo rootful
+41:probe 192.168.31.166 /usr/lib/ziyan ios7
+42:probe 192.168.31.53 /var/jb/usr/lib/ziyan ios8p
+11:  V="/var/jb/usr/lib/ziyan/var"
+12:  LUA_BIN="/var/jb/usr/lib/ziyan/bin/lua5.3"
+13:  LUA_RUNNER="/var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua"
+15:  V="/usr/lib/ziyan/var"
+16:  LUA_BIN="/usr/lib/ziyan/bin/lua5.3"
+17:  LUA_RUNNER="/usr/lib/ziyan/lib/lua/ziyan_run.lua"
+108:  if [ "$V" = "/var/jb/usr/lib/ziyan/var" ]; then
+109:    DYLD_LIBRARY_PATH=/var/jb/usr/lib/ziyan/lib \
+14:  if io.open("/var/jb/usr/lib/ziyan/var", "r") then
+15:    return "/var/jb/usr/lib/ziyan/var"
+17:  return "/usr/lib/ziyan/var"
+16:  if io.open("/var/jb/usr/lib/ziyan/var", "r") then
+17:    return "/var/jb/usr/lib/ziyan/var"
+19:  return "/usr/lib/ziyan/var"
+81:  VAR="${JB}/usr/lib/ziyan/var"
+82:  BIN="${JB}/usr/lib/ziyan/bin"
+83:  LUA="${JB}/usr/lib/ziyan/lib/lua"
+240:  -- 先落盘找图结果再碰 OCR：rootful 三机上 getText 会一直不返回（实测 .101
+249:  -- OCR 另测（P3）。getText 在 rootful 上可挂死整份脚本，
+30:  if io.open("/var/jb/usr/lib/ziyan/var/.gitkeep", "r")
+31:      or io.open("/var/jb/usr/lib/ziyan/lib/lua/ziyan_engine/init.lua", "r") then
+32:    return "/var/jb/usr/lib/ziyan/var"
+34:  return "/usr/lib/ziyan/var"
+2:# Rootful gate: foreground ZiYan minimize contract + init(0/1/2) touch mapping.
+23:V=/usr/lib/ziyan/var
+24:R=/usr/lib/ziyan
+31:  local f = io.open("/usr/lib/ziyan/var/.ziyan_rf_min_script", "w")
+121:  "$R/bin/lua5.3" "$R/lib/lua/ziyan_run.lua" "$script" \
+10:  if io.open("/var/jb/usr/lib/ziyan/bin/lua5.3", "r") then
+11:    return "/var/jb/usr/lib/ziyan/var"
+13:  return "/usr/lib/ziyan/var"
+8:  return _G.ZIYAN_VAR or "/usr/lib/ziyan/var"
+6:V=/usr/lib/ziyan/var
+662:      or _G.ZIYAN_VAR or "/usr/lib/ziyan/var"
+8:  return _G.ZIYAN_VAR or "/usr/lib/ziyan/var"
+141:  if [ "$scheme" = rootless ]; then
+142:    var=/var/jb/usr/lib/ziyan/var
+143:    target=/var/jb/usr/lib/ziyan/lib/lua/agent/Core/agent_runtime.lua
+144:    tmp=/var/jb/usr/lib/ziyan/lib/lua/agent/.agent_runtime.lua.drill.tmp
+145:    lua=/var/jb/usr/lib/ziyan/bin/lua5.3
+146:    run=/var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua
+147:    agent=/var/jb/usr/lib/ziyan/lib/lua/ziyan_agent_run.lua
+149:    var=/usr/lib/ziyan/var
+150:    target=/usr/lib/ziyan/lib/lua/agent/Core/agent_runtime.lua
+151:    tmp=/usr/lib/ziyan/lib/lua/agent/.agent_runtime.lua.drill.tmp
+152:    lua=/usr/lib/ziyan/bin/lua5.3
+153:    run=/usr/lib/ziyan/lib/lua/ziyan_run.lua
+154:    agent=/usr/lib/ziyan/lib/lua/ziyan_agent_run.lua
+156:  if [ "$scheme" = rootless ]; then
+157:    launch="DYLD_LIBRARY_PATH=/var/jb/usr/lib/ziyan/lib '$lua' '$run' '$agent'"
+301:    run_one 112 192.168.31.112 rootful 79809 79808 98110 92 ags_17886130889526 || overall=0
+303:      run_one 166 192.168.31.166 rootful 25025 25024 52622 82626 ags_17886130933873 || overall=0
+306:      run_one 53 192.168.31.53 rootless 46408 74318 49176 93705 ags_17886131005180 || overall=0
+310:    run_one 53 192.168.31.53 rootless 46408 74318 49176 93705 ags_17886131005180 || overall=0
+17:  if io.open("/var/jb/usr/lib/ziyan/var", "r") then return "/var/jb/usr/lib/ziyan/var" end
+18:  return "/usr/lib/ziyan/var"
+11:  return _G.ZIYAN_VAR or "/usr/lib/ziyan/var"
+18:  if io.open("/var/jb/usr/lib/ziyan/var", "r") then
+19:    return "/var/jb/usr/lib/ziyan/var"
+21:  return "/usr/lib/ziyan/var"
+30:  return io.open("/var/jb/usr/lib/ziyan/var", "r") and "/var/jb/usr/lib/ziyan/var"
+31:      or "/usr/lib/ziyan/var"
+47:VAR=/usr/lib/ziyan/var
+48:BIN=/usr/lib/ziyan/bin/ziyan_framecap
+130:# 测试机是精简 rootful 系统，.101 没有 curl；用其已有 wget 取状态，避免把
+10:  if io.open("/var/jb/usr/lib/ziyan/var", "r") then
+11:    return "/var/jb/usr/lib/ziyan/var"
+13:  return "/usr/lib/ziyan/var"
+7:  return _G.ZIYAN_VAR or "/usr/lib/ziyan/var"
+13:  return _G.ZIYAN_VAR or "/usr/lib/ziyan/var"
+39:  { pat = "rootless|dpi|resolution|iPhone|compat", category = "device_compat", module = "Device", confidence = 0.8 },
+23:var_dir() { [ "$1" = rootless ] && echo /var/jb/usr/lib/ziyan/var || echo /usr/lib/ziyan/var; }
+208:run_one 53 rootless 192.168.31.53
+209:run_one 101 rootful 192.168.31.101
+210:run_one 112 rootful 192.168.31.112
+211:run_one 166 rootful 192.168.31.166
+215:V=/usr/lib/ziyan/var
+2:  在 lua5.3 解释器层注入保护，对用户脚本完全透明。
+68:  if io.open("/var/jb/usr/lib/ziyan/var", "r") then
+69:    return "/var/jb/usr/lib/ziyan/var"
+71:  return "/usr/lib/ziyan/var"
+31:    'sudo rm -f /var/jb/usr/lib/ziyan/var/.ziyan_selftest_* /var/jb/usr/lib/ziyan/var/.ziyan_openfind_* 2>/dev/null; true' 2>/dev/null || true
+33:    'rm -f /usr/lib/ziyan/var/.ziyan_selftest_* /usr/lib/ziyan/var/.ziyan_openfind_* 2>/dev/null; true' 2>/dev/null || true
+54:    local var = (Zy and Zy.File and Zy.File.varDir()) or (_G.ZIYAN_VAR or "/usr/lib/ziyan/var")
+101:    if "lua5.3" in args and "ziyan_agent_run.lua" in args:
+103:    if "lua5.3" in args and "ziyan_run.lua" in args:
+154:  if [ "$scheme" = rootless ]; then
+155:    var=/var/jb/usr/lib/ziyan/var
+156:    lua=/var/jb/usr/lib/ziyan/bin/lua5.3
+157:    run=/var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua
+158:    launch_cmd="DYLD_LIBRARY_PATH=/var/jb/usr/lib/ziyan/lib '$lua' '$run' /tmp/dev13_game_tap.lua"
+163:    var=/usr/lib/ziyan/var
+164:    lua=/usr/lib/ziyan/bin/lua5.3
+165:    run=/usr/lib/ziyan/lib/lua/ziyan_run.lua
+288:run_one 101 192.168.31.101 rootful 87863 87862 47853 96 1788633746 com.xztl.ios '血战屠龙' || { overall=0; reasons+=(.101); }
+290:  run_one 112 192.168.31.112 rootful 79809 79808 98110 92 1788633753 com.xztl.ios '血战屠龙' || { overall=0; reasons+=(.112); }
+293:  run_one 166 192.168.31.166 rootful 25025 25024 52622 82626 1788633761 com.xztl.ios '血战屠龙' || { overall=0; reasons+=(.166); }
+296:  run_one 53 192.168.31.53 rootless 46408 74318 49176 93705 1788634174 com.ljzbbadao.game '龙界争霸-拔刀传奇' || { overall=0; reasons+=(.53); }
+347:  --running-processes "PS 后本地筛选；SpringBoard 只认精确结尾；FC_N 只认 ziyan_framecap serve；真实 agent lua 同时匹配 lua5.3 与 ziyan_agent_run.lua；run lua 完成后应为 0" \
+92:local mac = not win and (os and os.getenv and os.getenv('DYLD_LIBRARY_PATH') or not io.open("/proc")) and true or false
+21:  if io.open("/var/jb/usr/lib/ziyan/var", "r") then
+22:    return "/var/jb/usr/lib/ziyan/var"
+24:  return "/usr/lib/ziyan/var"
+55:  VAR="${JB}/usr/lib/ziyan/var"
+16:if [ "$SCHEME" = rootless ]; then
+18:  VAR=/var/jb/usr/lib/ziyan/var
+23:  VAR=/usr/lib/ziyan/var
+26:    53) echo /var/jb/usr/lib/ziyan/var ;;
+27:    *) echo /usr/lib/ziyan/var ;;
+83:    local var = (Zy and Zy.File and Zy.File.varDir()) or (_G.ZIYAN_VAR or "/usr/lib/ziyan/var")
+52:  local var="/usr/lib/ziyan/var"
+53:  [ "$scheme" = rootless ] && var="/var/jb/usr/lib/ziyan/var"
+151:    run_one 53 192.168.31.53 rootless ios8p.lua
+152:    run_one 101 192.168.31.101 rootful ios7.lua
+153:    run_one 112 192.168.31.112 rootful ios7.lua
+154:    run_one 166 192.168.31.166 rootful ios7.lua
+156:  53) run_one 53 192.168.31.53 rootless ios8p.lua ;;
+157:  101) run_one 101 192.168.31.101 rootful ios7.lua ;;
+158:  112) run_one 112 192.168.31.112 rootful ios7.lua ;;
+159:  166) run_one 166 192.168.31.166 rootful ios7.lua ;;
+11:  return _G.ZIYAN_VAR or "/usr/lib/ziyan/var"
+37:    local root = (_G.ZIYAN_LUA or "/usr/lib/ziyan/lib/lua") .. "/json.lua"
+175:      v = io.open("/var/jb/usr/lib/ziyan/var", "r") and "/var/jb/usr/lib/ziyan/var"
+176:          or "/usr/lib/ziyan/var"
+78:    [[ "$args" == *lua5.3* && "$args" == *ziyan_agent_run.lua* ]] && n=$((n + 1))
+102:  if [ "$scheme" = "rootless" ]; then
+103:    var="/var/jb/usr/lib/ziyan/var"
+105:    var="/usr/lib/ziyan/var"
+182:run_if_clean 101 192.168.31.101 rootful 87863 87862 47853 96 ags_17886130846274 ags_17886236835498 ags_17886296402152
+183:run_if_clean 112 192.168.31.112 rootful 79809 79808 98110 92 ags_17886130889526 ags_17886277372496 ags_17886296471822
+184:run_if_clean 166 192.168.31.166 rootful 25025 25024 52622 82626 ags_17886130933873 ags_17886277436109 ags_17886296545352
+185:run_if_clean 53 192.168.31.53 rootless 46408 74318 49176 93705 ags_17886131005180 ags_17886278684212 ags_17886296643544
+45:var_dir() { [ "$1" = rootless ] && echo /var/jb/usr/lib/ziyan/var || echo /usr/lib/ziyan/var; }
+252:install_one 53 rootless 192.168.31.53 "$DEB_RL" &
+254:install_one 101 rootful 192.168.31.101 "$DEB_RF" &
+256:install_one 112 rootful 192.168.31.112 "$DEB_RF" &
+258:install_one 166 rootful 192.168.31.166 "$DEB_RF" &
+263:observe_one 53 rootless 192.168.31.53 &
+265:observe_one 101 rootful 192.168.31.101 &
+267:observe_one 112 rootful 192.168.31.112 &
+269:observe_one 166 rootful 192.168.31.166 &
+274:ui_one 53 rootless 192.168.31.53 &
+276:ui_one 101 rootful 192.168.31.101 &
+278:ui_one 112 rootful 192.168.31.112 &
+280:ui_one 166 rootful 192.168.31.166 &
+285:restore_one 53 rootless 192.168.31.53 &
+286:restore_one 101 rootful 192.168.31.101 &
+287:restore_one 112 rootful 192.168.31.112 &
+288:restore_one 166 rootful 192.168.31.166 &
+50:V=/usr/lib/ziyan/var
+11:  "/usr/lib/ziyan",
+12:  "/var/jb/usr/lib/ziyan",
+37:  local v = _G.ZIYAN_VAR or "/usr/lib/ziyan/var"
+55:if [ "$SCHEME" = rootless ]; then
+56:  VAR=/var/jb/usr/lib/ziyan/var
+57:  LUA=/var/jb/usr/lib/ziyan/bin/lua5.3
+58:  RUN=/var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua
+59:  AGENT=/var/jb/usr/lib/ziyan/lib/lua/ziyan_agent_run.lua
+60:  export DYLD_LIBRARY_PATH=/var/jb/usr/lib/ziyan/lib
+62:  VAR=/usr/lib/ziyan/var
+63:  LUA=/usr/lib/ziyan/bin/lua5.3
+64:  RUN=/usr/lib/ziyan/lib/lua/ziyan_run.lua
+65:  AGENT=/usr/lib/ziyan/lib/lua/ziyan_agent_run.lua
+75:    *lua5.3*ziyan_agent_run.lua*) ;;
+350:run_one 101 192.168.31.101 rootful 87863 87862 47853 96 || serial_ok=0
+352:  run_one 112 192.168.31.112 rootful 79809 79808 98110 92 || serial_ok=0
+355:  run_one 166 192.168.31.166 rootful 25025 25024 52622 82626 || serial_ok=0
+358:  run_one 53 192.168.31.53 rootless 46408 74318 49176 93705 || serial_ok=0
+453:  --running-processes "依四机 AFTER：无真实 args 同时含 lua5.3 与 ziyan_agent_run.lua 的残留进程" \
+3:# 验收：via_color_req_find=0；无独立 lua5.3；未显式 keep 则 KEEP=0
+22:  SCHEME=rootful
+23:  if [ "$H" = "53" ]; then SCHEME=rootless; fi
+28:if [ "$SCHEME" = rootless ]; then
+29:  V=/var/jb/usr/lib/ziyan/var; B=/var/jb/usr/lib/ziyan/bin
+31:  V=/usr/lib/ziyan/var; B=/usr/lib/ziyan/bin
+13:  if io.open("/var/jb/usr/lib/ziyan/lib/lua/ziyan_engine/init.lua", "r") then
+14:    return "/var/jb/usr/lib/ziyan/lib/lua"
+16:  return "/usr/lib/ziyan/lib/lua"
+47:    var = (io.open("/var/jb/usr/lib/ziyan/var", "r") and "/var/jb/usr/lib/ziyan/var")
+48:      or "/usr/lib/ziyan/var"
+48:if [ "$SCHEME" = rootless ]; then
+49:  VAR=/var/jb/usr/lib/ziyan/var
+50:  BIN=/var/jb/usr/lib/ziyan/bin
+52:  VAR=/usr/lib/ziyan/var
+53:  BIN=/usr/lib/ziyan/bin
+357:    run_one 53 192.168.31.53 rootless ios8p.lua com.ljzbbadao.game 'xqhyios://'
+358:    run_one 101 192.168.31.101 rootful ios7.lua com.xztl.ios 'xztl://'
+359:    run_one 112 192.168.31.112 rootful ios7.lua com.xztl.ios 'xztl://'
+360:    run_one 166 192.168.31.166 rootful ios7.lua com.xztl.ios 'xztl://'
+362:  53) run_one 53 192.168.31.53 rootless ios8p.lua com.ljzbbadao.game 'xqhyios://' ;;
+363:  101) run_one 101 192.168.31.101 rootful ios7.lua com.xztl.ios 'xztl://' ;;
+364:  112) run_one 112 192.168.31.112 rootful ios7.lua com.xztl.ios 'xztl://' ;;
+365:  166) run_one 166 192.168.31.166 rootful ios7.lua com.xztl.ios 'xztl://' ;;
+11:    "abnormal_exit", "stop_cleanup", "rootful", "rootless",
+30:  if [[ "$H" = 53 ]]; then BIN=/var/jb/usr/lib/ziyan/bin/ziyan_ocr; else BIN=/usr/lib/ziyan/bin/ziyan_ocr; fi
+27:if [ "$SCHEME" = rootless ]; then
+28:  V=/var/jb/usr/lib/ziyan/var; BIN=/var/jb/usr/lib/ziyan/bin
+30:  V=/usr/lib/ziyan/var; BIN=/usr/lib/ziyan/bin
+51:if [ "$SCHEME" = rootless ]; then
+52:  VAR=/var/jb/usr/lib/ziyan/var
+53:  BIN=/var/jb/usr/lib/ziyan/bin
+57:  VAR=/usr/lib/ziyan/var
+58:  BIN=/usr/lib/ziyan/bin
+274:    run_one 53 192.168.31.53 rootless
+275:    run_one 101 192.168.31.101 rootful
+276:    run_one 112 192.168.31.112 rootful
+277:    run_one 166 192.168.31.166 rootful
+279:  53) run_one 53 192.168.31.53 rootless ;;
+280:  101) run_one 101 192.168.31.101 rootful ;;
+281:  112) run_one 112 192.168.31.112 rootful ;;
+282:  166) run_one 166 192.168.31.166 rootful ;;
+4:    "/usr/lib/ziyan/lib/lua/agent/Core/agent_runtime.lua",
+5:    "/var/jb/usr/lib/ziyan/lib/lua/agent/Core/agent_runtime.lua",
+18:  local var = _G.ZIYAN_VAR or "/usr/lib/ziyan/var"
+20:  local ip=$1 tag=$2 rootless=$3
+22:  if [ "$rootless" = 1 ]; then VAR=/var/jb/usr/lib/ziyan/var; else VAR=/usr/lib/ziyan/var; fi
+30:  procs=$(ssh_r "$ip" "ps -A -o pid=,args= 2>/dev/null | grep -E 'ziyan_framecap|lua5.3' | grep -v grep | head -8" 2>/dev/null || true)
+33:  if echo "$procs" | grep -qE '\(lua5\.3\)'; then bad "$tag zombie lua5.3"; else ok "$tag no zombie lua"; fi
+57:    if echo "$st" | grep -q 'scheme=rootless'; then ok "$tag rootless"; else bad "$tag scheme"; fi
+65:    if echo "$st" | grep -q 'scheme=rootful'; then ok "$tag rootful"; else bad "$tag scheme"; fi
+50:V=/usr/lib/ziyan/var
+5:local LUALIB = "/usr/lib/ziyan/lib/lua"
+42:  local ip=$1 tag=$2 rootless=$3
+44:  if [ "$rootless" = 1 ]; then VAR=/var/jb/usr/lib/ziyan/var; else VAR=/usr/lib/ziyan/var; fi
+28:  SCHEME=rootful
+29:  [ "$H" = "53" ] && SCHEME=rootless
+33:if [ "$SCHEME" = rootless ]; then
+34:  V=/var/jb/usr/lib/ziyan/var; B=/var/jb/usr/lib/ziyan/bin
+36:  V=/usr/lib/ziyan/var; B=/usr/lib/ziyan/bin
+3:  用法: lua5.3 ziyan_res_bridge.lua --req <req.json> --rep <rep.json>
+6:local LUA_LIB = "/usr/lib/ziyan/lib/lua"
+26:if [ "$SCHEME" = rootless ]; then
+27:  VAR=/var/jb/usr/lib/ziyan/var
+28:  BIN=/var/jb/usr/lib/ziyan/bin
+29:  export PATH=/var/jb/usr/lib/ziyan/bin:/var/jb/bin:/var/jb/usr/bin:$PATH
+31:  VAR=/usr/lib/ziyan/var
+32:  BIN=/usr/lib/ziyan/bin
+33:  export PATH=/usr/lib/ziyan/bin:/bin:/usr/bin:$PATH
+158:clean_one 53 192.168.31.53 rootless &
+160:clean_one 101 192.168.31.101 rootful &
+162:clean_one 112 192.168.31.112 rootful &
+164:clean_one 166 192.168.31.166 rootful &
+1:-- ZiYan 运行时路径：rootless (/var/jb/usr/lib/ziyan) / rootful (/usr/lib/ziyan)
+19:  if s == "rootful" or s == "rootless" then
+29:  -- postinst 按实际 deb Architecture 写此 marker。`/var/jb` 在 rootful
+30:  -- 设备也可能存在（残留 rootless 树），因此绝不能仅按目录存在选 IPC 根。
+32:  if scheme == "rootless" then
+33:    M._root = "/var/jb/usr/lib/ziyan"
+34:  elseif scheme == "rootful" then
+35:    M._root = "/usr/lib/ziyan"
+36:  elseif exists("/var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua")
+37:      or exists("/var/jb/usr/lib/ziyan/lib/lua/ziyan_engine/init.lua")
+38:      or exists("/var/jb/usr/lib/ziyan/bin/lua5.3") then
+39:    M._root = "/var/jb/usr/lib/ziyan"
+40:  elseif exists("/usr/lib/ziyan/lib/lua/ziyan_run.lua")
+41:      or exists("/usr/lib/ziyan/bin/lua5.3") then
+42:    M._root = "/usr/lib/ziyan"
+44:    M._root = "/var/jb/usr/lib/ziyan"
+46:    M._root = "/usr/lib/ziyan"
+63:--- rootless/rootful 可用的 sleep 绝对路径（os.execute 的 PATH 常不含 /var/jb/usr/bin）
+147:--- 把历史写死的 /usr/lib/ziyan/... 映射到当前 root
+150:  local prefix = "/usr/lib/ziyan"
+87:var_for() { [[ "$1" == rootless ]] && echo /var/jb/usr/lib/ziyan/var || echo /usr/lib/ziyan/var; }
+88:bin_for() { [[ "$1" == rootless ]] && echo /var/jb/usr/lib/ziyan/bin || echo /usr/lib/ziyan/bin; }
+89:lua_for() { [[ "$1" == rootless ]] && echo /var/jb/usr/lib/ziyan/bin/lua5.3 || echo /usr/lib/ziyan/bin/lua5.3; }
+90:run_for() { [[ "$1" == rootless ]] && echo /var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua || echo /usr/lib/ziyan/lib/lua/ziyan_run.lua; }
+91:mod_for() { [[ "$1" == rootless ]] && echo /var/jb/usr/lib/ziyan/lib/lua/modules || echo /usr/lib/ziyan/lib/lua/modules; }
+121:  echo "[build] rootful..."
+125:  echo "[build] rootless..."
+126:  if ! THEOS_PACKAGE_SCHEME=rootless make clean package 2>&1 | tee "$OUT/build_rl.log" | tail -8; then
+136:  if [[ "$scheme" == rootless ]]; then
+167:VAR=/usr/lib/ziyan/var; DL=/Library/MobileSubstrate/DynamicLibraries; BIN=/usr/lib/ziyan/bin
+168:if [ -d /var/jb/usr/lib/ziyan ]; then
+169:  VAR=/var/jb/usr/lib/ziyan/var; DL=/var/jb/Library/MobileSubstrate/DynamicLibraries; BIN=/var/jb/usr/lib/ziyan/bin
+257:# rootless 部分机无 awk：用 sed/cut
+269:# 优先 framecap 内嵌（对齐 TSDaemon）；失败才回退独立 lua5.3
+299:  # 真机重启后 framecap 先完成一次冷帧（rootful UICreate）才会消费
+328:if [ "$SCHEME" = rootless ]; then
+329:  export DYLD_LIBRARY_PATH=/var/jb/usr/lib/ziyan/lib:/var/jb/usr/lib
+330:  export PATH=/var/jb/usr/lib/ziyan/bin:/var/jb/bin:$PATH
+374:if [ "$SCHEME" = rootless ]; then
+375:  VAR=/var/jb/usr/lib/ziyan/var
+378:  export PATH=/var/jb/usr/lib/ziyan/bin:/var/jb/bin:$PATH
+379:  export DYLD_LIBRARY_PATH=/var/jb/usr/lib/ziyan/lib:/var/jb/usr/lib
+383:  VAR=/usr/lib/ziyan/var
+386:  export PATH=/usr/lib/ziyan/bin:/bin:$PATH
+387:  export DYLD_LIBRARY_PATH=/usr/lib/ziyan/lib
+402:# rootful uiopen 仅认 URL；rootless 支持 --bundleid / -b
+487:HB1=$(stat -c %Y "$VAR/.ziyan_heartbeat_lua5.3" 2>/dev/null || stat -f %m "$VAR/.ziyan_heartbeat_lua5.3" 2>/dev/null || echo 0)
+489:HB2=$(stat -c %Y "$VAR/.ziyan_heartbeat_lua5.3" 2>/dev/null || stat -f %m "$VAR/.ziyan_heartbeat_lua5.3" 2>/dev/null || echo 0)
+527:if [ -f /var/jb/usr/lib/ziyan/lib/lua/modules/AI.lua ] || [ -f /usr/lib/ziyan/lib/lua/modules/AI.lua ]; then AI_OK=1; fi
+555:if [ "$SCHEME" = rootless ]; then
+556:  VAR=/var/jb/usr/lib/ziyan/var
+557:  export PATH=/var/jb/usr/lib/ziyan/bin:/var/jb/bin:$PATH
+558:  export DYLD_LIBRARY_PATH=/var/jb/usr/lib/ziyan/lib:/var/jb/usr/lib
+561:  VAR=/usr/lib/ziyan/var
+562:  export PATH=/usr/lib/ziyan/bin:/bin:$PATH
+563:  export DYLD_LIBRARY_PATH=/usr/lib/ziyan/lib
+634:VAR=/var/jb/usr/lib/ziyan/var
+636:BIN=/var/jb/usr/lib/ziyan/bin
+718:  check_local F4s "layout/usr/lib/ziyan/bin/ziyan_httpctl_serve.sh" "HTTP serve"
+732:MOD=/var/jb/usr/lib/ziyan/lib/lua/modules
+733:BIN=/var/jb/usr/lib/ziyan/bin
+734:VAR=/var/jb/usr/lib/ziyan/var
+735:LUA=/var/jb/usr/lib/ziyan/bin/lua5.3
+736:export DYLD_LIBRARY_PATH=/var/jb/usr/lib/ziyan/lib:/var/jb/usr/lib
+753:package.path="/var/jb/usr/lib/ziyan/lib/lua/modules/?.lua;"..package.path
+896:if [ "$SCHEME" = rootless ]; then
+897:  export DYLD_LIBRARY_PATH=/var/jb/usr/lib/ziyan/lib:/var/jb/usr/lib
+898:  export PATH=/var/jb/usr/lib/ziyan/bin:/var/jb/bin:$PATH
+954:    echo "| build | $RC_BUILD | rootful+rootless |"
+11:V="${2:-/usr/lib/ziyan/var}"
+42:  local REM="/usr/lib/ziyan/lib/lua/ziyan_engine/cv.lua"
+63:  ssh_r "$IP" "/usr/lib/ziyan/bin/lua5.3 -e 'local ok,err=pcall(dofile,\"$REM\"); print(ok and \"CV_PARSE_OK\" or tostring(err))'; grep -c '/bin/sleep' '$REM'"
+69:  local VAR=/usr/lib/ziyan/var
+70:  local BIN=/usr/lib/ziyan/bin
+71:  local LUA=/usr/lib/ziyan/lib/lua
+199:  ssh_r "$IP" "$BIN/lua5.3 $LUA/ziyan_run.lua $ZYCV/_asset_find.lua" \
+104:V=/usr/lib/ziyan/var
+10:  if io.open("/var/jb/usr/lib/ziyan/var", "r") then
+11:    ZIYAN_VAR = "/var/jb/usr/lib/ziyan/var"
+13:    ZIYAN_VAR = "/usr/lib/ziyan/var"
+45:V=/usr/lib/ziyan/var
+46:[ -d /var/jb/usr/lib/ziyan/var ] && V=/var/jb/usr/lib/ziyan/var
+64:    cmd=f'''V=/usr/lib/ziyan/var; [ -d /var/jb/usr/lib/ziyan/var ] && V=/var/jb/usr/lib/ziyan/var
+27:  if io.open("/var/jb/usr/lib/ziyan/bin/lua5.3", "r") then
+28:    return "/var/jb/usr/lib/ziyan/var/.ziyan_orient"
+30:  return "/usr/lib/ziyan/var/.ziyan_orient"
+387:  candidates[#candidates + 1] = "/var/jb/usr/lib/ziyan/var/.ziyan_buf_wh"
+388:  candidates[#candidates + 1] = "/usr/lib/ziyan/var/.ziyan_buf_wh"
+15:  if io.open("/var/jb/usr/lib/ziyan/var", "r") then return "/var/jb/usr/lib/ziyan/var" end
+16:  return "/usr/lib/ziyan/var"
+83:  --manifest "${D1_ROOTFUL_DEB}.manifest.json"
+85:  --manifest "${D1_ROOTLESS_DEB}.manifest.json"
+87:python3 - "$D1_ROOTFUL_DEB.manifest.json" "$D1_ROOTLESS_DEB.manifest.json" <<'PY'
+97:    if not all(str(item).endswith("/usr/lib/ziyan/bin/ziyan_framecap")
+170:INPUT_ROOT="$(python3 - "$D1_ROOTFUL_DEB" <<'PY'
+194:WT_A="$APP_WORK_ROOT/rootful_a"
+195:WT_B="$APP_WORK_ROOT/rootful_b"
+215:# The two worktrees are the independent rootful builds.  They are then
+216:# re-created from the same immutable revision for the independent rootless
+218:WT_C="$APP_WORK_ROOT/rootless_a"
+219:WT_D="$APP_WORK_ROOT/rootless_b"
+240:  [ "$scheme" = rootless ] && args+=(THEOS_PACKAGE_SCHEME=rootless)
+304:build_pair rootful "$WT_A" "$WT_B" "$OUT_DIR/rootful_ZiYan_repro.json"
+305:build_pair rootless "$WT_C" "$WT_D" "$OUT_DIR/rootless_ZiYan_repro.json"
+313:  --base "$D1_ROOTFUL_DEB" --out "$RF_OUT" --release-id "$RELEASE_ID" \
+314:  --replace "$OUT_DIR/rootful_staged/ZiYan" \
+315:  --replace "$OUT_DIR/rootful_staged/ZiYanAppTouch.dylib" \
+324:  --base "$D1_ROOTLESS_DEB" --out "$RL_OUT" --release-id "$RELEASE_ID" \
+325:  --replace "$OUT_DIR/rootless_staged/ZiYan" \
+326:  --replace "$OUT_DIR/rootless_staged/ZiYanAppTouch.dylib" \
+357:bash "$ROOT/tools/verify_package_install_names.sh" "$RF_OUT"
+358:bash "$ROOT/tools/verify_package_install_names.sh" "$RL_OUT"
+361:  "$RF_OUT" "$RL_OUT" "$D1_ROOTFUL_DEB" "$D1_ROOTLESS_DEB" \
+362:  "$D1_ROOTFUL_SHA256" "$D1_ROOTLESS_SHA256" <<'PY'
+389:    "base_d1_rootful": file_record(Path(d1rf)),
+390:    "base_d1_rootless": file_record(Path(d1rl)),
+391:    "base_d1_declared_sha256": {"rootful": d1rfsha, "rootless": d1rlsha},
+392:    "candidate_rootful": file_record(Path(rf)),
+393:    "candidate_rootless": file_record(Path(rl)),
+402:        "rootful_deb": d1rf,
+403:        "rootless_deb": d1rl,
+404:        "rootful_sha256": d1rfsha,
+405:        "rootless_sha256": d1rlsha,
+408:                  for name in ("rootful_a", "rootful_b", "rootless_a", "rootless_b")],
+419:APP_CANDIDATE_ROOTFUL_DEB='$RF_OUT'
+420:APP_CANDIDATE_ROOTLESS_DEB='$RL_OUT'
+421:APP_CANDIDATE_ROOTFUL_SHA256='$(shasum -a 256 "$RF_OUT" | awk '{print $1}')'
+422:APP_CANDIDATE_ROOTLESS_SHA256='$(shasum -a 256 "$RL_OUT" | awk '{print $1}')'
+426:APP_CANDIDATE_ROLLBACK_ROOTFUL='$D1_ROOTFUL_DEB'
+427:APP_CANDIDATE_ROLLBACK_ROOTLESS='$D1_ROOTLESS_DEB'
+434:echo "APP_ROOTFUL=$RF_OUT"
+435:echo "APP_ROOTLESS=$RL_OUT"
+2:# 加速：分开编 rootful + rootless，避免 dual-package 第二轮打掉 app stage
+8:echo "[zy_build_dual] rootful…"
+13:echo "[zy_build_dual] rootless…"
+14:make package THEOS_PACKAGE_SCHEME=rootless FINALPACKAGE=1
+6:V="${VAR:-/usr/lib/ziyan/var}"
+132:if [ -d /var/jb/usr/lib/ziyan/var ]; then
+133:  tail -c 2000 /var/jb/usr/lib/ziyan/var/.ziyan_framecap_err 2>/dev/null
+135:  tail -c 2000 /usr/lib/ziyan/var/.ziyan_framecap_err 2>/dev/null
+3:# 用法：tools/device_inject_gate.sh 192.168.31.53 [rootless|rootful]
+13:  SCHEME=$("${SSH[@]}" 'if [ -d /var/jb/usr/lib/ziyan ]; then echo rootless; else echo rootful; fi')
+15:if [[ "$SCHEME" == rootless ]]; then
+16:  VAR=/var/jb/usr/lib/ziyan/var
+19:  VAR=/usr/lib/ziyan/var
+25:# On-device install_name string presence (rootless must contain /var/jb)
+26:# 8-159 全零：dylib 可保留但 Filter 已卸；仍检查文件存在时的 install_name
+27:if [[ "$SCHEME" == rootless ]]; then
+31:    echo "PASS skip install_name (dylib absent / full-zero)"
+33:    echo "FAIL: on-device ZiYanVol.dylib missing /var/jb install_name string — 勿交付，须 clean 重打 rootless 包" >&2
+36:    echo "PASS on-device install_name string"
+4:  VAR=/var/jb/usr/lib/ziyan/var
+5:  ZROOT=/var/jb/usr/lib/ziyan
+7:  VAR=/usr/lib/ziyan/var
+8:  ZROOT=/usr/lib/ziyan
+42:export DYLD_LIBRARY_PATH="$ZROOT/lib${DYLD_LIBRARY_PATH:+:$DYLD_LIBRARY_PATH}"
+43:LUA="$ZROOT/bin/lua5.3"
+48:  local VAR = rawget(_G, "ZIYAN_VAR") or "/usr/lib/ziyan/var"
+109:killall -9 lua5.3 2>/dev/null || true
+61:emit_device 192.168.31.166 /usr/lib/ziyan
+62:emit_device 192.168.31.53 /var/jb/usr/lib/ziyan
+18:  if io.open("/var/jb/usr/lib/ziyan/bin/lua5.3", "r") then
+19:    return "/var/jb/usr/lib/ziyan/var"
+21:  return "/usr/lib/ziyan/var"
+178:--- 原子写 color_req：避免 io.open("w") 先截断为空时被 SB 轮询删掉（iOS16 rootless 高发）
+500:        D = dofile((_G.ZIYAN_LUA or "/usr/lib/ziyan/lib/lua") .. "/ziyan_engine/coord_diag.lua")
+640:  -- 独立 lua5.3 常无 json 库；json_decode 失败时仍要从守护 JSON 抠坐标
+45:if [ "$SCHEME" = rootless ]; then
+46:  VAR=/var/jb/usr/lib/ziyan/var
+47:  BIN=/var/jb/usr/lib/ziyan/bin
+49:  VAR=/usr/lib/ziyan/var
+50:  BIN=/usr/lib/ziyan/bin
+232:    run_one 53 192.168.31.53 rootless ios8p.lua com.ljzbbadao.game
+233:    run_one 166 192.168.31.166 rootful ios7.lua com.ljzbbadao.game
+235:  53) run_one 53 192.168.31.53 rootless ios8p.lua com.ljzbbadao.game ;;
+236:  166) run_one 166 192.168.31.166 rootful ios7.lua com.ljzbbadao.game ;;
+7:  local root = (_G.ZIYAN_LUA or '/usr/lib/ziyan/lib/lua') .. '/ziyan_engine'
+6:  ZIYAN_VAR = (io.open("/var/jb/usr/lib/ziyan/var", "r") and "/var/jb/usr/lib/ziyan/var")
+7:    or "/usr/lib/ziyan/var"
+38:var_dir() { [ "$1" = rootless ] && echo /var/jb/usr/lib/ziyan/var || echo /usr/lib/ziyan/var; }
+239:install_one 53 rootless 192.168.31.53 "$DEB_RL" &
+240:install_one 101 rootful 192.168.31.101 "$DEB_RF" &
+241:install_one 112 rootful 192.168.31.112 "$DEB_RF" &
+242:install_one 166 rootful 192.168.31.166 "$DEB_RF" &
+245:observe_one 53 rootless 192.168.31.53 &
+246:observe_one 101 rootful 192.168.31.101 &
+247:observe_one 112 rootful 192.168.31.112 &
+248:observe_one 166 rootful 192.168.31.166 &
+251:ui_one 53 rootless 192.168.31.53 &
+252:ui_one 101 rootful 192.168.31.101 &
+253:ui_one 112 rootful 192.168.31.112 &
+254:ui_one 166 rootful 192.168.31.166 &
+268:  stable_one 53 rootless 192.168.31.53 &
+269:  stable_one 101 rootful 192.168.31.101 &
+270:  stable_one 112 rootful 192.168.31.112 &
+271:  stable_one 166 rootful 192.168.31.166 &
+275:restore_one 53 rootless 192.168.31.53 &
+276:restore_one 101 rootful 192.168.31.101 &
+277:restore_one 112 rootful 192.168.31.112 &
+278:restore_one 166 rootful 192.168.31.166 &
+6:       rootless=/var/jb/usr/lib/ziyan  rootful=/usr/lib/ziyan
+15:  if io.open("/var/jb/usr/lib/ziyan/var", "r") then
+16:    ZIYAN_VAR = "/var/jb/usr/lib/ziyan/var"
+18:    ZIYAN_VAR = "/usr/lib/ziyan/var"
+21:-- rootless/rootful 统一：VAR 的上一级即 runtime root
+73:--- rootless 无 /bin/sh：os.execute(cp/rm) 常失败，用纯 Lua 读写
+397:  local is_rootless = type(ZIYAN_ROOT) == "string" and ZIYAN_ROOT:find("/var/jb", 1, true) ~= nil
+614:    local var = ZIYAN_VAR or (_G.ZIYAN_VAR or "/usr/lib/ziyan/var")
+906:  local py = string.format([[/usr/lib/ziyan/bin/python3 -c "
+1289:      "/var/jb/usr/lib/ziyan/bin/python3.7",
+1290:      "/usr/lib/ziyan/bin/python3.7",
+1299:  -- 西部数码/万网 PASV 常回内网 IP，rootful 无 curl 时 ftplib 会连错数据口。
+1625:  -- rootless Python 曾误链 rootful libpython，部分 rootful 机又缺 libexpat，
+1657:      '/usr/lib/ziyan/bin/python3 -c "import plistlib,json,sys; d=plistlib.load(open(sys.argv[1],\'rb\')); json.dump(d if isinstance(d,dict) else {}, open(sys.argv[2],\'w\'))" "%s" "%s" 2>/dev/null',
+1685:      '/usr/lib/ziyan/bin/python3 -c "import plistlib,json,sys; d=plistlib.load(open(sys.argv[1],\'rb\')); json.dump(d, open(sys.argv[2],\'w\'))" "%s" "%s" 2>/dev/null',
+1710:      '/usr/lib/ziyan/bin/python3 -c "import plistlib,json,sys; d=json.load(open(sys.argv[1])); plistlib.dump(d, open(sys.argv[2],\'wb\'))" "%s" "%s" 2>/dev/null',
+1853:      "/usr/lib/ziyan/bin/ziyan_mem %s '%s' '%s' > '%s' 2>/dev/null",
+58:V=/usr/lib/ziyan/var
+16:  if io.open("/var/jb/usr/lib/ziyan/bin/lua5.3", "r") then
+17:    return "/var/jb/usr/lib/ziyan/var"
+19:  return "/usr/lib/ziyan/var"
+55:local function is_rootless()
+56:  return io.open("/var/jb/usr/lib/ziyan/var", "r") ~= nil
+57:      or io.open("/var/jb/usr/lib/ziyan/bin/lua5.3", "r") ~= nil
+181:  if model:find("arm64", 1, true) or hw:find("iPhone1[0-9]", 1) or is_rootless() then
+212:    rootless = is_rootless(),
+255:    "{\n  \"model\":%q,\n  \"os\":%q,\n  \"arch\":%q,\n  \"rootless\":%s,\n"
+261:    p.rootless and "true" or "false",
+132:if [ "$SCHEME" = rootless ]; then
+133:  VAR=/var/jb/usr/lib/ziyan/var
+134:  BIN=/var/jb/usr/lib/ziyan/bin
+136:  VAR=/usr/lib/ziyan/var
+137:  BIN=/usr/lib/ziyan/bin
+221:  if [ "$SCHEME" = rootless ]; then
+487:if [ "\$SCHEME" = rootless ]; then V=/var/jb/usr/lib/ziyan/var; else V=/usr/lib/ziyan/var; fi
+530:    run_serial 101 192.168.31.101 rootful ios7.lua || true
+532:    if [ "$WANT_STOP" = 0 ]; then run_serial 112 192.168.31.112 rootful ios7.lua || true; fi
+533:    if [ "$WANT_STOP" = 0 ] && [ ! -f "$OUT/STOP_REASON.txt" ]; then run_serial 166 192.168.31.166 rootful ios7.lua || true; fi
+534:    if [ "$WANT_STOP" = 0 ] && [ ! -f "$OUT/STOP_REASON.txt" ]; then run_serial 53 192.168.31.53 rootless ios8p.lua || true; fi
+536:  53) run_serial 53 192.168.31.53 rootless ios8p.lua || true ;;
+537:  101) run_serial 101 192.168.31.101 rootful ios7.lua || true ;;
+538:  112) run_serial 112 192.168.31.112 rootful ios7.lua || true ;;
+539:  166) run_serial 166 192.168.31.166 rootful ios7.lua || true ;;
+38:var_dir() { [ "$1" = rootless ] && echo /var/jb/usr/lib/ziyan/var || echo /usr/lib/ziyan/var; }
+304:install_one 53 rootless 192.168.31.53 "$DEB_RL" &
+305:install_one 101 rootful 192.168.31.101 "$DEB_RF" &
+306:install_one 112 rootful 192.168.31.112 "$DEB_RF" &
+307:install_one 166 rootful 192.168.31.166 "$DEB_RF" &
+310:observe_one 53 rootless 192.168.31.53 &
+311:observe_one 101 rootful 192.168.31.101 &
+312:observe_one 112 rootful 192.168.31.112 &
+313:observe_one 166 rootful 192.168.31.166 &
+316:ui_one 53 rootless 192.168.31.53 &
+317:ui_one 101 rootful 192.168.31.101 &
+318:ui_one 112 rootful 192.168.31.112 &
+319:ui_one 166 rootful 192.168.31.166 &
+322:stable_one 53 rootless 192.168.31.53 &
+323:stable_one 101 rootful 192.168.31.101 &
+324:stable_one 112 rootful 192.168.31.112 &
+325:stable_one 166 rootful 192.168.31.166 &
+328:restore_one 53 rootless 192.168.31.53 &
+329:restore_one 101 rootful 192.168.31.101 &
+330:restore_one 112 rootful 192.168.31.112 &
+331:restore_one 166 rootful 192.168.31.166 &
+13:  if io.open("/var/jb/usr/lib/ziyan/bin/lua5.3", "r") then
+14:    return "/var/jb/usr/lib/ziyan/var"
+16:  return "/usr/lib/ziyan/var"
+13:  if io.open("/var/jb/usr/lib/ziyan/bin/lua5.3", "r") then
+14:    return "/var/jb/usr/lib/ziyan/var"
+16:  return "/usr/lib/ziyan/var"
+13:  if io.open("/var/jb/usr/lib/ziyan/bin/lua5.3", "r") then
+14:    return "/var/jb/usr/lib/ziyan/var"
+16:  return "/usr/lib/ziyan/var"
+4:  if io.open("/var/jb/usr/lib/ziyan/var", "r") then
+5:    ZIYAN_VAR = "/var/jb/usr/lib/ziyan/var"
+7:    ZIYAN_VAR = "/usr/lib/ziyan/var"
+53:  -- 8-135：CLI lua5.3 必须真正退出；挂起会死进程占坑且音量−停不干净
+74:  -- 无原生 mSleep（纯 lua5.3）时提供 shell sleep 兜底，再包装暂停检查点
+14:  if io.open("/var/jb/usr/lib/ziyan/var", "r") then
+15:    return "/var/jb/usr/lib/ziyan/var"
+17:  return "/usr/lib/ziyan/var"
+22:    "/var/jb/usr/lib/ziyan/bin/ziyanctl",
+23:    "/usr/lib/ziyan/bin/ziyanctl",
+749:      "principle": "调用 deviceSaveProfile；rootless 可写 Media 下 device_model.json。",
+1171:      "principle": "ZIYAN_VAR 或 /usr/lib/ziyan/var。",
+774:  local var = (type(_G.ZIYAN_VAR) == "string" and _G.ZIYAN_VAR) or "/usr/lib/ziyan/var"
+908:  local tmp = (_G.ZIYAN_VAR or "/usr/lib/ziyan/var") .. "/.zy_b64_in"
+909:  local out = (_G.ZIYAN_VAR or "/usr/lib/ziyan/var") .. "/.zy_b64_out"
+922:  local tmp = (_G.ZIYAN_VAR or "/usr/lib/ziyan/var") .. "/.zy_b64_dec_in"
+923:  local out = (_G.ZIYAN_VAR or "/usr/lib/ziyan/var") .. "/.zy_b64_dec_out"
+945:    local root = (_G.ZIYAN_LUA or "/usr/lib/ziyan/lib/lua") .. "/json.lua"
+957:    local root = (_G.ZIYAN_LUA or "/usr/lib/ziyan/lib/lua") .. "/json.lua"
+10:-- rootless=/var/jb/usr/lib/ziyan/var ；rootful=/usr/lib/ziyan/var（勿写死 rootful）
+13:  if io.open("/var/jb/usr/lib/ziyan/var", "r") then
+14:    ZIYAN_VAR = "/var/jb/usr/lib/ziyan/var"
+16:    ZIYAN_VAR = "/usr/lib/ziyan/var"
+611:    -- iOS 15+ rootless 对齐 TouchSprite 4.1.1：由常驻 daemon 自身创建
+614:    local isRootlessEmbed = _G.ZIYAN_EMBED
+617:    if isRootlessEmbed then
+750:        D = dofile((_G.ZIYAN_LUA or "/usr/lib/ziyan/lib/lua") .. "/ziyan_engine/coord_diag.lua")
+54:if [ "$SCHEME" = rootless ]; then
+55:  VAR=/var/jb/usr/lib/ziyan/var
+56:  LUA=/var/jb/usr/lib/ziyan/bin/lua5.3
+57:  RUN=/var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua
+58:  AGENT=/var/jb/usr/lib/ziyan/lib/lua/ziyan_agent_run.lua
+59:  export DYLD_LIBRARY_PATH=/var/jb/usr/lib/ziyan/lib
+61:  VAR=/usr/lib/ziyan/var
+62:  LUA=/usr/lib/ziyan/bin/lua5.3
+63:  RUN=/usr/lib/ziyan/lib/lua/ziyan_run.lua
+64:  AGENT=/usr/lib/ziyan/lib/lua/ziyan_agent_run.lua
+70:    *lua5.3*ziyan_agent_run.lua*) ;;
+100:  if [ "$SCHEME" = rootless ]; then
+336:run_one 112 192.168.31.112 rootful 79809 79808 98110 92 || serial_ok=0
+338:  run_one 166 192.168.31.166 rootful 25025 25024 52622 82626 || serial_ok=0
+341:  run_one 53 192.168.31.53 rootless 46408 74318 49176 93705 || serial_ok=0
+33:  local tag="$1" ip="$2" scheme="$3" var=/usr/lib/ziyan/var
+34:  [ "$scheme" = rootless ] && var=/var/jb/usr/lib/ziyan/var
+62:  w("HAS_WRITE="..tostring(type(MemoryWrite)=="function")); w("EXEC_TRUE="..ex("true")); w("EXEC_ROOTFUL_PY="..ex("/usr/lib/ziyan/bin/python3 -c 'import plistlib'")); w("EXEC_ROOTLESS_PY="..ex("/var/jb/usr/lib/ziyan/bin/python3 -c 'import plistlib'")); w("done")
+90:  all) run_one 53 192.168.31.53 rootless; run_one 101 192.168.31.101 rootful; run_one 112 192.168.31.112 rootful; run_one 166 192.168.31.166 rootful ;;
+91:  53) run_one 53 192.168.31.53 rootless ;;
+92:  101) run_one 101 192.168.31.101 rootful ;;
+93:  112) run_one 112 192.168.31.112 rootful ;;
+94:  166) run_one 166 192.168.31.166 rootful ;;
+13:  if io.open("/var/jb/usr/lib/ziyan/var", "r") then
+14:    return "/var/jb/usr/lib/ziyan/var"
+16:  return "/usr/lib/ziyan/var"
+26:local function is_rootless()
+27:  return io.open("/var/jb/usr/lib/ziyan/var", "r") ~= nil
+32:  return is_rootless() and "com.ljzbbadao.game" or "com.xztl.ios"
+12:  if io.open("/var/jb/usr/lib/ziyan/bin/lua5.3", "r") then
+13:    return "/var/jb/usr/lib/ziyan/var"
+15:  return "/usr/lib/ziyan/var"
+10:  if io.open("/var/jb/usr/lib/ziyan/var", "r") then
+11:    return "/var/jb/usr/lib/ziyan/var"
+13:  return "/usr/lib/ziyan/var"
+18:VAR=/var/jb/usr/lib/ziyan/var
+19:ZROOT=/var/jb/usr/lib/ziyan
+29:  killall -9 lua5.3 2>/dev/null || true
+41:      killall -9 lua5.3 2>/dev/null || true
+56:export DYLD_LIBRARY_PATH="$ZROOT/lib"
+57:nohup "$ZROOT/bin/lua5.3" "$ZROOT/lib/lua/ziyan_run.lua" "$SCRIPT" \
+71:VAR=/usr/lib/ziyan/var
+72:ZROOT=/usr/lib/ziyan
+97:export DYLD_LIBRARY_PATH="$ZROOT/lib"
+98:nohup "$ZROOT/bin/lua5.3" "$ZROOT/lib/lua/ziyan_run.lua" "$SCRIPT" \
+15:VAR=/usr/lib/ziyan/var
+69:killall -9 ZiYan lua5.3 2>/dev/null
+127:killall -9 lua5.3 2>/dev/null
+10:  if io.open("/var/jb/usr/lib/ziyan/var", "r") then
+11:    return "/var/jb/usr/lib/ziyan/var"
+13:  return "/usr/lib/ziyan/var"
+12:V="/usr/lib/ziyan/var"
+4:  运行时：内置脚本引擎（/usr/lib/ziyan/engine + telib.lua）
+32:  if io.open("/var/jb/usr/lib/ziyan/lib/lua/ziyan_engine/init.lua", "r") then
+33:    ZIYAN_LUA = "/var/jb/usr/lib/ziyan/lib/lua"
+35:    ZIYAN_LUA = "/usr/lib/ziyan/lib/lua"
+40:-- 与 ziyan_run / ObjC ZiYanVarDirectory 对齐，避免各模块各猜 rootful/rootless
+42:  if io.open("/var/jb/usr/lib/ziyan/var", "r")
+43:      or io.open("/var/jb/usr/lib/ziyan/bin/lua5.3", "r") then
+44:    _G.ZIYAN_VAR = "/var/jb/usr/lib/ziyan/var"
+45:    _G.ZIYAN_ROOT = "/var/jb/usr/lib/ziyan"
+47:    _G.ZIYAN_VAR = "/usr/lib/ziyan/var"
+48:    _G.ZIYAN_ROOT = "/usr/lib/ziyan"
+63:  -- 运行时：jb root 下 /usr/lib/ziyan + Media/ZiYan
+56:if [ "$SCHEME" = rootless ]; then
+57:  VAR=/var/jb/usr/lib/ziyan/var
+58:  LUA=/var/jb/usr/lib/ziyan/bin/lua5.3
+59:  RUN=/var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua
+60:  AGENT=/var/jb/usr/lib/ziyan/lib/lua/ziyan_agent_run.lua
+61:  export DYLD_LIBRARY_PATH=/var/jb/usr/lib/ziyan/lib
+63:  VAR=/usr/lib/ziyan/var
+64:  LUA=/usr/lib/ziyan/bin/lua5.3
+65:  RUN=/usr/lib/ziyan/lib/lua/ziyan_run.lua
+66:  AGENT=/usr/lib/ziyan/lib/lua/ziyan_agent_run.lua
+73:    *lua5.3*ziyan_agent_run.lua*) return 0 ;;
+272:  ".101 192.168.31.101 rootful 87863 87862 47853 96 ags_17886013788551" \
+273:  ".112 192.168.31.112 rootful 79809 79808 98110 92 ags_17886017461017" \
+274:  ".166 192.168.31.166 rootful 25025 25024 52622 82626 ags_17886019287529" \
+275:  ".53 192.168.31.53 rootless 46408 74318 49176 93705 ags_17886019413519"
+86:  local V=/usr/lib/ziyan/var
+13:  ["/usr/lib/ziyan/var"] = true,
+14:  ["/var/jb/usr/lib/ziyan/var"] = true,
+50:V=/usr/lib/ziyan/var
+53:if [ "$SCHEME" = rootless ]; then
+54:  VAR=/var/jb/usr/lib/ziyan/var
+55:  BIN=/var/jb/usr/lib/ziyan/bin
+57:  VAR=/usr/lib/ziyan/var
+58:  BIN=/usr/lib/ziyan/bin
+492:    run_one 53 192.168.31.53 rootless ios8p.lua com.ljzbbadao.game || true
+493:    run_one 101 192.168.31.101 rootful ios7.lua com.xztl.ios || true
+494:    run_one 112 192.168.31.112 rootful ios7.lua com.xztl.ios || true
+495:    run_one 166 192.168.31.166 rootful ios7.lua com.xztl.ios || true
+498:    run_one 101 192.168.31.101 rootful ios7.lua com.xztl.ios || true
+499:    run_one 112 192.168.31.112 rootful ios7.lua com.xztl.ios || true
+500:    run_one 166 192.168.31.166 rootful ios7.lua com.xztl.ios || true
+502:  53) run_one 53 192.168.31.53 rootless ios8p.lua com.ljzbbadao.game || true ;;
+503:  101) run_one 101 192.168.31.101 rootful ios7.lua com.xztl.ios || true ;;
+504:  112) run_one 112 192.168.31.112 rootful ios7.lua com.xztl.ios || true ;;
+505:  166) run_one 166 192.168.31.166 rootful ios7.lua com.xztl.ios || true ;;
+124:  if [ "$scheme" = rootless ]; then
+125:    var=/var/jb/usr/lib/ziyan/var
+126:    target=/var/jb/usr/lib/ziyan/lib/lua/agent/Core/agent_runtime.lua
+127:    tmp=/var/jb/usr/lib/ziyan/lib/lua/agent/.agent_runtime.lua.drill.tmp
+128:    lua=/var/jb/usr/lib/ziyan/bin/lua5.3
+129:    run=/var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua
+130:    agent=/var/jb/usr/lib/ziyan/lib/lua/ziyan_agent_run.lua
+132:    var=/usr/lib/ziyan/var
+133:    target=/usr/lib/ziyan/lib/lua/agent/Core/agent_runtime.lua
+134:    tmp=/usr/lib/ziyan/lib/lua/agent/.agent_runtime.lua.drill.tmp
+135:    lua=/usr/lib/ziyan/bin/lua5.3
+136:    run=/usr/lib/ziyan/lib/lua/ziyan_run.lua
+137:    agent=/usr/lib/ziyan/lib/lua/ziyan_agent_run.lua
+262:run_one 101 192.168.31.101 rootful 87863 87862 47853 96 ags_17886130846274 || overall=0
+264:  run_one 112 192.168.31.112 rootful 79809 79808 98110 92 ags_17886130889526 || overall=0
+267:  run_one 166 192.168.31.166 rootful 25025 25024 52622 82626 ags_17886130933873 || overall=0
+270:  run_one 53 192.168.31.53 rootless 46408 74318 49176 93705 ags_17886131005180 || overall=0
+69:  "53 rootless 192.168.31.53"
+70:  "101 rootful 192.168.31.101"
+71:  "112 rootful 192.168.31.112"
+72:  "166 rootful 192.168.31.166"
+85:if [ "$scheme" = rootless ]; then
+86:  VAR=/var/jb/usr/lib/ziyan/var
+89:  VAR=/usr/lib/ziyan/var
+172:if [ "$SCHEME" = rootless ]; then
+196:if [ "$SCHEME" = rootless ]; then
+281:if [ "$SCHEME" = rootless ]; then
+282:  V=/var/jb/usr/lib/ziyan/var
+284:  V=/usr/lib/ziyan/var
+329:DEB_RF="${ZY_SELFTEST_DEB_ROOTFUL:-}"
+330:DEB_RL="${ZY_SELFTEST_DEB_ROOTLESS:-}"
+378:  [ "$scheme" = rootless ] && { deb="$DEB_RL"; expect="$VER_RL"; }
+453:  if [ "$scheme" = rootless ]; then
+454:    VAR=/var/jb/usr/lib/ziyan/var
+456:    VAR=/usr/lib/ziyan/var
+65:if [ -d /var/jb/usr/lib/ziyan/var ]; then
+66:  V=/var/jb/usr/lib/ziyan/var
+68:  V=/usr/lib/ziyan/var
+245:if [ -d /var/jb/usr/lib/ziyan/var ]; then V=/var/jb/usr/lib/ziyan/var; else V=/usr/lib/ziyan/var; fi
+14:  path = path or (( _G.ZIYAN_VAR or "/usr/lib/ziyan/var") .. "/.ziyan_script_debug.txt")
+4:VAR=/var/jb/usr/lib/ziyan/var
+6:killall -9 ZiYan lua5.3 2>/dev/null || true
+5:V="${2:-/usr/lib/ziyan/var}"
+14:V=/usr/lib/ziyan/var
+15:[ -d /var/jb/usr/lib/ziyan/var ] && V=/var/jb/usr/lib/ziyan/var
+18:killall -9 lua5.3 lua 2>/dev/null || true
+7:V="${2:-/usr/lib/ziyan/var}"
+21:  local ip=$1 rootless=$2
+23:  if [ "$rootless" = 1 ]; then VAR=/var/jb/usr/lib/ziyan/var; else VAR=/usr/lib/ziyan/var; fi
+28:  local ip=$1 tag=$2 rootless=$3
+30:  if [ "$rootless" = 1 ]; then VAR=/var/jb/usr/lib/ziyan/var; else VAR=/usr/lib/ziyan/var; fi
+37:  hard_idle "$ip" "$rootless"
+41:  procs=$(ssh_r "$ip" "ps -A -o pid=,args= 2>/dev/null | grep -E 'ziyan_framecap|lua5.3' | grep -v grep | head -8" 2>/dev/null || true)
+44:  if echo "$procs" | grep -qE '\(lua5\.3\)'; then bad "$tag zombie lua5.3"; else ok "$tag no zombie lua"; fi
+53:  # rootless：plist PATH / argv0
+54:  if [ "$rootless" = 1 ]; then
+90:  hard_idle "$ip" "$rootless"
+49:if [ "$SCHEME" = rootless ]; then
+50:  VAR=/var/jb/usr/lib/ziyan/var
+51:  LUA=/var/jb/usr/lib/ziyan/bin/lua5.3
+52:  RUN=/var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua
+53:  AGENT=/var/jb/usr/lib/ziyan/lib/lua/ziyan_agent_run.lua
+54:  export DYLD_LIBRARY_PATH=/var/jb/usr/lib/ziyan/lib
+56:  VAR=/usr/lib/ziyan/var
+57:  LUA=/usr/lib/ziyan/bin/lua5.3
+58:  RUN=/usr/lib/ziyan/lib/lua/ziyan_run.lua
+59:  AGENT=/usr/lib/ziyan/lib/lua/ziyan_agent_run.lua
+68:    *lua5.3*ziyan_agent_run.lua*) ;;
+275:run_one 101 192.168.31.101 rootful 87863 87862 47853 96
+276:run_one 112 192.168.31.112 rootful 79809 79808 98110 92
+277:run_one 166 192.168.31.166 rootful 25025 25024 52622 82626
+278:run_one 53 192.168.31.53 rootless 46408 74318 49176 93705
+356:  --running-processes "依四机 AFTER：无真实 args 同时含 lua5.3 与 ziyan_agent_run.lua 的残留进程" \
+75:V=/usr/lib/ziyan/var
+250:    "root@192.168.31.$H:/usr/lib/ziyan/var/.ziyan_e4_resource.tsv" \
+127:    if "lua5.3" in args and "ziyan_agent_run.lua" in args:
+171:  if [ "$scheme" = rootless ]; then
+172:    var=/var/jb/usr/lib/ziyan/var
+173:    runtime=/var/jb/usr/lib/ziyan/lib/lua/agent/Core/agent_runtime.lua
+174:    run_cmd='DYLD_LIBRARY_PATH=/var/jb/usr/lib/ziyan/lib /var/jb/usr/lib/ziyan/bin/lua5.3 /var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua /var/jb/usr/lib/ziyan/lib/lua/ziyan_agent_run.lua'
+176:    var=/usr/lib/ziyan/var
+177:    runtime=/usr/lib/ziyan/lib/lua/agent/Core/agent_runtime.lua
+178:    run_cmd='/usr/lib/ziyan/bin/lua5.3 /usr/lib/ziyan/lib/lua/ziyan_run.lua /usr/lib/ziyan/lib/lua/ziyan_agent_run.lua'
+356:run_one .101 192.168.31.101 rootful 87863 87862 47853 96 || { all_ok=0; reasons+=(.101); }
+358:  run_one .112 192.168.31.112 rootful 79809 79808 98110 92 || { all_ok=0; reasons+=(.112); }
+361:  run_one .166 192.168.31.166 rootful 25025 25024 52622 82626 || { all_ok=0; reasons+=(.166); }
+364:  run_one .53 192.168.31.53 rootless 46408 74318 49176 93705 || { all_ok=0; reasons+=(.53); }
+28:OUT=/usr/lib/ziyan/var/.ziyan_smoke_result.txt
+44:  /usr/lib/ziyan/engine/wnriakwyww >/dev/null 2>&1 &
+52:[ -n "$PORT" ] || { echo "engine port not found"; ls /usr/lib/ziyan/runtime/var 2>/dev/null; cat /usr/lib/ziyan/runtime/var/config.json 2>/dev/null | head -c 400; exit 2; }
+56:DEST=/usr/lib/ziyan/runtime/scripts/_ziyan_smoke.lua
+57:mkdir -p /usr/lib/ziyan/runtime/scripts
+62:  local L = '/usr/lib/ziyan/lib/lua'
+69:    '/usr/lib/ziyan/runtime/var/lib/?.lua',
+91:    msg = msg:gsub('/usr/lib/ziyan/runtime/scripts[^\r\n]*', '')
+98:ln -sfn /usr/lib/ziyan/runtime /var/touchelf 2>/dev/null || true
+115:ls -la /usr/lib/ziyan/var/ | head
+93:    if "lua5.3" in args and "ziyan_agent_run.lua" in args:
+141:  if [ "$scheme" = rootless ]; then
+142:    var=/var/jb/usr/lib/ziyan/var
+144:    var=/usr/lib/ziyan/var
+245:run_one 101 192.168.31.101 rootful 87863 87862 47853 96 1788633746 com.xztl.ios '血战屠龙' com.ljzbbadao.game || { overall=0; reasons+=(.101); }
+246:run_one 112 192.168.31.112 rootful 79809 79808 98110 92 1788633753 com.xztl.ios '血战屠龙' com.ljzbbadao.game || { overall=0; reasons+=(.112); }
+247:run_one 166 192.168.31.166 rootful 25025 25024 52622 82626 1788633761 com.xztl.ios '血战屠龙' com.ljzbbadao.game || { overall=0; reasons+=(.166); }
+248:run_one 53 192.168.31.53 rootless 46408 74318 49176 93705 1788634174 com.ljzbbadao.game '龙界争霸-拔刀传奇' com.xztl.ios || { overall=0; reasons+=(.53); }
+299:  --running-processes "PS 后本地筛选；SpringBoard 只认精确结尾；FC_N 只认 ziyan_framecap serve；真实 agent lua 同时匹配 lua5.3 与 ziyan_agent_run.lua" \
+48:V=/usr/lib/ziyan/var
+24:#   rootful = 58 × 2 ≈ 120（容差覆盖测量噪声与机型差异）
+25:#   rootless .53 = @3x 像素量更大，再放宽一倍 = 240
+103:  local SCHEME=rootful
+108:  [ "$H" = "53" ] && SCHEME=rootless && SCRIPT=ios8p.lua && LOCAL="$DESKTOP_IOS8P" && SHA="$SHA8" && RMAX100="$RMAX100_R53"
+118:if [ "$SCHEME" = rootless ]; then
+119:  V=/var/jb/usr/lib/ziyan/var; B=/var/jb/usr/lib/ziyan/bin
+121:  V=/usr/lib/ziyan/var; B=/usr/lib/ziyan/bin
+375:  echo "slope_budget_per100_kb: rootful=$RMAX100_RF rootless53=$RMAX100_R53"
+110:    if "lua5.3" in args and "ziyan_agent_run.lua" in args:
+157:  if [ "$scheme" = rootless ]; then
+158:    var="/var/jb/usr/lib/ziyan/var"
+160:    var="/usr/lib/ziyan/var"
+269:run_one 101 192.168.31.101 rootful 87863 87862 47853 96 1788633746 ags_17886337469438 || { overall_ok=0; reasons+=(.101); }
+270:run_one 112 192.168.31.112 rootful 79809 79808 98110 92 1788633753 ags_17886337525795 || { overall_ok=0; reasons+=(.112); }
+271:run_one 166 192.168.31.166 rootful 25025 25024 52622 82626 1788633761 ags_17886337609702 || { overall_ok=0; reasons+=(.166); }
+272:run_one 53 192.168.31.53 rootless 46408 74318 49176 93705 1788634174 ags_17886337703981 ags_17886341743064 || { overall_ok=0; reasons+=(.53); }
+328:  --running-processes "冻结 SB/BB/FC 与 zy 逐机核验；四机 FC_N=1；真实 agent lua 按 lua5.3+ziyan_agent_run.lua 同时筛选" \
+58:V=/usr/lib/ziyan/var
+167:    "root@192.168.31.$H:/usr/lib/ziyan/var/.ziyan_find_shm_log" \
+170:    "root@192.168.31.$H:/usr/lib/ziyan/var/.ziyan_find_timing_log" \
+9:  53) HOST=192.168.31.53; SCHEME=rootless; VAR=/var/jb/usr/lib/ziyan/var ;;
+10:  101|112|166) HOST=192.168.31.$TAG; SCHEME=rootful; VAR=/usr/lib/ziyan/var ;;
+25:  "53|192.168.31.53|rootless|zy"
+26:  "101|192.168.31.101|rootful|zy"
+27:  "112|192.168.31.112|rootful|zy"
+28:  "166|192.168.31.166|rootful|zy"
+54:if [ "$SCHEME" = rootless ]; then VAR=/var/jb/usr/lib/ziyan/var; else VAR=/usr/lib/ziyan/var; fi
+55:# rootless 无 /bin/bash
+106:if [ "$SCHEME" = rootless ]; then VAR=/var/jb/usr/lib/ziyan/var; else VAR=/usr/lib/ziyan/var; fi
+138:if [ "$SCHEME" = rootless ]; then VAR=/var/jb/usr/lib/ziyan/var; else VAR=/usr/lib/ziyan/var; fi
+168:if [ "$SCHEME" = rootless ]; then VAR=/var/jb/usr/lib/ziyan/var; JB=/var/jb; else VAR=/usr/lib/ziyan/var; JB=; fi
+179:      if [ "$scheme" = rootless ]; then
+180:        RMON="/var/jb/usr/lib/ziyan/var/monitor/$SESSION"
+182:        RMON="/usr/lib/ziyan/var/monitor/$SESSION"
+151:    [[ "$args" == *lua5.3* && "$args" == *ziyan_agent_run.lua* ]] && n=$((n + 1))
+284:  if [ "$scheme" = rootless ]; then
+285:    launch_cmd="DYLD_LIBRARY_PATH=/var/jb/usr/lib/ziyan/lib '$lua' '$run' '$agent'"
+377:  if [ "$scheme" = rootless ]; then
+378:    var=/var/jb/usr/lib/ziyan/var
+379:    lua=/var/jb/usr/lib/ziyan/bin/lua5.3
+380:    run=/var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua
+381:    agent=/var/jb/usr/lib/ziyan/lib/lua/ziyan_agent_run.lua
+383:    var=/usr/lib/ziyan/var
+384:    lua=/usr/lib/ziyan/bin/lua5.3
+385:    run=/usr/lib/ziyan/lib/lua/ziyan_run.lua
+386:    agent=/usr/lib/ziyan/lib/lua/ziyan_agent_run.lua
+447:run_one 101 192.168.31.101 rootful 87863 87862 47853 96 || serial_ok=0
+449:  run_one 112 192.168.31.112 rootful 79809 79808 98110 92 || serial_ok=0
+452:  run_one 166 192.168.31.166 rootful 25025 25024 52622 82626 || serial_ok=0
+455:  run_one 53 192.168.31.53 rootless 46408 74318 49176 93705 || serial_ok=0
+491:  --running-processes "SpringBoard 仅本机按完整路径结尾筛选；FC_N 仅本机按 ziyan_framecap serve 结尾筛选；残留仅本机按 lua5.3 与 ziyan_agent_run.lua 同时筛选" \
+9:  local root=/usr/lib/ziyan
+10:  [ "$scheme" = rootless ] && root=/var/jb/usr/lib/ziyan
+29:sample 166 192.168.31.166 rootful >"$OUT/m_166.log" 2>&1 &
+30:sample 101 192.168.31.101 rootful >"$OUT/m_101.log" 2>&1 &
+31:sample 112 192.168.31.112 rootful >"$OUT/m_112.log" 2>&1 &
+32:sample 53 192.168.31.53 rootless >"$OUT/m_53.log" 2>&1 &
+11:V="${2:-/usr/lib/ziyan/var}"
+7:VAR=/usr/lib/ziyan/var
+30:if [ "$SCHEME" = rootless ]; then
+31:  VAR=/var/jb/usr/lib/ziyan/var; BIN=/var/jb/usr/lib/ziyan/bin
+33:  VAR=/usr/lib/ziyan/var; BIN=/usr/lib/ziyan/bin
+178:  all) run_one 53 192.168.31.53 rootless ios8p.lua com.ljzbbadao.game || true
+179:       run_one 101 192.168.31.101 rootful ios7.lua com.xztl.ios || true
+180:       run_one 112 192.168.31.112 rootful ios7.lua com.xztl.ios || true
+181:       run_one 166 192.168.31.166 rootful ios7.lua com.xztl.ios || true ;;
+182:  53) run_one 53 192.168.31.53 rootless ios8p.lua com.ljzbbadao.game || true ;;
+183:  101) run_one 101 192.168.31.101 rootful ios7.lua com.xztl.ios || true ;;
+184:  112) run_one 112 192.168.31.112 rootful ios7.lua com.xztl.ios || true ;;
+185:  166) run_one 166 192.168.31.166 rootful ios7.lua com.xztl.ios || true ;;
+107:    [[ "$args" == *lua5.3* && "$args" == *ziyan_agent_run.lua* ]] && n=$((n + 1))
+128:  if [ "$scheme" = rootless ]; then
+129:    var="/var/jb/usr/lib/ziyan/var"
+131:    var="/usr/lib/ziyan/var"
+209:run_if_clean 101 192.168.31.101 rootful 87863 87862 47853 96 \
+211:run_if_clean 112 192.168.31.112 rootful 79809 79808 98110 92 \
+213:run_if_clean 166 192.168.31.166 rootful 25025 25024 52622 82626 \
+215:run_if_clean 53 192.168.31.53 rootless 46408 74318 49176 93705 \
+105:V=/usr/lib/ziyan/var
+80:V=/usr/lib/ziyan/var
+41:var_dir() { [ "$1" = rootless ] && echo /var/jb/usr/lib/ziyan/var || echo /usr/lib/ziyan/var; }
+228:install_one 53 rootless 192.168.31.53 "$DEB_RL" &
+230:install_one 101 rootful 192.168.31.101 "$DEB_RF" &
+232:install_one 112 rootful 192.168.31.112 "$DEB_RF" &
+234:install_one 166 rootful 192.168.31.166 "$DEB_RF" &
+239:observe_one 53 rootless 192.168.31.53 &
+241:observe_one 101 rootful 192.168.31.101 &
+243:observe_one 112 rootful 192.168.31.112 &
+245:observe_one 166 rootful 192.168.31.166 &
+250:ui_one 53 rootless 192.168.31.53 &
+252:ui_one 101 rootful 192.168.31.101 &
+254:ui_one 112 rootful 192.168.31.112 &
+256:ui_one 166 rootful 192.168.31.166 &
+261:restore_one 53 rootless 192.168.31.53 &
+262:restore_one 101 rootful 192.168.31.101 &
+263:restore_one 112 rootful 192.168.31.112 &
+264:restore_one 166 rootful 192.168.31.166 &
+14:VAR=/usr/lib/ziyan/var
+15:BIN=/usr/lib/ziyan/bin
+17:if [ -d /var/jb/usr/lib/ziyan ]; then
+18:  VAR=/var/jb/usr/lib/ziyan/var
+19:  BIN=/var/jb/usr/lib/ziyan/bin
+41:    if [ "$scheme" = rootless ]; then
+42:      ssh_r "$ip" 'killall -9 ziyan_framecap 2>/dev/null; sleep 1; nohup /var/jb/usr/lib/ziyan/bin/ziyan_framecap serve >/dev/null 2>&1 &' || true
+44:      ssh_r "$ip" 'launchctl kickstart -k system/com.ziyan.framecap 2>/dev/null || (killall -9 ziyan_framecap 2>/dev/null; sleep 1; nohup /usr/lib/ziyan/bin/ziyan_framecap serve >/dev/null 2>&1 &)' || true
+53:  if [ "$scheme" = rootless ]; then VAR=/var/jb/usr/lib/ziyan/var; else VAR=/usr/lib/ziyan/var; fi
+104:if [ "$SCHEME" = rootless ]; then
+105:  VAR=/var/jb/usr/lib/ziyan/var; BIN=/var/jb/usr/lib/ziyan/bin
+107:  VAR=/usr/lib/ziyan/var; BIN=/usr/lib/ziyan/bin
+242:    cmp_phone 53 192.168.31.53 rootless com.ljzbbadao.game ios8p || true
+243:    cmp_phone 101 192.168.31.101 rootful com.xztl.ios ios7 || true
+244:    cmp_phone 112 192.168.31.112 rootful com.xztl.ios ios7 || true
+245:    cmp_phone 166 192.168.31.166 rootful com.xztl.ios ios7 || true
+247:  53) cmp_phone 53 192.168.31.53 rootless com.ljzbbadao.game ios8p ;;
+248:  101) cmp_phone 101 192.168.31.101 rootful com.xztl.ios ios7 ;;
+249:  112) cmp_phone 112 192.168.31.112 rootful com.xztl.ios ios7 ;;
+250:  166) cmp_phone 166 192.168.31.166 rootful com.xztl.ios ios7 ;;
+112:v=/usr/lib/ziyan/var
+57:if [ "$SCHEME" = rootless ]; then
+58:  VAR=/var/jb/usr/lib/ziyan/var
+59:  LUA=/var/jb/usr/lib/ziyan/bin/lua5.3
+60:  RUN=/var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua
+61:  AGENT=/var/jb/usr/lib/ziyan/lib/lua/ziyan_agent_run.lua
+62:  export DYLD_LIBRARY_PATH=/var/jb/usr/lib/ziyan/lib
+64:  VAR=/usr/lib/ziyan/var
+65:  LUA=/usr/lib/ziyan/bin/lua5.3
+66:  RUN=/usr/lib/ziyan/lib/lua/ziyan_run.lua
+67:  AGENT=/usr/lib/ziyan/lib/lua/ziyan_agent_run.lua
+82:    *lua5.3*ziyan_agent_run.lua*) return 0 ;;
+251:run_one .101 192.168.31.101 rootful 87863 87862 47853 96 ags_17886027543490 || overall=PARTIAL
+253:  run_one .112 192.168.31.112 rootful 79809 79808 98110 92 ags_17886027566825 || overall=PARTIAL
+256:  run_one .166 192.168.31.166 rootful 25025 25024 52622 82626 ags_17886034343236 || overall=PARTIAL
+259:  run_one .53 192.168.31.53 rootless 46408 74318 49176 93705 ags_17886034369522 || overall=PARTIAL
+27:V=/usr/lib/ziyan/var
+101:V=/usr/lib/ziyan/var
+112:/usr/lib/ziyan/bin/lua5.3 /usr/lib/ziyan/lib/lua/ziyan_run.lua /usr/lib/ziyan/lib/lua/ziyan_agent_smoke.lua
+93:V=/usr/lib/ziyan/var
+12:V="/usr/lib/ziyan/var"
+33:local var = _G.ZIYAN_VAR or "/usr/lib/ziyan/var"
+58:V=/usr/lib/ziyan/var
+2:# Iteration 2: rootful 10-32 on .101/.166 only. One sbreload each.
+61:echo 1 >/usr/lib/ziyan/var/.ziyan_bbframe_on
+62:chmod 666 /usr/lib/ziyan/var/.ziyan_bbframe_on
+63:: >/usr/lib/ziyan/var/.ziyan_inject_trace
+64:chmod 666 /usr/lib/ziyan/var/.ziyan_inject_trace
+77:rm -f /usr/lib/ziyan/var/.ziyan_bbframe_on
+147:  ssh_r "$ip" "cat /usr/lib/ziyan/var/.ziyan_inject_trace 2>/dev/null" \
+149:  ssh_r "$ip" "echo FC=\$(ps -ax -o command= | grep -F 'ziyan_framecap serve' | grep -vc grep); echo DAEMON=\$(ps -ax -o command= | grep -E 'ziyadaemond|ziyan_zydaemond' | grep -vc grep); echo HOOKS=\$(tr '\n' ' ' < /usr/lib/ziyan/var/.ziyan_hooks)" \
+6:V="${2:-/usr/lib/ziyan/var}"
+17:V=/usr/lib/ziyan/var
+20:echo FRAMECAP_SHA256=$(sha256sum /usr/lib/ziyan/bin/ziyan_framecap 2>/dev/null | sed "s/[[:space:]].*$//")
+21:echo DAEMON_SHA256=$(sha256sum /usr/lib/ziyan/bin/ziyan_zydaemond.sh 2>/dev/null | sed "s/[[:space:]].*$//")
+37:echo FRAMECAP_SHA256=\$(sha256sum /usr/lib/ziyan/bin/ziyan_framecap | sed 's/[[:space:]].*//')
+38:echo DAEMON_SHA256=\$(sha256sum /usr/lib/ziyan/bin/ziyan_zydaemond.sh | sed 's/[[:space:]].*//')" >"$OUT/rollback_install.txt" 2>&1
+52:echo FRAMECAP_SHA256=$(sha256sum /usr/lib/ziyan/bin/ziyan_framecap | sed "s/[[:space:]].*$//")
+53:echo DAEMON_SHA256=$(sha256sum /usr/lib/ziyan/bin/ziyan_zydaemond.sh | sed "s/[[:space:]].*$//")
+58:V=/usr/lib/ziyan/var
+61:echo FRAMECAP_SHA256=$(sha256sum /usr/lib/ziyan/bin/ziyan_framecap 2>/dev/null | sed "s/[[:space:]].*$//")
+62:echo DAEMON_SHA256=$(sha256sum /usr/lib/ziyan/bin/ziyan_zydaemond.sh 2>/dev/null | sed "s/[[:space:]].*$//")
+96:    if "lua5.3" in args and "ziyan_agent_run.lua" in args:
+137:  if [ "$scheme" = rootless ]; then
+138:    var=/var/jb/usr/lib/ziyan/var
+140:    var=/usr/lib/ziyan/var
+255:run_one 101 192.168.31.101 rootful 87863 87862 47853 96 1788633746 com.xztl.ios '血战屠龙' || { overall=0; reasons+=(.101); }
+257:  run_one 112 192.168.31.112 rootful 79809 79808 98110 92 1788633753 com.xztl.ios '血战屠龙' || { overall=0; reasons+=(.112); }
+260:  run_one 166 192.168.31.166 rootful 25025 25024 52622 82626 1788633761 com.xztl.ios '血战屠龙' || { overall=0; reasons+=(.166); }
+263:  run_one 53 192.168.31.53 rootless 46408 74318 49176 93705 1788634174 com.ljzbbadao.game '龙界争霸-拔刀传奇' || { overall=0; reasons+=(.53); }
+314:  --running-processes "PS 后本地筛选；SpringBoard 只认精确结尾；FC_N 只认 ziyan_framecap serve；真实 agent lua 同时匹配 lua5.3 与 ziyan_agent_run.lua" \
+5:V="${VAR:-/usr/lib/ziyan/var}"
+35:  53) IP=192.168.31.53; SCHEME=rootless ;;
+36:  101) IP=192.168.31.101; SCHEME=rootful ;;
+37:  112) IP=192.168.31.112; SCHEME=rootful ;;
+38:  166) IP=192.168.31.166; SCHEME=rootful ;;
+107:if [ "$SCHEME" = rootless ]; then V=/var/jb/usr/lib/ziyan/var; else V=/usr/lib/ziyan/var; fi
+145:    [[ "$args" == *lua5.3* && "$args" == *ziyan_agent_run.lua* ]] && n=$((n + 1))
+197:  if [ "$scheme" = rootless ]; then
+198:    var=/var/jb/usr/lib/ziyan/var
+200:    var=/usr/lib/ziyan/var
+246:      rootful:ags_*) id="$name"; report="$report_root/$id/report.txt" ;;
+247:      rootless:ags_*.txt) id="${name%.txt}"; report="$report_root/$name" ;;
+302:run_one .101 192.168.31.101 rootful 87863 87862 47853 96 ags_17886039267035 || serial_ok=0
+304:  run_one .112 192.168.31.112 rootful 79809 79808 98110 92 ags_17886039283090 || serial_ok=0
+307:  run_one .53 192.168.31.53 rootless 46408 74318 49176 93705 ags_17886039311331 || serial_ok=0
+369:  --running-processes "仅本地筛选：SpringBoard args 路径结尾；FC_N 只计 ziyan_framecap serve 路径结尾；真实 agent lua 同时含 lua5.3 与 ziyan_agent_run.lua" \
+72:    *lua5.3*ziyan_agent_run.lua*) return 0 ;;
+132:if [ "$SCHEME" = rootless ]; then
+133:  VAR=/var/jb/usr/lib/ziyan/var
+134:  LUA=/var/jb/usr/lib/ziyan/bin/lua5.3
+135:  RUN=/var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua
+136:  AGENT=/var/jb/usr/lib/ziyan/lib/lua/ziyan_agent_run.lua
+137:  export DYLD_LIBRARY_PATH=/var/jb/usr/lib/ziyan/lib
+139:  VAR=/usr/lib/ziyan/var
+140:  LUA=/usr/lib/ziyan/bin/lua5.3
+141:  RUN=/usr/lib/ziyan/lib/lua/ziyan_run.lua
+142:  AGENT=/usr/lib/ziyan/lib/lua/ziyan_agent_run.lua
+157:    *lua5.3*ziyan_agent_run.lua*) return 0 ;;
+337:read_only .101 192.168.31.101 /usr/lib/ziyan/var 87863 87862 47853 ags_17886027543490
+338:read_only .112 192.168.31.112 /usr/lib/ziyan/var 79809 79808 98110 ags_17886027566825
+349:  run_one .166 192.168.31.166 rootful 25025 25024 52622 82626 ags_17886019287529 || overall=PARTIAL
+351:    run_one .53 192.168.31.53 rootless 46408 74318 49176 93705 ags_17886019413519 || overall=PARTIAL
+55:if [ "$SCHEME" = rootless ]; then
+56:  VAR=/var/jb/usr/lib/ziyan/var
+57:  LUA=/var/jb/usr/lib/ziyan/bin/lua5.3
+58:  RUN=/var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua
+59:  AGENT=/var/jb/usr/lib/ziyan/lib/lua/ziyan_agent_run.lua
+60:  export DYLD_LIBRARY_PATH=/var/jb/usr/lib/ziyan/lib
+62:  VAR=/usr/lib/ziyan/var
+63:  LUA=/usr/lib/ziyan/bin/lua5.3
+64:  RUN=/usr/lib/ziyan/lib/lua/ziyan_run.lua
+65:  AGENT=/usr/lib/ziyan/lib/lua/ziyan_agent_run.lua
+382:run_one 101 192.168.31.101 rootful 87863 87862 47853 96 || halted_at=101
+384:  run_one 112 192.168.31.112 rootful 79809 79808 98110 92 || halted_at=112
+387:  run_one 166 192.168.31.166 rootful 25025 25024 52622 82626 || halted_at=166
+390:  run_one 53 192.168.31.53 rootless 46408 74318 49176 93705 || halted_at=53
+54:if [ "$SCHEME" = rootless ]; then
+55:  VAR=/var/jb/usr/lib/ziyan/var
+56:  LUA=/var/jb/usr/lib/ziyan/bin/lua5.3
+57:  RUN=/var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua
+58:  AGENT=/var/jb/usr/lib/ziyan/lib/lua/ziyan_agent_run.lua
+59:  export DYLD_LIBRARY_PATH=/var/jb/usr/lib/ziyan/lib
+61:  VAR=/usr/lib/ziyan/var
+62:  LUA=/usr/lib/ziyan/bin/lua5.3
+63:  RUN=/usr/lib/ziyan/lib/lua/ziyan_run.lua
+64:  AGENT=/usr/lib/ziyan/lib/lua/ziyan_agent_run.lua
+70:    *lua5.3*ziyan_agent_run.lua*) ;;
+89:  if [ "$SCHEME" = rootless ]; then
+305:run_one 101 192.168.31.101 rootful 87863 87862 47853 96 || serial_ok=0
+307:  run_one 112 192.168.31.112 rootful 79809 79808 98110 92 || serial_ok=0
+310:  run_one 166 192.168.31.166 rootful 25025 25024 52622 82626 || serial_ok=0
+313:  run_one 53 192.168.31.53 rootless 46408 74318 49176 93705 || serial_ok=0
+31:V=/usr/lib/ziyan/var
+185:V=/usr/lib/ziyan/var
+220:ssh_r "printf '%s\n' com.xztl.ios > /usr/lib/ziyan/var/.ziyan_open_app; chmod 666 /usr/lib/ziyan/var/.ziyan_open_app" >/dev/null 2>&1 || true
+3:# 若最新 2 版无 arm64，额外保留最近一份 arm64（rootless .53）。
+28:  53) IP=192.168.31.53; SCHEME=rootless ;;
+29:  101) IP=192.168.31.101; SCHEME=rootful ;;
+30:  112) IP=192.168.31.112; SCHEME=rootful ;;
+31:  166) IP=192.168.31.166; SCHEME=rootful ;;
+65:if [ "$SCHEME" = rootless ]; then V=/var/jb/usr/lib/ziyan/var; else V=/usr/lib/ziyan/var; fi
+20:if [ "$SCHEME" = rootless ]; then
+21:  VAR=/var/jb/usr/lib/ziyan/var; LUA=/var/jb/usr/lib/ziyan/bin/lua5.3; RUN=/var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua
+22:  export PATH=/var/jb/usr/lib/ziyan/bin:/var/jb/bin:$PATH; export DYLD_LIBRARY_PATH=/var/jb/usr/lib/ziyan/lib:/var/jb/usr/lib
+24:  VAR=/usr/lib/ziyan/var; LUA=/usr/lib/ziyan/bin/lua5.3; RUN=/usr/lib/ziyan/lib/lua/ziyan_run.lua
+38:ensure_script 53 rootless ios8p.lua com.ljzbbadao.game
+39:ensure_script 101 rootful ios7.lua com.xztl.ios
+40:ensure_script 112 rootful ios7.lua com.xztl.ios
+41:ensure_script 166 rootful ios7.lua com.xztl.ios
+48:VAR=/usr/lib/ziyan/var; [ -d /var/jb/usr/lib/ziyan/var ] && VAR=/var/jb/usr/lib/ziyan/var
+88:VAR=/usr/lib/ziyan/var; [ -d /var/jb/usr/lib/ziyan/var ] && VAR=/var/jb/usr/lib/ziyan/var
+105:VAR=/usr/lib/ziyan/var; [ -d /var/jb/usr/lib/ziyan/var ] && VAR=/var/jb/usr/lib/ziyan/var
+32:  local ip=$1 tag=$2 rootless=$3
+34:  if [ "$rootless" = 1 ]; then VAR=/var/jb/usr/lib/ziyan/var; LD=/var/jb/Library/LaunchDaemons
+35:  else VAR=/usr/lib/ziyan/var; LD=/Library/LaunchDaemons; fi
+52:  echo "$procs" | grep -qE 'lua5\.3' && bad "$tag zombie lua" || ok "$tag no lua5.3"
+64:  if [ "$rootless" = 1 ]; then
+2:# 8-161-74：一键打 rootful + rootless 双包（兼容 iPhone7 / iPhone8Plus）
+9:ROOTFUL_STASH=""
+18:  [ -n "$ROOTFUL_STASH" ] && rm -f "$ROOTFUL_STASH"
+200:echo "[ZiYan] dual-package: rootful then rootless"
+204:echo "[ZiYan] === rootful (iphoneos-arm) ==="
+207:# Theos does not remove an earlier rootless remap from the shared staging tree.
+208:# A rootful package must never inherit var/jb runtime files from the prior run.
+219:# The rootless clean target clears the shared packages directory. Preserve the
+220:# validated rootful artifact while producing the rootless package.
+221:ROOTFUL_STASH="$(mktemp "${TMPDIR:-/tmp}/ziyan-rootful-package.XXXXXX")"
+222:cp -p "$DEB32" "$ROOTFUL_STASH"
+223:echo "[ZiYan] === rootless (iphoneos-arm64) ==="
+225:THEOS_PACKAGE_SCHEME=rootless make -f Makefile clean
+226:THEOS_PACKAGE_SCHEME=rootless make -f Makefile all
+227:# 当前 Theos 的 rootless deb remap 目标不会自行 mkdir，缺目录会静默产出
+228:# rootful 路径的伪 arm64 包；先建目标并让 install_name 校验兜底。
+230:THEOS_PACKAGE_SCHEME=rootless make -f Makefile package
+235:verify_deb_runtime_payload "$DEB64" "var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua"
+236:verify_deb_runtime_payload "$DEB64" "var/jb/usr/lib/ziyan/bin/ziyan_runtime_root.sh"
+238:bash tools/verify_package_install_names.sh "$DEB64"
+239:cp -p "$ROOTFUL_STASH" "$DEB32"
+240:rm -f "$ROOTFUL_STASH"
+241:ROOTFUL_STASH=""
+2:# verify_package_install_names.sh — 打包后门禁：rootless deb 的 tweak install_name 必须含 /var/jb
+3:# 用法：tools/verify_package_install_names.sh [path/to.deb]
+4:# 失败退出码 2（禁止交付错误 rootless 包）
+28:  echo "CHECK $base install_name=$name"
+30:    echo "FAIL: ZiYanVol install_name must be /var/jb/Library/... (got: $name)" >&2
+31:    echo "HINT: THEOS_PACKAGE_SCHEME=rootless make clean package  （禁止 rootful 后不 clean 直接打 rootless）" >&2
+45:echo "PASS: $DEB ZiYanVol install_name OK"
+22:var_dir() { [ "$1" = rootless ] && echo /var/jb/usr/lib/ziyan/var || echo /usr/lib/ziyan/var; }
+24:  if [ "$1" = rootless ]; then
+25:    echo "DYLD_LIBRARY_PATH=/var/jb/usr/lib/ziyan/lib /var/jb/usr/lib/ziyan/bin/lua5.3 /var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua /var/jb/usr/lib/ziyan/lib/lua/ziyan_agent_run.lua"
+27:    echo "/usr/lib/ziyan/bin/lua5.3 /usr/lib/ziyan/lib/lua/ziyan_run.lua /usr/lib/ziyan/lib/lua/ziyan_agent_run.lua"
+94:run_one 53 rootless 192.168.31.53
+95:run_one 101 rootful 192.168.31.101
+96:run_one 112 rootful 192.168.31.112
+97:run_one 166 rootful 192.168.31.166
+75:VAR=/usr/lib/ziyan/var
+94:VAR=/var/jb/usr/lib/ziyan/var
+95:LUA=/var/jb/usr/lib/ziyan/bin/lua5.3
+96:RUN=/var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua
+97:AGENT=/var/jb/usr/lib/ziyan/lib/lua/ziyan_agent_run.lua
+101:  case "$1" in *lua5.3*ziyan_agent_run.lua*) ;; *) return 1 ;; esac
+196:  DYLD_LIBRARY_PATH=/var/jb/usr/lib/ziyan/lib /var/jb/usr/lib/ziyan/bin/lua5.3 /var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua /var/jb/usr/lib/ziyan/lib/lua/ziyan_agent_run.lua
+35:  BIN="${JB}/usr/lib/ziyan/bin/ziyan_ocr"
+36:  VAR="${JB}/usr/lib/ziyan/var"
+20:  local V=/usr/lib/ziyan/var
+59:V=/usr/lib/ziyan/var
+128:V=/usr/lib/ziyan/var
+158:V=/usr/lib/ziyan/var
+105:V=/usr/lib/ziyan/var
+4:VAR=/usr/lib/ziyan/var
+6:killall -9 ZiYan lua5.3 2>/dev/null || true
+105:V=/usr/lib/ziyan/var
+29:ZOMB=\$(ps aux | awk '/lua5.3/ && /ziyan_run/ && \$4==\"0.0\" && \$6==\"0\" {c++} END{print c+0}')
+59:collect_ziyan 192.168.31.166 /usr/lib/ziyan
+60:collect_ziyan 192.168.31.53 /var/jb/usr/lib/ziyan
+75:    [[ "$args" == *lua5.3* && "$args" == *ziyan_agent_run.lua* ]] && n=$((n + 1))
+87:  [ "$scheme" = rootless ] && var=/var/jb/usr/lib/ziyan/var || var=/usr/lib/ziyan/var
+146:run_one 101 192.168.31.101 rootful 87863 87862 47853 96 || all_ok=0
+147:if [ "$all_ok" = 1 ]; then run_one 112 192.168.31.112 rootful 79809 79808 98110 92 || all_ok=0; fi
+148:if [ "$all_ok" = 1 ]; then run_one 166 192.168.31.166 rootful 25025 25024 52622 82626 || all_ok=0; fi
+149:if [ "$all_ok" = 1 ]; then run_one 53 192.168.31.53 rootless 46408 74318 49176 93705 || all_ok=0; fi
+178:  --running-processes "SpringBoard args 仅完整路径结尾；FC_N 仅 ziyan_framecap serve 结尾；真实 agent lua 同时含 lua5.3 与 ziyan_agent_run.lua" \
+75:V=/usr/lib/ziyan/var
+127:    if "lua5.3" in args and "ziyan_agent_run.lua" in args:
+229:  if [ "$scheme" = rootless ]; then
+230:    run_cmd="DYLD_LIBRARY_PATH=/var/jb/usr/lib/ziyan/lib '$lua' '$run' '$agent'"
+306:  if [ "$scheme" = rootless ]; then
+307:    var=/var/jb/usr/lib/ziyan/var
+308:    lua=/var/jb/usr/lib/ziyan/bin/lua5.3
+309:    run=/var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua
+310:    agent=/var/jb/usr/lib/ziyan/lib/lua/ziyan_agent_run.lua
+311:    runtime=/var/jb/usr/lib/ziyan/lib/lua/agent/Core/agent_runtime.lua
+313:    var=/usr/lib/ziyan/var
+314:    lua=/usr/lib/ziyan/bin/lua5.3
+315:    run=/usr/lib/ziyan/lib/lua/ziyan_run.lua
+316:    agent=/usr/lib/ziyan/lib/lua/ziyan_agent_run.lua
+317:    runtime=/usr/lib/ziyan/lib/lua/agent/Core/agent_runtime.lua
+410:run_one .101 192.168.31.101 rootful 87863 87862 47853 96 || { all_ok=0; reasons+=(.101); }
+412:  run_one .112 192.168.31.112 rootful 79809 79808 98110 92 || { all_ok=0; reasons+=(.112); }
+415:  run_one .166 192.168.31.166 rootful 25025 25024 52622 82626 || { all_ok=0; reasons+=(.166); }
+418:  run_one .53 192.168.31.53 rootless 46408 74318 49176 93705 || { all_ok=0; reasons+=(.53); }
+455:  --running-processes "SpringBoard/FC 仅本机按 args 结尾筛选；真实 agent lua 按 lua5.3 + ziyan_agent_run.lua 同时筛选；冻结 zy 存在即可" \
+138:    "rm -f /usr/lib/ziyan/var/.ziyan_go_home /usr/lib/ziyan/var/.ziyan_open_app /usr/lib/ziyan/var/.ziyan_open_app.tmp /usr/lib/ziyan/var/.ziyan_p2_native_front_fast /usr/lib/ziyan/var/.ziyan_p2_toast_visual /usr/lib/ziyan/var/.ziyan_embed_api_probe /usr/lib/ziyan/var/.ziyan_embed_api_probe.tmp /usr/lib/ziyan/var/.ziyan_cmd.p2.*" \
+312:V=/usr/lib/ziyan/var
+343:                 /usr/lib/ziyan/bin/open_transition_probe \
+344:                 /usr/lib/ziyan/bin/ziyan_front_probe; do
+656:  emit_proc "$phase" ziyadaemond "/usr/lib/ziyan/bin/ziyadaemond"
+760:printf 'FRAMECAP_SHA='; sha256sum /usr/lib/ziyan/bin/ziyan_framecap 2>/dev/null | sed 's/[[:space:]].*//'
+1090:V=/usr/lib/ziyan/var
+1125:        "printf 'round=%s\\nphase=%s\\ngen=%s\\n' '$marker_round' '$marker_phase' '$marker_gen' > /usr/lib/ziyan/var/.ziyan_p2_toast_visual_ack.tmp && mv /usr/lib/ziyan/var/.ziyan_p2_toast_visual_ack.tmp /usr/lib/ziyan/var/.ziyan_p2_toast_visual_ack" \
+1282:guard_zydaemon_pid="\$(single_pid_for '/usr/lib/ziyan/bin/ziyadaemond')"
+1291:    [ "\$(single_pid_for '/usr/lib/ziyan/bin/ziyadaemond')" = "\$guard_zydaemon_pid" ] &&
+2002:    if ssh_one "$IP101" "cat /usr/lib/ziyan/var/.ziyan_framecap_exit_hist" \
+2016:    if ssh_one "$IP101" "cat /usr/lib/ziyan/var/.ziyan_ts_cycle.csv" \
+105:V=/usr/lib/ziyan/var
+2:# 三台 rootful 真机的业务负载 Home↔App 回归；不触碰 .53/.149/.171。
+77:  out="$(ssh_r "$h" "V=/usr/lib/ziyan/var; M=/private/var/mobile/Media/ZiYan; rm -f \"\$V/.ziyan_kill_scripts\" \"\$V/.ziyan_user_stopped\" \"\$V/.ziyan_stop\" \"\$V/.ziyan_embed_off\" \"\$V/.ziyan_no_auto_keep\"; : >\"\$V/.ziyan_find_shm_log\"; : >\"\$V/.ziyan_find_timing_log\"; rm -f \"\$M/_p2_30m_beat.txt\"; printf 'path=%s\\nstop=0\\n' \"$remote\" >\"\$V/.ziyan_run_intent\"; printf '%s\\n' \"$remote\" >\"\$V/.ziyan_embed_script\"; echo 1 >\"\$V/.ziyan_embed_on\"; echo nonce=p2_30m_\$\$ >\"\$V/.ziyan_embed_go\"; chmod 666 \"\$V/.ziyan_run_intent\" \"\$V/.ziyan_embed_script\" \"\$V/.ziyan_embed_on\" \"\$V/.ziyan_embed_go\"; for i in \$(seq 1 40); do [ -s \"\$M/_p2_30m_beat.txt\" ] && { echo STARTED=1; exit 0; }; sleep 0.5; done; echo STARTED=0; exit 1" 2>&1 || true)"
+100:  remote="$(ssh_r "$h" 'V=/usr/lib/ziyan/var; printf "front=%s\n" "$(tr -d "\r\n" <"$V/.ziyan_front_bid" 2>/dev/null)"; printf "shm=%s\n" "$(tr -d "\r\n" <"$V/.ziyan_shm_front_bid" 2>/dev/null)"; printf "ack=%s\n" "$(cat "$V/.ziyan_frame_ack" 2>/dev/null | tr "\n" " ")"; printf "find=%s\n" "$(tail -1 "$V/.ziyan_find_shm_log" 2>/dev/null)"; printf "fc=%s\n" "$(ps -A -o pid=,rss=,%cpu=,etime=,command= 2>/dev/null | grep "[z]iyan_framecap serve" | head -1 | tr "\n" " ")"; printf "sb=%s\n" "$(ps -A -o pid=,rss=,%cpu=,etime=,command= 2>/dev/null | grep "SpringBoard.app/SpringBoard" | grep -v grep | head -1 | tr "\n" " ")"; printf "daemon=%s\n" "$(ps -A -o pid=,rss=,%cpu=,etime=,command= 2>/dev/null | grep "[z]iyadaemond" | head -1 | tr "\n" " ")"; printf "toast=%s\n" "$(cat "$V/.ziyan_toast_dump" 2>/dev/null | tr "\n" " ")"; printf "diag=%s\n" "$(cat "$V/.ziyan_cap_diag" 2>/dev/null | tr "\n" " ")"' 2>/dev/null || true)"
+108:V=/usr/lib/ziyan/var
+148:V=/usr/lib/ziyan/var
+14:  101|112|166) HOST="192.168.31.$TAG"; SCHEME=rootful; VAR=/usr/lib/ziyan/var ;;
+15:  53) HOST=192.168.31.53; SCHEME=rootless; VAR=/var/jb/usr/lib/ziyan/var ;;
+5:  or ((io.open("/var/jb/usr/lib/ziyan/var", "r") and "/var/jb/usr/lib/ziyan/var") or "/usr/lib/ziyan/var")
+7:  or ((io.open("/var/jb/usr/lib/ziyan/lib/lua/modules/init.lua", "r")
+8:    and "/var/jb/usr/lib/ziyan/lib/lua") or "/usr/lib/ziyan/lib/lua")
+29:if [ -d /var/jb/usr/lib/ziyan/var ]; then
+30:  V=/var/jb/usr/lib/ziyan/var
+32:  V=/usr/lib/ziyan/var
+58:if [ -d /var/jb/usr/lib/ziyan/var ]; then
+59:  V=/var/jb/usr/lib/ziyan/var
+61:  V=/usr/lib/ziyan/var
+88:    'echo VER53=$(dpkg -s com.ziyan.ziyan 2>/dev/null | sed -n "s/^Version: //p"); echo FRONT53=$(tr -d "\r\n" </var/jb/usr/lib/ziyan/var/.ziyan_front_bid 2>/dev/null)' \
+78:  if [ "$1" = rootless ]; then echo /var/jb/Library/MobileSubstrate/DynamicLibraries
+83:  if [ "$1" = rootless ]; then echo /var/jb/usr/lib/ziyan/var
+84:  else echo /usr/lib/ziyan/var
+105:if [ "$scheme" = rootless ]; then
+106:  VAR=/var/jb/usr/lib/ziyan/var
+109:  VAR=/usr/lib/ziyan/var
+151:  [ "$scheme" = rootless ] && TI=/var/jb/usr/lib/TweakInject
+300:if [ "$SCHEME" = rootless ]; then V=/var/jb/usr/lib/ziyan/var; else V=/usr/lib/ziyan/var; fi
+660:  if [ "$scheme" = rootless ]; then
+661:    BIN="DYLD_LIBRARY_PATH=/var/jb/usr/lib/ziyan/lib /var/jb/usr/lib/ziyan/bin/lua5.3 /var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua"
+663:    BIN="/usr/lib/ziyan/bin/lua5.3 /usr/lib/ziyan/lib/lua/ziyan_run.lua"
+677:if [ -f /var/jb/usr/lib/ziyan/lib/lua/ziyan_agent_smoke.lua ]; then
+678:  eval $BIN /var/jb/usr/lib/ziyan/lib/lua/ziyan_agent_smoke.lua
+680:  eval $BIN /usr/lib/ziyan/lib/lua/ziyan_agent_smoke.lua
+718:phase2_page 53 rootless 192.168.31.53 "$DEB_RL" "$VER_RL" || true
+719:phase2_page 112 rootful 192.168.31.112 "$DEB_RF" "$VER_RF" || true
+720:for spec in "53 rootless 192.168.31.53" "112 rootful 192.168.31.112"; do
+738:phase3_bisect 101 rootful 192.168.31.101 "$DEB_RF" "$VER_RF" || true
+739:phase3_bisect 166 rootful 192.168.31.166 "$DEB_RF" "$VER_RF" || true
+740:for spec in "101 rootful 192.168.31.101" "166 rootful 192.168.31.166"; do
+8:    "path": "/Users/mac/Desktop/ZiYan_副本/packages/p3_candidates/P3_D1_SNAPTRACE_20260824/rootful/ziyan_framecap",
+79:collect 192.168.31.166 /usr/lib/ziyan
+80:collect 192.168.31.53 /var/jb/usr/lib/ziyan
+136:  local host=192.168.31.53 tag=53 VAR=/var/jb/usr/lib/ziyan/var
+151:  local VAR=/usr/lib/ziyan/var
+55:if [ "$SCHEME" = rootless ]; then
+56:  VAR=/var/jb/usr/lib/ziyan/var
+57:  LUA=/var/jb/usr/lib/ziyan/bin/lua5.3
+58:  RUN=/var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua
+59:  AGENT=/var/jb/usr/lib/ziyan/lib/lua/ziyan_agent_run.lua
+60:  export DYLD_LIBRARY_PATH=/var/jb/usr/lib/ziyan/lib
+62:  VAR=/usr/lib/ziyan/var
+63:  LUA=/usr/lib/ziyan/bin/lua5.3
+64:  RUN=/usr/lib/ziyan/lib/lua/ziyan_run.lua
+65:  AGENT=/usr/lib/ziyan/lib/lua/ziyan_agent_run.lua
+75:    *lua5.3*ziyan_agent_run.lua*) ;;
+323:run_one 101 192.168.31.101 rootful 87863 87862 47853 96 || serial_ok=0
+325:  run_one 112 192.168.31.112 rootful 79809 79808 98110 92 || serial_ok=0
+328:  run_one 166 192.168.31.166 rootful 25025 25024 52622 82626 || serial_ok=0
+331:  run_one 53 192.168.31.53 rootless 46408 74318 49176 93705 || serial_ok=0
+417:  --running-processes "依四机 AFTER：无真实 args 同时含 lua5.3 与 ziyan_agent_run.lua 的残留进程" \
+55:if [ "$SCHEME" = rootless ]; then
+56:  VAR=/var/jb/usr/lib/ziyan/var
+57:  LUA=/var/jb/usr/lib/ziyan/bin/lua5.3
+58:  RUN=/var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua
+59:  AGENT=/var/jb/usr/lib/ziyan/lib/lua/ziyan_agent_run.lua
+60:  export DYLD_LIBRARY_PATH=/var/jb/usr/lib/ziyan/lib
+62:  VAR=/usr/lib/ziyan/var
+63:  LUA=/usr/lib/ziyan/bin/lua5.3
+64:  RUN=/usr/lib/ziyan/lib/lua/ziyan_run.lua
+65:  AGENT=/usr/lib/ziyan/lib/lua/ziyan_agent_run.lua
+72:    *lua5.3*ziyan_agent_run.lua*) ;;
+91:  if [ "$SCHEME" = rootless ]; then
+380:  run_one 101 192.168.31.101 rootful 87863 87862 47853 96 || serial_ok=0
+387:    run_one 112 192.168.31.112 rootful 79809 79808 98110 92 || serial_ok=0
+391:  run_one 166 192.168.31.166 rootful 25025 25024 52622 82626 || serial_ok=0
+394:  run_one 53 192.168.31.53 rootless 46408 74318 49176 93705 || serial_ok=0
+483:  --running-processes "依四机 AFTER：无真实 args 同时含 lua5.3 与 ziyan_agent_run.lua 的残留进程" \
+11:V="/usr/lib/ziyan/var"
+156:    [[ "$args" == *lua5.3* && "$args" == *ziyan_agent_run.lua* ]] && n=$((n + 1))
+223:  if [ "$scheme" = rootless ]; then
+224:    var=/var/jb/usr/lib/ziyan/var
+225:    runtime=/var/jb/usr/lib/ziyan/lib/lua/agent/Core/agent_runtime.lua
+226:    run_cmd='DYLD_LIBRARY_PATH=/var/jb/usr/lib/ziyan/lib /var/jb/usr/lib/ziyan/bin/lua5.3 /var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua /var/jb/usr/lib/ziyan/lib/lua/ziyan_agent_run.lua'
+228:    var=/usr/lib/ziyan/var
+229:    runtime=/usr/lib/ziyan/lib/lua/agent/Core/agent_runtime.lua
+230:    run_cmd='/usr/lib/ziyan/bin/lua5.3 /usr/lib/ziyan/lib/lua/ziyan_run.lua /usr/lib/ziyan/lib/lua/ziyan_agent_run.lua'
+369:run_one .101 192.168.31.101 rootful 87863 87862 47853 96 || {
+374:  run_one .112 192.168.31.112 rootful 79809 79808 98110 92 || {
+380:  run_one .166 192.168.31.166 rootful 25025 25024 52622 82626 || {
+386:  run_one .53 192.168.31.53 rootless 46408 74318 49176 93705 || {
+431:  --running-processes "SpringBoard args 仅完整路径结尾；FC_N 仅 ziyan_framecap serve 结尾；真实 agent lua 同时含 lua5.3 与 ziyan_agent_run.lua" \
+27:  local f = io.open("/var/jb/usr/lib/ziyan/var/.ziyan_hooks", "r")
+30:    return "/var/jb/usr/lib/ziyan/var"
+32:  return "/usr/lib/ziyan/var"
+66:V=/usr/lib/ziyan/var
+18:V=/usr/lib/ziyan/var
+31:  /usr/lib/ziyan/bin/ziyan_framecap \
+32:  /usr/lib/ziyan/bin/ziyan_zydaemond.sh; do
+48:V=/usr/lib/ziyan/var
+91:V=/usr/lib/ziyan/var
+111:V=/usr/lib/ziyan/var
+148:V=/usr/lib/ziyan/var
+163:V=/usr/lib/ziyan/var
+166:echo FRAMECAP_SHA256=$(sha256sum /usr/lib/ziyan/bin/ziyan_framecap 2>/dev/null | awk "{print \$1}")
+167:echo DAEMON_SHA256=$(sha256sum /usr/lib/ziyan/bin/ziyan_zydaemond.sh 2>/dev/null | awk "{print \$1}")
+34:var_dir() { [ "$1" = rootless ] && echo /var/jb/usr/lib/ziyan/var || echo /usr/lib/ziyan/var; }
+37:ssh_r 192.168.31.112 'V=/usr/lib/ziyan/var; echo INTENT; cat $V/.ziyan_run_intent 2>/dev/null; echo ---LOG_TAIL---; grep -E "revive_skip missing|stale_intent|page_entry_selftest" $V/.ziyan_zydaemon_log 2>/dev/null | tail -20; echo ---PS---; ps -ax -o pid=,pcpu=,args= | grep -E "[z]iyan_zydaemond|[z]iyadaemond" | head' \
+184:run_phone 53 rootless 192.168.31.53 "$DEB_RL"
+185:run_phone 101 rootful 192.168.31.101 "$DEB_RF"
+186:run_phone 112 rootful 192.168.31.112 "$DEB_RF"
+187:run_phone 166 rootful 192.168.31.166 "$DEB_RF"
+189:ssh_r 192.168.31.112 'V=/usr/lib/ziyan/var; echo AFTER; cat $V/.ziyan_run_intent; echo ---; grep -E "stale_intent_missing|revive_skip missing" $V/.ziyan_zydaemon_log | tail -15' \
+9:VAR="/usr/lib/ziyan/var"
+43:  local hb = "/usr/lib/ziyan/var/.zy_init_only_heartbeat"
+47:var_dir() { [ "$1" = rootless ] && echo /var/jb/usr/lib/ziyan/var || echo /usr/lib/ziyan/var; }
+102:if [ "$SCHEME" = rootless ]; then V=/var/jb/usr/lib/ziyan/var; else V=/usr/lib/ziyan/var; fi
+164:if [ "$SCHEME" = rootless ]; then V=/var/jb/usr/lib/ziyan/var; else V=/usr/lib/ziyan/var; fi
+204:  if [ "$scheme" = rootless ]; then
+205:    echo "DYLD_LIBRARY_PATH=/var/jb/usr/lib/ziyan/lib /var/jb/usr/lib/ziyan/bin/lua5.3 /var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua /var/jb/usr/lib/ziyan/lib/lua/ziyan_agent_run.lua"
+207:    echo "/usr/lib/ziyan/bin/lua5.3 /usr/lib/ziyan/lib/lua/ziyan_run.lua /usr/lib/ziyan/lib/lua/ziyan_agent_run.lua"
+371:run_phone 53 rootless 192.168.31.53 "$DEB_RL" "$VER_RL" || true
+372:run_phone 101 rootful 192.168.31.101 "$DEB_RF" "$VER_RF" || true
+373:run_phone 112 rootful 192.168.31.112 "$DEB_RF" "$VER_RF" || true
+374:run_phone 166 rootful 192.168.31.166 "$DEB_RF" "$VER_RF" || true
+387:  echo "# ROOTLESS_53_PATH_VERIFY"
+389:} >"$OUT/ROOTLESS_53_PATH_VERIFY.md"
+57:if [ "$SCHEME" = rootless ]; then V=/var/jb/usr/lib/ziyan/var; else V=/usr/lib/ziyan/var; fi
+72:if [ "$SCHEME" = rootless ]; then V=/var/jb/usr/lib/ziyan/var; else V=/usr/lib/ziyan/var; fi
+88:if [ "$SCHEME" = rootless ]; then V=/var/jb/usr/lib/ziyan/var; else V=/usr/lib/ziyan/var; fi
+104:if [ "$SCHEME" = rootless ]; then V=/var/jb/usr/lib/ziyan/var; else V=/usr/lib/ziyan/var; fi
+128:if [ "\$SCHEME" = rootless ]; then V=/var/jb/usr/lib/ziyan/var; else V=/usr/lib/ziyan/var; fi
+226:    run_one 53 192.168.31.53 rootless "$DESKTOP_IOS8P" ios8p.lua com.ljzbbadao.game
+227:    run_one 166 192.168.31.166 rootful "$DESKTOP_IOS7" ios7.lua com.ljzbbadao.game
+229:  53) run_one 53 192.168.31.53 rootless "$DESKTOP_IOS8P" ios8p.lua com.ljzbbadao.game ;;
+230:  166) run_one 166 192.168.31.166 rootful "$DESKTOP_IOS7" ios7.lua com.ljzbbadao.game ;;
+20:  SCHEME=rootful
+21:  [ "$H" = "53" ] && SCHEME=rootless
+25:if [ "$SCHEME" = rootless ]; then
+26:  V=/var/jb/usr/lib/ziyan/var; B=/var/jb/usr/lib/ziyan/bin
+28:  V=/usr/lib/ziyan/var; B=/usr/lib/ziyan/bin
+3:#   .166 / .101 / .112 → Desktop/ios7.lua（rootful）
+4:#   .53               → Desktop/ios8p.lua（rootless）
+22:  "166|192.168.31.166|rootful|ios7.lua"
+23:  "101|192.168.31.101|rootful|ios7.lua"
+24:  "112|192.168.31.112|rootful|ios7.lua"
+25:  "53|192.168.31.53|rootless|ios8p.lua"
+47:  if [[ "$1" == "rootless" ]]; then
+48:    echo /var/jb/usr/lib/ziyan/var
+50:    echo /usr/lib/ziyan/var
+55:  if [[ "$1" == "rootless" ]]; then
+56:    echo /var/jb/usr/lib/ziyan/bin/lua5.3
+58:    echo /usr/lib/ziyan/bin/lua5.3
+63:  if [[ "$1" == "rootless" ]]; then
+64:    echo /var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua
+66:    echo /usr/lib/ziyan/lib/lua/ziyan_run.lua
+133:     $([[ "$scheme" == rootless ]] && echo 'export DYLD_LIBRARY_PATH=/var/jb/usr/lib/ziyan/lib;')
+141:  ssh_q "$ip" "echo PKG; dpkg-query -W -f='\${Version}' com.ziyan.ziyan 2>/dev/null; echo; echo SB; ps -A -o pid= -o etime= -o rss= -o command= | grep SpringBoard.app | grep -v grep | head -1; echo LUA; ps -A -o command= | grep 'ziyan_run.lua' | grep '$script' | grep -v grep | wc -l | tr -d ' '; echo SAFE; test -f /var/mobile/.eksafemode && echo 1 || echo 0; echo WATCH; cat $var/.ziyan_watchdog_alive 2>/dev/null | tr '\n' ' '; echo; echo PULSE; cat $var/.ziyan_sb_mem_pulse 2>/dev/null | tr '\n' ' '; echo; echo COLOR; cat $var/.ziyan_color_perf 2>/dev/null | tr '\n' ' '; echo; echo FINDVIA; cat $var/.ziyan_find_via 2>/dev/null | tr '\n' ' '; echo; echo HUNG; test -f $var/.ziyan_lua_hung && echo 1 || echo 0; echo HB_LUA; test -f $var/.ziyan_heartbeat_lua5.3 && echo 1 || echo 0; echo HB_FC; test -f $var/.ziyan_framecap_alive && echo 1 || echo 0; echo HB_DA; test -f $var/.ziyan_zydaemon_alive && echo 1 || echo 0"
+42:if [ "$SCHEME" = rootless ]; then
+43:  VAR=/var/jb/usr/lib/ziyan/var
+45:  VAR=/usr/lib/ziyan/var
+58:    *lua5.3*ziyan_agent_run.lua*) ;;
+168:  if [ "$SCHEME" = rootless ]; then
+276:run_one .101 192.168.31.101 rootful 87863 87862 47853 96 ags_17886039267035 || serial_ok=0
+278:  run_one .112 192.168.31.112 rootful 79809 79808 98110 92 ags_17886039283090 || serial_ok=0
+281:  run_one .166 192.168.31.166 rootful 25025 25024 52622 82626 ags_17886039294846 || serial_ok=0
+284:  run_one .53 192.168.31.53 rootless 46408 74318 49176 93705 ags_17886039311331 || serial_ok=0
+342:  --running-processes "依本刀四机 TRANSCRIPT：FC_N 只计 framecap 二进制行；真实 agent lua 同时含 lua5.3 与 ziyan_agent_run.lua" \
+67:  if [ "$1" = rootless ]; then echo /var/jb/Library/MobileSubstrate/DynamicLibraries
+72:  if [ "$1" = rootless ]; then echo /var/jb/usr/lib/ziyan/var
+73:  else echo /usr/lib/ziyan/var
+94:if [ "$scheme" = rootless ]; then
+95:  VAR=/var/jb/usr/lib/ziyan/var
+98:  VAR=/usr/lib/ziyan/var
+140:  [ "$scheme" = rootless ] && TI=/var/jb/usr/lib/TweakInject
+283:if [ "$SCHEME" = rootless ]; then V=/var/jb/usr/lib/ziyan/var; else V=/usr/lib/ziyan/var; fi
+575:phase2_page 53 rootless 192.168.31.53 "$DEB_RL" "$VER_RL" || true
+576:phase2_page 112 rootful 192.168.31.112 "$DEB_RF" "$VER_RF" || true
+579:phase3_bisect 101 rootful 192.168.31.101 "$DEB_RF" "$VER_RF" || true
+580:phase3_bisect 166 rootful 192.168.31.166 "$DEB_RF" "$VER_RF" || true
+24:if [ "$SCHEME" = rootless ]; then
+25:  VAR=/var/jb/usr/lib/ziyan/var
+26:  BIN=/var/jb/usr/lib/ziyan/bin
+30:  VAR=/usr/lib/ziyan/var
+31:  BIN=/usr/lib/ziyan/bin
+45:# —— G0 回桌面（rootless .53 单次 go_home 常粘前台 App）——
+231:    run_one 53 192.168.31.53 rootless
+232:    run_one 101 192.168.31.101 rootful
+233:    run_one 112 192.168.31.112 rootful
+234:    run_one 166 192.168.31.166 rootful
+236:  53) run_one 53 192.168.31.53 rootless ;;
+237:  101) run_one 101 192.168.31.101 rootful ;;
+238:  112) run_one 112 192.168.31.112 rootful ;;
+239:  166) run_one 166 192.168.31.166 rootful ;;
+24:  local SCHEME=rootful
+25:  [ "$H" = "53" ] && SCHEME=rootless
+29:if [ "$SCHEME" = rootless ]; then
+30:  V=/var/jb/usr/lib/ziyan/var; B=/var/jb/usr/lib/ziyan/bin
+32:  V=/usr/lib/ziyan/var; B=/usr/lib/ziyan/bin
+2:# Deploy a rootful package only to .101/.112/.166 and retain a per-device rollback snapshot.
+18:[ -n "${DEB:-}" ] && [ -f "$DEB" ] || { echo "FAIL: rootful debug deb not found" >&2; exit 2; }
+20:case "$DEB" in *_iphoneos-arm.deb) ;; *) echo "FAIL: refusing non-rootful package: $DEB" >&2; exit 2 ;; esac
+79:for f in /Library/MobileSubstrate/DynamicLibraries/ZiYanVol.dylib /Library/MobileSubstrate/DynamicLibraries/ZiYanVol.plist /Library/MobileSubstrate/DynamicLibraries/ZiYanAppTouch.dylib /Library/MobileSubstrate/DynamicLibraries/ZiYanAppTouch.plist /Library/MobileSubstrate/DynamicLibraries/ZiYanFrameRelay.dylib /Library/MobileSubstrate/DynamicLibraries/ZiYanFrameRelay.plist /Library/MobileSubstrate/DynamicLibraries/ZiYanBBFrame.dylib /Library/MobileSubstrate/DynamicLibraries/ZiYanBBFrame.plist /usr/lib/ziyan/bin/ziyan_framecap /usr/lib/ziyan/bin/ziyan_framecap_bootstrap /usr/lib/ziyan/bin/ziyan_iomfb_diag /usr/lib/ziyan/bin/ziyan_framecap_wrap.sh /usr/lib/ziyan/bin/ziyan_zydaemond.sh; do
+98:test -x /usr/lib/ziyan/bin/ziyan_framecap
+99:ldid -S/var/mobile/Media/ziyan_framecap_entitlements.plist /usr/lib/ziyan/bin/ziyan_framecap
+100:ldid -e /usr/lib/ziyan/bin/ziyan_framecap >/var/mobile/Media/ziyan_framecap_installed_entitlements.plist
+102:chmod 755 /usr/lib/ziyan/bin/ziyan_framecap
+109:printf 'framecap_sha256='; sha256sum /usr/lib/ziyan/bin/ziyan_framecap
+126:V=/usr/lib/ziyan/var
+130:md5sum /Library/MobileSubstrate/DynamicLibraries/ZiYanVol.dylib /Library/MobileSubstrate/DynamicLibraries/ZiYanAppTouch.dylib /usr/lib/ziyan/bin/ziyan_framecap 2>/dev/null
+4:REPORT=/usr/lib/ziyan/var/.ziyan_gate_report.txt
+11:LUA=/usr/lib/ziyan/bin/lua5.3
+12:GDIR=/usr/lib/ziyan/var
+16:package.path="/usr/lib/ziyan/lib/lua/?.lua;/usr/lib/ziyan/lib/lua/?/init.lua;/usr/lib/ziyan/lib/lua/ziyan_engine/?.lua"
+18:  dofile("/usr/lib/ziyan/lib/lua/ziyan_te_boot.lua")
+32:package.path="/usr/lib/ziyan/lib/lua/?.lua;/usr/lib/ziyan/lib/lua/?/init.lua;/usr/lib/ziyan/lib/lua/ziyan_engine/?.lua"
+33:dofile("/usr/lib/ziyan/lib/lua/ziyan_te_boot.lua")
+35:local p=dumpScreen("/usr/lib/ziyan/var/.ziyan_gate_shot.png")
+44:package.path="/usr/lib/ziyan/lib/lua/?.lua;/usr/lib/ziyan/lib/lua/?/init.lua;/usr/lib/ziyan/lib/lua/ziyan_engine/?.lua"
+45:dofile("/usr/lib/ziyan/lib/lua/ziyan_te_boot.lua")
+81:: > /usr/lib/ziyan/var/.ziyan_touch_log
+85:TL=$(tail -8 /usr/lib/ziyan/var/.ziyan_touch_log 2>/dev/null || true)
+90:  && grep -q "down f=1" /usr/lib/ziyan/var/.ziyan_touch_log \
+91:  && grep -q "up f=1" /usr/lib/ziyan/var/.ziyan_touch_log; then
+94:  rm -f /usr/lib/ziyan/var/.ziyan_color_rep /usr/lib/ziyan/var/.ziyan_gate_after.png
+95:  printf "dumpScreen\n/usr/lib/ziyan/var/.ziyan_gate_after.png\ngate_after\n" > /usr/lib/ziyan/var/.ziyan_color_req
+97:  SZ2=$(wc -c < /usr/lib/ziyan/var/.ziyan_gate_after.png 2>/dev/null || echo 0)
+111:killall -9 lua5.3 2>/dev/null || true
+112:OUT=$(timeout 8 $LUA /usr/lib/ziyan/lib/lua/ziyan_run.lua /private/var/mobile/Media/ZiYan/login_xztl.lua 2>&1 || true)
+113:killall -9 lua5.3 2>/dev/null || true
+19:  53) IP=192.168.31.53; SCHEME=rootless ;;
+20:  101) IP=192.168.31.101; SCHEME=rootful ;;
+21:  112) IP=192.168.31.112; SCHEME=rootful ;;
+22:  166) IP=192.168.31.166; SCHEME=rootful ;;
+39:if [ "$SCHEME" = rootless ]; then
+40:  V=/var/jb/usr/lib/ziyan/var; B=/var/jb/usr/lib/ziyan/bin
+42:  V=/usr/lib/ziyan/var; B=/usr/lib/ziyan/bin
+18:SOURCE_REPRO_ROOTLESS_REPORT="${ZY_D1_CANDIDATE_ROOTLESS_REPRO_REPORT:-}"
+25:   [ -z "$SOURCE_REPRO_ROOTLESS_REPORT" ]; then
+27:  echo "D1_FAILURE=candidate_rootful_rootless_reproducibility_evidence_required"
+58:if [ -n "$SOURCE_REPRO_ROOTLESS_REPORT" ]; then
+59:  python3 - "$SOURCE_REPRO_ROOTLESS_REPORT" "$SOURCE_REVISION" <<'PY'
+69:    raise SystemExit(f"rootless_repro_report_unreadable:{exc}")
+76:    raise SystemExit("rootless_repro_report_invalid")
+82:        raise SystemExit(f"rootless_repro_{side}_missing")
+86:        raise SystemExit(f"rootless_repro_{side}_digest")
+91:if [ -n "$SOURCE_REPRO_ROOTLESS_REPORT" ]; then
+92:  cp -f "$SOURCE_REPRO_ROOTLESS_REPORT" "$OUT_DIR/rootless_repro_report.json"
+98:  [ "$scheme" = rootless ] && make_args+=("THEOS_PACKAGE_SCHEME=rootless")
+107:  bash "$ROOT/tools/verify_package_install_names.sh" "$output"
+112:mkdir -p "$OUT_DIR/rootful" "$OUT_DIR/rootless"
+113:build_one rootful "$P3_ROOTFUL_DEB" "$RF_OUT" "$OUT_DIR/rootful/ziyan_framecap"
+114:build_one rootless "$P3_ROOTLESS_DEB" "$RL_OUT" "$OUT_DIR/rootless/ziyan_framecap"
+122:D1_ROOTFUL_DEB='$RF_OUT'
+123:D1_ROOTFUL_SHA256='$RF_SHA'
+124:D1_ROOTLESS_DEB='$RL_OUT'
+125:D1_ROOTLESS_SHA256='$RL_SHA'
+126:D1_ROLLBACK_ROOTFUL_DEB='$P3_ROOTFUL_DEB'
+127:D1_ROLLBACK_ROOTFUL_SHA256='$P3_ROOTFUL_SHA256'
+128:D1_ROLLBACK_ROOTLESS_DEB='$P3_ROOTLESS_DEB'
+129:D1_ROLLBACK_ROOTLESS_SHA256='$P3_ROOTLESS_SHA256'
+134:D1_CANDIDATE_ROOTFUL_REPRO_REPORT='$SOURCE_REPRO_REPORT'
+135:D1_CANDIDATE_ROOTLESS_REPRO_REPORT='$SOURCE_REPRO_ROOTLESS_REPORT'
+140:  "$RF_OUT" "$RF_SHA" "$RL_OUT" "$RL_SHA" "$SOURCE_REPRO_ROOTLESS_REPORT" <<'PY'
+146: source_revision, rootful_deb, rootful_sha, rootless_deb, rootless_sha,
+147: rootless_repro_report) = sys.argv[1:]
+154:    "candidate_rootless_reproducibility_report": rootless_repro_report,
+163:    "rootful": {"deb": rootful_deb, "sha256": rootful_sha},
+164:    "rootless": {"deb": rootless_deb, "sha256": rootless_sha},
+5:  "frozen_binary": "/Users/mac/Desktop/ZiYan_副本/packages/p3_candidates/P3_D1_SNAPTRACE_20260824/rootful/ziyan_framecap",
+3:-- backend: lua/ziyan_engine/py_cv.lua + /usr/lib/ziyan/bin/ziyan_ocr (Vision)
+8:    "path": "/Users/mac/Desktop/ZiYan_副本/packages/p3_candidates/P3_D1_SNAPTRACE_20260824/rootful/ziyan_framecap",
+8:    "path": "/Users/mac/Desktop/ZiYan_副本/packages/p3_candidates/P3_D1_SNAPTRACE_20260824/rootful/ziyan_framecap",
+66:  if io.open("/var/jb/usr/lib/ziyan/var", "r") then return "/var/jb/usr/lib/ziyan/var" end
+67:  return "/usr/lib/ziyan/var"
+5:local VAR = _G.ZIYAN_VAR or "/usr/lib/ziyan/var"
+4:  "backend": "lua/ziyan_engine/py_cv.lua + /usr/lib/ziyan/bin/ziyan_ocr (Vision)",
+6:  local rootless = io.open("/var/jb/usr/lib/ziyan/bin/lua5.3", "r") ~= nil
+7:  local bid = rootless and "com.ljzbbadao.game" or "com.xztl.ios"
+8:  local dw = rootless and 2208 or 1136
+9:  local dh = rootless and 1242 or 640
+65:      "backend": "lua/ziyan_engine/py_cv.lua + /usr/lib/ziyan/bin/ziyan_ocr (Vision)",
+8:  if io.open("/var/jb/usr/lib/ziyan/var", "r") then return "/var/jb/usr/lib/ziyan/var" end
+9:  return "/usr/lib/ziyan/var"
+19:    -- 启发式：rootless≈.53
+20:    device = (io.open("/var/jb/usr/lib/ziyan/var", "r") and "192.168.31.53") or "192.168.31.166"
+34:      "path": "/usr/lib/ziyan/engine/",
+35:      "role": "可选 TE 兼容守护；失败则 lua5.3 fallback"
+39:      "path": "/usr/lib/ziyan/lib/lua/ziyan_engine/",
+49:      "path": "/usr/lib/ziyan/var/",
+54:      "path": "/usr/lib/ziyan/bin/",
+55:      "role": "lua5.3 / python3 / ziyan_ocr / ziyan_mem"
+4:  local rootless = io.open("/var/jb/usr/lib/ziyan/bin/lua5.3", "r") ~= nil
+5:  local BID = rootless and "com.ljzbbadao.game" or "com.xztl.ios"
+6:  local VAR = _G.ZIYAN_VAR or (rootless and "/var/jb/usr/lib/ziyan/var" or "/usr/lib/ziyan/var")
+4:    "/usr/lib/ziyan/": {
+4:  local OUT = (rawget(_G, "ZIYAN_VAR") or "/usr/lib/ziyan/var")
+1:{"suite":"dual_smoke","rounds":3,"items":[{"k":"T2_rounds","ok":true,"d":"round=1..3"},{"k":"T3_toast","ok":true,"d":"called"},{"k":"T3_mSleep","ok":true,"d":"ok"},{"k":"T3_getColor","ok":true,"d":"16479744"},{"k":"T3_findMultiColor","ok":true,"d":"-1,-1"},{"k":"T3_dumpScreen","ok":true,"d":"/usr/lib/ziyan/var/.ziyan_dual_dump.png"},{"k":"T3_tap","ok":true,"d":"called"},{"k":"T4_stop_clear","ok":true,"d":"no residual stop"}]}
+2:  USB → com.ljzbbadao.game ； LAN rootful → com.xztl.ios
+6:  VAR = io.open("/var/jb/usr/lib/ziyan/var", "r") and "/var/jb/usr/lib/ziyan/var"
+7:    or "/usr/lib/ziyan/var"
+11:local rootless = io.open("/var/jb/usr/lib/ziyan/var", "r") ~= nil
+12:local BID = rootless and "com.ljzbbadao.game" or "com.xztl.ios"
+2:  USB rootless → com.ljzbbadao.game
+3:  LAN rootful  → com.xztl.ios
+8:  if io.open("/var/jb/usr/lib/ziyan/var", "r") then
+9:    VAR = "/var/jb/usr/lib/ziyan/var"
+11:    VAR = "/usr/lib/ziyan/var"
+27:local rootless = (io.open("/var/jb/usr/lib/ziyan/var", "r") ~= nil)
+28:local BID = rootless and "com.ljzbbadao.game" or "com.xztl.ios"
+35:log(string.format("start bid=%s orient=%d rootless=%s", BID, ORIENT, tostring(rootless)))
+1:{"pass":58,"fail":0,"skip":0,"rows":[{"module":"boot","name":"ziyan_te_boot","status":"PASS","detail":""},{"module":"orient","name":"init(1)","status":"PASS","detail":""},{"module":"screen","name":"dumpScreen","status":"PASS","detail":"/usr/lib/ziyan/var/.ziyan_html_shot.png sz=100768"},{"module":"screen","name":"getColor","status":"PASS","detail":"c=15921911"},{"module":"screen","name":"snapshot","status":"PASS","detail":""},{"module":"screen","name":"pySnapshot","status":"PASS","detail":"table: 0x10531c8f0"},{"module":"color","name":"pyFindColor","status":"PASS","detail":"0,0"},{"module":"color","name":"findMultiColorInRegionFuzzy","status":"PASS","detail":"0,0"},{"module":"color","name":"pyFindMultiColor","status":"PASS","detail":"0,0"},{"module":"image","name":"pyFindImage","status":"PASS","detail":"0,0"},{"module":"ocr","name":"getText","status":"PASS","detail":"text=\"6\\\n<\\\nnes 5 \" n=0"},{"module":"ocr","name":"strFind","status":"PASS","detail":"len=10"},{"module":"ocr","name":"findStr","status":"PASS","detail":"-1,nil"},{"module":"ocr","name":"findNumber","status":"PASS","detail":"n=nil"},{"module":"ocr","name":"ZiYanCV.ocr_backends","status":"PASS","detail":"ziyan_ocr,tessdata_chi_sim,tessdata_eng"},{"module":"ocr","name":"ZiYanCV.capture_region","status":"PASS","detail":"/usr/lib/ziyan/var/.ziyan_region.png"},{"module":"touch","name":"tap","status":"PASS","detail":""},{"module":"touch","name":"pyTap","status":"PASS","detail":""},{"module":"touch","name":"swipe","status":"PASS","detail":""},{"module":"touch","name":"pySwipe","status":"PASS","detail":""},{"module":"touch","name":"touchDown/Move/Up","status":"PASS","detail":""},{"module":"app","name":"appRun","status":"PASS","detail":""},{"module":"app","name":"closeApp/appKill","status":"PASS","detail":""},{"module":"app","name":"pyOpenApp","status":"PASS","detail":""},{"module":"app","name":"pyCloseApp","status":"PASS","detail":""},{"module":"app","name":"pyOpenApp(Preferences)","status":"PASS","detail":"true"},{"module":"net","name":"NetTime","status":"PASS","detail":"2026-07-19 16:06:58"},{"module":"net","name":"NetTimeStr","status":"PASS","detail":"2026-07-19 16:06:58"},{"module":"net","name":"NetIp","status":"PASS","detail":"ip= (empty=env)"},{"module":"net","name":"FtpUpload","status":"PASS","detail":""},{"module":"net","name":"FtpDownload","status":"PASS","detail":""},{"module":"net","name":"FtpDelete","status":"PASS","detail":""},{"module":"net","name":"FtpRead","status":"PASS","detail":""},{"module":"net","name":"FtpIsUpdate","status":"PASS","detail":""},{"module":"net","name":"FtpUpload_struct","status":"PASS","detail":"ok=false"},{"module":"fs","name":"CopyClipboard","status":"PASS","detail":""},{"module":"fs","name":"PasteClipboard","status":"PASS","detail":"ziyan_html_clip_ok"},{"module":"fs","name":"FileCreate_dir","status":"PASS","detail":""},{"module":"fs","name":"FileCreate_file","status":"PASS","detail":""},{"module":"fs","name":"FileExists","status":"PASS","detail":""},{"module":"fs","name":"FileCopy","status":"PASS","detail":""},{"module":"fs","name":"FileList","status":"PASS","detail":"n=2"},{"module":"fs","name":"FileMove","status":"PASS","detail":""},{"module":"fs","name":"FileDelete","status":"PASS","detail":""},{"module":"fs","name":"PlistWrite","status":"PASS","detail":""},{"module":"fs","name":"PlistRead","status":"PASS","detail":"bar"},{"module":"memory","name":"MemoryWrite","status":"PASS","detail":""},{"module":"memory","name":"MemoryAccess","status":"PASS","detail":"8888"},{"module":"memory","name":"MemoryKeys","status":"PASS","detail":""},{"module":"memory","name":"MemoryDump","status":"PASS","detail":"n=1"},{"module":"memory","name":"MemoryFind","status":"PASS","detail":"n=0"},{"module":"memory","name":"MemoryScanNames","status":"PASS","detail":""},{"module":"memory","name":"MemoryRoleName","status":"PASS","detail":""},{"module":"control","name":"mSleep","status":"PASS","detail":""},{"module":"control","name":"__ZIYAN_wait_while_paused","status":"PASS","detail":""},{"module":"codec","name":"jsonEncode","status":"PASS","detail":""},{"module":"codec","name":"jsonDecode_empty","status":"PASS","detail":"no throw"},{"module":"codec","name":"jsonDecode_obj","status":"PASS","detail":""}]}
+9:  local rootless = io.open("/var/jb/usr/lib/ziyan/bin/lua5.3", "r") ~= nil
+10:  local BID = rootless and "com.ljzbbadao.game" or "com.xztl.ios"
+11:  local VAR = _G.ZIYAN_VAR or (rootless and "/var/jb/usr/lib/ziyan/var" or "/usr/lib/ziyan/var")
+6:ROOT=/usr/lib/ziyan
+7:for helper in /usr/lib/ziyan/bin/ziyan_runtime_root.sh \
+8:              /var/jb/usr/lib/ziyan/bin/ziyan_runtime_root.sh; do
+7:if [ -d /var/jb/usr/lib/ziyan ]; then
+8:  VAR=/var/jb/usr/lib/ziyan/var
+11:  VAR=/usr/lib/ziyan/var
+3:# installed deb Architecture; `/var/jb` may exist on a rootful device.
+12:  rootless) ZIYAN_RUNTIME_ROOT="/var/jb/usr/lib/ziyan" ;;
+13:  rootful) ZIYAN_RUNTIME_ROOT="/usr/lib/ziyan" ;;
+17:    if [ -f /var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua ] &&
+18:       [ ! -f /usr/lib/ziyan/lib/lua/ziyan_run.lua ]; then
+19:      ZIYAN_RUNTIME_SCHEME="rootless"
+20:      ZIYAN_RUNTIME_ROOT="/var/jb/usr/lib/ziyan"
+22:      ZIYAN_RUNTIME_SCHEME="rootful"
+23:      ZIYAN_RUNTIME_ROOT="/usr/lib/ziyan"
+3:  if io.open("/var/jb/usr/lib/ziyan/var", "r") then return "/var/jb/usr/lib/ziyan/var" end
+4:  return "/usr/lib/ziyan/var"
+5:if [ -d /var/jb/usr/lib/ziyan ]; then
+6:  VAR=/var/jb/usr/lib/ziyan/var
+9:  VAR=/usr/lib/ziyan/var
+11:  local rootless = io.open("/var/jb/usr/lib/ziyan/bin/lua5.3", "r") ~= nil
+16:  local case = rootless and cases[1] or cases[2]
+1:# ZiYan — rootful (默认) / rootless 双方案
+2:# rootless 交付（USB arm64 机）：make package-rootless
+3:# rootful 旧机：make package   或  make package THEOS_PACKAGE_SCHEME=
+16:# rootless：须在 include common.mk 之前设置（可通过命令行覆盖）
+17:# make package-rootless 会导出 THEOS_PACKAGE_SCHEME=rootless
+21:# 勿用 PREFIX 名（易与 Theos/环境冲突）。rootless 下 Theos 已把组件装到
+70:# 绝对路径：rootless remap 时 cwd 可能不在仓库根，相对 -Sobjc/app/... 会 ldid errno=2
+95:ZiYanVol_LDFLAGS = -install_name $(THEOS_PACKAGE_INSTALL_PREFIX)/Library/MobileSubstrate/DynamicLibraries/ZiYanVol.dylib -weak_framework IOSurface
+105:ZiYanFrameRelay_LDFLAGS = -install_name $(THEOS_PACKAGE_INSTALL_PREFIX)/Library/MobileSubstrate/DynamicLibraries/ZiYanFrameRelay.dylib -weak_framework IOSurface
+124:ZiYanBBTouch_LDFLAGS = -install_name $(THEOS_PACKAGE_INSTALL_PREFIX)/Library/MobileSubstrate/DynamicLibraries/ZiYanBBTouch.dylib
+134:ZiYanBBFrame_LDFLAGS = -install_name $(THEOS_PACKAGE_INSTALL_PREFIX)/Library/MobileSubstrate/DynamicLibraries/ZiYanBBFrame.dylib -weak_framework IOSurface -weak_framework UIKit
+158:ziyan_ocr_INSTALL_PATH = /usr/lib/ziyan/bin
+169:ziyan_mem_INSTALL_PATH = /usr/lib/ziyan/bin
+177:ziyan_portspace_INSTALL_PATH = /usr/lib/ziyan/bin
+180:ziyan_framecap_bootstrap_INSTALL_PATH = /usr/lib/ziyan/bin
+236:# 8-161-57：Lua 5.3.5 静态链进 framecap（禁 dylib：rootless 绝对路径/改 install_name 毁签）
+245:ziyan_framecap_INSTALL_PATH = /usr/lib/ziyan/bin
+257:ziyan_shm_selftest_INSTALL_PATH = /usr/lib/ziyan/bin
+267:ziyan_iomfb_diag_INSTALL_PATH = /usr/lib/ziyan/bin
+277:ziyan_a_probe_INSTALL_PATH = /usr/lib/ziyan/bin
+291:ziyan_scriptgen_smoke_INSTALL_PATH = /usr/lib/ziyan/bin
+297:ziyanctl_INSTALL_PATH = /usr/lib/ziyan/bin
+309:ziyadaemond_INSTALL_PATH = /usr/lib/ziyan/bin
+313:.PHONY: stage-runtime package-rootless package-rootful clean-user-bins validate-substrate-plists
+342:		"$(CURDIR)"/lua5.3 "$(CURDIR)"/lua "$(CURDIR)"/python3 "$(CURDIR)"/python3.7 \
+355:		-o -name 'lua5.3' -o -name 'ziyan_ocr' -o -name 'ziyan_mem' \) \
+371:# rootless：after-stage 必须写到「未加 /var/jb」的经典路径（$STAGING/usr/...）。
+376:	mkdir -p "$$DEST/usr/lib/ziyan/bin" \
+377:		"$$DEST/usr/lib/ziyan/lib/lua" \
+378:		"$$DEST/usr/lib/ziyan/engine" \
+379:		"$$DEST/usr/lib/ziyan/runtime" \
+380:		"$$DEST/usr/lib/ziyan/hook" \
+381:		"$$DEST/usr/lib/ziyan/var" \
+382:		"$$DEST/usr/lib/ziyan/modules" \
+383:		"$$DEST/usr/lib/ziyan/models" \
+385:		"$$DEST/usr/lib/ziyan/share/media_seed"; \
+386:	rsync -a vendor/bin/ "$$DEST/usr/lib/ziyan/bin/"; \
+387:	rsync -a --exclude='lua' vendor/lib/ "$$DEST/usr/lib/ziyan/lib/"; \
+388:	rsync -a --delete lua/ "$$DEST/usr/lib/ziyan/lib/lua/"; \
+389:	mkdir -p "$$DEST/usr/lib/ziyan/lib/lua/agent"; \
+390:	rsync -a Agent/ "$$DEST/usr/lib/ziyan/lib/lua/agent/"; \
+391:	chmod 755 "$$DEST/usr/lib/ziyan/bin/lua5.3" \
+392:		"$$DEST/usr/lib/ziyan/bin/python3.7" 2>/dev/null || true; \
+393:	ln -sfn lua5.3 "$$DEST/usr/lib/ziyan/bin/lua"; \
+394:	ln -sfn python3.7 "$$DEST/usr/lib/ziyan/bin/python3"; \
+395:	ln -sfn libreadline.8.0.dylib "$$DEST/usr/lib/ziyan/lib/libreadline.8.dylib"; \
+396:	cp -f vendor/runtime/engine/wnriakwyww "$$DEST/usr/lib/ziyan/engine/wnriakwyww"; \
+397:	cp -f vendor/runtime/engine/wnriakwyww.dylib "$$DEST/usr/lib/ziyan/engine/wnriakwyww.dylib"; \
+398:	chmod 755 "$$DEST/usr/lib/ziyan/engine/wnriakwyww" \
+399:		"$$DEST/usr/lib/ziyan/engine/wnriakwyww.dylib"; \
+400:	# legacy engine links /bin/wnriakwyww.dylib. Rootful keeps that via postinst;
+401:	# rootless cannot write /bin, so rewrite both the executable load command and
+402:	# dylib install name to /var/jb/bin, then re-sign the modified artifacts. \
+404:		install_name_tool -change /bin/wnriakwyww.dylib "$(THEOS_PACKAGE_INSTALL_PREFIX)/bin/wnriakwyww.dylib" \
+405:			"$$DEST/usr/lib/ziyan/engine/wnriakwyww"; \
+406:		install_name_tool -id "$(THEOS_PACKAGE_INSTALL_PREFIX)/bin/wnriakwyww.dylib" \
+407:			"$$DEST/usr/lib/ziyan/engine/wnriakwyww.dylib"; \
+408:		ldid -S "$$DEST/usr/lib/ziyan/engine/wnriakwyww"; \
+409:		ldid -S "$$DEST/usr/lib/ziyan/engine/wnriakwyww.dylib"; \
+411:	rsync -a --delete vendor/runtime/data/ "$$DEST/usr/lib/ziyan/runtime/"; \
+412:	mkdir -p "$$DEST/usr/lib/ziyan/runtime/scripts" \
+413:		"$$DEST/usr/lib/ziyan/runtime/var/log" \
+414:		"$$DEST/usr/lib/ziyan/runtime/var/tmp"; \
+415:	cp -f vendor/runtime/hook/ZiYanTEHook.dylib "$$DEST/usr/lib/ziyan/hook/"; \
+416:	cp -f vendor/runtime/hook/ZiYanTEHook.plist "$$DEST/usr/lib/ziyan/hook/"; \
+417:	rsync -a --delete vendor/modules/ "$$DEST/usr/lib/ziyan/modules/"; \
+418:	rsync -a layout/usr/lib/ziyan/models/ "$$DEST/usr/lib/ziyan/models/" 2>/dev/null || true; \
+419:	mkdir -p "$$DEST/usr/lib/ziyan/tessdata/lstm/tessdata"; \
+420:	rsync -a layout/usr/lib/ziyan/tessdata/ "$$DEST/usr/lib/ziyan/tessdata/" 2>/dev/null || true; \
+421:	cp -f layout/usr/lib/ziyan/tessdata/_fast/chi_sim.traineddata \
+422:		"$$DEST/usr/lib/ziyan/tessdata/lstm/tessdata/chi_sim.traineddata" 2>/dev/null || true; \
+423:	cp -f layout/usr/lib/ziyan/tessdata/_fast/eng.traineddata \
+424:		"$$DEST/usr/lib/ziyan/tessdata/lstm/tessdata/eng.traineddata" 2>/dev/null || true; \
+430:		"$$DEST/usr/lib/ziyan/bin/ziyan_fscloakd.sh"; \
+431:	chmod 755 "$$DEST/usr/lib/ziyan/bin/ziyan_fscloakd.sh"; \
+432:	chmod 755 "$$DEST/usr/lib/ziyan/bin/ziyan_zero_sb_unload.sh" 2>/dev/null || true; \
+433:	chmod 755 "$$DEST/usr/lib/ziyan/bin/ziyan_framerelay_toggle.sh" 2>/dev/null || true; \
+437:		"$$DEST/usr/lib/ziyan/bin/ziyan_scripthubd.sh"; \
+438:	chmod 755 "$$DEST/usr/lib/ziyan/bin/ziyan_scripthubd.sh"; \
+442:	cp -f layout/usr/lib/ziyan/bin/ziyan_zydaemond.sh \
+443:		"$$DEST/usr/lib/ziyan/bin/ziyan_zydaemond.sh"; \
+444:	chmod 755 "$$DEST/usr/lib/ziyan/bin/ziyan_zydaemond.sh"; \
+445:		cp -f layout/usr/lib/ziyan/bin/ziyan_framecap_wrap.sh \
+446:			"$$DEST/usr/lib/ziyan/bin/ziyan_framecap_wrap.sh"; \
+447:		chmod 755 "$$DEST/usr/lib/ziyan/bin/ziyan_framecap_wrap.sh"; \
+448:		cp -f layout/usr/lib/ziyan/bin/ziyan_runtime_root.sh \
+449:			"$$DEST/usr/lib/ziyan/bin/ziyan_runtime_root.sh"; \
+450:		chmod 755 "$$DEST/usr/lib/ziyan/bin/ziyan_runtime_root.sh"; \
+454:		"$$DEST/usr/lib/ziyan/share/media_seed/" 2>/dev/null || true; \
+456:		"$$DEST/usr/lib/ziyan/share/media_seed/" 2>/dev/null || true; \
+461:	echo "[ZiYan] staged (pre-remap) → $$DEST/usr/lib/ziyan scheme=$(THEOS_PACKAGE_SCHEME)"
+465:# 8-161-74：一次 make 打双包（rootful arm + rootless arm64），兼容 iPhone7/8Plus
+467:# （勿用 Theos 自带 packages 名；勿再分两次手敲 rootful/rootless）
+468:.PHONY: dual-package package-rootless package-rootful inject-gate-53
+475:package-rootless package-rootful: dual-package
+478:	bash tools/device_inject_gate.sh 192.168.31.53 rootless
+69:        "rootful",
+70:        "rootless"
+93:            "rootful": "NOT_RUN",
+94:            "rootless": "NOT_RUN"
+111:            "rootful": "NOT_RUN",
+112:            "rootless": "NOT_RUN"
+129:            "rootful": "NOT_RUN",
+130:            "rootless": "NOT_RUN"
+147:            "rootful": "NOT_RUN",
+148:            "rootless": "NOT_RUN"
+178:        "rootful",
+179:        "rootless"
+202:            "rootful": "NOT_RUN",
+203:            "rootless": "NOT_RUN"
+220:            "rootful": "NOT_RUN",
+221:            "rootless": "NOT_RUN"
+238:            "rootful": "NOT_RUN",
+239:            "rootless": "NOT_RUN"
+256:            "rootful": "NOT_RUN",
+257:            "rootless": "NOT_RUN"
+287:        "rootful",
+288:        "rootless"
+311:            "rootful": "NOT_RUN",
+312:            "rootless": "NOT_RUN"
+329:            "rootful": "NOT_RUN",
+330:            "rootless": "NOT_RUN"
+347:            "rootful": "NOT_RUN",
+348:            "rootless": "NOT_RUN"
+365:            "rootful": "NOT_RUN",
+366:            "rootless": "NOT_RUN"
+395:        "rootful",
+396:        "rootless"
+419:            "rootful": "NOT_RUN",
+420:            "rootless": "NOT_RUN"
+437:            "rootful": "NOT_RUN",
+438:            "rootless": "NOT_RUN"
+455:            "rootful": "NOT_RUN",
+456:            "rootless": "NOT_RUN"
+473:            "rootful": "NOT_RUN",
+474:            "rootless": "NOT_RUN"
+501:        "rootful",
+502:        "rootless"
+525:            "rootful": "NOT_RUN",
+526:            "rootless": "NOT_RUN"
+543:            "rootful": "NOT_RUN",
+544:            "rootless": "NOT_RUN"
+561:            "rootful": "NOT_RUN",
+562:            "rootless": "NOT_RUN"
+579:            "rootful": "NOT_RUN",
+580:            "rootless": "NOT_RUN"
+609:        "rootful",
+610:        "rootless"
+633:            "rootful": "NOT_RUN",
+634:            "rootless": "NOT_RUN"
+651:            "rootful": "NOT_RUN",
+652:            "rootless": "NOT_RUN"
+669:            "rootful": "NOT_RUN",
+670:            "rootless": "NOT_RUN"
+687:            "rootful": "NOT_RUN",
+688:            "rootless": "NOT_RUN"
+717:        "rootful",
+718:        "rootless"
+741:            "rootful": "NOT_RUN",
+742:            "rootless": "NOT_RUN"
+759:            "rootful": "NOT_RUN",
+760:            "rootless": "NOT_RUN"
+777:            "rootful": "NOT_RUN",
+778:            "rootless": "NOT_RUN"
+795:            "rootful": "NOT_RUN",
+796:            "rootless": "NOT_RUN"
+825:        "rootful",
+826:        "rootless"
+849:            "rootful": "NOT_RUN",
+850:            "rootless": "NOT_RUN"
+867:            "rootful": "NOT_RUN",
+868:            "rootless": "NOT_RUN"
+885:            "rootful": "NOT_RUN",
+886:            "rootless": "NOT_RUN"
+903:            "rootful": "NOT_RUN",
+904:            "rootless": "NOT_RUN"
+933:        "rootful",
+934:        "rootless"
+957:            "rootful": "NOT_RUN",
+958:            "rootless": "NOT_RUN"
+975:            "rootful": "NOT_RUN",
+976:            "rootless": "NOT_RUN"
+993:            "rootful": "NOT_RUN",
+994:            "rootless": "NOT_RUN"
+1011:            "rootful": "NOT_RUN",
+1012:            "rootless": "NOT_RUN"
+1039:        "rootful",
+1040:        "rootless"
+1063:            "rootful": "NOT_RUN",
+1064:            "rootless": "NOT_RUN"
+1081:            "rootful": "NOT_RUN",
+1082:            "rootless": "NOT_RUN"
+1099:            "rootful": "NOT_RUN",
+1100:            "rootless": "NOT_RUN"
+1117:            "rootful": "NOT_RUN",
+1118:            "rootless": "NOT_RUN"
+1147:        "rootful",
+1148:        "rootless"
+1171:            "rootful": "NOT_RUN",
+1172:            "rootless": "NOT_RUN"
+1189:            "rootful": "NOT_RUN",
+1190:            "rootless": "NOT_RUN"
+1207:            "rootful": "NOT_RUN",
+1208:            "rootless": "NOT_RUN"
+1225:            "rootful": "NOT_RUN",
+1226:            "rootless": "NOT_RUN"
+1253:        "rootful",
+1254:        "rootless"
+1277:            "rootful": "NOT_RUN",
+1278:            "rootless": "NOT_RUN"
+1295:            "rootful": "NOT_RUN",
+1296:            "rootless": "NOT_RUN"
+1313:            "rootful": "NOT_RUN",
+1314:            "rootless": "NOT_RUN"
+1331:            "rootful": "NOT_RUN",
+1332:            "rootless": "NOT_RUN"
+1359:        "rootful",
+1360:        "rootless"
+1383:            "rootful": "NOT_RUN",
+1384:            "rootless": "NOT_RUN"
+1401:            "rootful": "NOT_RUN",
+1402:            "rootless": "NOT_RUN"
+1419:            "rootful": "NOT_RUN",
+1420:            "rootless": "NOT_RUN"
+1437:            "rootful": "NOT_RUN",
+1438:            "rootless": "NOT_RUN"
+1467:        "rootful",
+1468:        "rootless"
+1491:            "rootful": "NOT_RUN",
+1492:            "rootless": "NOT_RUN"
+1509:            "rootful": "NOT_RUN",
+1510:            "rootless": "NOT_RUN"
+1527:            "rootful": "NOT_RUN",
+1528:            "rootless": "NOT_RUN"
+1545:            "rootful": "NOT_RUN",
+1546:            "rootless": "NOT_RUN"
+1573:        "rootful",
+1574:        "rootless"
+1597:            "rootful": "NOT_RUN",
+1598:            "rootless": "NOT_RUN"
+1615:            "rootful": "NOT_RUN",
+1616:            "rootless": "NOT_RUN"
+1633:            "rootful": "NOT_RUN",
+1634:            "rootless": "NOT_RUN"
+1651:            "rootful": "NOT_RUN",
+1652:            "rootless": "NOT_RUN"
+1679:        "rootful",
+1680:        "rootless"
+1703:            "rootful": "NOT_RUN",
+1704:            "rootless": "NOT_RUN"
+1721:            "rootful": "NOT_RUN",
+1722:            "rootless": "NOT_RUN"
+1739:            "rootful": "NOT_RUN",
+1740:            "rootless": "NOT_RUN"
+1757:            "rootful": "NOT_RUN",
+1758:            "rootless": "NOT_RUN"
+1790:        "rootful",
+1791:        "rootless"
+1814:            "rootful": "NOT_RUN",
+1815:            "rootless": "NOT_RUN"
+1832:            "rootful": "NOT_RUN",
+1833:            "rootless": "NOT_RUN"
+1850:            "rootful": "NOT_RUN",
+1851:            "rootless": "NOT_RUN"
+1868:            "rootful": "NOT_RUN",
+1869:            "rootless": "NOT_RUN"
+1899:        "rootful",
+1900:        "rootless"
+1923:            "rootful": "NOT_RUN",
+1924:            "rootless": "NOT_RUN"
+1941:            "rootful": "NOT_RUN",
+1942:            "rootless": "NOT_RUN"
+1959:            "rootful": "NOT_RUN",
+1960:            "rootless": "NOT_RUN"
+1977:            "rootful": "NOT_RUN",
+1978:            "rootless": "NOT_RUN"
+2009:        "rootful",
+2010:        "rootless"
+2033:            "rootful": "NOT_RUN",
+2034:            "rootless": "NOT_RUN"
+2051:            "rootful": "NOT_RUN",
+2052:            "rootless": "NOT_RUN"
+2069:            "rootful": "NOT_RUN",
+2070:            "rootless": "NOT_RUN"
+2087:            "rootful": "NOT_RUN",
+2088:            "rootless": "NOT_RUN"
+2119:        "rootful",
+2120:        "rootless"
+2143:            "rootful": "NOT_RUN",
+2144:            "rootless": "NOT_RUN"
+2161:            "rootful": "NOT_RUN",
+2162:            "rootless": "NOT_RUN"
+2179:            "rootful": "NOT_RUN",
+2180:            "rootless": "NOT_RUN"
+2197:            "rootful": "NOT_RUN",
+2198:            "rootless": "NOT_RUN"
+2229:        "rootful",
+2230:        "rootless"
+2253:            "rootful": "NOT_RUN",
+2254:            "rootless": "NOT_RUN"
+2271:            "rootful": "NOT_RUN",
+2272:            "rootless": "NOT_RUN"
+2289:            "rootful": "NOT_RUN",
+2290:            "rootless": "NOT_RUN"
+2307:            "rootful": "NOT_RUN",
+2308:            "rootless": "NOT_RUN"
+2340:        "rootful",
+2341:        "rootless"
+2364:            "rootful": "NOT_RUN",
+2365:            "rootless": "NOT_RUN"
+2382:            "rootful": "NOT_RUN",
+2383:            "rootless": "NOT_RUN"
+2400:            "rootful": "NOT_RUN",
+2401:            "rootless": "NOT_RUN"
+2418:            "rootful": "NOT_RUN",
+2419:            "rootless": "NOT_RUN"
+2452:        "rootful",
+2453:        "rootless"
+2476:            "rootful": "NOT_RUN",
+2477:            "rootless": "NOT_RUN"
+2494:            "rootful": "NOT_RUN",
+2495:            "rootless": "NOT_RUN"
+2512:            "rootful": "NOT_RUN",
+2513:            "rootless": "NOT_RUN"
+2530:            "rootful": "NOT_RUN",
+2531:            "rootless": "NOT_RUN"
+2560:        "rootful",
+2561:        "rootless"
+2584:            "rootful": "NOT_RUN",
+2585:            "rootless": "NOT_RUN"
+2602:            "rootful": "NOT_RUN",
+2603:            "rootless": "NOT_RUN"
+2620:            "rootful": "NOT_RUN",
+2621:            "rootless": "NOT_RUN"
+2638:            "rootful": "NOT_RUN",
+2639:            "rootless": "NOT_RUN"
+2668:        "rootful",
+2669:        "rootless"
+2692:            "rootful": "NOT_RUN",
+2693:            "rootless": "NOT_RUN"
+2710:            "rootful": "NOT_RUN",
+2711:            "rootless": "NOT_RUN"
+2728:            "rootful": "NOT_RUN",
+2729:            "rootless": "NOT_RUN"
+2746:            "rootful": "NOT_RUN",
+2747:            "rootless": "NOT_RUN"
+2776:        "rootful",
+2777:        "rootless"
+2800:            "rootful": "NOT_RUN",
+2801:            "rootless": "NOT_RUN"
+2818:            "rootful": "NOT_RUN",
+2819:            "rootless": "NOT_RUN"
+2836:            "rootful": "NOT_RUN",
+2837:            "rootless": "NOT_RUN"
+2854:            "rootful": "NOT_RUN",
+2855:            "rootless": "NOT_RUN"
+2884:        "rootful",
+2885:        "rootless"
+2908:            "rootful": "NOT_RUN",
+2909:            "rootless": "NOT_RUN"
+2926:            "rootful": "NOT_RUN",
+2927:            "rootless": "NOT_RUN"
+2944:            "rootful": "NOT_RUN",
+2945:            "rootless": "NOT_RUN"
+2962:            "rootful": "NOT_RUN",
+2963:            "rootless": "NOT_RUN"
+2993:        "rootful",
+2994:        "rootless"
+3017:            "rootful": "NOT_RUN",
+3018:            "rootless": "NOT_RUN"
+3035:            "rootful": "NOT_RUN",
+3036:            "rootless": "NOT_RUN"
+3053:            "rootful": "NOT_RUN",
+3054:            "rootless": "NOT_RUN"
+3071:            "rootful": "NOT_RUN",
+3072:            "rootless": "NOT_RUN"
+3102:        "rootful",
+3103:        "rootless"
+3126:            "rootful": "NOT_RUN",
+3127:            "rootless": "NOT_RUN"
+3144:            "rootful": "NOT_RUN",
+3145:            "rootless": "NOT_RUN"
+3162:            "rootful": "NOT_RUN",
+3163:            "rootless": "NOT_RUN"
+3180:            "rootful": "NOT_RUN",
+3181:            "rootless": "NOT_RUN"
+3210:        "rootful",
+3211:        "rootless"
+3234:            "rootful": "NOT_RUN",
+3235:            "rootless": "NOT_RUN"
+3252:            "rootful": "NOT_RUN",
+3253:            "rootless": "NOT_RUN"
+3270:            "rootful": "NOT_RUN",
+3271:            "rootless": "NOT_RUN"
+3288:            "rootful": "NOT_RUN",
+3289:            "rootless": "NOT_RUN"
+3319:        "rootful",
+3320:        "rootless"
+3343:            "rootful": "NOT_RUN",
+3344:            "rootless": "NOT_RUN"
+3361:            "rootful": "NOT_RUN",
+3362:            "rootless": "NOT_RUN"
+3379:            "rootful": "NOT_RUN",
+3380:            "rootless": "NOT_RUN"
+3397:            "rootful": "NOT_RUN",
+3398:            "rootless": "NOT_RUN"
+3431:        "rootful",
+3432:        "rootless"
+3455:            "rootful": "NOT_RUN",
+3456:            "rootless": "NOT_RUN"
+3473:            "rootful": "NOT_RUN",
+3474:            "rootless": "NOT_RUN"
+3491:            "rootful": "NOT_RUN",
+3492:            "rootless": "NOT_RUN"
+3509:            "rootful": "NOT_RUN",
+3510:            "rootless": "NOT_RUN"
+3544:        "rootful",
+3545:        "rootless"
+3568:            "rootful": "NOT_RUN",
+3569:            "rootless": "NOT_RUN"
+3586:            "rootful": "NOT_RUN",
+3587:            "rootless": "NOT_RUN"
+3604:            "rootful": "NOT_RUN",
+3605:            "rootless": "NOT_RUN"
+3622:            "rootful": "NOT_RUN",
+3623:            "rootless": "NOT_RUN"
+3658:        "rootful",
+3659:        "rootless"
+3682:            "rootful": "NOT_RUN",
+3683:            "rootless": "NOT_RUN"
+3700:            "rootful": "NOT_RUN",
+3701:            "rootless": "NOT_RUN"
+3718:            "rootful": "NOT_RUN",
+3719:            "rootless": "NOT_RUN"
+3736:            "rootful": "NOT_RUN",
+3737:            "rootless": "NOT_RUN"
+3772:        "rootful",
+3773:        "rootless"
+3796:            "rootful": "NOT_RUN",
+3797:            "rootless": "NOT_RUN"
+3814:            "rootful": "NOT_RUN",
+3815:            "rootless": "NOT_RUN"
+3832:            "rootful": "NOT_RUN",
+3833:            "rootless": "NOT_RUN"
+3850:            "rootful": "NOT_RUN",
+3851:            "rootless": "NOT_RUN"
+3880:        "rootful",
+3881:        "rootless"
+3904:            "rootful": "NOT_RUN",
+3905:            "rootless": "NOT_RUN"
+3922:            "rootful": "NOT_RUN",
+3923:            "rootless": "NOT_RUN"
+3940:            "rootful": "NOT_RUN",
+3941:            "rootless": "NOT_RUN"
+3958:            "rootful": "NOT_RUN",
+3959:            "rootless": "NOT_RUN"
+3988:        "rootful",
+3989:        "rootless"
+4012:            "rootful": "NOT_RUN",
+4013:            "rootless": "NOT_RUN"
+4030:            "rootful": "NOT_RUN",
+4031:            "rootless": "NOT_RUN"
+4048:            "rootful": "NOT_RUN",
+4049:            "rootless": "NOT_RUN"
+4066:            "rootful": "NOT_RUN",
+4067:            "rootless": "NOT_RUN"
+4094:        "rootful",
+4095:        "rootless"
+4118:            "rootful": "NOT_RUN",
+4119:            "rootless": "NOT_RUN"
+4136:            "rootful": "NOT_RUN",
+4137:            "rootless": "NOT_RUN"
+4154:            "rootful": "NOT_RUN",
+4155:            "rootless": "NOT_RUN"
+4172:            "rootful": "NOT_RUN",
+4173:            "rootless": "NOT_RUN"
+4202:        "rootful",
+4203:        "rootless"
+4226:            "rootful": "NOT_RUN",
+4227:            "rootless": "NOT_RUN"
+4244:            "rootful": "NOT_RUN",
+4245:            "rootless": "NOT_RUN"
+4262:            "rootful": "NOT_RUN",
+4263:            "rootless": "NOT_RUN"
+4280:            "rootful": "NOT_RUN",
+4281:            "rootless": "NOT_RUN"
+4310:        "rootful",
+4311:        "rootless"
+4334:            "rootful": "NOT_RUN",
+4335:            "rootless": "NOT_RUN"
+4352:            "rootful": "NOT_RUN",
+4353:            "rootless": "NOT_RUN"
+4370:            "rootful": "NOT_RUN",
+4371:            "rootless": "NOT_RUN"
+4388:            "rootful": "NOT_RUN",
+4389:            "rootless": "NOT_RUN"
+4423:        "rootful",
+4424:        "rootless"
+4447:            "rootful": "NOT_RUN",
+4448:            "rootless": "NOT_RUN"
+4465:            "rootful": "NOT_RUN",
+4466:            "rootless": "NOT_RUN"
+4483:            "rootful": "NOT_RUN",
+4484:            "rootless": "NOT_RUN"
+4501:            "rootful": "NOT_RUN",
+4502:            "rootless": "NOT_RUN"
+4532:        "rootful",
+4533:        "rootless"
+4556:            "rootful": "NOT_RUN",
+4557:            "rootless": "NOT_RUN"
+4574:            "rootful": "NOT_RUN",
+4575:            "rootless": "NOT_RUN"
+4592:            "rootful": "NOT_RUN",
+4593:            "rootless": "NOT_RUN"
+4610:            "rootful": "NOT_RUN",
+4611:            "rootless": "NOT_RUN"
+4642:        "rootful",
+4643:        "rootless"
+4666:            "rootful": "NOT_RUN",
+4667:            "rootless": "NOT_RUN"
+4684:            "rootful": "NOT_RUN",
+4685:            "rootless": "NOT_RUN"
+4702:            "rootful": "NOT_RUN",
+4703:            "rootless": "NOT_RUN"
+4720:            "rootful": "NOT_RUN",
+4721:            "rootless": "NOT_RUN"
+4755:        "rootful",
+4756:        "rootless"
+4779:            "rootful": "NOT_RUN",
+4780:            "rootless": "NOT_RUN"
+4797:            "rootful": "NOT_RUN",
+4798:            "rootless": "NOT_RUN"
+4815:            "rootful": "NOT_RUN",
+4816:            "rootless": "NOT_RUN"
+4833:            "rootful": "NOT_RUN",
+4834:            "rootless": "NOT_RUN"
+4869:        "rootful",
+4870:        "rootless"
+4893:            "rootful": "NOT_RUN",
+4894:            "rootless": "NOT_RUN"
+4911:            "rootful": "NOT_RUN",
+4912:            "rootless": "NOT_RUN"
+4929:            "rootful": "NOT_RUN",
+4930:            "rootless": "NOT_RUN"
+4947:            "rootful": "NOT_RUN",
+4948:            "rootless": "NOT_RUN"
+4977:        "rootful",
+4978:        "rootless"
+5001:            "rootful": "NOT_RUN",
+5002:            "rootless": "NOT_RUN"
+5019:            "rootful": "NOT_RUN",
+5020:            "rootless": "NOT_RUN"
+5037:            "rootful": "NOT_RUN",
+5038:            "rootless": "NOT_RUN"
+5055:            "rootful": "NOT_RUN",
+5056:            "rootless": "NOT_RUN"
+5085:        "rootful",
+5086:        "rootless"
+5109:            "rootful": "NOT_RUN",
+5110:            "rootless": "NOT_RUN"
+5127:            "rootful": "NOT_RUN",
+5128:            "rootless": "NOT_RUN"
+5145:            "rootful": "NOT_RUN",
+5146:            "rootless": "NOT_RUN"
+5163:            "rootful": "NOT_RUN",
+5164:            "rootless": "NOT_RUN"
+5195:        "rootful",
+5196:        "rootless"
+5219:            "rootful": "NOT_RUN",
+5220:            "rootless": "NOT_RUN"
+5237:            "rootful": "NOT_RUN",
+5238:            "rootless": "NOT_RUN"
+5255:            "rootful": "NOT_RUN",
+5256:            "rootless": "NOT_RUN"
+5273:            "rootful": "NOT_RUN",
+5274:            "rootless": "NOT_RUN"
+5304:        "rootful",
+5305:        "rootless"
+5328:            "rootful": "NOT_RUN",
+5329:            "rootless": "NOT_RUN"
+5346:            "rootful": "NOT_RUN",
+5347:            "rootless": "NOT_RUN"
+5364:            "rootful": "NOT_RUN",
+5365:            "rootless": "NOT_RUN"
+5382:            "rootful": "NOT_RUN",
+5383:            "rootless": "NOT_RUN"
+5414:        "rootful",
+5415:        "rootless"
+5438:            "rootful": "NOT_RUN",
+5439:            "rootless": "NOT_RUN"
+5456:            "rootful": "NOT_RUN",
+5457:            "rootless": "NOT_RUN"
+5474:            "rootful": "NOT_RUN",
+5475:            "rootless": "NOT_RUN"
+5492:            "rootful": "NOT_RUN",
+5493:            "rootless": "NOT_RUN"
+5525:        "rootful",
+5526:        "rootless"
+5549:            "rootful": "NOT_RUN",
+5550:            "rootless": "NOT_RUN"
+5567:            "rootful": "NOT_RUN",
+5568:            "rootless": "NOT_RUN"
+5585:            "rootful": "NOT_RUN",
+5586:            "rootless": "NOT_RUN"
+5603:            "rootful": "NOT_RUN",
+5604:            "rootless": "NOT_RUN"
+5636:        "rootful",
+5637:        "rootless"
+5660:            "rootful": "NOT_RUN",
+5661:            "rootless": "NOT_RUN"
+5678:            "rootful": "NOT_RUN",
+5679:            "rootless": "NOT_RUN"
+5696:            "rootful": "NOT_RUN",
+5697:            "rootless": "NOT_RUN"
+5714:            "rootful": "NOT_RUN",
+5715:            "rootless": "NOT_RUN"
+5748:        "rootful",
+5749:        "rootless"
+5772:            "rootful": "NOT_RUN",
+5773:            "rootless": "NOT_RUN"
+5790:            "rootful": "NOT_RUN",
+5791:            "rootless": "NOT_RUN"
+5808:            "rootful": "NOT_RUN",
+5809:            "rootless": "NOT_RUN"
+5826:            "rootful": "NOT_RUN",
+5827:            "rootless": "NOT_RUN"
+5859:        "rootful",
+5860:        "rootless"
+5883:            "rootful": "NOT_RUN",
+5884:            "rootless": "NOT_RUN"
+5901:            "rootful": "NOT_RUN",
+5902:            "rootless": "NOT_RUN"
+5919:            "rootful": "NOT_RUN",
+5920:            "rootless": "NOT_RUN"
+5937:            "rootful": "NOT_RUN",
+5938:            "rootless": "NOT_RUN"
+5973:        "rootful",
+5974:        "rootless"
+5997:            "rootful": "NOT_RUN",
+5998:            "rootless": "NOT_RUN"
+6015:            "rootful": "NOT_RUN",
+6016:            "rootless": "NOT_RUN"
+6033:            "rootful": "NOT_RUN",
+6034:            "rootless": "NOT_RUN"
+6051:            "rootful": "NOT_RUN",
+6052:            "rootless": "NOT_RUN"
+6087:        "rootful",
+6088:        "rootless"
+6111:            "rootful": "NOT_RUN",
+6112:            "rootless": "NOT_RUN"
+6129:            "rootful": "NOT_RUN",
+6130:            "rootless": "NOT_RUN"
+6147:            "rootful": "NOT_RUN",
+6148:            "rootless": "NOT_RUN"
+6165:            "rootful": "NOT_RUN",
+6166:            "rootless": "NOT_RUN"
+6193:        "rootful",
+6194:        "rootless"
+6217:            "rootful": "NOT_RUN",
+6218:            "rootless": "NOT_RUN"
+6235:            "rootful": "NOT_RUN",
+6236:            "rootless": "NOT_RUN"
+6253:            "rootful": "NOT_RUN",
+6254:            "rootless": "NOT_RUN"
+6271:            "rootful": "NOT_RUN",
+6272:            "rootless": "NOT_RUN"
+6305:        "rootful",
+6306:        "rootless"
+6329:            "rootful": "NOT_RUN",
+6330:            "rootless": "NOT_RUN"
+6347:            "rootful": "NOT_RUN",
+6348:            "rootless": "NOT_RUN"
+6365:            "rootful": "NOT_RUN",
+6366:            "rootless": "NOT_RUN"
+6383:            "rootful": "NOT_RUN",
+6384:            "rootless": "NOT_RUN"
+6413:        "rootful",
+6414:        "rootless"
+6437:            "rootful": "NOT_RUN",
+6438:            "rootless": "NOT_RUN"
+6455:            "rootful": "NOT_RUN",
+6456:            "rootless": "NOT_RUN"
+6473:            "rootful": "NOT_RUN",
+6474:            "rootless": "NOT_RUN"
+6491:            "rootful": "NOT_RUN",
+6492:            "rootless": "NOT_RUN"
+6521:        "rootful",
+6522:        "rootless"
+6545:            "rootful": "NOT_RUN",
+6546:            "rootless": "NOT_RUN"
+6563:            "rootful": "NOT_RUN",
+6564:            "rootless": "NOT_RUN"
+6581:            "rootful": "NOT_RUN",
+6582:            "rootless": "NOT_RUN"
+6599:            "rootful": "NOT_RUN",
+6600:            "rootless": "NOT_RUN"
+6629:        "rootful",
+6630:        "rootless"
+6653:            "rootful": "NOT_RUN",
+6654:            "rootless": "NOT_RUN"
+6671:            "rootful": "NOT_RUN",
+6672:            "rootless": "NOT_RUN"
+6689:            "rootful": "NOT_RUN",
+6690:            "rootless": "NOT_RUN"
+6707:            "rootful": "NOT_RUN",
+6708:            "rootless": "NOT_RUN"
+6735:        "rootful",
+6736:        "rootless"
+6759:            "rootful": "NOT_RUN",
+6760:            "rootless": "NOT_RUN"
+6777:            "rootful": "NOT_RUN",
+6778:            "rootless": "NOT_RUN"
+6795:            "rootful": "NOT_RUN",
+6796:            "rootless": "NOT_RUN"
+6813:            "rootful": "NOT_RUN",
+6814:            "rootless": "NOT_RUN"
+6843:        "rootful",
+6844:        "rootless"
+6867:            "rootful": "NOT_RUN",
+6868:            "rootless": "NOT_RUN"
+6885:            "rootful": "NOT_RUN",
+6886:            "rootless": "NOT_RUN"
+6903:            "rootful": "NOT_RUN",
+6904:            "rootless": "NOT_RUN"
+6921:            "rootful": "NOT_RUN",
+6922:            "rootless": "NOT_RUN"
+6951:        "rootful",
+6952:        "rootless"
+6975:            "rootful": "NOT_RUN",
+6976:            "rootless": "NOT_RUN"
+6993:            "rootful": "NOT_RUN",
+6994:            "rootless": "NOT_RUN"
+7011:            "rootful": "NOT_RUN",
+7012:            "rootless": "NOT_RUN"
+7029:            "rootful": "NOT_RUN",
+7030:            "rootless": "NOT_RUN"
+7059:        "rootful",
+7060:        "rootless"
+7083:            "rootful": "NOT_RUN",
+7084:            "rootless": "NOT_RUN"
+7101:            "rootful": "NOT_RUN",
+7102:            "rootless": "NOT_RUN"
+7119:            "rootful": "NOT_RUN",
+7120:            "rootless": "NOT_RUN"
+7137:            "rootful": "NOT_RUN",
+7138:            "rootless": "NOT_RUN"
+7169:        "rootful",
+7170:        "rootless"
+7193:            "rootful": "NOT_RUN",
+7194:            "rootless": "NOT_RUN"
+7211:            "rootful": "NOT_RUN",
+7212:            "rootless": "NOT_RUN"
+7229:            "rootful": "NOT_RUN",
+7230:            "rootless": "NOT_RUN"
+7247:            "rootful": "NOT_RUN",
+7248:            "rootless": "NOT_RUN"
+7278:        "rootful",
+7279:        "rootless"
+7302:            "rootful": "NOT_RUN",
+7303:            "rootless": "NOT_RUN"
+7320:            "rootful": "NOT_RUN",
+7321:            "rootless": "NOT_RUN"
+7338:            "rootful": "NOT_RUN",
+7339:            "rootless": "NOT_RUN"
+7356:            "rootful": "NOT_RUN",
+7357:            "rootless": "NOT_RUN"
+7386:        "rootful",
+7387:        "rootless"
+7410:            "rootful": "NOT_RUN",
+7411:            "rootless": "NOT_RUN"
+7428:            "rootful": "NOT_RUN",
+7429:            "rootless": "NOT_RUN"
+7446:            "rootful": "NOT_RUN",
+7447:            "rootless": "NOT_RUN"
+7464:            "rootful": "NOT_RUN",
+7465:            "rootless": "NOT_RUN"
+7495:        "rootful",
+7496:        "rootless"
+7519:            "rootful": "NOT_RUN",
+7520:            "rootless": "NOT_RUN"
+7537:            "rootful": "NOT_RUN",
+7538:            "rootless": "NOT_RUN"
+7555:            "rootful": "NOT_RUN",
+7556:            "rootless": "NOT_RUN"
+7573:            "rootful": "NOT_RUN",
+7574:            "rootless": "NOT_RUN"
+7604:        "rootful",
+7605:        "rootless"
+7628:            "rootful": "NOT_RUN",
+7629:            "rootless": "NOT_RUN"
+7646:            "rootful": "NOT_RUN",
+7647:            "rootless": "NOT_RUN"
+7664:            "rootful": "NOT_RUN",
+7665:            "rootless": "NOT_RUN"
+7682:            "rootful": "NOT_RUN",
+7683:            "rootless": "NOT_RUN"
+7712:        "rootful",
+7713:        "rootless"
+7736:            "rootful": "NOT_RUN",
+7737:            "rootless": "NOT_RUN"
+7754:            "rootful": "NOT_RUN",
+7755:            "rootless": "NOT_RUN"
+7772:            "rootful": "NOT_RUN",
+7773:            "rootless": "NOT_RUN"
+7790:            "rootful": "NOT_RUN",
+7791:            "rootless": "NOT_RUN"
+7821:        "rootful",
+7822:        "rootless"
+7845:            "rootful": "NOT_RUN",
+7846:            "rootless": "NOT_RUN"
+7863:            "rootful": "NOT_RUN",
+7864:            "rootless": "NOT_RUN"
+7881:            "rootful": "NOT_RUN",
+7882:            "rootless": "NOT_RUN"
+7899:            "rootful": "NOT_RUN",
+7900:            "rootless": "NOT_RUN"
+7929:        "rootful",
+7930:        "rootless"
+7953:            "rootful": "NOT_RUN",
+7954:            "rootless": "NOT_RUN"
+7971:            "rootful": "NOT_RUN",
+7972:            "rootless": "NOT_RUN"
+7989:            "rootful": "NOT_RUN",
+7990:            "rootless": "NOT_RUN"
+8007:            "rootful": "NOT_RUN",
+8008:            "rootless": "NOT_RUN"
+8038:        "rootful",
+8039:        "rootless"
+8062:            "rootful": "NOT_RUN",
+8063:            "rootless": "NOT_RUN"
+8080:            "rootful": "NOT_RUN",
+8081:            "rootless": "NOT_RUN"
+8098:            "rootful": "NOT_RUN",
+8099:            "rootless": "NOT_RUN"
+8116:            "rootful": "NOT_RUN",
+8117:            "rootless": "NOT_RUN"
+8146:        "rootful",
+8147:        "rootless"
+8170:            "rootful": "NOT_RUN",
+8171:            "rootless": "NOT_RUN"
+8188:            "rootful": "NOT_RUN",
+8189:            "rootless": "NOT_RUN"
+8206:            "rootful": "NOT_RUN",
+8207:            "rootless": "NOT_RUN"
+8224:            "rootful": "NOT_RUN",
+8225:            "rootless": "NOT_RUN"
+8254:        "rootful",
+8255:        "rootless"
+8278:            "rootful": "NOT_RUN",
+8279:            "rootless": "NOT_RUN"
+8296:            "rootful": "NOT_RUN",
+8297:            "rootless": "NOT_RUN"
+8314:            "rootful": "NOT_RUN",
+8315:            "rootless": "NOT_RUN"
+8332:            "rootful": "NOT_RUN",
+8333:            "rootless": "NOT_RUN"
+8363:        "rootful",
+8364:        "rootless"
+8387:            "rootful": "NOT_RUN",
+8388:            "rootless": "NOT_RUN"
+8405:            "rootful": "NOT_RUN",
+8406:            "rootless": "NOT_RUN"
+8423:            "rootful": "NOT_RUN",
+8424:            "rootless": "NOT_RUN"
+8441:            "rootful": "NOT_RUN",
+8442:            "rootless": "NOT_RUN"
+8477:        "rootful",
+8478:        "rootless"
+8501:            "rootful": "NOT_RUN",
+8502:            "rootless": "NOT_RUN"
+8519:            "rootful": "NOT_RUN",
+8520:            "rootless": "NOT_RUN"
+8537:            "rootful": "NOT_RUN",
+8538:            "rootless": "NOT_RUN"
+8555:            "rootful": "NOT_RUN",
+8556:            "rootless": "NOT_RUN"
+8591:        "rootful",
+8592:        "rootless"
+8615:            "rootful": "NOT_RUN",
+8616:            "rootless": "NOT_RUN"
+8633:            "rootful": "NOT_RUN",
+8634:            "rootless": "NOT_RUN"
+8651:            "rootful": "NOT_RUN",
+8652:            "rootless": "NOT_RUN"
+8669:            "rootful": "NOT_RUN",
+8670:            "rootless": "NOT_RUN"
+8704:        "rootful",
+8705:        "rootless"
+8728:            "rootful": "NOT_RUN",
+8729:            "rootless": "NOT_RUN"
+8746:            "rootful": "NOT_RUN",
+8747:            "rootless": "NOT_RUN"
+8764:            "rootful": "NOT_RUN",
+8765:            "rootless": "NOT_RUN"
+8782:            "rootful": "NOT_RUN",
+8783:            "rootless": "NOT_RUN"
+8817:        "rootful",
+8818:        "rootless"
+8841:            "rootful": "NOT_RUN",
+8842:            "rootless": "NOT_RUN"
+8859:            "rootful": "NOT_RUN",
+8860:            "rootless": "NOT_RUN"
+8877:            "rootful": "NOT_RUN",
+8878:            "rootless": "NOT_RUN"
+8895:            "rootful": "NOT_RUN",
+8896:            "rootless": "NOT_RUN"
+8931:        "rootful",
+8932:        "rootless"
+8955:            "rootful": "NOT_RUN",
+8956:            "rootless": "NOT_RUN"
+8973:            "rootful": "NOT_RUN",
+8974:            "rootless": "NOT_RUN"
+8991:            "rootful": "NOT_RUN",
+8992:            "rootless": "NOT_RUN"
+9009:            "rootful": "NOT_RUN",
+9010:            "rootless": "NOT_RUN"
+9039:        "rootful",
+9040:        "rootless"
+9063:            "rootful": "NOT_RUN",
+9064:            "rootless": "NOT_RUN"
+9081:            "rootful": "NOT_RUN",
+9082:            "rootless": "NOT_RUN"
+9099:            "rootful": "NOT_RUN",
+9100:            "rootless": "NOT_RUN"
+9117:            "rootful": "NOT_RUN",
+9118:            "rootless": "NOT_RUN"
+9147:        "rootful",
+9148:        "rootless"
+9171:            "rootful": "NOT_RUN",
+9172:            "rootless": "NOT_RUN"
+9189:            "rootful": "NOT_RUN",
+9190:            "rootless": "NOT_RUN"
+9207:            "rootful": "NOT_RUN",
+9208:            "rootless": "NOT_RUN"
+9225:            "rootful": "NOT_RUN",
+9226:            "rootless": "NOT_RUN"
+9256:        "rootful",
+9257:        "rootless"
+9280:            "rootful": "NOT_RUN",
+9281:            "rootless": "NOT_RUN"
+9298:            "rootful": "NOT_RUN",
+9299:            "rootless": "NOT_RUN"
+9316:            "rootful": "NOT_RUN",
+9317:            "rootless": "NOT_RUN"
+9334:            "rootful": "NOT_RUN",
+9335:            "rootless": "NOT_RUN"
+9365:        "rootful",
+9366:        "rootless"
+9389:            "rootful": "NOT_RUN",
+9390:            "rootless": "NOT_RUN"
+9407:            "rootful": "NOT_RUN",
+9408:            "rootless": "NOT_RUN"
+9425:            "rootful": "NOT_RUN",
+9426:            "rootless": "NOT_RUN"
+9443:            "rootful": "NOT_RUN",
+9444:            "rootless": "NOT_RUN"
+9473:        "rootful",
+9474:        "rootless"
+9497:            "rootful": "NOT_RUN",
+9498:            "rootless": "NOT_RUN"
+9515:            "rootful": "NOT_RUN",
+9516:            "rootless": "NOT_RUN"
+9533:            "rootful": "NOT_RUN",
+9534:            "rootless": "NOT_RUN"
+9551:            "rootful": "NOT_RUN",
+9552:            "rootless": "NOT_RUN"
+9581:        "rootful",
+9582:        "rootless"
+9605:            "rootful": "NOT_RUN",
+9606:            "rootless": "NOT_RUN"
+9623:            "rootful": "NOT_RUN",
+9624:            "rootless": "NOT_RUN"
+9641:            "rootful": "NOT_RUN",
+9642:            "rootless": "NOT_RUN"
+9659:            "rootful": "NOT_RUN",
+9660:            "rootless": "NOT_RUN"
+9690:        "rootful",
+9691:        "rootless"
+9714:            "rootful": "NOT_RUN",
+9715:            "rootless": "NOT_RUN"
+9732:            "rootful": "NOT_RUN",
+9733:            "rootless": "NOT_RUN"
+9750:            "rootful": "NOT_RUN",
+9751:            "rootless": "NOT_RUN"
+9768:            "rootful": "NOT_RUN",
+9769:            "rootless": "NOT_RUN"
+9800:        "rootful",
+9801:        "rootless"
+9824:            "rootful": "NOT_RUN",
+9825:            "rootless": "NOT_RUN"
+9842:            "rootful": "NOT_RUN",
+9843:            "rootless": "NOT_RUN"
+9860:            "rootful": "NOT_RUN",
+9861:            "rootless": "NOT_RUN"
+9878:            "rootful": "NOT_RUN",
+9879:            "rootless": "NOT_RUN"
+9908:        "rootful",
+9909:        "rootless"
+9932:            "rootful": "NOT_RUN",
+9933:            "rootless": "NOT_RUN"
+9950:            "rootful": "NOT_RUN",
+9951:            "rootless": "NOT_RUN"
+9968:            "rootful": "NOT_RUN",
+9969:            "rootless": "NOT_RUN"
+9986:            "rootful": "NOT_RUN",
+9987:            "rootless": "NOT_RUN"
+10017:        "rootful",
+10018:        "rootless"
+10041:            "rootful": "NOT_RUN",
+10042:            "rootless": "NOT_RUN"
+10059:            "rootful": "NOT_RUN",
+10060:            "rootless": "NOT_RUN"
+10077:            "rootful": "NOT_RUN",
+10078:            "rootless": "NOT_RUN"
+10095:            "rootful": "NOT_RUN",
+10096:            "rootless": "NOT_RUN"
+10126:        "rootful",
+10127:        "rootless"
+10150:            "rootful": "NOT_RUN",
+10151:            "rootless": "NOT_RUN"
+10168:            "rootful": "NOT_RUN",
+10169:            "rootless": "NOT_RUN"
+10186:            "rootful": "NOT_RUN",
+10187:            "rootless": "NOT_RUN"
+10204:            "rootful": "NOT_RUN",
+10205:            "rootless": "NOT_RUN"
+10235:        "rootful",
+10236:        "rootless"
+10259:            "rootful": "NOT_RUN",
+10260:            "rootless": "NOT_RUN"
+10277:            "rootful": "NOT_RUN",
+10278:            "rootless": "NOT_RUN"
+10295:            "rootful": "NOT_RUN",
+10296:            "rootless": "NOT_RUN"
+10313:            "rootful": "NOT_RUN",
+10314:            "rootless": "NOT_RUN"
+10343:        "rootful",
+10344:        "rootless"
+10367:            "rootful": "NOT_RUN",
+10368:            "rootless": "NOT_RUN"
+10385:            "rootful": "NOT_RUN",
+10386:            "rootless": "NOT_RUN"
+10403:            "rootful": "NOT_RUN",
+10404:            "rootless": "NOT_RUN"
+10421:            "rootful": "NOT_RUN",
+10422:            "rootless": "NOT_RUN"
+10449:        "rootful",
+10450:        "rootless"
+10473:            "rootful": "NOT_RUN",
+10474:            "rootless": "NOT_RUN"
+10491:            "rootful": "NOT_RUN",
+10492:            "rootless": "NOT_RUN"
+10509:            "rootful": "NOT_RUN",
+10510:            "rootless": "NOT_RUN"
+10527:            "rootful": "NOT_RUN",
+10528:            "rootless": "NOT_RUN"
+10555:        "rootful",
+10556:        "rootless"
+10579:            "rootful": "NOT_RUN",
+10580:            "rootless": "NOT_RUN"
+10597:            "rootful": "NOT_RUN",
+10598:            "rootless": "NOT_RUN"
+10615:            "rootful": "NOT_RUN",
+10616:            "rootless": "NOT_RUN"
+10633:            "rootful": "NOT_RUN",
+10634:            "rootless": "NOT_RUN"
+10663:        "rootful",
+10664:        "rootless"
+10687:            "rootful": "NOT_RUN",
+10688:            "rootless": "NOT_RUN"
+10705:            "rootful": "NOT_RUN",
+10706:            "rootless": "NOT_RUN"
+10723:            "rootful": "NOT_RUN",
+10724:            "rootless": "NOT_RUN"
+10741:            "rootful": "NOT_RUN",
+10742:            "rootless": "NOT_RUN"
+10772:        "rootful",
+10773:        "rootless"
+10796:            "rootful": "NOT_RUN",
+10797:            "rootless": "NOT_RUN"
+10814:            "rootful": "NOT_RUN",
+10815:            "rootless": "NOT_RUN"
+10832:            "rootful": "NOT_RUN",
+10833:            "rootless": "NOT_RUN"
+10850:            "rootful": "NOT_RUN",
+10851:            "rootless": "NOT_RUN"
+10881:        "rootful",
+10882:        "rootless"
+10905:            "rootful": "NOT_RUN",
+10906:            "rootless": "NOT_RUN"
+10923:            "rootful": "NOT_RUN",
+10924:            "rootless": "NOT_RUN"
+10941:            "rootful": "NOT_RUN",
+10942:            "rootless": "NOT_RUN"
+10959:            "rootful": "NOT_RUN",
+10960:            "rootless": "NOT_RUN"
+10987:        "rootful",
+10988:        "rootless"
+11011:            "rootful": "NOT_RUN",
+11012:            "rootless": "NOT_RUN"
+11029:            "rootful": "NOT_RUN",
+11030:            "rootless": "NOT_RUN"
+11047:            "rootful": "NOT_RUN",
+11048:            "rootless": "NOT_RUN"
+11065:            "rootful": "NOT_RUN",
+11066:            "rootless": "NOT_RUN"
+11:ROOT=/usr/lib/ziyan
+12:for helper in /usr/lib/ziyan/bin/ziyan_runtime_root.sh \
+13:              /var/jb/usr/lib/ziyan/bin/ziyan_runtime_root.sh; do
+19:ROOTLESS=0
+20:case "$ROOT" in /var/jb/*) ROOTLESS=1 ;; esac
+22:LUA="$ROOT/bin/lua5.3"
+24:if [ "$ROOTLESS" = "1" ]; then
+29:export DYLD_LIBRARY_PATH="$ROOT/lib"
+62:# rootful images) so only one daemon may own revive/framecap decisions.  A
+350:  echo "$($DATE '+%Y-%m-%d %H:%M:%S') pid=$$ rootless=$ROOTLESS" >"$ALIVE" 2>/dev/null
+353:  echo "$($DATE '+%Y-%m-%d %H:%M:%S') pid=$$ rootless=$ROOTLESS" >"$VAR/.ziyan_heartbeat_daemon" 2>/dev/null
+452:log "zydaemon_start rootless=$ROOTLESS step=8-147"
+12:FLAG_ROOTFUL="/usr/lib/ziyan/var/.ziyan_fs_cloak"
+13:FLAG_ROOTLESS="/var/jb/usr/lib/ziyan/var/.ziyan_fs_cloak"
+16:REQ_RESTORE_ROOTFUL="/usr/lib/ziyan/var/.ziyan_fs_cloak_restore_req"
+17:REQ_RESTORE_ROOTLESS="/var/jb/usr/lib/ziyan/var/.ziyan_fs_cloak_restore_req"
+18:REQ_HIDE_ROOTFUL="/usr/lib/ziyan/var/.ziyan_fs_cloak_hide_req"
+19:REQ_HIDE_ROOTLESS="/var/jb/usr/lib/ziyan/var/.ziyan_fs_cloak_hide_req"
+20:ICON_HIDE_REQ_ROOTFUL="/usr/lib/ziyan/var/.ziyan_icon_hide_req"
+21:ICON_HIDE_REQ_ROOTLESS="/var/jb/usr/lib/ziyan/var/.ziyan_icon_hide_req"
+22:SESSION_ROOTFUL="/usr/lib/ziyan/var/.ziyan_app_session"
+23:SESSION_ROOTLESS="/var/jb/usr/lib/ziyan/var/.ziyan_app_session"
+26:HIDE_ROOTFUL="/usr/lib/ziyan/var/.ziyan_jb_icons_hidden"
+27:HIDE_ROOTLESS="/var/jb/usr/lib/ziyan/var/.ziyan_jb_icons_hidden"
+30:HB_ROOTFUL="/usr/lib/ziyan/var/.ziyan_app_heartbeat"
+31:HB_ROOTLESS="/var/jb/usr/lib/ziyan/var/.ziyan_app_heartbeat"
+34:APP_FG_ROOTFUL="/usr/lib/ziyan/var/.ziyan_app_fg"
+35:APP_FG_ROOTLESS="/var/jb/usr/lib/ziyan/var/.ziyan_app_fg"
+36:LOG_ROOTFUL="/usr/lib/ziyan/var/.ziyan_fs_cloakd_log"
+37:LOG_ROOTLESS="/var/jb/usr/lib/ziyan/var/.ziyan_fs_cloakd_log"
+38:LOCK_ROOTFUL="/usr/lib/ziyan/var/.ziyan_fscloakd.lock"
+39:LOCK_ROOTLESS="/var/jb/usr/lib/ziyan/var/.ziyan_fscloakd.lock"
+40:USER_CLOSED_ROOTFUL="/usr/lib/ziyan/var/.ziyan_app_user_closed"
+41:USER_CLOSED_ROOTLESS="/var/jb/usr/lib/ziyan/var/.ziyan_app_user_closed"
+73:  [ -d "/var/jb/usr/lib/ziyan/var" ] && lock="$LOCK_ROOTLESS"
+74:  [ -z "$lock" ] && [ -d "/usr/lib/ziyan/var" ] && lock="$LOCK_ROOTFUL"
+93:  for L in "$LOG_ROOTLESS" "$LOG_ROOTFUL"; do
+102:  [ -f "$SESSION_ROOTLESS" ] || [ -f "$SESSION_ROOTFUL" ] || \
+107:  [ -f "$HIDE_ROOTLESS" ] || [ -f "$HIDE_ROOTFUL" ] || \
+112:  "$RM" -f "$FLAG_ROOTFUL" "$FLAG_ROOTLESS" "$FLAG_MEDIA" "$FLAG_MEDIA_LEGACY" \
+113:    "$REQ_RESTORE_ROOTFUL" "$REQ_RESTORE_ROOTLESS" 2>/dev/null || true
+117:  "$RM" -f "$SESSION_ROOTFUL" "$SESSION_ROOTLESS" "$SESSION_MEDIA" "$SESSION_MEDIA_LEGACY" \
+118:    "$HIDE_ROOTFUL" "$HIDE_ROOTLESS" "$HIDE_MEDIA" "$HIDE_MEDIA_LEGACY" \
+119:    "$HB_ROOTFUL" "$HB_ROOTLESS" "$HB_MEDIA" "$HB_MEDIA_LEGACY" 2>/dev/null || true
+120:  if [ -d "/var/jb/usr/lib/ziyan/var" ]; then
+121:    echo 0 >"$APP_FG_ROOTLESS" 2>/dev/null || true
+122:  elif [ -d "/usr/lib/ziyan/var" ]; then
+123:    echo 0 >"$APP_FG_ROOTFUL" 2>/dev/null || true
+128:# .53 rootless：plain `ps` 常空；优先 ps auxww / axww，再 pgrep
+163:  for hb in "$HB_MEDIA" "$HB_MEDIA_LEGACY" "$HB_ROOTLESS" "$HB_ROOTFUL"; do
+182:  if [ -f "$USER_CLOSED_ROOTLESS" ] || [ -f "$USER_CLOSED_ROOTFUL" ]; then
+192:  [ -f "$REQ_RESTORE_ROOTLESS" ] || [ -f "$REQ_RESTORE_ROOTFUL" ] || \
+193:    [ -f "$REQ_HIDE_ROOTLESS" ] || [ -f "$REQ_HIDE_ROOTFUL" ]
+362:  if [ -f "$REQ_RESTORE_ROOTLESS" ] || [ -f "$REQ_RESTORE_ROOTFUL" ]; then
+363:    "$RM" -f "$REQ_RESTORE_ROOTLESS" "$REQ_RESTORE_ROOTFUL" 2>/dev/null || true
+371:  if [ -f "$REQ_HIDE_ROOTLESS" ] || [ -f "$REQ_HIDE_ROOTFUL" ]; then
+372:    "$RM" -f "$REQ_HIDE_ROOTLESS" "$REQ_HIDE_ROOTFUL" 2>/dev/null || true
+5:# rootless：daemon PATH 常无 /var/jb/usr/bin → 禁止依赖裸 grep/sleep
+7:ROOT="/usr/lib/ziyan"
+8:for helper in /usr/lib/ziyan/bin/ziyan_runtime_root.sh \
+9:              /var/jb/usr/lib/ziyan/bin/ziyan_runtime_root.sh; do
+8:  local rootless = io.open("/var/jb/usr/lib/ziyan/bin/lua5.3", "r") ~= nil
+9:  local BID = rootless and "com.ljzbbadao.game" or "com.xztl.ios"
+10:  local DW, DH = rootless and 2208 or 1136, rootless and 1242 or 640
+2:local OUT = "/usr/lib/ziyan/var/.ziyan_res_interop_test.txt"
+15:    pcall(dofile, "/usr/lib/ziyan/lib/lua/ziyan_engine/init.lua")
+5:  local rootless = io.open("/var/jb/usr/lib/ziyan/bin/lua5.3", "r") ~= nil
+6:  local BID = rootless and "com.ljzbbadao.game" or "com.xztl.ios"
+7:  local DW = rootless and 2208 or 1136
+8:  local DH = rootless and 1242 or 640
+9:  local VAR = _G.ZIYAN_VAR or (rootless and "/var/jb/usr/lib/ziyan/var" or "/usr/lib/ziyan/var")
+4:  local OUT = (rawget(_G, "ZIYAN_VAR") or "/var/jb/usr/lib/ziyan/var")
+8:  local rootless = io.open("/var/jb/usr/lib/ziyan/bin/lua5.3", "r") ~= nil
+9:  local bid = rootless and "com.ljzbbadao.game" or "com.xztl.ios"
+10:  local dw = rootless and 2208 or 1136
+11:  local dh = rootless and 1242 or 640
+8:  io.open("/var/jb/usr/lib/ziyan/var", "r") and "com.ljzbbadao.game" or "com.xztl.ios"
+27:      local VAR = _G.ZIYAN_VAR or "/var/jb/usr/lib/ziyan/var"
+364:local LOCK = (_G.ZIYAN_VAR or "/usr/lib/ziyan/var") .. "/.ziyan_game_play.lock"
+16:      or (io.open("/var/jb/usr/lib/ziyan/bin/lua5.3", "r")
+17:          and "/var/jb/usr/lib/ziyan/var"
+18:          or "/usr/lib/ziyan/var")
+4:  ROOT = '/usr/lib/ziyan/modules/api_spec'  -- 装机后可选路径；开发期用仓库相对路径
+4:local VAR = _G.ZIYAN_VAR or "/var/jb/usr/lib/ziyan/var"
+14:      or (io.open("/var/jb/usr/lib/ziyan/bin/lua5.3", "r")
+15:          and "/var/jb/usr/lib/ziyan/var"
+16:          or "/usr/lib/ziyan/var")
+7:  if io.open("/var/jb/usr/lib/ziyan/var", "r") then return "/var/jb/usr/lib/ziyan/var" end
+8:  return "/usr/lib/ziyan/var"
+5:  if io.open("/var/jb/usr/lib/ziyan/var", "r") then return "/var/jb/usr/lib/ziyan/var" end
+6:  return "/usr/lib/ziyan/var"
+7:  local rootless = io.open("/var/jb/usr/lib/ziyan/bin/lua5.3", "r") ~= nil
+8:  local BID = rootless and "com.ljzbbadao.game" or "com.xztl.ios"
+17:  local VAR = _G.ZIYAN_VAR or (rootless and "/var/jb/usr/lib/ziyan/var" or "/usr/lib/ziyan/var")
+8:  if io.open("/var/jb/usr/lib/ziyan/var", "r") then
+9:    return "/var/jb/usr/lib/ziyan/var"
+11:  return "/usr/lib/ziyan/var"
+2:local VAR = _G.ZIYAN_VAR or "/var/jb/usr/lib/ziyan/var"
+3:if not io.open(VAR, "r") then VAR = "/usr/lib/ziyan/var" end
+5:local rootless = (io.open("/var/jb/usr/lib/ziyan/var", "r") ~= nil)
+6:local BID = rootless and "com.ljzbbadao.game" or "com.xztl.ios"

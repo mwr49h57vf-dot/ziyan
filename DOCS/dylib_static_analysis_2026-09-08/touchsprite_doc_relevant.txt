@@ -1,0 +1,119 @@
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/5085557961350328067.txt-696-函数：selvpn 切换 VPN
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/5085557961350328067.txt-697-函数：delvpn 删除 VPN
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/5085557961350328067.txt-698-函数：getVPNList 获取 VPN 列表
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/5085557961350328067.txt:699:sz.so 苏泽扩展库（停止维护）
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/5085557961350328067.txt-700-使用须知及文件下载
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/5085557961350328067.txt-701-JSON 模块
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/5085557961350328067.txt-702-FTP 模块（iOS）
+--
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/3417317899963125322.txt-696-函数：selvpn 切换 VPN
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/3417317899963125322.txt-697-函数：delvpn 删除 VPN
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/3417317899963125322.txt-698-函数：getVPNList 获取 VPN 列表
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/3417317899963125322.txt:699:sz.so 苏泽扩展库（停止维护）
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/3417317899963125322.txt-700-使用须知及文件下载
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/3417317899963125322.txt-701-JSON 模块
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/3417317899963125322.txt-702-FTP 模块（iOS）
+--
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/1430686747568703152.txt-696-函数：selvpn 切换 VPN
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/1430686747568703152.txt-697-函数：delvpn 删除 VPN
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/1430686747568703152.txt-698-函数：getVPNList 获取 VPN 列表
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/1430686747568703152.txt:699:sz.so 苏泽扩展库（停止维护）
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/1430686747568703152.txt-700-使用须知及文件下载
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/1430686747568703152.txt-701-JSON 模块
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/1430686747568703152.txt-702-FTP 模块（iOS）
+--
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/5260525641922663474.txt-696-函数：selvpn 切换 VPN
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/5260525641922663474.txt-697-函数：delvpn 删除 VPN
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/5260525641922663474.txt-698-函数：getVPNList 获取 VPN 列表
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/5260525641922663474.txt:699:sz.so 苏泽扩展库（停止维护）
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/5260525641922663474.txt-700-使用须知及文件下载
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/5260525641922663474.txt-701-JSON 模块
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/5260525641922663474.txt-702-FTP 模块（iOS）
+--
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/5260525641922663474.txt-734-专业版 v3.1.7 及其以上版本已内置 ts.so，删除 ts.so 后重启触动会自动释放 ts.so
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/5260525641922663474.txt-735-。
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/5260525641922663474.txt-736-iOS 11 及其以上系统设备放到如下路径：usr/bin/tsplugin/，和专业版可以在「更多」→「文件管理」→「插件」中直接下载。
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/5260525641922663474.txt:737:安卓标准版 ts.so 需要放到如下路径：data/data/com.touchsprite.android/files/plugin，旗舰版路径：data/data/com.touchspriteent.android/files/plugin，普通版可以在「我的账号」 →「文件管理」 →「插件」中直接下载。
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/5260525641922663474.txt-738-安卓设备找不到该目录时需要使用第三方文件管理器，推荐
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/5260525641922663474.txt-739-RE文件管理器
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/5260525641922663474.txt-740-Android 真机与模拟器 ts.so 文件不同，需要按照设备类型进行下载。
+--
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/7477562212139175559.txt-696-函数：selvpn 切换 VPN
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/7477562212139175559.txt-697-函数：delvpn 删除 VPN
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/7477562212139175559.txt-698-函数：getVPNList 获取 VPN 列表
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/7477562212139175559.txt:699:sz.so 苏泽扩展库（停止维护）
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/7477562212139175559.txt-700-使用须知及文件下载
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/7477562212139175559.txt-701-JSON 模块
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/7477562212139175559.txt-702-FTP 模块（iOS）
+--
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/8571129237287551730.txt-696-函数：selvpn 切换 VPN
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/8571129237287551730.txt-697-函数：delvpn 删除 VPN
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/8571129237287551730.txt-698-函数：getVPNList 获取 VPN 列表
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/8571129237287551730.txt:699:sz.so 苏泽扩展库（停止维护）
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/8571129237287551730.txt-700-使用须知及文件下载
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/8571129237287551730.txt-701-JSON 模块
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/8571129237287551730.txt-702-FTP 模块（iOS）
+--
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/1408855699837268865.txt-696-函数：selvpn 切换 VPN
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/1408855699837268865.txt-697-函数：delvpn 删除 VPN
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/1408855699837268865.txt-698-函数：getVPNList 获取 VPN 列表
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/1408855699837268865.txt:699:sz.so 苏泽扩展库（停止维护）
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/1408855699837268865.txt-700-使用须知及文件下载
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/1408855699837268865.txt-701-JSON 模块
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/1408855699837268865.txt-702-FTP 模块（iOS）
+--
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/6566644544319844937.txt-696-函数：selvpn 切换 VPN
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/6566644544319844937.txt-697-函数：delvpn 删除 VPN
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/6566644544319844937.txt-698-函数：getVPNList 获取 VPN 列表
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/6566644544319844937.txt:699:sz.so 苏泽扩展库（停止维护）
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/6566644544319844937.txt-700-使用须知及文件下载
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/6566644544319844937.txt-701-JSON 模块
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/6566644544319844937.txt-702-FTP 模块（iOS）
+--
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/2050351751589893900.txt-696-函数：selvpn 切换 VPN
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/2050351751589893900.txt-697-函数：delvpn 删除 VPN
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/2050351751589893900.txt-698-函数：getVPNList 获取 VPN 列表
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/2050351751589893900.txt:699:sz.so 苏泽扩展库（停止维护）
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/2050351751589893900.txt-700-使用须知及文件下载
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/2050351751589893900.txt-701-JSON 模块
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/2050351751589893900.txt-702-FTP 模块（iOS）
+--
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/1609354889930540998.txt-696-函数：selvpn 切换 VPN
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/1609354889930540998.txt-697-函数：delvpn 删除 VPN
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/1609354889930540998.txt-698-函数：getVPNList 获取 VPN 列表
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/1609354889930540998.txt:699:sz.so 苏泽扩展库（停止维护）
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/1609354889930540998.txt-700-使用须知及文件下载
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/1609354889930540998.txt-701-JSON 模块
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/1609354889930540998.txt-702-FTP 模块（iOS）
+--
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/7803674985068353398.txt-696-函数：selvpn 切换 VPN
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/7803674985068353398.txt-697-函数：delvpn 删除 VPN
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/7803674985068353398.txt-698-函数：getVPNList 获取 VPN 列表
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/7803674985068353398.txt:699:sz.so 苏泽扩展库（停止维护）
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/7803674985068353398.txt-700-使用须知及文件下载
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/7803674985068353398.txt-701-JSON 模块
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/7803674985068353398.txt-702-FTP 模块（iOS）
+--
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/331750870547154305.txt-696-函数：selvpn 切换 VPN
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/331750870547154305.txt-697-函数：delvpn 删除 VPN
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/331750870547154305.txt-698-函数：getVPNList 获取 VPN 列表
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/331750870547154305.txt:699:sz.so 苏泽扩展库（停止维护）
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/331750870547154305.txt-700-使用须知及文件下载
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/331750870547154305.txt-701-JSON 模块
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/331750870547154305.txt-702-FTP 模块（iOS）
+--
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/7594626396834484545.txt-696-函数：selvpn 切换 VPN
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/7594626396834484545.txt-697-函数：delvpn 删除 VPN
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/7594626396834484545.txt-698-函数：getVPNList 获取 VPN 列表
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/7594626396834484545.txt:699:sz.so 苏泽扩展库（停止维护）
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/7594626396834484545.txt-700-使用须知及文件下载
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/7594626396834484545.txt-701-JSON 模块
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/7594626396834484545.txt-702-FTP 模块（iOS）
+--
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/9134586327127745716.txt-696-函数：selvpn 切换 VPN
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/9134586327127745716.txt-697-函数：delvpn 删除 VPN
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/9134586327127745716.txt-698-函数：getVPNList 获取 VPN 列表
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/9134586327127745716.txt:699:sz.so 苏泽扩展库（停止维护）
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/9134586327127745716.txt-700-使用须知及文件下载
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/9134586327127745716.txt-701-JSON 模块
+ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/text/9134586327127745716.txt-702-FTP 模块（iOS）

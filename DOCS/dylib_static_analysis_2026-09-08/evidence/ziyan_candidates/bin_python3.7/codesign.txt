@@ -1,0 +1,18 @@
+Executable=/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/bin/python3.7
+Identifier=python3-5555494449c25fb1c23235d3b454f78e8d980d3d
+Format=Mach-O thin (arm64)
+CodeDirectory v=20400 size=617 flags=0x2(adhoc) hashes=13+2 location=embedded
+Hash type=sha256 size=32
+CandidateCDHash sha256=990fe3883b3b504190bd886c9b828bf4a2067f2e
+CandidateCDHashFull sha256=990fe3883b3b504190bd886c9b828bf4a2067f2ee1b50fe351ce19f62ce45ec7
+Hash choices=sha256
+CMSDigest=990fe3883b3b504190bd886c9b828bf4a2067f2ee1b50fe351ce19f62ce45ec7
+CMSDigestType=2
+Launch Constraints:
+	None
+CDHash=990fe3883b3b504190bd886c9b828bf4a2067f2e
+Signature=adhoc
+Info.plist=not bound
+TeamIdentifier=not set
+Sealed Resources=none
+Internal requirements count=0 size=12

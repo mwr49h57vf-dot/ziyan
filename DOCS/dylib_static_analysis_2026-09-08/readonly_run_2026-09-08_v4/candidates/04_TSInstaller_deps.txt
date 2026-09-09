@@ -1,0 +1,7 @@
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSInstaller:
+	/System/Library/Frameworks/UIKit.framework/UIKit (compatibility version 1.0.0, current version 6092.1.111)
+	/System/Library/PrivateFrameworks/MobileInstallation.framework/MobileInstallation (compatibility version 1.0.0, current version 1.0.0)
+	/System/Library/Frameworks/Foundation.framework/Foundation (compatibility version 300.0.0, current version 1946.102.0)
+	/usr/lib/libobjc.A.dylib (compatibility version 1.0.0, current version 228.0.0)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1319.0.0)
+	/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (compatibility version 150.0.0, current version 1946.102.0)

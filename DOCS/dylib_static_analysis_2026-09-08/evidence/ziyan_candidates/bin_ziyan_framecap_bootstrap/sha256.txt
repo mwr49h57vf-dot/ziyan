@@ -1,0 +1,1 @@
+66930923318761841e82eeec7eaafe2c5e92cadc11dec243e932acc35a5afa29  /Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/bin/ziyan_framecap_bootstrap

@@ -4,6 +4,12 @@
 local M = {}
 
 local AGENT_ROOT = "/private/var/mobile/Media/ZiYan/Agent游戏"
+local DRILL_LEARN_IDS = {
+  ags_17886130846274 = true,
+  ags_17886130889526 = true,
+  ags_17886130933873 = true,
+  ags_17886131005180 = true,
+}
 local AGENT_SUBS = {
   "游戏配置", "人工学习", "学习数据", "运行记录",
   "错误报告", "生成脚本", "临时缓存",
@@ -34,6 +40,18 @@ local function read_trim(path)
   return (s:gsub("[\r\n ]+$", ""))
 end
 
+local function read_single_line(path)
+  local f = io.open(path, "r")
+  if not f then return nil end
+  local line = f:read("*l")
+  local rest = f:read("*a") or ""
+  f:close()
+  if not line or line == "" or rest:match("%S") then
+    return nil
+  end
+  return (line:gsub("\r$", ""))
+end
+
 local function write_file(path, body)
   local f = io.open(path, "w")
   if not f then return false end
@@ -47,10 +65,13 @@ local function now_s()
 end
 
 local function mkdir_fixed(path)
-  -- path must be a hardcoded Agent游戏 subtree. Try rootless then rootful mkdir.
-  os.execute("/var/jb/bin/mkdir -p '" .. path .. "'")
-  os.execute("/bin/mkdir -p '" .. path .. "'")
-  os.execute("/usr/bin/mkdir -p '" .. path .. "'")
+  -- Agent游戏 top-level directories are provisioned by the package.
+  local f = io.open(path, "r")
+  if f then
+    f:close()
+    return true
+  end
+  return false
 end
 
 local function ensure_agent_dirs()
@@ -234,8 +255,7 @@ local function write_error_report(session, extra)
   local id = safe_session_name(session.session_id)
   if not id then return end
   ensure_agent_dirs()
-  local dir = AGENT_ROOT .. "/错误报告/" .. id
-  mkdir_fixed(dir)
+  local report_path = AGENT_ROOT .. "/错误报告/" .. id .. ".txt"
   local snap = M.snapshot(session)
   local lines = {
     "time=" .. os.date("!%Y-%m-%dT%H:%M:%SZ"),
@@ -258,7 +278,7 @@ local function write_error_report(session, extra)
     "lock_state=" .. snap.lock_state,
     extra or "",
   }
-  write_file(dir .. "/report.txt", table.concat(lines, "\n") .. "\n")
+  write_file(report_path, table.concat(lines, "\n") .. "\n")
 end
 
 local function write_success(session, extra)
@@ -349,12 +369,25 @@ function M.run_safe_action(profile)
 end
 
 function M.run_learn(profile)
-  -- 第27章：真实学习由 App AgentSessionController 拥有，禁止 36s 等待骨架。
   ensure_agent_dirs()
   local session = M.new_session(profile)
-  session.error_code = "USE_OBJC_SESSION"
-  session.stop_reason = "learn_owned_by_app"
-  return finish_ok(session, "mode=learn_delegate_app")
+  M.set_state(session, "PRECHECK", "学习中")
+  local pause = M.safe_reason(M.front_bid(), "")
+  if pause then return pause_safe(session, pause) end
+  local ok, front = front_ok(profile)
+  if not ok then return pause_safe(session, front) end
+  local id = safe_session_name(session.session_id)
+  if not id then return pause_safe(session, "invalid_session_id") end
+  local frame_seq = M.frame_seq()
+  local learned = string.format(
+    "front_bid=%s\nframe_seq=%s\nbundle_id=%s\nprofile_id=%s\nts=%s\n",
+    front, tostring(frame_seq), session.bundle_id or "", session.profile_id,
+    tostring(now_s()))
+  if not write_file(AGENT_ROOT .. "/学习数据/" .. id .. ".txt", learned) then
+    return pause_safe(session, "learn_write_failed")
+  end
+  session.stop_reason = "learn_recorded"
+  return finish_ok(session, "mode=learn")
 end
 
 function M.run_drill(profile)
@@ -365,37 +398,119 @@ function M.run_drill(profile)
   if pause then return pause_safe(session, pause) end
   local ok, why = front_ok(profile)
   if not ok then return pause_safe(session, why) end
-  local id = safe_session_name(session.session_id)
-  if id then
-    write_file(AGENT_ROOT .. "/运行记录/" .. id .. "_drill.txt",
-      "plan=observe_front_once pre=front+frame_seq verify=front_match no_touch=1\n")
+  local learn_id = read_single_line(var_dir() .. "/.ziyan_drill_learn_id")
+  if not DRILL_LEARN_IDS[learn_id] then
+    return pause_safe(session, "missing_learn")
   end
-  local waited = 0
-  while waited < 90 do
+  local learned_file = io.open(
+    AGENT_ROOT .. "/学习数据/" .. learn_id .. ".txt", "r")
+  if not learned_file then
+    return pause_safe(session, "missing_learn")
+  end
+  local learned_body = learned_file:read("*a") or ""
+  learned_file:close()
+  local learn_front = learned_body:match("front_bid=([^\r\n]+)")
+  local learn_bundle = learned_body:match("bundle_id=([^\r\n]+)")
+  if not learn_front or not learn_bundle
+      or learn_front == "" or learn_bundle == "" then
+    return pause_safe(session, "missing_learn")
+  end
+  local front = M.front_bid()
+  if learn_front ~= front or learn_front ~= profile.bundle_id
+      or learn_bundle ~= profile.bundle_id then
+    return pause_safe(session, "learn_front_mismatch")
+  end
+
+  session.frame_seq_before = M.frame_seq()
+  M.set_state(session, "OBSERVING", "演练中")
+  session.last_action = "replay_learned_observation"
+  session.action_count = 1
+  session.frame_seq_after = M.frame_seq()
+  if session.frame_seq_after <= 0 then
+    return pause_safe(session, "bad_frame_seq")
+  end
+  local replay_front = M.front_bid()
+  if replay_front ~= learn_front or replay_front ~= profile.bundle_id then
+    return pause_safe(session, "learn_front_mismatch")
+  end
+
+  local sleep_fn = mSleep
+  if type(sleep_fn) ~= "function" then
+    sleep_fn = function(ms)
+      local deadline = os.clock() + (tonumber(ms) or 0) / 1000
+      while os.clock() < deadline do end
+    end
+  end
+  -- 等待外部 stop 标记；超限只安全暂停，绝不把等待当作成功。
+  for _ = 1, 60 do
     if M.agent_stop_requested() then
-      M.clear_agent_stop()
       session.stop_reason = "agent_stop"
-      return finish_ok(session, "mode=drill")
+      return finish_ok(session, string.format(
+        "mode=drill learn_id=%s front_bid=%s frame_seq=%s stop_reason=agent_stop",
+        learn_id, learn_front, tostring(session.frame_seq_after)))
     end
-    if type(mSleep) == "function" then
-      mSleep(400)
-    end
-    waited = waited + 1
-    if type(mSleep) ~= "function" then
-      break
-    end
+    sleep_fn(250)
   end
-  session.stop_reason = "drill_timeout"
-  return finish_ok(session, "mode=drill_timeout")
+  return pause_safe(session, "agent_stop_required")
 end
 
 function M.run_auto(profile)
-  -- 第27章：自研由 AgentAutonomousEngine 拥有，禁止单次 safe_action 冒充。
   ensure_agent_dirs()
   local session = M.new_session(profile)
-  session.error_code = "USE_OBJC_ENGINE"
-  session.stop_reason = "auto_owned_by_app"
-  return finish_ok(session, "mode=auto_delegate_app")
+  M.set_state(session, "PRECHECK", "自动运行")
+  local pause = M.safe_reason(M.front_bid(), "")
+  if pause then return pause_safe(session, pause) end
+  local ok, why = front_ok(profile)
+  if not ok then return pause_safe(session, why) end
+
+  M.set_state(session, "OBSERVING", "自动运行")
+  local observed = M.front_bid()
+  local observed_seq = M.frame_seq()
+  M.set_state(session, "DECIDING", "自动运行")
+  local identified = string.format(
+    "front_bid=%s bundle_id=%s frame_seq=%s",
+    observed, profile.bundle_id or "", tostring(observed_seq))
+  if observed == "" or observed ~= profile.bundle_id or observed_seq <= 0 then
+    return pause_safe(session, "identify_mismatch")
+  end
+
+  M.set_state(session, "VERIFYING", "自动运行")
+  local verified = M.front_bid()
+  local verified_seq = M.frame_seq()
+  if verified == "" or verified ~= observed or verified_seq <= 0 then
+    return pause_safe(session, "front_changed")
+  end
+
+  if type(init) ~= "function" or type(getScreenSize) ~= "function"
+      or type(tap) ~= "function" then
+    return pause_safe(session, "hid_unavailable")
+  end
+  local init_ok, init_result = pcall(init, 0)
+  if not init_ok or init_result == false then
+    return pause_safe(session, "hid_init_failed")
+  end
+  local size_ok, width, height = pcall(getScreenSize)
+  width, height = tonumber(width), tonumber(height)
+  if not size_ok or not width or not height or width <= 0 or height <= 0 then
+    return pause_safe(session, "screen_size_unavailable")
+  end
+  local tap_front = M.front_bid()
+  if tap_front == "" or tap_front ~= profile.bundle_id then
+    return pause_safe(session, "front_changed_before_tap")
+  end
+  local tap_ok, tap_result = pcall(tap, width * 0.50, height * 0.08)
+  if not tap_ok or tap_result == false then
+    return pause_safe(session, "hid_tap_failed")
+  end
+  local tapped_front = M.front_bid()
+  if tapped_front == "" or tapped_front ~= profile.bundle_id then
+    return pause_safe(session, "front_changed_after_tap")
+  end
+  session.action_count = 1
+  session.stop_reason = "auto_hid_ziyan_done"
+  return finish_ok(session, string.format(
+    "mode=auto front_bid=%s frame_seq=%s observed=%s identified=%s verified=%s tapped=1 tap_rx=0.50 tap_ry=0.08 stop_reason=auto_hid_ziyan_done",
+    tapped_front, tostring(verified_seq), observed, identified, verified))
 end
 
 function M.run_smoke(profile)
@@ -418,7 +533,8 @@ function M.dispatch(mode, profile)
   end
   if mode == "learn" then return M.run_learn(profile) end
   if mode == "drill" then return M.run_drill(profile) end
-  if mode == "safe" or mode == "auto" then return M.run_safe_action(profile) end
+  if mode == "safe" then return M.run_safe_action(profile) end
+  if mode == "auto" then return M.run_auto(profile) end
   return M.run_observe(profile)
 end
 

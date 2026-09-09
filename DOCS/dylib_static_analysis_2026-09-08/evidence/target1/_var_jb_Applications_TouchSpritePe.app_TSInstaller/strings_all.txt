@@ -1,0 +1,3 @@
+fail
+mobile install
+mobile install %d

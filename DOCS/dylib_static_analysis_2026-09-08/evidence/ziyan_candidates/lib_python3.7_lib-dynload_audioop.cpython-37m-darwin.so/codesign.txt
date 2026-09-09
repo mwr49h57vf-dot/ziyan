@@ -1,0 +1,20 @@
+Executable=/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/python3.7/lib-dynload/audioop.cpython-37m-darwin.so
+Identifier=audioop.cpython-37m-darwin.so
+Format=Mach-O thin (arm64)
+CodeDirectory v=20200 size=734 flags=0x0(none) hashes=18+2 location=embedded
+Hash type=sha256 size=32
+CandidateCDHash sha1=0da6a345b614770fc650439a8f4e005aebe23718
+CandidateCDHashFull sha1=0da6a345b614770fc650439a8f4e005aebe23718
+CandidateCDHash sha256=4dc5dca5022cfc6af9f77455d4f8f1f03a7460f0
+CandidateCDHashFull sha256=4dc5dca5022cfc6af9f77455d4f8f1f03a7460f055aafec5112598bd706e7af1
+Hash choices=sha1,sha256
+CMSDigest=b0632b95a8073546db01979ac9fedb22e0781e250d012e60098ab35ca657ae37
+CMSDigestType=2
+Launch Constraints:
+	None
+CDHash=4dc5dca5022cfc6af9f77455d4f8f1f03a7460f0
+/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/python3.7/lib-dynload/audioop.cpython-37m-darwin.so: no signature
+Info.plist=not bound
+TeamIdentifier=not set
+Sealed Resources=none
+Internal requirements count=0 size=12

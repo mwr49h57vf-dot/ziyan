@@ -1,0 +1,283 @@
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/unzip:
+Load command 0
+      cmd LC_SEGMENT
+  cmdsize 56
+  segname __PAGEZERO
+   vmaddr 0x00000000
+   vmsize 0x00001000
+  fileoff 0
+ filesize 0
+  maxprot 0x00000000
+ initprot 0x00000000
+   nsects 0
+    flags 0x4
+Load command 1
+      cmd LC_SEGMENT
+  cmdsize 396
+  segname __TEXT
+   vmaddr 0x00001000
+   vmsize 0x00025000
+  fileoff 0
+ filesize 151552
+  maxprot 0x00000007
+ initprot 0x00000005
+   nsects 5
+    flags 0x0
+Section
+  sectname __text
+   segname __TEXT
+      addr 0x00001aa0
+      size 0x0001f3d4
+    offset 2720
+     align 2^4 (16)
+    reloff 0
+    nreloc 0
+     flags 0x80000400
+ reserved1 0
+ reserved2 0
+Section
+  sectname __cstring
+   segname __TEXT
+      addr 0x00020e74
+      size 0x00004744
+    offset 130676
+     align 2^2 (4)
+    reloff 0
+    nreloc 0
+     flags 0x00000002
+ reserved1 0
+ reserved2 0
+Section
+  sectname __symbol_stub4
+   segname __TEXT
+      addr 0x000255b8
+      size 0x00000024
+    offset 148920
+     align 2^2 (4)
+    reloff 0
+    nreloc 0
+     flags 0x00000008
+ reserved1 0 (index into indirect symbol table)
+ reserved2 12 (size of stubs)
+Section
+  sectname __const
+   segname __TEXT
+      addr 0x000255dc
+      size 0x0000068e
+    offset 148956
+     align 2^2 (4)
+    reloff 0
+    nreloc 0
+     flags 0x00000000
+ reserved1 0
+ reserved2 0
+Section
+  sectname __picsymbolstub4
+   segname __TEXT
+      addr 0x00025c6c
+      size 0x00000390
+    offset 150636
+     align 2^2 (4)
+    reloff 0
+    nreloc 0
+     flags 0x00000408
+ reserved1 3 (index into indirect symbol table)
+ reserved2 16 (size of stubs)
+Load command 2
+      cmd LC_SEGMENT
+  cmdsize 532
+  segname __DATA
+   vmaddr 0x00026000
+   vmsize 0x00012000
+  fileoff 151552
+ filesize 4096
+  maxprot 0x00000007
+ initprot 0x00000003
+   nsects 7
+    flags 0x0
+Section
+  sectname __data
+   segname __DATA
+      addr 0x00026000
+      size 0x00000018
+    offset 151552
+     align 2^2 (4)
+    reloff 0
+    nreloc 0
+     flags 0x00000000
+ reserved1 0
+ reserved2 0
+Section
+  sectname __dyld
+   segname __DATA
+      addr 0x00026018
+      size 0x00000008
+    offset 151576
+     align 2^2 (4)
+    reloff 0
+    nreloc 0
+     flags 0x00000000
+ reserved1 0
+ reserved2 0
+Section
+  sectname __la_symbol_ptr
+   segname __DATA
+      addr 0x00026020
+      size 0x000000ec
+    offset 151584
+     align 2^2 (4)
+    reloff 0
+    nreloc 0
+     flags 0x00000007
+ reserved1 60 (index into indirect symbol table)
+ reserved2 0
+Section
+  sectname __nl_symbol_ptr
+   segname __DATA
+      addr 0x0002610c
+      size 0x00000068
+    offset 151820
+     align 2^2 (4)
+    reloff 0
+    nreloc 0
+     flags 0x00000006
+ reserved1 119 (index into indirect symbol table)
+ reserved2 0
+Section
+  sectname __const
+   segname __DATA
+      addr 0x00026174
+      size 0x0000012c
+    offset 151924
+     align 2^2 (4)
+    reloff 0
+    nreloc 0
+     flags 0x00000000
+ reserved1 0
+ reserved2 0
+Section
+  sectname __bss
+   segname __DATA
+      addr 0x000262a0
+      size 0x00000008
+    offset 0
+     align 2^2 (4)
+    reloff 0
+    nreloc 0
+     flags 0x00000001
+ reserved1 0
+ reserved2 0
+Section
+  sectname __common
+   segname __DATA
+      addr 0x000262b0
+      size 0x000112d4
+    offset 0
+     align 2^4 (16)
+    reloff 0
+    nreloc 0
+     flags 0x00000001
+ reserved1 0
+ reserved2 0
+Load command 3
+      cmd LC_SEGMENT
+  cmdsize 124
+  segname __DATA__
+   vmaddr 0x00038000
+   vmsize 0x00001000
+  fileoff 0
+ filesize 0
+  maxprot 0x00000007
+ initprot 0x00000003
+   nsects 1
+    flags 0x0
+Section
+  sectname __common
+   segname __DATA__
+      addr 0x00038000
+      size 0x00000010
+    offset 0
+     align 2^2 (4)
+    reloff 0
+    nreloc 0
+     flags 0x00000001
+ reserved1 0
+ reserved2 0
+Load command 4
+      cmd LC_SEGMENT
+  cmdsize 56
+  segname __LINKEDIT
+   vmaddr 0x00039000
+   vmsize 0x00004000
+  fileoff 155648
+ filesize 15728
+  maxprot 0x00000007
+ initprot 0x00000001
+   nsects 0
+    flags 0x4
+Load command 5
+          cmd LC_LOAD_DYLINKER
+      cmdsize 28
+         name /usr/lib/dyld (offset 12)
+Load command 6
+          cmd LC_LOAD_DYLIB
+      cmdsize 52
+         name /usr/lib/libgcc_s.1.dylib (offset 24)
+   time stamp 1213336007 Fri Jun 13 13:46:47 2008
+      current version 1.0.0
+compatibility version 1.0.0
+Load command 7
+          cmd LC_LOAD_DYLIB
+      cmdsize 52
+         name /usr/lib/libSystem.B.dylib (offset 24)
+   time stamp 1211709570 Sun May 25 17:59:30 2008
+      current version 111.0.10
+compatibility version 1.0.0
+Load command 8
+     cmd LC_SYMTAB
+ cmdsize 24
+  symoff 155648
+   nsyms 557
+  stroff 163176
+ strsize 7256
+Load command 9
+            cmd LC_DYSYMTAB
+        cmdsize 80
+      ilocalsym 0
+      nlocalsym 390
+     iextdefsym 390
+     nextdefsym 101
+      iundefsym 491
+      nundefsym 66
+         tocoff 0
+           ntoc 0
+      modtaboff 0
+        nmodtab 0
+   extrefsymoff 0
+    nextrefsyms 0
+ indirectsymoff 162596
+  nindirectsyms 145
+      extreloff 0
+        nextrel 0
+      locreloff 0
+        nlocrel 0
+Load command 10
+     cmd LC_TWOLEVEL_HINTS
+ cmdsize 16
+  offset 162332
+  nhints 66
+Load command 11
+        cmd LC_UNIXTHREAD
+    cmdsize 84
+     flavor ARM_THREAD_STATE
+      count ARM_THREAD_STATE_COUNT
+	    r0  0x00000000 r1     0x00000000 r2  0x00000000 r3  0x00000000
+	    r4  0x00000000 r5     0x00000000 r6  0x00000000 r7  0x00000000
+	    r8  0x00000000 r9     0x00000000 r10 0x00000000 r11 0x00000000
+	    r12 0x00000000 sp     0x00000000 lr  0x00000000 pc  0x00001aa0
+	   cpsr 0x00000000
+Load command 12
+      cmd LC_CODE_SIGNATURE
+  cmdsize 16
+  dataoff 170432
+ datasize 944

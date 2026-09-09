@@ -1,0 +1,143 @@
+314-Load command 3
+315:          cmd LC_ID_DYLIB
+316-      cmdsize 104
+317-         name /Users/Fish/Documents/MyFiles/触动精灵/luasql.so.openapi/build/luasql.so (offset 24)
+318-   time stamp 1 Thu Jan  1 08:00:01 1970
+319-      current version 0.0.0
+320-compatibility version 0.0.0
+--
+381-Load command 11
+382:          cmd LC_LOAD_DYLIB
+383-      cmdsize 84
+384-         name /System/Library/Frameworks/Foundation.framework/Foundation (offset 24)
+385-   time stamp 2 Thu Jan  1 08:00:02 1970
+386-      current version 1452.23.0
+387-compatibility version 300.0.0
+388-Load command 12
+389:          cmd LC_LOAD_DYLIB
+390-      cmdsize 76
+391-         name /System/Library/Frameworks/UIKit.framework/UIKit (offset 24)
+392-   time stamp 2 Thu Jan  1 08:00:02 1970
+393-      current version 3698.54.4
+394-compatibility version 1.0.0
+395-Load command 13
+396:          cmd LC_LOAD_DYLIB
+397-      cmdsize 92
+398-         name /System/Library/Frameworks/CoreTelephony.framework/CoreTelephony (offset 24)
+399-   time stamp 2 Thu Jan  1 08:00:02 1970
+400-      current version 0.0.0
+401-compatibility version 1.0.0
+402-Load command 14
+403:          cmd LC_LOAD_DYLIB
+404-      cmdsize 84
+405-         name /System/Library/Frameworks/CoreImage.framework/CoreImage (offset 24)
+406-   time stamp 2 Thu Jan  1 08:00:02 1970
+407-      current version 5.0.0
+408-compatibility version 1.0.0
+409-Load command 15
+410:          cmd LC_LOAD_DYLIB
+411-      cmdsize 104
+412-         name /System/Library/Frameworks/SystemConfiguration.framework/SystemConfiguration (offset 24)
+413-   time stamp 2 Thu Jan  1 08:00:02 1970
+414-      current version 963.50.8
+415-compatibility version 1.0.0
+416-Load command 16
+417:          cmd LC_LOAD_DYLIB
+418-      cmdsize 52
+419-         name /usr/lib/libobjc.A.dylib (offset 24)
+420-   time stamp 2 Thu Jan  1 08:00:02 1970
+421-      current version 228.0.0
+422-compatibility version 1.0.0
+423-Load command 17
+424:          cmd LC_LOAD_DYLIB
+425-      cmdsize 48
+426-         name /usr/lib/libc++.1.dylib (offset 24)
+427-   time stamp 2 Thu Jan  1 08:00:02 1970
+428-      current version 400.9.1
+429-compatibility version 1.0.0
+430-Load command 18
+431:          cmd LC_LOAD_DYLIB
+432-      cmdsize 52
+433-         name /usr/lib/libSystem.B.dylib (offset 24)
+434-   time stamp 2 Thu Jan  1 08:00:02 1970
+435-      current version 1252.50.4
+436-compatibility version 1.0.0
+437-Load command 19
+438:          cmd LC_LOAD_DYLIB
+439-      cmdsize 92
+440-         name /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (offset 24)
+441-   time stamp 2 Thu Jan  1 08:00:02 1970
+442-      current version 1452.23.0
+443-compatibility version 150.0.0
+--
+784-Load command 3
+785:          cmd LC_ID_DYLIB
+786-      cmdsize 104
+787-         name /Users/Fish/Documents/MyFiles/触动精灵/luasql.so.openapi/build/luasql.so (offset 24)
+788-   time stamp 1 Thu Jan  1 08:00:01 1970
+789-      current version 0.0.0
+790-compatibility version 0.0.0
+--
+852-Load command 11
+853:          cmd LC_LOAD_DYLIB
+854-      cmdsize 88
+855-         name /System/Library/Frameworks/Foundation.framework/Foundation (offset 24)
+856-   time stamp 2 Thu Jan  1 08:00:02 1970
+857-      current version 1452.23.0
+858-compatibility version 300.0.0
+859-Load command 12
+860:          cmd LC_LOAD_DYLIB
+861-      cmdsize 80
+862-         name /System/Library/Frameworks/UIKit.framework/UIKit (offset 24)
+863-   time stamp 2 Thu Jan  1 08:00:02 1970
+864-      current version 3698.54.4
+865-compatibility version 1.0.0
+866-Load command 13
+867:          cmd LC_LOAD_DYLIB
+868-      cmdsize 96
+869-         name /System/Library/Frameworks/CoreTelephony.framework/CoreTelephony (offset 24)
+870-   time stamp 2 Thu Jan  1 08:00:02 1970
+871-      current version 0.0.0
+872-compatibility version 1.0.0
+873-Load command 14
+874:          cmd LC_LOAD_DYLIB
+875-      cmdsize 88
+876-         name /System/Library/Frameworks/CoreImage.framework/CoreImage (offset 24)
+877-   time stamp 2 Thu Jan  1 08:00:02 1970
+878-      current version 5.0.0
+879-compatibility version 1.0.0
+880-Load command 15
+881:          cmd LC_LOAD_DYLIB
+882-      cmdsize 104
+883-         name /System/Library/Frameworks/SystemConfiguration.framework/SystemConfiguration (offset 24)
+884-   time stamp 2 Thu Jan  1 08:00:02 1970
+885-      current version 963.50.8
+886-compatibility version 1.0.0
+887-Load command 16
+888:          cmd LC_LOAD_DYLIB
+889-      cmdsize 56
+890-         name /usr/lib/libobjc.A.dylib (offset 24)
+891-   time stamp 2 Thu Jan  1 08:00:02 1970
+892-      current version 228.0.0
+893-compatibility version 1.0.0
+894-Load command 17
+895:          cmd LC_LOAD_DYLIB
+896-      cmdsize 48
+897-         name /usr/lib/libc++.1.dylib (offset 24)
+898-   time stamp 2 Thu Jan  1 08:00:02 1970
+899-      current version 400.9.1
+900-compatibility version 1.0.0
+901-Load command 18
+902:          cmd LC_LOAD_DYLIB
+903-      cmdsize 56
+904-         name /usr/lib/libSystem.B.dylib (offset 24)
+905-   time stamp 2 Thu Jan  1 08:00:02 1970
+906-      current version 1252.50.4
+907-compatibility version 1.0.0
+908-Load command 19
+909:          cmd LC_LOAD_DYLIB
+910-      cmdsize 96
+911-         name /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (offset 24)
+912-   time stamp 2 Thu Jan  1 08:00:02 1970
+913-      current version 1452.23.0
+914-compatibility version 150.0.0

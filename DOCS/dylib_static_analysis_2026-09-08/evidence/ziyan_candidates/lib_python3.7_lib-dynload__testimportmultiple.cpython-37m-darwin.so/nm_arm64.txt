@@ -1,0 +1,3 @@
+0000000000007ec4 T _PyInit__testimportmultiple
+0000000000007ee4 T _PyInit__testimportmultiple_bar
+0000000000007ed4 T _PyInit__testimportmultiple_foo

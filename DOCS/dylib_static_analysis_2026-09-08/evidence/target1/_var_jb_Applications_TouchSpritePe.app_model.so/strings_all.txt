@@ -1,0 +1,194 @@
+^h! 
+=5@-
+ii8J
+<KQ@
+TAI@
+T   
++ih8J
+<lQ@
+TaI@
+(:__
+[parseOutput]Invalid observation
+[parseOutput]No feature value in observation
+[parseOutput]Feature value type: %ld
+[parseOutput]Feature value is not MultiArray type. Type: %ld
+[parseOutput]Failed to get multiArrayValue
+[parseOutput]Warning: Expected Float32 data type, got %ld
+[parseOutput]Unexpected shape dimensions: %lu, expected 3
+[parseOutput]Shape array: %@
+[parseOutput]Parsing shape: %d x %d x %d
+[parseOutput]Warning: Expected 23 features per prediction, got %d
+[parseOutput]Number of classes: %d
+[parseOutput]Warning: Provided %lu class names, but model has %d classes
+[parseOutput]Failed to get data pointer
+[parseOutput]Invalid strides array
+[parseOutput]Strides: [%lu, %lu, %lu]
+[parseOutput]numPredictions: %d
+class_%d
+[parseOutput]Initial detections: %lu
+[parseOutput]No objects detected
+allocator<T>::allocate(size_t n) 'n' exceeds maximum supported size
+[objectDetect]>detect release
+[objectDetect]>detect strong = nil
+[objectDetect]>detect clearResult
+[objectDetect]>detect release ok
+[objectDetect]>request detect: remove all objects
+[objectDetect]>request detect: remove all objects ok and is nil
+[objectDetect]>request detect: clear results ok
+mlmodelc
+[objectDetect]>load mlmodelc path: %@
+mlmodel
+mlpackage
+%@.compiled
+%@/%@
+[objectDetect]>targetPath: %@ %d
+[objectDetect]>load compile model failure: %@ %@
+[objectDetect]>save success: %@
+[objectDetect]>save failure: %@
+[objectDetect]>load mlmodelc path after comp: %@
+[objectDetect]>load path error: %@
+[objectDetect]>load model fail: %@
+[objectDetect]>model: %@
+[objectDetect]>input: %@
+[objectDetect]>output: %@
+[objectDetect]>create VNCoreMLModel fail: %@
+[objectDetect]>create coreml request..
+v24@?0@"VNRequest"8@"NSError"16
+[objectDetect]>load model success
+[objectDetect]>load classes file error: %@
+[objectDetect]>load classes count: %lu
+[objectDetect]>detect start...
+[objectDetect]>create ciimage...
+[objectDetect]> init some resources
+[objectDetect]>new handler
+[objectDetect]> performRequest: %@
+[objectDetect]>request detect: %@
+classify
+confidence
+[objectDetect]>request detect: release
+[objectDetect]>request detect: return array
+[objectDetect]>detect error: %@
+[objectDetect]>detect error: no object
+_availability_version_check
+kCFAllocatorNull
+CFDataCreateWithBytesNoCopy
+CFPropertyListCreateWithData
+CFPropertyListCreateFromXMLData
+CFStringCreateWithCStringNoCopy
+CFDictionaryGetValue
+CFGetTypeID
+CFStringGetTypeID
+CFStringGetCString
+CFRelease
+/System/Library/CoreServices/SystemVersion.plist
+ProductVersion
+%d.%d.%d
+CoreMLDetectResult
+CoreMLDetect
+strides
+numberWithFloat:
+removeAllObjects
+class
+stringByDeletingPathExtension
+writeToFile:atomically:encoding:error:
+identifier
+intValue
+dataPointer
+initWithImage:
+isKindOfClass:
+type
+path
+modelForMLModel:error:
+objectAtIndex:
+arrayWithObjects:count:
+stringByTrimmingCharactersInSet:
+length
+performRequests:error:
+setImageCropAndScaleOption:
+featureValue
+componentsSeparatedByString:
+initWithCIImage:options:
+whitespaceAndNewlineCharacterSet
+stringByDeletingLastPathComponent
+countByEnumeratingWithState:objects:count:
+stringByReplacingOccurrencesOfString:withString:
+defaultManager
+multiArrayValue
+modelDescription
+array
+addObject:
+outputDescriptionsByName
+stringWithFormat:
+count
+objectAtIndexedSubscript:
+firstObject
+initWithModel:completionHandler:
+localizedDescription
+pathExtension
+unsignedIntegerValue
+fileExistsAtPath:
+dataType
+stringWithContentsOfFile:encoding:error:
+labels
+size
+lastPathComponent
+setObject:forKey:
+modelWithContentsOfURL:error:
+cancel
+numberWithInt:
+compileModelAtURL:error:
+results
+inputDescriptionsByName
+fileURLWithPath:
+shape
+isEqualToString:
+classify
+setClassify:
+confidence
+setConfidence:
+boundingBox
+setBoundingBox:
+_classify
+_confidence
+_boundingBox
+T@"NSString",&,N,V_classify
+Td,N,V_confidence
+T{CGRect={CGPoint=dd}{CGSize=dd}},N,V_boundingBox
+init
+dealloc
+clearResult
+loadModel:
+setClasses:
+detect:
+handleDetectionResults:error:
+detectImage
+setDetectImage:
+coreMLModel
+setCoreMLModel:
+coreMLRequest
+setCoreMLRequest:
+detectResults
+setDetectResults:
+classNames
+setClassNames:
+T@"UIImage",&,N,VdetectImage
+T@"NSMutableArray",&,N,VdetectResults
+T@"VNCoreMLModel",&,N,VcoreMLModel
+T@"VNCoreMLRequest",&,N,VcoreMLRequest
+T@"NSArray",&,N,VclassNames
+@16@0:8
+v24@0:8@16
+d16@0:8
+v24@0:8d16
+{CGRect={CGPoint=dd}{CGSize=dd}}16@0:8
+v48@0:8{CGRect={CGPoint=dd}{CGSize=dd}}16
+@"NSString"
+{CGRect="origin"{CGPoint="x"d"y"d}"size"{CGSize="width"d"height"d}}
+v16@0:8
+@24@0:8@16
+v32@0:8@16@24
+@"UIImage"
+@"VNCoreMLModel"
+@"VNCoreMLRequest"
+@"NSMutableArray"
+@"NSArray"

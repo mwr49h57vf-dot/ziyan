@@ -1,0 +1,68 @@
+<8q,
+/private/var/mobile/Media/%@/config/restartbk.txt
+/var/jb/usr/bin/killall -9 TSTransfer
+/var/jb/usr/bin/killall -9 backboardd
+usage: exit hades daemon!
+TouchSpritePe
+/private/var/mobile/Media/%@/log/err.log
+yyyy-MM-dd HH:mm:ss
+[%@]
+%@%@
+pe.touchsprite.daemon
+/private/var/mobile/Media/%@/config/run.cfg
+runnow
+system: return: ret: %d
+StAN
+Madfc
+Cnera
+BA78
+SoBX
+SSSH
+SI99
+Nooon
+FFFF
+Goad
+SNY8
+v32@?0@8Q16^B24
+rm %@/%@*
+/var/jb/Applications/%@.app
+%@%x
+%@/%@
+%@ 1 %@ %@
+/var/jb/Applications/%@.app/TSLn
+/var/jb/Applications/%@.app/TSDaemon
+/private/var/mobile/Media/%@/config/bc.cfg
+%@ 9 %@ -run %@ -now -server %@ &
+%@ 2 %@
+v8@?0
+,g-N
+stringFromDate:
+systemVersion
+closeFile
+init
+currentDevice
+enumerateObjectsUsingBlock:
+fileExistsAtPath:
+hasPrefix:
+floatValue
+isEqualToString:
+setDateFormat:
+lastObject
+array
+createFileAtPath:contents:attributes:
+defaultManager
+stringWithFormat:
+count
+addObject:
+stringWithUTF8String:
+writeData:
+date
+seekToEndOfFile
+componentsSeparatedByString:
+dataUsingEncoding:
+UTF8String
+intValue
+stringWithContentsOfFile:encoding:error:
+truncateFileAtOffset:
+fileHandleForWritingAtPath:
+objectAtIndex:

@@ -1,0 +1,27 @@
+19849:/usr/lib/ziyan
+19850:rootless
+19853:rootful
+19854:/var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua
+19855:/usr/lib/ziyan/lib/lua/ziyan_run.lua
+20233:.ziyan_lua_embedded
+20344:.ziyan_lua_hung
+20359:.ziyan_lua_run.pid
+20432:lua_embed
+20457:luaL_newstate fail
+20619:/var/jb/usr/lib/ziyan/bin/ziyan_framecap
+20837:/usr/lib/ziyan/bin/ziyan_framecap
+21014:/usr/lib/ziyan/var/%s
+21015:/var/jb/usr/lib/ziyan/var/%s
+21054:/var/jb/usr/lib/ziyan/models/findcolor_int8.param
+21055:/usr/lib/ziyan/models/findcolor_int8.param
+21057:/usr/lib/ziyan/var/.ziyan_ncnn_bridge_lock
+21058:/var/jb/usr/lib/ziyan/var/.ziyan_ncnn_bridge_lock
+21067:/usr/lib/ziyan/var/.ziyan_ncnn_off
+21068:/var/jb/usr/lib/ziyan/var/.ziyan_ncnn_off
+21207:lua_debug> 
+21359:LUA_PATH
+21362:LUA_CPATH
+21382:LUA_NOENV
+21389:invalid option '%%%c' to 'lua_pushfstring'
+21583:lua_Integer
+21584:lua_Number

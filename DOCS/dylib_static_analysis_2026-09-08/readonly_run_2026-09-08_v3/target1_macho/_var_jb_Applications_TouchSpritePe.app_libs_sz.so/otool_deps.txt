@@ -1,0 +1,18 @@
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/sz.so (architecture armv7):
+	/usr/lib/libMobileGestalt.dylib (compatibility version 1.0.0, current version 1.0.0)
+	/usr/lib/libsqlite3.dylib (compatibility version 9.0.0, current version 274.8.1)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1252.50.4, weak)
+	/usr/lib/libiconv.2.dylib (compatibility version 7.0.0, current version 7.0.0)
+	/System/Library/Frameworks/Foundation.framework/Foundation (compatibility version 300.0.0, current version 1452.23.0)
+	/usr/lib/libc++.1.dylib (compatibility version 1.0.0, current version 400.9.1)
+	/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (compatibility version 150.0.0, current version 1452.23.0)
+	/usr/lib/libobjc.A.dylib (compatibility version 1.0.0, current version 228.0.0)
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/sz.so (architecture arm64):
+	/usr/lib/libMobileGestalt.dylib (compatibility version 1.0.0, current version 1.0.0)
+	/usr/lib/libsqlite3.dylib (compatibility version 9.0.0, current version 274.8.1)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1252.50.4, weak)
+	/usr/lib/libiconv.2.dylib (compatibility version 7.0.0, current version 7.0.0)
+	/System/Library/Frameworks/Foundation.framework/Foundation (compatibility version 300.0.0, current version 1452.23.0)
+	/usr/lib/libc++.1.dylib (compatibility version 1.0.0, current version 400.9.1)
+	/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (compatibility version 150.0.0, current version 1452.23.0)
+	/usr/lib/libobjc.A.dylib (compatibility version 1.0.0, current version 228.0.0)

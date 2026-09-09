@@ -1,0 +1,2 @@
+chmod u=rwx,go=rx /Library/MobileSubstrate/DynamicLibraries/TSTweak*.dylib
+chmod u=rwx,go=rx /Library/MobileSubstrate/DynamicLibraries/TSTweak*.dylib

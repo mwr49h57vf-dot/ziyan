@@ -1,0 +1,20 @@
+Executable=/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/bin/ziyan_framecap
+Identifier=ziyan_framecap.d279fea9.unsigned
+Format=Mach-O thin (arm64)
+CodeDirectory v=20400 size=42425 flags=0x0(none) hashes=1315+7 location=embedded
+Hash type=sha256 size=32
+CandidateCDHash sha1=88d92f1a0794edd52b0356a992ef51b0f06cd8d7
+CandidateCDHashFull sha1=88d92f1a0794edd52b0356a992ef51b0f06cd8d7
+CandidateCDHash sha256=598c969dfdf4eee95e75906773fcffcd2abd6dd4
+CandidateCDHashFull sha256=598c969dfdf4eee95e75906773fcffcd2abd6dd442108d03f041bac10004bdca
+Hash choices=sha1,sha256
+CMSDigest=a52303edd26bae08220cff2035cc504495979711e12f0d476f88e54ee1572371
+CMSDigestType=2
+Launch Constraints:
+	None
+CDHash=598c969dfdf4eee95e75906773fcffcd2abd6dd4
+/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/bin/ziyan_framecap: no signature
+Info.plist=not bound
+TeamIdentifier=not set
+Sealed Resources=none
+Internal requirements count=1 size=148

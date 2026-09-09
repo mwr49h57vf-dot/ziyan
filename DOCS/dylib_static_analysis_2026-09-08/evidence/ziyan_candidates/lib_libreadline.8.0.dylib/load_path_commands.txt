@@ -1,0 +1,22 @@
+194-Load command 4
+195:          cmd LC_ID_DYLIB
+196-      cmdsize 72
+197-         name /usr/lib/ziyan/lib/libreadline.8.0.dylib (offset 24)
+198-   time stamp 1 Thu Jan  1 08:00:01 1970
+199-      current version 8.0.0
+200-compatibility version 8.0.0
+--
+267-Load command 13
+268:          cmd LC_LOAD_DYLIB
+269-      cmdsize 56
+270-         name /usr/lib/libncurses.6.dylib (offset 24)
+271-   time stamp 2 Thu Jan  1 08:00:02 1970
+272-      current version 6.0.0
+273-compatibility version 6.0.0
+274-Load command 14
+275:          cmd LC_LOAD_DYLIB
+276-      cmdsize 56
+277-         name /usr/lib/libSystem.B.dylib (offset 24)
+278-   time stamp 2 Thu Jan  1 08:00:02 1970
+279-      current version 1252.0.0
+280-compatibility version 1.0.0

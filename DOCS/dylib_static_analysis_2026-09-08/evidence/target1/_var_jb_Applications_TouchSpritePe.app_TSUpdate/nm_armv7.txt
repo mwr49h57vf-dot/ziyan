@@ -1,0 +1,6 @@
+0000c380 S _NXArgc
+0000c384 S _NXArgv
+0000c38c S ___progname
+00004000 T __mh_execute_header
+0000c388 S _environ
+00009280 T start

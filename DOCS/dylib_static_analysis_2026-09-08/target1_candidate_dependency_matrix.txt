@@ -1,0 +1,397 @@
+## target1 candidate concise dependency closure
+
+### _var_jb_Applications_TouchSpritePe.app_Hades
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/Hades
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/Hades: Mach-O 64-bit executable arm64
+Non-fat file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/Hades is architecture: arm64
+arm64
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/Hades:
+	/System/Library/Frameworks/Foundation.framework/Foundation (compatibility version 300.0.0, current version 1946.102.0)
+	/System/Library/Frameworks/UIKit.framework/UIKit (compatibility version 1.0.0, current version 6092.1.111)
+	/usr/lib/libobjc.A.dylib (compatibility version 1.0.0, current version 228.0.0)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1319.0.0)
+	/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (compatibility version 150.0.0, current version 1946.102.0)
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/Hades:
+69058be7235731772247ce8492f931922e46db81ef7a263bf8927035045a7d8a  /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/Hades
+
+### _var_jb_Applications_TouchSpritePe.app_OcrPlugin.dylib
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/OcrPlugin.dylib
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/OcrPlugin.dylib: Mach-O 64-bit dynamically linked shared library arm64
+Non-fat file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/OcrPlugin.dylib is architecture: arm64
+arm64
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/OcrPlugin.dylib:
+	/usr/local/lib/OcrPlugin64.dylib (compatibility version 1.0.0, current version 1.0.0)
+	/usr/lib/libc++.1.dylib (compatibility version 1.0.0, current version 1300.32.0)
+	/System/Library/Frameworks/QuartzCore.framework/QuartzCore (compatibility version 1.2.0, current version 1.11.0)
+	/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics (compatibility version 64.0.0, current version 1673.1.2)
+	/System/Library/Frameworks/UIKit.framework/UIKit (compatibility version 1.0.0, current version 6092.1.111)
+	/System/Library/Frameworks/Foundation.framework/Foundation (compatibility version 300.0.0, current version 1946.102.0)
+	/usr/lib/libobjc.A.dylib (compatibility version 1.0.0, current version 228.0.0)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1319.0.0)
+	/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (compatibility version 150.0.0, current version 1946.102.0)
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/OcrPlugin.dylib:
+/usr/local/lib/OcrPlugin64.dylib
+39edd4cf95b5fbca3c390fe19bd30998bfe4da9f767498de9d5b1e1697257625  /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/OcrPlugin.dylib
+
+### _var_jb_Applications_TouchSpritePe.app_TSDaemon
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSDaemon
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSDaemon: Mach-O 64-bit executable arm64
+Non-fat file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSDaemon is architecture: arm64
+arm64
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSDaemon:
+	/System/Library/Frameworks/QuartzCore.framework/QuartzCore (compatibility version 1.2.0, current version 1.11.0)
+	/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (compatibility version 150.0.0, current version 1673.126.0)
+	/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics (compatibility version 64.0.0, current version 1348.12.1)
+	/System/Library/Frameworks/AVFoundation.framework/AVFoundation (compatibility version 1.0.0, current version 2.0.0)
+	/System/Library/PrivateFrameworks/SpringBoardServices.framework/SpringBoardServices (compatibility version 1.0.0, current version 1.0.0)
+	/System/Library/PrivateFrameworks/SoftwareUpdateServices.framework/SoftwareUpdateServices (compatibility version 1.0.0, current version 1.0.0)
+	/System/Library/Frameworks/IOKit.framework/Versions/A/IOKit (compatibility version 1.0.0, current version 275.0.0)
+	/System/Library/Frameworks/Foundation.framework/Foundation (compatibility version 300.0.0, current version 1673.126.0)
+	/System/Library/Frameworks/MobileCoreServices.framework/MobileCoreServices (compatibility version 1.0.0, current version 727.5.3)
+	/System/Library/Frameworks/ImageIO.framework/ImageIO (compatibility version 1.0.0, current version 1.0.0)
+	/System/Library/Frameworks/AudioToolbox.framework/AudioToolbox (compatibility version 1.0.0, current version 492.0.0)
+	/System/Library/PrivateFrameworks/IOMobileFramebuffer.framework/IOMobileFramebuffer (compatibility version 1.0.0, current version 1.0.0)
+	/System/Library/PrivateFrameworks/GraphicsServices.framework/GraphicsServices (compatibility version 1.0.0, current version 14.0.0)
+	/System/Library/PrivateFrameworks/Celestial.framework/Celestial (compatibility version 1.0.0, current version 1.0.0)
+	/System/Library/PrivateFrameworks/IOSurface.framework/IOSurface (compatibility version 1.0.0, current version 1.0.0)
+	/System/Library/Frameworks/CoreTelephony.framework/CoreTelephony (compatibility version 1.0.0, current version 0.0.0)
+	/System/Library/Frameworks/UIKit.framework/UIKit (compatibility version 1.0.0, current version 61000.0.0)
+	/usr/lib/libsqlite3.dylib (compatibility version 9.0.0, current version 308.4.0)
+	/usr/lib/libobjc.A.dylib (compatibility version 1.0.0, current version 228.0.0)
+	/usr/lib/libc++.1.dylib (compatibility version 1.0.0, current version 800.7.0)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1281.0.0)
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSDaemon:
+4e89b9a34cd9a7a6d374a7afd0edfc96a42ba20a5e5ed67b0ebbce6a72543d57  /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSDaemon
+
+### _var_jb_Applications_TouchSpritePe.app_TSInstaller
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSInstaller
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSInstaller: Mach-O 64-bit executable arm64
+Non-fat file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSInstaller is architecture: arm64
+arm64
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSInstaller:
+	/System/Library/Frameworks/UIKit.framework/UIKit (compatibility version 1.0.0, current version 6092.1.111)
+	/System/Library/PrivateFrameworks/MobileInstallation.framework/MobileInstallation (compatibility version 1.0.0, current version 1.0.0)
+	/System/Library/Frameworks/Foundation.framework/Foundation (compatibility version 300.0.0, current version 1946.102.0)
+	/usr/lib/libobjc.A.dylib (compatibility version 1.0.0, current version 228.0.0)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1319.0.0)
+	/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (compatibility version 150.0.0, current version 1946.102.0)
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSInstaller:
+Load command 19
+          cmd LC_RPATH
+      cmdsize 40
+         path @executable_path/Frameworks (offset 12)
+Load command 20
+      cmd LC_FUNCTION_STARTS
+aacdf47219bb07bcd6379d3e5c5c42a023d26e92280740cb70b8d92c88d3a3be  /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSInstaller
+
+### _var_jb_Applications_TouchSpritePe.app_TSLn
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSLn
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSLn: Mach-O 64-bit executable arm64
+Non-fat file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSLn is architecture: arm64
+arm64
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSLn:
+	/System/Library/Frameworks/UIKit.framework/UIKit (compatibility version 1.0.0, current version 6092.1.111)
+	/System/Library/Frameworks/Foundation.framework/Foundation (compatibility version 300.0.0, current version 1946.102.0)
+	/usr/lib/libobjc.A.dylib (compatibility version 1.0.0, current version 228.0.0)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1319.0.0)
+	/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (compatibility version 150.0.0, current version 1946.102.0)
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSLn:
+9859bd2a5df6fda0ea533289a285a3837f237036e6f3f45647803a6f2b1b1c10  /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSLn
+
+### _var_jb_Applications_TouchSpritePe.app_TSUpdate
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSUpdate
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSUpdate: Mach-O universal binary with 2 architectures: [arm_v7:
+- Mach-O executable arm_v7] [arm64:Mach-O 64-bit executable arm64]
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSUpdate (for architecture armv7):	Mach-O executable arm_v7
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSUpdate (for architecture arm64):	Mach-O 64-bit executable arm64
+Architectures in the fat file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSUpdate are: armv7 arm64 
+armv7 arm64
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSUpdate (architecture armv7):
+	/System/Library/Frameworks/Foundation.framework/Foundation (compatibility version 300.0.0, current version 1240.1.0)
+	/usr/lib/libobjc.A.dylib (compatibility version 1.0.0, current version 228.0.0)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1225.0.0)
+	/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (compatibility version 150.0.0, current version 1240.1.0)
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSUpdate (architecture arm64):
+	/System/Library/Frameworks/Foundation.framework/Foundation (compatibility version 300.0.0, current version 1240.1.0)
+	/usr/lib/libobjc.A.dylib (compatibility version 1.0.0, current version 228.0.0)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1225.0.0)
+	/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (compatibility version 150.0.0, current version 1240.1.0)
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSUpdate (architecture armv7):
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSUpdate (architecture arm64):
+bb7c986049615a986091036c37ab4e4581709b542322de96a24fa1f84d3beeba  /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSUpdate
+
+### _var_jb_Applications_TouchSpritePe.app_TouchSpritePe
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TouchSpritePe
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TouchSpritePe: Mach-O universal binary with 2 architectures: [arm_v7:
+- Mach-O executable arm_v7] [arm64]
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TouchSpritePe (for architecture armv7):	Mach-O executable arm_v7
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TouchSpritePe (for architecture arm64):	Mach-O 64-bit executable arm64
+Architectures in the fat file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TouchSpritePe are: armv7 arm64 
+armv7 arm64
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TouchSpritePe (architecture armv7):
+	/usr/lib/libc++.1.dylib (compatibility version 1.0.0, current version 800.7.0)
+	/usr/lib/libsqlite3.dylib (compatibility version 9.0.0, current version 308.4.0)
+	/usr/lib/libz.1.dylib (compatibility version 1.0.0, current version 1.2.11)
+	/System/Library/Frameworks/CFNetwork.framework/CFNetwork (compatibility version 1.0.0, current version 0.0.0)
+	/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (compatibility version 150.0.0, current version 1673.126.0)
+	/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics (compatibility version 64.0.0, current version 1348.12.1)
+	/System/Library/Frameworks/CoreLocation.framework/CoreLocation (compatibility version 1.0.0, current version 2388.0.21)
+	/System/Library/Frameworks/CoreMotion.framework/CoreMotion (compatibility version 1.0.0, current version 2388.0.21)
+	/System/Library/Frameworks/CoreTelephony.framework/CoreTelephony (compatibility version 1.0.0, current version 0.0.0)
+	/System/Library/Frameworks/ImageIO.framework/ImageIO (compatibility version 1.0.0, current version 0.0.0)
+	/System/Library/Frameworks/MobileCoreServices.framework/MobileCoreServices (compatibility version 1.0.0, current version 1069.12.0)
+	/System/Library/Frameworks/QuartzCore.framework/QuartzCore (compatibility version 1.2.0, current version 1.11.0)
+	/System/Library/Frameworks/Security.framework/Security (compatibility version 1.0.0, current version 59306.42.2)
+	/System/Library/Frameworks/SystemConfiguration.framework/SystemConfiguration (compatibility version 1.0.0, current version 1061.40.2)
+	/System/Library/Frameworks/UIKit.framework/UIKit (compatibility version 1.0.0, current version 61000.0.0)
+	/System/Library/PrivateFrameworks/WebKit.framework/WebKit (compatibility version 1.0.0, current version 608.3.10, weak)
+	/System/Library/Frameworks/Twitter.framework/Twitter (compatibility version 1.0.0, current version 164.0.0)
+	/System/Library/Frameworks/JavaScriptCore.framework/JavaScriptCore (compatibility version 1.0.0, current version 608.3.10)
+	/System/Library/Frameworks/MessageUI.framework/MessageUI (compatibility version 1.0.0, current version 3601.9.7)
+	/System/Library/Frameworks/SafariServices.framework/SafariServices (compatibility version 1.0.0, current version 1.0.0)
+	/System/Library/Frameworks/AdSupport.framework/AdSupport (compatibility version 1.0.0, current version 1.0.0)
+	/System/Library/Frameworks/CoreText.framework/CoreText (compatibility version 1.0.0, current version 1.0.0)
+	/usr/lib/libiconv.2.dylib (compatibility version 7.0.0, current version 7.0.0)
+	/System/Library/Frameworks/CoreVideo.framework/CoreVideo (compatibility version 1.2.0, current version 1.5.0)
+	/System/Library/Frameworks/CoreMedia.framework/CoreMedia (compatibility version 1.0.0, current version 1.0.0)
+	/System/Library/Frameworks/AVFoundation.framework/AVFoundation (compatibility version 1.0.0, current version 2.0.0)
+	/System/Library/Frameworks/Foundation.framework/Foundation (compatibility version 300.0.0, current version 1673.126.0)
+	/usr/lib/libobjc.A.dylib (compatibility version 1.0.0, current version 228.0.0)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1281.0.0)
+	/System/Library/Frameworks/Accelerate.framework/Accelerate (compatibility version 1.0.0, current version 4.0.0)
+	/System/Library/Frameworks/AssetsLibrary.framework/AssetsLibrary (compatibility version 1.0.0, current version 1.0.0)
+	/System/Library/Frameworks/CoreImage.framework/CoreImage (compatibility version 1.0.0, current version 5.0.0)
+	/System/Library/Frameworks/LocalAuthentication.framework/LocalAuthentication (compatibility version 1.0.0, current version 693.40.8, weak)
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TouchSpritePe (architecture arm64):
+	/usr/lib/libc++.1.dylib (compatibility version 1.0.0, current version 800.7.0)
+	/usr/lib/libsqlite3.dylib (compatibility version 9.0.0, current version 308.4.0)
+	/usr/lib/libz.1.dylib (compatibility version 1.0.0, current version 1.2.11)
+	/System/Library/Frameworks/CFNetwork.framework/CFNetwork (compatibility version 1.0.0, current version 0.0.0)
+	/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (compatibility version 150.0.0, current version 1673.126.0)
+	/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics (compatibility version 64.0.0, current version 1348.12.1)
+	/System/Library/Frameworks/CoreLocation.framework/CoreLocation (compatibility version 1.0.0, current version 2388.0.21)
+	/System/Library/Frameworks/CoreMotion.framework/CoreMotion (compatibility version 1.0.0, current version 2388.0.21)
+	/System/Library/Frameworks/CoreTelephony.framework/CoreTelephony (compatibility version 1.0.0, current version 0.0.0)
+	/System/Library/Frameworks/ImageIO.framework/ImageIO (compatibility version 1.0.0, current version 0.0.0)
+	/System/Library/Frameworks/MobileCoreServices.framework/MobileCoreServices (compatibility version 1.0.0, current version 1069.12.0)
+	/System/Library/Frameworks/QuartzCore.framework/QuartzCore (compatibility version 1.2.0, current version 1.11.0)
+	/System/Library/Frameworks/Security.framework/Security (compatibility version 1.0.0, current version 59306.42.2)
+	/System/Library/Frameworks/SystemConfiguration.framework/SystemConfiguration (compatibility version 1.0.0, current version 1061.40.2)
+	/System/Library/Frameworks/UIKit.framework/UIKit (compatibility version 1.0.0, current version 61000.0.0)
+	/System/Library/PrivateFrameworks/WebKit.framework/WebKit (compatibility version 1.0.0, current version 608.3.10, weak)
+	/System/Library/Frameworks/Twitter.framework/Twitter (compatibility version 1.0.0, current version 164.0.0)
+	/System/Library/Frameworks/JavaScriptCore.framework/JavaScriptCore (compatibility version 1.0.0, current version 608.3.10)
+	/System/Library/Frameworks/MessageUI.framework/MessageUI (compatibility version 1.0.0, current version 3601.9.7)
+	/System/Library/Frameworks/SafariServices.framework/SafariServices (compatibility version 1.0.0, current version 1.0.0)
+	/System/Library/Frameworks/AdSupport.framework/AdSupport (compatibility version 1.0.0, current version 1.0.0)
+	/System/Library/Frameworks/CoreText.framework/CoreText (compatibility version 1.0.0, current version 1.0.0)
+	/usr/lib/libiconv.2.dylib (compatibility version 7.0.0, current version 7.0.0)
+	/System/Library/Frameworks/CoreVideo.framework/CoreVideo (compatibility version 1.2.0, current version 1.5.0)
+	/System/Library/Frameworks/CoreMedia.framework/CoreMedia (compatibility version 1.0.0, current version 1.0.0)
+	/System/Library/Frameworks/AVFoundation.framework/AVFoundation (compatibility version 1.0.0, current version 2.0.0)
+	/System/Library/Frameworks/Foundation.framework/Foundation (compatibility version 300.0.0, current version 1673.126.0)
+	/usr/lib/libobjc.A.dylib (compatibility version 1.0.0, current version 228.0.0)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1281.0.0)
+	/System/Library/Frameworks/Accelerate.framework/Accelerate (compatibility version 1.0.0, current version 4.0.0)
+	/System/Library/Frameworks/AssetsLibrary.framework/AssetsLibrary (compatibility version 1.0.0, current version 1.0.0)
+	/System/Library/Frameworks/CoreImage.framework/CoreImage (compatibility version 1.0.0, current version 5.0.0)
+	/System/Library/Frameworks/LocalAuthentication.framework/LocalAuthentication (compatibility version 1.0.0, current version 693.40.8, weak)
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TouchSpritePe (architecture armv7):
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TouchSpritePe (architecture arm64):
+Load command 47
+          cmd LC_RPATH
+      cmdsize 40
+         path @executable_path/Frameworks (offset 12)
+Load command 48
+      cmd LC_FUNCTION_STARTS
+--
+Load command 47
+          cmd LC_RPATH
+      cmdsize 40
+         path @executable_path/Frameworks (offset 12)
+Load command 48
+      cmd LC_FUNCTION_STARTS
+3f5b65129956e0d5b005beae7bdfab596d5f7c27cd12ef3c477db290bd3a9d25  /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TouchSpritePe
+
+### _var_jb_Applications_TouchSpritePe.app_libs_luasql.so
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/luasql.so
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/luasql.so: Mach-O universal binary with 2 architectures: [arm_v7s:Mach-O dynamically linked shared library arm_v7s] [arm64]
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/luasql.so (for architecture armv7s):	Mach-O dynamically linked shared library arm_v7s
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/luasql.so (for architecture arm64):	Mach-O 64-bit dynamically linked shared library arm64
+Architectures in the fat file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/luasql.so are: armv7s arm64 
+armv7s arm64
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/luasql.so (architecture armv7s):
+	/Users/Fish/Documents/MyFiles/触动精灵/luasql.so.openapi/build/luasql.so (compatibility version 0.0.0, current version 0.0.0)
+	/System/Library/Frameworks/Foundation.framework/Foundation (compatibility version 300.0.0, current version 1452.23.0)
+	/System/Library/Frameworks/UIKit.framework/UIKit (compatibility version 1.0.0, current version 3698.54.4)
+	/System/Library/Frameworks/CoreTelephony.framework/CoreTelephony (compatibility version 1.0.0, current version 0.0.0)
+	/System/Library/Frameworks/CoreImage.framework/CoreImage (compatibility version 1.0.0, current version 5.0.0)
+	/System/Library/Frameworks/SystemConfiguration.framework/SystemConfiguration (compatibility version 1.0.0, current version 963.50.8)
+	/usr/lib/libobjc.A.dylib (compatibility version 1.0.0, current version 228.0.0)
+	/usr/lib/libc++.1.dylib (compatibility version 1.0.0, current version 400.9.1)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1252.50.4)
+	/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (compatibility version 150.0.0, current version 1452.23.0)
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/luasql.so (architecture arm64):
+	/Users/Fish/Documents/MyFiles/触动精灵/luasql.so.openapi/build/luasql.so (compatibility version 0.0.0, current version 0.0.0)
+	/System/Library/Frameworks/Foundation.framework/Foundation (compatibility version 300.0.0, current version 1452.23.0)
+	/System/Library/Frameworks/UIKit.framework/UIKit (compatibility version 1.0.0, current version 3698.54.4)
+	/System/Library/Frameworks/CoreTelephony.framework/CoreTelephony (compatibility version 1.0.0, current version 0.0.0)
+	/System/Library/Frameworks/CoreImage.framework/CoreImage (compatibility version 1.0.0, current version 5.0.0)
+	/System/Library/Frameworks/SystemConfiguration.framework/SystemConfiguration (compatibility version 1.0.0, current version 963.50.8)
+	/usr/lib/libobjc.A.dylib (compatibility version 1.0.0, current version 228.0.0)
+	/usr/lib/libc++.1.dylib (compatibility version 1.0.0, current version 400.9.1)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1252.50.4)
+	/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (compatibility version 150.0.0, current version 1452.23.0)
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/luasql.so (architecture armv7s):
+/Users/Fish/Documents/MyFiles/触动精灵/luasql.so.openapi/build/luasql.so
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/luasql.so (architecture arm64):
+/Users/Fish/Documents/MyFiles/触动精灵/luasql.so.openapi/build/luasql.so
+951940fe77cda1c86eb0ffa5f8e7188baf366ff874235c0b4da165738ad9e3a0  /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/luasql.so
+
+### _var_jb_Applications_TouchSpritePe.app_libs_sz.so
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/sz.so
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/sz.so: Mach-O universal binary with 2 architectures: [arm_v7:Mach-O bundle arm_v7] [arm64:Mach-O 64-bit bundle arm64]
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/sz.so (for architecture armv7):	Mach-O bundle arm_v7
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/sz.so (for architecture arm64):	Mach-O 64-bit bundle arm64
+Architectures in the fat file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/sz.so are: armv7 arm64 
+armv7 arm64
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/sz.so (architecture armv7):
+	/usr/lib/libMobileGestalt.dylib (compatibility version 1.0.0, current version 1.0.0)
+	/usr/lib/libsqlite3.dylib (compatibility version 9.0.0, current version 274.8.1)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1252.50.4, weak)
+	/usr/lib/libiconv.2.dylib (compatibility version 7.0.0, current version 7.0.0)
+	/System/Library/Frameworks/Foundation.framework/Foundation (compatibility version 300.0.0, current version 1452.23.0)
+	/usr/lib/libc++.1.dylib (compatibility version 1.0.0, current version 400.9.1)
+	/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (compatibility version 150.0.0, current version 1452.23.0)
+	/usr/lib/libobjc.A.dylib (compatibility version 1.0.0, current version 228.0.0)
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/sz.so (architecture arm64):
+	/usr/lib/libMobileGestalt.dylib (compatibility version 1.0.0, current version 1.0.0)
+	/usr/lib/libsqlite3.dylib (compatibility version 9.0.0, current version 274.8.1)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1252.50.4, weak)
+	/usr/lib/libiconv.2.dylib (compatibility version 7.0.0, current version 7.0.0)
+	/System/Library/Frameworks/Foundation.framework/Foundation (compatibility version 300.0.0, current version 1452.23.0)
+	/usr/lib/libc++.1.dylib (compatibility version 1.0.0, current version 400.9.1)
+	/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (compatibility version 150.0.0, current version 1452.23.0)
+	/usr/lib/libobjc.A.dylib (compatibility version 1.0.0, current version 228.0.0)
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/sz.so (architecture armv7):
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/sz.so (architecture arm64):
+1abc6b40812896b48e02a61fdad6d1f0febdfac1d28017b3151617b93726e2ac  /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/sz.so
+
+### _var_jb_Applications_TouchSpritePe.app_model.so
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/model.so
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/model.so: Mach-O 64-bit bundle arm64
+Non-fat file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/model.so is architecture: arm64
+arm64
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/model.so:
+	/System/Library/Frameworks/Vision.framework/Vision (compatibility version 1.0.0, current version 6.0.46)
+	/System/Library/Frameworks/CoreML.framework/CoreML (compatibility version 1.0.0, current version 1.0.0)
+	/System/Library/Frameworks/UIKit.framework/UIKit (compatibility version 1.0.0, current version 6092.1.111)
+	/System/Library/Frameworks/CoreImage.framework/CoreImage (compatibility version 1.0.0, current version 5.0.0)
+	/System/Library/Frameworks/Foundation.framework/Foundation (compatibility version 300.0.0, current version 1946.102.0)
+	/usr/lib/libobjc.A.dylib (compatibility version 1.0.0, current version 228.0.0)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1281.0.0)
+	/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (compatibility version 150.0.0, current version 1946.102.0)
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/model.so:
+84e45e7523ba94e83f3037662039d2fe6a15071f28944f25b139e6e2bd61fcf1  /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/model.so
+
+### _var_jb_Applications_TouchSpritePe.app_paddleocr.so
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/paddleocr.so
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/paddleocr.so: Mach-O 64-bit bundle arm64
+Non-fat file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/paddleocr.so is architecture: arm64
+arm64
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/paddleocr.so:
+	/usr/lib/libc++.1.dylib (compatibility version 1.0.0, current version 800.7.0)
+	/System/Library/Frameworks/CoreMedia.framework/CoreMedia (compatibility version 1.0.0, current version 1.0.0)
+	/System/Library/Frameworks/AssetsLibrary.framework/AssetsLibrary (compatibility version 1.0.0, current version 1.0.0)
+	/System/Library/Frameworks/AVFoundation.framework/AVFoundation (compatibility version 1.0.0, current version 2.0.0)
+	/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics (compatibility version 64.0.0, current version 1673.1.2)
+	/System/Library/Frameworks/UIKit.framework/UIKit (compatibility version 1.0.0, current version 6092.1.111)
+	/System/Library/Frameworks/Foundation.framework/Foundation (compatibility version 300.0.0, current version 1946.102.0)
+	/usr/lib/libobjc.A.dylib (compatibility version 1.0.0, current version 228.0.0)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1281.0.0)
+	/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (compatibility version 150.0.0, current version 1946.102.0)
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/paddleocr.so:
+c2e9f6e65741e79f379515027f2adfeee0b6f2a3e2ed4b475c4e2e17c158665c  /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/paddleocr.so
+
+### _var_jb_Applications_TouchSpritePe.app_unzip
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/unzip
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/unzip: Mach-O executable arm
+Non-fat file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/unzip is architecture: arm
+arm
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/unzip:
+	/usr/lib/libgcc_s.1.dylib (compatibility version 1.0.0, current version 1.0.0)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 111.0.10)
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/unzip:
+3a5d2fa996d98d6783a4f3a66da7a1b65704ea4d1d8cecabc1ea8f14c4ff0168  /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/unzip
+
+### _var_jb_Library_MobileSubstrate_DynamicLibraries_TSTweak.dylib
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Library/MobileSubstrate/DynamicLibraries/TSTweak.dylib
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Library/MobileSubstrate/DynamicLibraries/TSTweak.dylib: Mach-O universal binary with 2 architectures: [arm64:Mach-O 64-bit dynamically linked shared library arm64] [arm64e:Mach-O 64-bit dynamically linked shared library arm64e]
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Library/MobileSubstrate/DynamicLibraries/TSTweak.dylib (for architecture arm64):	Mach-O 64-bit dynamically linked shared library arm64
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Library/MobileSubstrate/DynamicLibraries/TSTweak.dylib (for architecture arm64e):	Mach-O 64-bit dynamically linked shared library arm64e
+Architectures in the fat file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Library/MobileSubstrate/DynamicLibraries/TSTweak.dylib are: arm64 arm64e 
+arm64 arm64e
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Library/MobileSubstrate/DynamicLibraries/TSTweak.dylib (architecture arm64):
+	@rpath/TSTweakNoRoot.dylib (compatibility version 0.0.0, current version 0.0.0)
+	/usr/lib/libobjc.A.dylib (compatibility version 1.0.0, current version 228.0.0)
+	/System/Library/Frameworks/Foundation.framework/Foundation (compatibility version 300.0.0, current version 1677.104.0)
+	/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (compatibility version 150.0.0, current version 1677.104.0)
+	/System/Library/Frameworks/UIKit.framework/UIKit (compatibility version 1.0.0, current version 61000.0.0)
+	/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics (compatibility version 64.0.0, current version 1355.22.0)
+	/System/Library/PrivateFrameworks/AppSupport.framework/AppSupport (compatibility version 1.0.0, current version 29.0.0)
+	/System/Library/Frameworks/WebKit.framework/WebKit (compatibility version 1.0.0, current version 609.3.5)
+	/usr/lib/libc++.1.dylib (compatibility version 1.0.0, current version 902.0.0)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1281.100.1)
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Library/MobileSubstrate/DynamicLibraries/TSTweak.dylib (architecture arm64e):
+	@rpath/TSTweakNoRoot.dylib (compatibility version 0.0.0, current version 0.0.0)
+	/usr/lib/libobjc.A.dylib (compatibility version 1.0.0, current version 228.0.0)
+	/System/Library/Frameworks/Foundation.framework/Foundation (compatibility version 300.0.0, current version 1677.104.0)
+	/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (compatibility version 150.0.0, current version 1677.104.0)
+	/System/Library/Frameworks/UIKit.framework/UIKit (compatibility version 1.0.0, current version 61000.0.0)
+	/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics (compatibility version 64.0.0, current version 1355.22.0)
+	/System/Library/PrivateFrameworks/AppSupport.framework/AppSupport (compatibility version 1.0.0, current version 29.0.0)
+	/System/Library/Frameworks/WebKit.framework/WebKit (compatibility version 1.0.0, current version 609.3.5)
+	/usr/lib/libc++.1.dylib (compatibility version 1.0.0, current version 902.0.0)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1281.100.1)
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Library/MobileSubstrate/DynamicLibraries/TSTweak.dylib (architecture arm64):
+@rpath/TSTweakNoRoot.dylib
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Library/MobileSubstrate/DynamicLibraries/TSTweak.dylib (architecture arm64e):
+@rpath/TSTweakNoRoot.dylib
+Load command 22
+          cmd LC_RPATH
+      cmdsize 40
+         path /var/jb/Library/Frameworks (offset 12)
+Load command 23
+          cmd LC_RPATH
+      cmdsize 32
+         path /var/jb/usr/lib (offset 12)
+Load command 24
+          cmd LC_RPATH
+      cmdsize 56
+         path @loader_path/.jbroot/Library/Frameworks (offset 12)
+Load command 25
+          cmd LC_RPATH
+      cmdsize 48
+         path @loader_path/.jbroot/usr/lib (offset 12)
+Load command 26
+      cmd LC_FUNCTION_STARTS
+--
+Load command 22
+          cmd LC_RPATH
+      cmdsize 40
+         path /var/jb/Library/Frameworks (offset 12)
+Load command 23
+          cmd LC_RPATH
+      cmdsize 32
+         path /var/jb/usr/lib (offset 12)
+Load command 24
+          cmd LC_RPATH
+      cmdsize 56
+         path @loader_path/.jbroot/Library/Frameworks (offset 12)
+Load command 25
+          cmd LC_RPATH
+      cmdsize 48
+         path @loader_path/.jbroot/usr/lib (offset 12)
+Load command 26
+      cmd LC_FUNCTION_STARTS
+1c0e783e277ae76e13252c32a76917b1cbe488bd1a417836495f905f3734357d  /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Library/MobileSubstrate/DynamicLibraries/TSTweak.dylib

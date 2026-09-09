@@ -1,0 +1,3 @@
+0000000000007bd8 T _LLVMFuzzerTestOneInput
+0000000000007b28 T _PyInit__xxtestfuzz
+0000000000007bd0 T ___lsan_is_turned_off

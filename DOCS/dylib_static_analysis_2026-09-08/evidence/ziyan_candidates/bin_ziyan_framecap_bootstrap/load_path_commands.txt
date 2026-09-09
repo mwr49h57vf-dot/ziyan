@@ -1,0 +1,26 @@
+232-Load command 14
+233:          cmd LC_LOAD_DYLIB
+234-      cmdsize 56
+235-         name /usr/lib/libSystem.B.dylib (offset 24)
+236-   time stamp 2 Thu Jan  1 08:00:02 1970
+237-      current version 1319.0.0
+238-compatibility version 1.0.0
+239-Load command 15
+240:          cmd LC_RPATH
+241-      cmdsize 40
+242-         path /var/jb/Library/Frameworks (offset 12)
+243-Load command 16
+244:          cmd LC_RPATH
+245-      cmdsize 32
+246-         path /var/jb/usr/lib (offset 12)
+247-Load command 17
+248:          cmd LC_RPATH
+249-      cmdsize 56
+250-         path @loader_path/.jbroot/Library/Frameworks (offset 12)
+251-Load command 18
+252:          cmd LC_RPATH
+253-      cmdsize 48
+254-         path @loader_path/.jbroot/usr/lib (offset 12)
+255-Load command 19
+256-      cmd LC_FUNCTION_STARTS
+257-  cmdsize 16

@@ -1,0 +1,21 @@
+219-Load command 10
+220:          cmd LC_LOAD_DYLIB
+221-      cmdsize 56
+222-         name /usr/lib/libpanelw.6.dylib (offset 24)
+223-   time stamp 2 Thu Jan  1 08:00:02 1970
+224-      current version 6.0.0
+225-compatibility version 6.0.0
+226-Load command 11
+227:          cmd LC_LOAD_DYLIB
+228-      cmdsize 56
+229-         name /usr/lib/libncursesw.6.dylib (offset 24)
+230-   time stamp 2 Thu Jan  1 08:00:02 1970
+231-      current version 6.0.0
+232-compatibility version 6.0.0
+233-Load command 12
+234:          cmd LC_LOAD_DYLIB
+235-      cmdsize 56
+236-         name /usr/lib/libSystem.B.dylib (offset 24)
+237-   time stamp 2 Thu Jan  1 08:00:02 1970
+238-      current version 1252.0.0
+239-compatibility version 1.0.0

@@ -1,0 +1,1 @@
+Mach-O universal binary with 2 architectures: [arm64:Mach-O 64-bit dynamically linked shared library arm64] [arm64e:Mach-O 64-bit dynamically linked shared library arm64e]

@@ -1,0 +1,367 @@
+python3 tools/ziyan_codex_checkpoint.py show
+git status --short
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/.DS_Store
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/debian-binary
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/ts_control.tar.gz
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/ts_data.tar.gz
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\216'§å$'\210'¶ä¿¡æ$'\201'¯/control
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/.DS_Store
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/.DS_Store
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/.DS_Store
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/AlipaySDK.bundle/alipay_msp_back@2x.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/AlipaySDK.bundle/alipay_msp_refresh@2x.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/AlipaySDK.bundle/bar@2x.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/AlipaySDK.bundle/bridge.js
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/AlipaySDK.bundle/refresh@2x.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/AlipaySDK.bundle/refresh_click@2x.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/AlipaySDK.bundle/shutdown@2x.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/AlipaySDK.bundle/shutdown_click@2x.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/AppIcon20x20@2x.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/AppIcon20x20@3x.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/AppIcon29x29@2x.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/AppIcon29x29@3x.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/AppIcon40x40@2x.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/AppIcon40x40@3x.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/AppIcon60x60@2x.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/AppIcon60x60@3x.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/Assets.car
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/Hades
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/Info.plist
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/LaunchImage-1100-Portrait-2436h@3x.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/LaunchImage-1200-Portrait-1792h@2x.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/LaunchImage-1200-Portrait-2688h@3x.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/LaunchImage-700-568h@2x.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/LaunchImage-700-Portrait@2x~ipad.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/LaunchImage-700-Portrait~ipad.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/LaunchImage-700@2x.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/LaunchImage-800-667h@2x.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/LaunchImage-800-Portrait-736h@3x.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/MJRefresh.bundle/arrow@2x.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/MJRefresh.bundle/en.lproj/Localizable.strings
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/MJRefresh.bundle/ko.lproj/Localizable.strings
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/MJRefresh.bundle/ru.lproj/Localizable.strings
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/MJRefresh.bundle/uk.lproj/Localizable.strings
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/MJRefresh.bundle/zh-Hans.lproj/Localizable.strings
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/MJRefresh.bundle/zh-Hant.lproj/Localizable.strings
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/OcrPlugin.dylib
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/Pingpp.bundle/Info.plist
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/Pingpp.bundle/about_blank.html
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/Pingpp.bundle/en.lproj/Localizable.strings
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/Pingpp.bundle/zh-Hans.lproj/Localizable.strings
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/PkgInfo
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/SVProgressHUD.bundle/angle-mask.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/SVProgressHUD.bundle/angle-mask@2x.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/SVProgressHUD.bundle/angle-mask@3x.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/SVProgressHUD.bundle/error.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/SVProgressHUD.bundle/error@2x.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/SVProgressHUD.bundle/error@3x.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/SVProgressHUD.bundle/info.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/SVProgressHUD.bundle/info@2x.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/SVProgressHUD.bundle/info@3x.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/SVProgressHUD.bundle/success.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/SVProgressHUD.bundle/success@2x.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/SVProgressHUD.bundle/success@3x.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TSDaemon
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TSInstaller
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TSLn
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TSUpdate
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TagsTableCell~ipad.nib/objects-13.0+.nib
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TagsTableCell~ipad.nib/objects-8.0+.nib
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TagsTableCell~ipad.nib/runtime.nib
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TagsTableCell~iphone.nib/objects-13.0+.nib
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TagsTableCell~iphone.nib/objects-8.0+.nib
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TagsTableCell~iphone.nib/runtime.nib
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TouchSpritePe
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/WebServer/css/base16-dark.css
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/WebServer/css/cd.css
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/WebServer/css/cdshow.css
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/WebServer/css/codemirror.css
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/WebServer/css/docs.css
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/WebServer/css/index.html
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/WebServer/css/neat.css
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/WebServer/css/night.css
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/WebServer/css/show-hint.css
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/WebServer/css/style.css
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/WebServer/images/bg1_01.jpg
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/WebServer/images/bg1_02.jpg
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/WebServer/images/bg_files2.jpg
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/WebServer/images/bg_title\ \(1\).jpg
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/WebServer/images/bg_title.jpg
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/WebServer/images/download\ \(1\).gif
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/WebServer/images/download.gif
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/WebServer/images/ic_close.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/WebServer/images/index.html
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/WebServer/images/logo5.jpg
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/WebServer/images/trash.gif
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/WebServer/images/trash_white\ \(1\).png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/WebServer/images/trash_white.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/WebServer/images/ts_wifi_btn.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/WebServer/images/ts_wifi_drag.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/WebServer/images/ts_wifi_images.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/WebServer/images/web_wifi_spec.jpg
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/WebServer/index.html
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/WebServer/scripts/ajaxfileupload.js
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/WebServer/scripts/cd.js
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/WebServer/scripts/cdshow.js
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/WebServer/scripts/index.html
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/WebServer/scripts/jquery1.8.2.min.js
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/WebServer/scripts/lang.js
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/WebServer/scripts/libs.min.js
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/WebServer/scripts/lua.js
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/_CodeSignature/CodeResources
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/armv.dat
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/bk.mp3
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/channel.cfg
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/checkbox.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/checkbox_e.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/control.html
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/embedded.mobileprovision
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/en.lproj/Localizable.strings
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/floating_bar_pro/floatingbar_btn_close.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/floating_bar_pro/floatingbar_btn_off.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/floating_bar_pro/floatingbar_btn_on.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/floating_bar_pro/floatingbar_btn_pause.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/floating_bar_pro/floatingbar_btn_record.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/floating_bar_pro/floatingbar_btn_screenshot.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/floating_bar_pro/floatingbar_btn_start.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/floating_bar_pro/floatingbar_btn_stop.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/floating_bar_pro/floatingbar_button.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/floating_bar_pro/floatingbar_button_idle.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/floating_bar_pro/floatingbar_button_pause.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/floating_bar_pro/floatingbar_button_record.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/floating_bar_pro/floatingbar_button_run.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/floating_bar_pro/floatingbar_close.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/floating_bar_pro/floatingbar_ping_high.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/floating_bar_pro/floatingbar_ping_low.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/floating_bar_pro/floatingbar_ping_mid.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/floating_bar_pro/floatingbar_ping_no.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/icon_dropdown@2x.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/input_clean.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/libs/TSLib.lua
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/libs/UIPage.lua
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/libs/event.lua
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/libs/luasql.so
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/libs/nLog.lua
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/libs/socket_help.lua
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/libs/sz.so
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/libs/thread.lua
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/libs/timer.lua
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/libs/tsdebug.lua
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/libs/webServer.lua
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/libs/webui_files.lua
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/libs/webview.lua
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/model.so
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/paddleocr.so
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/ppocr/ch_ppocr_mobile_v2.0_cls_slim_opt.nb
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/ppocr/ch_ppocr_mobile_v2.0_det_slim_opt.nb
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/ppocr/ch_ppocr_mobile_v2.0_rec_slim_opt.nb
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/ppocr/config.txt
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/ppocr/ppocr_keys_ocrv5.txt
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/ppocr/ppocr_keys_v1.txt
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/purchase_card_btn_1@2x.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/purchase_price_bg_1@2x.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/radio.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/radio_e.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/showui_ic_ts_mark.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/switch.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/switch_e.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/tessdata/eng.traineddata
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/timing@2x.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/unzip
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/zbar-back.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/zbar-help.html
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/zbar-helpicons.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/zbar-samples.png
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/zh-Hans.lproj/Localizable.strings
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/zh-Hant.lproj/Localizable.strings
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Library/.DS_Store
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Library/MobileSubstrate/.DS_Store
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Library/MobileSubstrate/DynamicLibraries/TSTweak.dylib
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Library/MobileSubstrate/DynamicLibraries/TSTweak.plist
+file /Users/mac/Desktop/ZiYan_å$'\211'¯æ$'\234'¬/ZiYanå$'\255'¦ä¹ /é$'\200'$'\206'å$'\220'$'\221'å$'\255'¦ä¹ /corpus/touchsprite_helpdoc/.DS_Store
+file /Users/mac/Desktop/ZiYan_å$'\211'¯æ$'\234'¬/ZiYanå$'\255'¦ä¹ /é$'\200'$'\206'å$'\220'$'\221'å$'\255'¦ä¹ /corpus/touchsprite_helpdoc/raw/1408855699837268865.html
+file /Users/mac/Desktop/ZiYan_å$'\211'¯æ$'\234'¬/ZiYanå$'\255'¦ä¹ /é$'\200'$'\206'å$'\220'$'\221'å$'\255'¦ä¹ /corpus/touchsprite_helpdoc/raw/1430686747568703152.html
+file /Users/mac/Desktop/ZiYan_å$'\211'¯æ$'\234'¬/ZiYanå$'\255'¦ä¹ /é$'\200'$'\206'å$'\220'$'\221'å$'\255'¦ä¹ /corpus/touchsprite_helpdoc/raw/1609354889930540998.html
+file /Users/mac/Desktop/ZiYan_å$'\211'¯æ$'\234'¬/ZiYanå$'\255'¦ä¹ /é$'\200'$'\206'å$'\220'$'\221'å$'\255'¦ä¹ /corpus/touchsprite_helpdoc/raw/2050351751589893900.html
+file /Users/mac/Desktop/ZiYan_å$'\211'¯æ$'\234'¬/ZiYanå$'\255'¦ä¹ /é$'\200'$'\206'å$'\220'$'\221'å$'\255'¦ä¹ /corpus/touchsprite_helpdoc/raw/331750870547154305.html
+file /Users/mac/Desktop/ZiYan_å$'\211'¯æ$'\234'¬/ZiYanå$'\255'¦ä¹ /é$'\200'$'\206'å$'\220'$'\221'å$'\255'¦ä¹ /corpus/touchsprite_helpdoc/raw/3417317899963125322.html
+file /Users/mac/Desktop/ZiYan_å$'\211'¯æ$'\234'¬/ZiYanå$'\255'¦ä¹ /é$'\200'$'\206'å$'\220'$'\221'å$'\255'¦ä¹ /corpus/touchsprite_helpdoc/raw/5085557961350328067.html
+file /Users/mac/Desktop/ZiYan_å$'\211'¯æ$'\234'¬/ZiYanå$'\255'¦ä¹ /é$'\200'$'\206'å$'\220'$'\221'å$'\255'¦ä¹ /corpus/touchsprite_helpdoc/raw/5260525641922663474.html
+file /Users/mac/Desktop/ZiYan_å$'\211'¯æ$'\234'¬/ZiYanå$'\255'¦ä¹ /é$'\200'$'\206'å$'\220'$'\221'å$'\255'¦ä¹ /corpus/touchsprite_helpdoc/raw/5456952359762152815.html
+file /Users/mac/Desktop/ZiYan_å$'\211'¯æ$'\234'¬/ZiYanå$'\255'¦ä¹ /é$'\200'$'\206'å$'\220'$'\221'å$'\255'¦ä¹ /corpus/touchsprite_helpdoc/raw/6566644544319844937.html
+file /Users/mac/Desktop/ZiYan_å$'\211'¯æ$'\234'¬/ZiYanå$'\255'¦ä¹ /é$'\200'$'\206'å$'\220'$'\221'å$'\255'¦ä¹ /corpus/touchsprite_helpdoc/raw/6682395960120246995.html
+file /Users/mac/Desktop/ZiYan_å$'\211'¯æ$'\234'¬/ZiYanå$'\255'¦ä¹ /é$'\200'$'\206'å$'\220'$'\221'å$'\255'¦ä¹ /corpus/touchsprite_helpdoc/raw/7477562212139175559.html
+file /Users/mac/Desktop/ZiYan_å$'\211'¯æ$'\234'¬/ZiYanå$'\255'¦ä¹ /é$'\200'$'\206'å$'\220'$'\221'å$'\255'¦ä¹ /corpus/touchsprite_helpdoc/raw/7594626396834484545.html
+file /Users/mac/Desktop/ZiYan_å$'\211'¯æ$'\234'¬/ZiYanå$'\255'¦ä¹ /é$'\200'$'\206'å$'\220'$'\221'å$'\255'¦ä¹ /corpus/touchsprite_helpdoc/raw/7803674985068353398.html
+file /Users/mac/Desktop/ZiYan_å$'\211'¯æ$'\234'¬/ZiYanå$'\255'¦ä¹ /é$'\200'$'\206'å$'\220'$'\221'å$'\255'¦ä¹ /corpus/touchsprite_helpdoc/raw/8080662347238869480.html
+file /Users/mac/Desktop/ZiYan_å$'\211'¯æ$'\234'¬/ZiYanå$'\255'¦ä¹ /é$'\200'$'\206'å$'\220'$'\221'å$'\255'¦ä¹ /corpus/touchsprite_helpdoc/raw/810043451784524244.html
+file /Users/mac/Desktop/ZiYan_å$'\211'¯æ$'\234'¬/ZiYanå$'\255'¦ä¹ /é$'\200'$'\206'å$'\220'$'\221'å$'\255'¦ä¹ /corpus/touchsprite_helpdoc/raw/8571129237287551730.html
+file /Users/mac/Desktop/ZiYan_å$'\211'¯æ$'\234'¬/ZiYanå$'\255'¦ä¹ /é$'\200'$'\206'å$'\220'$'\221'å$'\255'¦ä¹ /corpus/touchsprite_helpdoc/raw/9134586327127745716.html
+file /Users/mac/Desktop/ZiYan_å$'\211'¯æ$'\234'¬/ZiYanå$'\255'¦ä¹ /é$'\200'$'\206'å$'\220'$'\221'å$'\255'¦ä¹ /corpus/touchsprite_helpdoc/text/1408855699837268865.txt
+file /Users/mac/Desktop/ZiYan_å$'\211'¯æ$'\234'¬/ZiYanå$'\255'¦ä¹ /é$'\200'$'\206'å$'\220'$'\221'å$'\255'¦ä¹ /corpus/touchsprite_helpdoc/text/1430686747568703152.txt
+file /Users/mac/Desktop/ZiYan_å$'\211'¯æ$'\234'¬/ZiYanå$'\255'¦ä¹ /é$'\200'$'\206'å$'\220'$'\221'å$'\255'¦ä¹ /corpus/touchsprite_helpdoc/text/1609354889930540998.txt
+file /Users/mac/Desktop/ZiYan_å$'\211'¯æ$'\234'¬/ZiYanå$'\255'¦ä¹ /é$'\200'$'\206'å$'\220'$'\221'å$'\255'¦ä¹ /corpus/touchsprite_helpdoc/text/2050351751589893900.txt
+file /Users/mac/Desktop/ZiYan_å$'\211'¯æ$'\234'¬/ZiYanå$'\255'¦ä¹ /é$'\200'$'\206'å$'\220'$'\221'å$'\255'¦ä¹ /corpus/touchsprite_helpdoc/text/331750870547154305.txt
+file /Users/mac/Desktop/ZiYan_å$'\211'¯æ$'\234'¬/ZiYanå$'\255'¦ä¹ /é$'\200'$'\206'å$'\220'$'\221'å$'\255'¦ä¹ /corpus/touchsprite_helpdoc/text/3417317899963125322.txt
+file /Users/mac/Desktop/ZiYan_å$'\211'¯æ$'\234'¬/ZiYanå$'\255'¦ä¹ /é$'\200'$'\206'å$'\220'$'\221'å$'\255'¦ä¹ /corpus/touchsprite_helpdoc/text/5085557961350328067.txt
+file /Users/mac/Desktop/ZiYan_å$'\211'¯æ$'\234'¬/ZiYanå$'\255'¦ä¹ /é$'\200'$'\206'å$'\220'$'\221'å$'\255'¦ä¹ /corpus/touchsprite_helpdoc/text/5260525641922663474.txt
+file /Users/mac/Desktop/ZiYan_å$'\211'¯æ$'\234'¬/ZiYanå$'\255'¦ä¹ /é$'\200'$'\206'å$'\220'$'\221'å$'\255'¦ä¹ /corpus/touchsprite_helpdoc/text/5456952359762152815.txt
+file /Users/mac/Desktop/ZiYan_å$'\211'¯æ$'\234'¬/ZiYanå$'\255'¦ä¹ /é$'\200'$'\206'å$'\220'$'\221'å$'\255'¦ä¹ /corpus/touchsprite_helpdoc/text/6566644544319844937.txt
+file /Users/mac/Desktop/ZiYan_å$'\211'¯æ$'\234'¬/ZiYanå$'\255'¦ä¹ /é$'\200'$'\206'å$'\220'$'\221'å$'\255'¦ä¹ /corpus/touchsprite_helpdoc/text/6682395960120246995.txt
+file /Users/mac/Desktop/ZiYan_å$'\211'¯æ$'\234'¬/ZiYanå$'\255'¦ä¹ /é$'\200'$'\206'å$'\220'$'\221'å$'\255'¦ä¹ /corpus/touchsprite_helpdoc/text/7477562212139175559.txt
+file /Users/mac/Desktop/ZiYan_å$'\211'¯æ$'\234'¬/ZiYanå$'\255'¦ä¹ /é$'\200'$'\206'å$'\220'$'\221'å$'\255'¦ä¹ /corpus/touchsprite_helpdoc/text/7594626396834484545.txt
+file /Users/mac/Desktop/ZiYan_å$'\211'¯æ$'\234'¬/ZiYanå$'\255'¦ä¹ /é$'\200'$'\206'å$'\220'$'\221'å$'\255'¦ä¹ /corpus/touchsprite_helpdoc/text/7803674985068353398.txt
+file /Users/mac/Desktop/ZiYan_å$'\211'¯æ$'\234'¬/ZiYanå$'\255'¦ä¹ /é$'\200'$'\206'å$'\220'$'\221'å$'\255'¦ä¹ /corpus/touchsprite_helpdoc/text/8080662347238869480.txt
+file /Users/mac/Desktop/ZiYan_å$'\211'¯æ$'\234'¬/ZiYanå$'\255'¦ä¹ /é$'\200'$'\206'å$'\220'$'\221'å$'\255'¦ä¹ /corpus/touchsprite_helpdoc/text/810043451784524244.txt
+file /Users/mac/Desktop/ZiYan_å$'\211'¯æ$'\234'¬/ZiYanå$'\255'¦ä¹ /é$'\200'$'\206'å$'\220'$'\221'å$'\255'¦ä¹ /corpus/touchsprite_helpdoc/text/8571129237287551730.txt
+file /Users/mac/Desktop/ZiYan_å$'\211'¯æ$'\234'¬/ZiYanå$'\255'¦ä¹ /é$'\200'$'\206'å$'\220'$'\221'å$'\255'¦ä¹ /corpus/touchsprite_helpdoc/text/9134586327127745716.txt
+lipo -info /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/Hades
+otool -L /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/Hades
+otool -D /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/Hades
+otool -l /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/Hades
+nm -gU /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/Hades
+strings -a /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/Hades
+shasum -a 256 /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/Hades
+lipo -info /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/OcrPlugin.dylib
+otool -L /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/OcrPlugin.dylib
+otool -D /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/OcrPlugin.dylib
+otool -l /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/OcrPlugin.dylib
+nm -gU /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/OcrPlugin.dylib
+strings -a /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/OcrPlugin.dylib
+shasum -a 256 /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/OcrPlugin.dylib
+lipo -info /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TSDaemon
+otool -L /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TSDaemon
+otool -D /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TSDaemon
+otool -l /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TSDaemon
+nm -gU /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TSDaemon
+strings -a /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TSDaemon
+shasum -a 256 /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TSDaemon
+lipo -info /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TSInstaller
+otool -L /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TSInstaller
+otool -D /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TSInstaller
+otool -l /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TSInstaller
+nm -gU /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TSInstaller
+strings -a /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TSInstaller
+shasum -a 256 /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TSInstaller
+lipo -info /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TSLn
+otool -L /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TSLn
+otool -D /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TSLn
+otool -l /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TSLn
+nm -gU /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TSLn
+strings -a /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TSLn
+shasum -a 256 /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TSLn
+lipo -info /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TSUpdate
+otool -L /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TSUpdate
+otool -D /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TSUpdate
+otool -l /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TSUpdate
+nm -gU /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TSUpdate
+strings -a /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TSUpdate
+shasum -a 256 /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TSUpdate
+lipo -info /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TouchSpritePe
+otool -L /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TouchSpritePe
+otool -D /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TouchSpritePe
+otool -l /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TouchSpritePe
+nm -gU /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TouchSpritePe
+strings -a /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TouchSpritePe
+shasum -a 256 /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/TouchSpritePe
+lipo -info /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/libs/luasql.so
+otool -L /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/libs/luasql.so
+otool -D /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/libs/luasql.so
+otool -l /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/libs/luasql.so
+nm -gU /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/libs/luasql.so
+strings -a /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/libs/luasql.so
+shasum -a 256 /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/libs/luasql.so
+lipo -info /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/libs/sz.so
+otool -L /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/libs/sz.so
+otool -D /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/libs/sz.so
+otool -l /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/libs/sz.so
+nm -gU /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/libs/sz.so
+strings -a /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/libs/sz.so
+shasum -a 256 /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/libs/sz.so
+lipo -info /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/model.so
+otool -L /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/model.so
+otool -D /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/model.so
+otool -l /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/model.so
+nm -gU /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/model.so
+strings -a /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/model.so
+shasum -a 256 /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/model.so
+lipo -info /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/paddleocr.so
+otool -L /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/paddleocr.so
+otool -D /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/paddleocr.so
+otool -l /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/paddleocr.so
+nm -gU /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/paddleocr.so
+strings -a /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/paddleocr.so
+shasum -a 256 /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/paddleocr.so
+lipo -info /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/unzip
+otool -L /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/unzip
+otool -D /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/unzip
+otool -l /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/unzip
+nm -gU /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/unzip
+strings -a /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/unzip
+shasum -a 256 /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Applications/TouchSpritePe.app/unzip
+lipo -info /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Library/MobileSubstrate/DynamicLibraries/TSTweak.dylib
+otool -L /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Library/MobileSubstrate/DynamicLibraries/TSTweak.dylib
+otool -D /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Library/MobileSubstrate/DynamicLibraries/TSTweak.dylib
+otool -l /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Library/MobileSubstrate/DynamicLibraries/TSTweak.dylib
+nm -gU /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Library/MobileSubstrate/DynamicLibraries/TSTweak.dylib
+strings -a /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Library/MobileSubstrate/DynamicLibraries/TSTweak.dylib
+shasum -a 256 /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/æ$'\226'$'\207'ä»¶ç³»ç»$'\237'/var/jb/Library/MobileSubstrate/DynamicLibraries/TSTweak.dylib
+tar -tzvf /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/ts_control.tar.gz
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/ts_control.tar.gz
+shasum -a 256 /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/ts_control.tar.gz
+tar -tzvf /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/ts_data.tar.gz
+file /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/ts_data.tar.gz
+shasum -a 256 /Users/mac/Desktop/è§¦å$'\212'¨ç²¾ç$'\201'µdeb/æ$'\213'$'\206'è§£å$'\210'$'\206'æ$'\236'$'\220'/è§¦å$'\212'¨16ç$'\211'$'\210'/ts_data.tar.gz
+rg -n -I -i requested-path-token TARGET1 TARGET2
+rg -n -I -i requested-path-token config-and-script-globs
+find vendor .theos packages -type f candidate-globs
+cmp -s vendor/lib/liblua5.3.dylib .theos/_/var/jb/usr/lib/ziyan/lib/liblua5.3.dylib
+cmp -s vendor/bin/lua5.3 .theos/_/var/jb/usr/lib/ziyan/bin/lua5.3
+cmp -s vendor/lib/libreadline.8.0.dylib .theos/_/var/jb/usr/lib/ziyan/lib/libreadline.8.0.dylib
+find packages -type f -name *.deb; dpkg-deb -c each package
+lipo -info vendor/bin/lua5.3
+otool -L vendor/bin/lua5.3
+otool -D vendor/bin/lua5.3
+otool -l vendor/bin/lua5.3
+nm -gU vendor/bin/lua5.3
+strings -a vendor/bin/lua5.3
+shasum -a 256 vendor/bin/lua5.3
+lipo -info vendor/lib/liblua5.3.dylib
+otool -L vendor/lib/liblua5.3.dylib
+otool -D vendor/lib/liblua5.3.dylib
+otool -l vendor/lib/liblua5.3.dylib
+nm -gU vendor/lib/liblua5.3.dylib
+strings -a vendor/lib/liblua5.3.dylib
+shasum -a 256 vendor/lib/liblua5.3.dylib
+lipo -info vendor/lib/libreadline.8.0.dylib
+otool -L vendor/lib/libreadline.8.0.dylib
+otool -D vendor/lib/libreadline.8.0.dylib
+otool -l vendor/lib/libreadline.8.0.dylib
+nm -gU vendor/lib/libreadline.8.0.dylib
+strings -a vendor/lib/libreadline.8.0.dylib
+shasum -a 256 vendor/lib/libreadline.8.0.dylib
+lipo -info .theos/_/var/jb/usr/lib/ziyan/bin/lua5.3
+otool -L .theos/_/var/jb/usr/lib/ziyan/bin/lua5.3
+otool -D .theos/_/var/jb/usr/lib/ziyan/bin/lua5.3
+otool -l .theos/_/var/jb/usr/lib/ziyan/bin/lua5.3
+nm -gU .theos/_/var/jb/usr/lib/ziyan/bin/lua5.3
+strings -a .theos/_/var/jb/usr/lib/ziyan/bin/lua5.3
+shasum -a 256 .theos/_/var/jb/usr/lib/ziyan/bin/lua5.3
+lipo -info .theos/_/var/jb/usr/lib/ziyan/lib/liblua5.3.dylib
+otool -L .theos/_/var/jb/usr/lib/ziyan/lib/liblua5.3.dylib
+otool -D .theos/_/var/jb/usr/lib/ziyan/lib/liblua5.3.dylib
+otool -l .theos/_/var/jb/usr/lib/ziyan/lib/liblua5.3.dylib
+nm -gU .theos/_/var/jb/usr/lib/ziyan/lib/liblua5.3.dylib
+strings -a .theos/_/var/jb/usr/lib/ziyan/lib/liblua5.3.dylib
+shasum -a 256 .theos/_/var/jb/usr/lib/ziyan/lib/liblua5.3.dylib
+lipo -info .theos/_/var/jb/usr/lib/ziyan/lib/libreadline.8.0.dylib
+otool -L .theos/_/var/jb/usr/lib/ziyan/lib/libreadline.8.0.dylib
+otool -D .theos/_/var/jb/usr/lib/ziyan/lib/libreadline.8.0.dylib
+otool -l .theos/_/var/jb/usr/lib/ziyan/lib/libreadline.8.0.dylib
+nm -gU .theos/_/var/jb/usr/lib/ziyan/lib/libreadline.8.0.dylib
+strings -a .theos/_/var/jb/usr/lib/ziyan/lib/libreadline.8.0.dylib
+shasum -a 256 .theos/_/var/jb/usr/lib/ziyan/lib/libreadline.8.0.dylib
+ls -l vendor/lib/libreadline.8.dylib vendor/lib/libreadline.8.0.dylib .theos/_/var/jb/usr/lib/ziyan/lib/libreadline.8.dylib .theos/_/var/jb/usr/lib/ziyan/lib/libreadline.8.0.dylib
+readlink vendor/lib/libreadline.8.dylib
+readlink .theos/_/var/jb/usr/lib/ziyan/lib/libreadline.8.dylib
+dpkg-deb -c packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-142+debug_iphoneos-arm64.deb  # command unavailable: exit 127

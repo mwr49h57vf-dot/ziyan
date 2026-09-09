@@ -1,0 +1,20 @@
+Executable=/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/python3.7/lib-dynload/_sqlite3.cpython-37m-darwin.so
+Identifier=_sqlite3.cpython-37m-darwin.so
+Format=Mach-O thin (arm64)
+CodeDirectory v=20200 size=991 flags=0x0(none) hashes=26+2 location=embedded
+Hash type=sha256 size=32
+CandidateCDHash sha1=85e7696906e39747cc6d93caa45c007c59995e8c
+CandidateCDHashFull sha1=85e7696906e39747cc6d93caa45c007c59995e8c
+CandidateCDHash sha256=a81ddb005c52000e21829075e2ee92af3386fa7b
+CandidateCDHashFull sha256=a81ddb005c52000e21829075e2ee92af3386fa7b72440d2ce659c18b3b030402
+Hash choices=sha1,sha256
+CMSDigest=2d504c9028631c019ecd9ca3114f59e753f2a6079e9ebe6fedfe4bc9d9af0bce
+CMSDigestType=2
+Launch Constraints:
+	None
+CDHash=a81ddb005c52000e21829075e2ee92af3386fa7b
+/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/python3.7/lib-dynload/_sqlite3.cpython-37m-darwin.so: no signature
+Info.plist=not bound
+TeamIdentifier=not set
+Sealed Resources=none
+Internal requirements count=0 size=12

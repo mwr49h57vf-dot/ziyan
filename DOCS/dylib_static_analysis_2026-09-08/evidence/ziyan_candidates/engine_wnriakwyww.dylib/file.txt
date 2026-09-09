@@ -1,0 +1,3 @@
+/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/engine/wnriakwyww.dylib: Mach-O universal binary with 2 architectures: [arm_v7:Mach-O dynamically linked shared library arm_v7] [arm64:Mach-O 64-bit dynamically linked shared library arm64]
+/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/engine/wnriakwyww.dylib (for architecture armv7):	Mach-O dynamically linked shared library arm_v7
+/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/engine/wnriakwyww.dylib (for architecture arm64):	Mach-O 64-bit dynamically linked shared library arm64

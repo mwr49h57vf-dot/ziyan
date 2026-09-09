@@ -1,0 +1,18 @@
+Executable=/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/libreadline.8.0.dylib
+Identifier=libreadline.8
+Format=Mach-O thin (arm64)
+CodeDirectory v=20400 size=2790 flags=0x2(adhoc) hashes=82+2 location=embedded
+Hash type=sha256 size=32
+CandidateCDHash sha256=111255c5e31254b654ce5d67498aa6057a512322
+CandidateCDHashFull sha256=111255c5e31254b654ce5d67498aa6057a5123227fd361b6ac9bbd980d766acb
+Hash choices=sha256
+CMSDigest=111255c5e31254b654ce5d67498aa6057a5123227fd361b6ac9bbd980d766acb
+CMSDigestType=2
+Launch Constraints:
+	None
+CDHash=111255c5e31254b654ce5d67498aa6057a512322
+Signature=adhoc
+Info.plist=not bound
+TeamIdentifier=not set
+Sealed Resources=none
+Internal requirements count=0 size=12

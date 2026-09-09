@@ -1,0 +1,2 @@
+30:/usr/lib/ziyan/var/.ziyan_front_bid
+31:/var/jb/usr/lib/ziyan/var/.ziyan_front_bid

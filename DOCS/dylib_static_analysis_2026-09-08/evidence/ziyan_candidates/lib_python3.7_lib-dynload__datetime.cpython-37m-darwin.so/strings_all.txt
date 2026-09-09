@@ -1,0 +1,404 @@
+h@9*
+4hf@9ij@9
+3hn@9
+ir@9
+r@9)
+r*}*
+r*}*
+of@9`j@9
+3an@9or@9
+r ~ 
+r"~"
+r@9(
+r(}(
+rH}(
+rh}(
+TJ}E
+rl},
+h@9(
+d@9h@9
+r+}+
+r+}+
+p@9o-
+r.}.
+Rl}
+rl},
+rk},
+h@9*
+w@9(
+c@9h
+rl},
+r*}*
+`@9H
+@9)=
+4jf@9kj@9K
+3jn@9lr@9mv@9nz@9o~@9
+n~@9jf@9ij@9I
+3kn@9jr@9mv@9lz@9
+hb@9
+4hf@9`j@9
+3an@9br@9cv@9dz@9e~@9h
+*hb@9
+Thf@9oj@9
+3pn@9hr@9
+hv@9
+iz@9
+i~@9
+@9)=
+b@9H
+b@9j
+hn@9
+hn@9
+b@9h
+Xjb@9
+r@9)
+r*}*
+r*}*
+hb@9
+pf@9oj@9
+3an@9pr@9 
+v@9jv@9)
+z@9kz@9J
+~@9k~@9J
+@9J=
+@9k=
+rl%
+p@9*,C)H!
+|@9, @
+@9J=
+b@9(
+ri~)
+2C)6
+h@9 
+@9)=
+a@9i
+a@9i
+*e@9 i@9@
+3!m@9"q@9
+q@9)=
+u@9I
+y@9&
+J)@y
+J)@y
+H(6
+h@9(
+p@9Ct
+@9)=
+@9)=
+a@9i
+r0~0
+r1~ 
+`@9h
+hf@9`j@9
+3an@9br@9cv@9dz@9e~@9
+hf@9`j@9
+3an@9br@9cv@9dz@9e~@9f
+`@9H
+if@9tj@94
+3un@9vr@9wv@9xz@9y~@9
+hf@9ij@9
+3hn@9jr@9kv@9lz@9m~@9
+hb@9H
+h@9*
+@9)=
+`@9i
+b@9H
+b@9h
+b@9(
+kK)Z
+rj}*
+2j),
+rj}*
+2j),
+2j),
+`@9h
+h&C)j"@
+C))}@
+r*}*
+2C)v
+`@9H
+l@9p@9
+h~@9
+4`f@9aj@9bn@9hr@9
+Siv@9(
+3iz@9
+*hb@9
+rif@9
+jj@9
+jn@97
+ir@9)=
+Sjv@9I
+3jz@95
+b@9H
+b@9j
+v@9(
+r@9)=
+v@9I
+z@9)
+`@9h
+hf@9ij@9jn@9
+hb@9(
+4hf@9ij@9jn@9
+`@9h
+`@9h
+p@9)=
+t@9I
+x@9)
+`@9i
+i~@9
+b@9(
+t@9(
+`@9h
+b@9h
+4hb@9
+date(year, month, day) --> date object
+datetime(year, month, day[, hour[, minute[, second[, microsecond[,tzinfo]]]]])
+The year, month and day arguments are required. tzinfo may be None, or an
+instance of a tzinfo subclass. The remaining arguments may be ints.
+Difference between two datetime values.
+timedelta(days=0, seconds=0, microseconds=0, milliseconds=0, minutes=0, hours=0, weeks=0)
+All arguments are optional and default to 0.
+Arguments may be integers or floats, and may be positive or negative.
+time([hour[, minute[, second[, microsecond[, tzinfo]]]]]) --> a time object
+All arguments are optional. tzinfo may be None, or an instance of
+a tzinfo subclass. The remaining arguments may be ints.
+Abstract base class for time zone info objects.
+Fixed offset from UTC implementation of tzinfo.
+resolution
+MINYEAR
+MAXYEAR
+date
+datetime
+time
+timedelta
+tzinfo
+timezone
+datetime.datetime_CAPI
+datetime_CAPI
+_datetime
+Fast implementation of the datetime type.
+datetime.date
+%s(%d, %d, %d)
+date value out of range
+isoformat
+fromtimestamp
+timestamp -> local date from a POSIX timestamp (like time.time()).
+fromordinal
+int -> date corresponding to a proleptic Gregorian ordinal.
+fromisoformat
+str -> Construct a date from the output of date.isoformat()
+today
+Current date or datetime:  same as self.__class__.fromtimestamp(time.time()).
+ctime
+Return ctime() style string.
+strftime
+format -> strftime() style string.
+__format__
+Formats self with strftime.
+timetuple
+Return time tuple, compatible with time.localtime().
+isocalendar
+Return a 3-tuple containing ISO year, week number, and weekday.
+Return string in ISO 8601 format, YYYY-MM-DD.
+isoweekday
+Return the day of the week represented by the date.
+Monday == 1 ... Sunday == 7
+toordinal
+Return proleptic Gregorian ordinal.  January 1 of year 1 is day 1.
+weekday
+Return the day of the week represented by the date.
+Monday == 0 ... Sunday == 6
+replace
+Return date with new specified fields.
+__reduce__
+__reduce__() -> (cls, state)
+O:fromtimestamp
+i:fromordinal
+ordinal must be >= 1
+fromisoformat: argument must be str
+Invalid isoformat string: %R
+%s %s %2d %02d:%02d:%02d %04d
+format
+U:strftime
+%c%02d%s%02d%s%02d.%06d
+%c%02d%s%02d%s%02d
+%c%02d%s%02d
+utcoffset
+offset must be a timedelta strictly between -timedelta(hours=24) and timedelta(hours=24).
+tzinfo.%s() must return None or timedelta, not '%.200s'
+tzname.replace() did not return a string
+tzname
+tzinfo.tzname() must return None or a string, not '%s'
+%06d
+U:__format__
+struct_time
+iiiiiiiii
+%04d-%02d-%02d
+|iii:replace
+year
+month
+(ON)
+Failed to encode latin1 string when unpickling a date object. pickle.load(data, encoding='latin1') is assumed.
+datetime.datetime
+%s(%d, %d, %d, %d, %d, %d, %d)
+%s(%d, %d, %d, %d, %d, %d)
+%s(%d, %d, %d, %d, %d)
+%U, fold=%d)
+%U, tzinfo=%R)
+can't subtract offset-naive and offset-aware datetimes
+can't compare offset-naive and offset-aware datetimes
+can't compare %s to %s
+utcnow
+Return a new datetime representing UTC day and time.
+timestamp[, tz] -> tz's local time from POSIX timestamp.
+utcfromtimestamp
+Construct a naive UTC datetime from a POSIX timestamp.
+strptime
+string, format -> new datetime parsed from a string (like time.strptime()).
+combine
+date, time -> datetime with same date and time fields
+string -> datetime from datetime.isoformat() output
+Return date object with same year, month and day.
+Return time object with same time but with tzinfo=None.
+timetz
+Return time object with same time and tzinfo.
+timestamp
+Return POSIX timestamp as float.
+utctimetuple
+Return UTC time tuple, compatible with time.localtime().
+[sep] -> string in ISO 8601 format, YYYY-MM-DDT[HH[:MM[:SS[.mmm[uuu]]]]][+HH:MM].
+sep is used to separate the year from the time, and defaults to 'T'.
+timespec specifies what components of the time to include (allowed values are 'auto', 'hours', 'minutes', 'seconds', 'milliseconds', and 'microseconds').
+Return self.tzinfo.utcoffset(self).
+Return self.tzinfo.tzname(self).
+Return self.tzinfo.dst(self).
+Return datetime with new specified fields.
+astimezone
+tz -> convert to local time in new timezone tz
+__reduce_ex__
+__reduce_ex__(proto) -> (cls, state)
+|O:now
+tzinfo argument must be None or of a tzinfo subclass, not type '%s'
+year %i is out of range
+iiiiiiiO
+fromutc
+O|O:fromtimestamp
+O:utcfromtimestamp
+_strptime_datetime
+UU:strptime
+_strptime
+O!O!|O:combine
+offset must be a timedelta strictly between -timedelta(hours=24) and timedelta(hours=24), not %R.
+timespec
+hours
+%04d-%02d-%02d%c%02d
+minutes
+%04d-%02d-%02d%c%02d:%02d
+seconds
+%04d-%02d-%02d%c%02d:%02d:%02d
+milliseconds
+%04d-%02d-%02d%c%02d:%02d:%02d.%03d
+microseconds
+%04d-%02d-%02d%c%02d:%02d:%02d.%06d
+|Cs:isoformat
+auto
+Unknown timespec value
+|iiiiiiiO$i:replace
+fold must be either 0 or 1
+hour
+minute
+second
+microsecond
+fold
+|O:astimezone
+utcoffset() returned %.200s, expected timedelta or None
+surrogateescape
+i:__reduce_ex__
+Failed to encode latin1 string when unpickling a datetime object. pickle.load(data, encoding='latin1') is assumed.
+iii|iiiiO$i
+bad tzinfo state arg
+datetime.timedelta
+days=%d
+%U%sseconds=%d
+%U%smicroseconds=%d
+%s(%S)
+divmod() returned a value out of range
+divmod() returned non-tuple (type %.200s)
+divmod() returned a tuple of size %zd
+unexpected return type from as_integer_ratio(): expected tuple, got '%.200s'
+as_integer_ratio() must return a 2-tuple
+as_integer_ratio
+%d day%s, %d:%02d:%02d.%06d
+%d day%s, %d:%02d:%02d
+%d:%02d:%02d.%06d
+%d:%02d:%02d
+total_seconds
+Total seconds in the duration.
+days
+Number of days.
+Number of seconds (>= 0 and less than 1 day).
+Number of microseconds (>= 0 and less than 1 second).
+weeks
+|OOOOOOO:__new__
+unsupported type for timedelta %s component: %s
+datetime.time
+%s(%d, %d, %d, %d)
+%s(%d, %d)
+can't compare offset-naive and offset-aware times
+Return string in ISO 8601 format, [HH[:MM[:SS[.mmm[uuu]]]]][+HH:MM].
+timespec specifies what components of the time to include.
+Return time with new specified fields.
+string -> time from time.isoformat() output
+%02d
+%02d:%02d
+%02d:%02d:%02d
+%02d:%02d:%02d.%03d
+%02d:%02d:%02d.%06d
+|s:isoformat
+|iiiiO$i:replace
+iiiiO
+Failed to encode latin1 string when unpickling a time object. pickle.load(data, encoding='latin1') is assumed.
+|iiiiO$i
+datetime.tzinfo
+datetime -> string name of time zone.
+datetime -> timedelta showing offset from UTC, negative values indicating West of UTC
+datetime -> DST offset as timedelta positive east of UTC.
+datetime in UTC -> datetime in local time.
+-> (cls, state)
+a tzinfo subclass must implement %s()
+fromutc: argument must be a datetime
+fromutc: dt.tzinfo is not self
+fromutc: non-None utcoffset() result required
+fromutc: non-None dst() result required
+fromutc: tz.dst() gave inconsistent results; cannot convert
+__getinitargs__
+__getstate__
+(ONN)
+datetime.timezone
+%s.utc
+%s(%R)
+%s(%R, %R)
+UTC%c%02d:%02d:%02d.%06d
+UTC%c%02d:%02d:%02d
+UTC%c%02d:%02d
+If name is specified when timezone is created, returns the name.  Otherwise returns offset as 'UTC(+|-)HH:MM'.
+Return fixed offset.
+Return None.
+pickle support
+%s(dt) argument must be a datetime instance or None, not %.200s
+(OO)
+O!|U:timezone
+offset
+name
+days=%d; must have magnitude <= %d
+month must be in 1..12
+day is out of range for month
+hour must be in 0..23
+minute must be in 0..59
+second must be in 0..59
+microsecond must be in 0..999999
+now($type, /, tz=None)
+Returns new datetime object representing current time local to tz.
+  tz
+    Timezone object.
+If no tz is specified, uses local timezone.

@@ -1,0 +1,115 @@
+s[8(
+s_8@
+S_8 
+daemon
+ncnn
+test
+ensure
+ensure=%d path=%s
+read_control_flags
+write_control_flags
+write_color
+read_color
+write_touch
+read_touch
+write_toast
+write_toast_file
+heartbeat
+ziyanctl shm write_color ... | read_color | write_touch | read_touch
+ziyanctl shm write_toast <ms> <text...>
+ziyanctl shm write_toast_file <ms> <utf8_path>
+ziyanctl shm heartbeat <name> | ensure
+ziyanctl shm read_control_flags | write_control_flags <paused> <stopped>
+ziyanctl daemon icon hide|restore
+ziyanctl daemon toast <ms> <text...>
+ziyanctl ncnn test
+icon
+.ziyan_daemon_icon_cmd
+hide
+.ziyan_icon_hide_req
+restore
+.ziyan_icon_restore_req
+ok daemon_icon=%s
+toast
+.ziyan_daemon_toast_cmd
+ok daemon_toast
+/usr/lib/ziyan
+rootless
+/var/jb
+v8@?0
+rootful
+/var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua
+/usr/lib/ziyan/lib/lua/ziyan_run.lua
+/var/mobile/Library/Preferences/com.ziyan.ziyan.runtime_scheme
+.ziyan_ncnn_off
+/var/jb/usr/lib/ziyan/models/findcolor_int8.param
+/usr/lib/ziyan/models/findcolor_int8.param
+.ziyan_ncnn_bridge_lock
+.ziyan_ncnn_perf
+ncnn_test enabled=%d has_weight=%d bridge_lock=%d weight=%s
+(none)
+perf_last=%s
+perf_last=(empty 
+ run findcolor once)
+FAIL
+PASS_ncnn_off
+PASS_weight_present
+PASS_bridge_lock
+PASS_fallback_ok
+verdict=%s
+{"paused":%d,"stopped":%d} paused=%d stopped=%d
+ok write_control_flags paused=%d stopped=%d
+write_color fail
+ok shm=color_req nonce=%llu
+empty
+ok x=%d y=%d count=%d via=%s nonce=%llu
+write_touch fail
+ok shm=touch_req nonce=%llu
+ok=%d nonce=%llu
+write_toast fail
+ok shm=toast
+write_toast_file read fail path=%s err=%s
+write_toast_file fail
+ok shm=toast_file
+ok heartbeat=%s
+.ziyan_control_shm
+.ziyan_shm_disabled
+.ziyan_user_stopped
+framecap
+.ziyan_stop
+.ziyan_paused
+.ziyan_active
+UTF8String
+numberWithInt:
+stringByAppendingString:
+removeItemAtPath:error:
+date
+intValue
+arrayWithArray:
+writeToFile:atomically:
+stringWithUTF8String:
+dictionaryWithObjects:forKeys:count:
+hasSuffix:
+stringWithFormat:
+fileExistsAtPath:
+array
+localizedDescription
+whitespaceAndNewlineCharacterSet
+createDirectoryAtPath:withIntermediateDirectories:attributes:error:
+addObject:
+count
+writeToFile:atomically:encoding:error:
+data
+stringByAppendingPathComponent:
+length
+substringToIndex:
+timeIntervalSince1970
+stringWithContentsOfFile:encoding:error:
+subarrayWithRange:
+isEqualToString:
+objectAtIndexedSubscript:
+defaultManager
+componentsJoinedByString:
+fileSystemRepresentation
+hasPrefix:
+stringByTrimmingCharactersInSet:

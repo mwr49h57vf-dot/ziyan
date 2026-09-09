@@ -1,0 +1,2 @@
+.theos/_/var/jb/usr/lib/ziyan/lib/liblua5.3.dylib:
+/usr/lib/ziyan/lib/liblua5.3.dylib

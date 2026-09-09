@@ -1,0 +1,2 @@
+Non-fat file: /Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/python3.7/lib-dynload/zlib.cpython-37m-darwin.so is architecture: arm64
+arm64

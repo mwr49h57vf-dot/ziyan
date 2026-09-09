@@ -1,0 +1,17 @@
+perl: warning: Setting locale failed.
+perl: warning: Please check that your locale settings:
+	LC_ALL = "C.UTF-8",
+	LC_CTYPE = "C.UTF-8",
+	LC_NUMERIC = (unset),
+	LC_COLLATE = (unset),
+	LC_TIME = (unset),
+	LC_MESSAGES = (unset),
+	LC_MONETARY = (unset),
+	LANG = "C.UTF-8"
+    are supported and installed on your system.
+perl: warning: Falling back to the standard locale ("C").
+Unknown option:  
+Unknown option: M
+Value "ch-O executable arm_v7] [arm64]" invalid for option a (integer number expected)
+Unknown option: o executable arm_v7] [arm64]
+Type shasum -h for help

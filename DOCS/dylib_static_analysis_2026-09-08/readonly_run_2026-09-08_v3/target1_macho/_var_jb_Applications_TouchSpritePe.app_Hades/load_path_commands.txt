@@ -1,0 +1,36 @@
+LC_ID_DYLIB / LC_LOAD_DYLIB / LC_RPATH extracted from otool -l
+324-Load command 13
+325:          cmd LC_LOAD_DYLIB
+326-      cmdsize 88
+327-         name /System/Library/Frameworks/Foundation.framework/Foundation (offset 24)
+328-   time stamp 2 Thu Jan  1 08:00:02 1970
+329-      current version 1946.102.0
+330-compatibility version 300.0.0
+331-Load command 14
+332:          cmd LC_LOAD_DYLIB
+333-      cmdsize 80
+334-         name /System/Library/Frameworks/UIKit.framework/UIKit (offset 24)
+335-   time stamp 2 Thu Jan  1 08:00:02 1970
+336-      current version 6092.1.111
+337-compatibility version 1.0.0
+338-Load command 15
+339:          cmd LC_LOAD_DYLIB
+340-      cmdsize 56
+341-         name /usr/lib/libobjc.A.dylib (offset 24)
+342-   time stamp 2 Thu Jan  1 08:00:02 1970
+343-      current version 228.0.0
+344-compatibility version 1.0.0
+345-Load command 16
+346:          cmd LC_LOAD_DYLIB
+347-      cmdsize 56
+348-         name /usr/lib/libSystem.B.dylib (offset 24)
+349-   time stamp 2 Thu Jan  1 08:00:02 1970
+350-      current version 1319.0.0
+351-compatibility version 1.0.0
+352-Load command 17
+353:          cmd LC_LOAD_DYLIB
+354-      cmdsize 96
+355-         name /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (offset 24)
+356-   time stamp 2 Thu Jan  1 08:00:02 1970
+357-      current version 1946.102.0
+358-compatibility version 150.0.0

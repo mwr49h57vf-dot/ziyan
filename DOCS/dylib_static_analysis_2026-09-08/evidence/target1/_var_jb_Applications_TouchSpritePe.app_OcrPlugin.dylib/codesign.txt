@@ -1,0 +1,18 @@
+Executable=/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/OcrPlugin.dylib
+Identifier=OcrPlugin64.dylib
+Format=Mach-O thin (arm64)
+CodeDirectory v=20400 size=57610 flags=0x0(none) hashes=1795+2 location=embedded
+Hash type=sha256 size=32
+CandidateCDHash sha256=bf4a6357752a1884d52a288c381a06880bb1f918
+CandidateCDHashFull sha256=bf4a6357752a1884d52a288c381a06880bb1f918ca95b3669fab745f8d39a347
+Hash choices=sha256
+CMSDigest=bf4a6357752a1884d52a288c381a06880bb1f918ca95b3669fab745f8d39a347
+CMSDigestType=2
+Launch Constraints:
+	None
+CDHash=bf4a6357752a1884d52a288c381a06880bb1f918
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/OcrPlugin.dylib: no signature
+Info.plist=not bound
+TeamIdentifier=not set
+Sealed Resources=none
+Internal requirements count=1 size=136

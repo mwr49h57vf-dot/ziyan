@@ -1,0 +1,1 @@
+0000000000005830 T _PyInit_readline

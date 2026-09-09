@@ -1304,6 +1304,72 @@ static void ZiYanFramecapNoteFrontBidIfChanged(void) {
   ZiYanArmForceRecap(tag, prev, bid);
 }
 
+// BIZ04：每次真合帧/复用写 last + 一行 log。找 cost_ms，不改节拍。
+static void CapWriteCost(const char *via, double costMs, uint32_t seq,
+                         size_t w, size_t h, int reuse) {
+  if (!via || !via[0]) {
+    via = "-";
+  }
+  double createMs = 0, xferMs = 0, copyMs = 0, destLockMs = 0, residentMs = 0,
+         srcLockMs = 0, releaseMs = 0, publishMs = 0;
+  int skipPx = 0;
+  if (!reuse) {
+    ZiYanFrameCaptureLastCapStages(&createMs, &xferMs, &copyMs, &destLockMs);
+    skipPx = ZiYanFrameShmLastWriteSkippedPixels();
+    residentMs = ZiYanFrameResidentLastRenewMs();
+    srcLockMs = ZiYanFrameCaptureLastSrcLockMs();
+    releaseMs = ZiYanFrameCaptureLastReleaseMs();
+    publishMs = ZiYanFrameCaptureLastPublishMs();
+  }
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+  double ts = (double)tv.tv_sec + (double)tv.tv_usec / 1000000.0;
+  char last[520];
+  snprintf(last, sizeof(last),
+           "ts=%.3f\nvia=%s\ncost_ms=%.1f\ncreate_ms=%.1f\nxfer_ms=%.1f\n"
+           "src_lock_ms=%.1f\ndestlock_ms=%.1f\ncopy_ms=%.1f\n"
+           "resident_ms=%.1f\nrelease_ms=%.1f\npublish_ms=%.1f\n"
+           "skip_px=%d\nseq=%u\n"
+           "w=%zu\nh=%zu\nreuse=%d\n",
+           ts, via, costMs, createMs, xferMs, srcLockMs, destLockMs, copyMs,
+           residentMs, releaseMs, publishMs, skipPx, seq, w, h, reuse);
+  const char *lastP =
+      ZiYanVarFile(@".ziyan_last_cap_cost").fileSystemRepresentation;
+  if (lastP && lastP[0]) {
+    int fd = open(lastP, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+    if (fd >= 0) {
+      (void)write(fd, last, strlen(last));
+      close(fd);
+      chmod(lastP, 0666);
+    }
+  }
+  char line[440];
+  snprintf(line, sizeof(line),
+           "ts=%.3f via=%s cost_ms=%.1f create_ms=%.1f xfer_ms=%.1f "
+           "src_lock_ms=%.1f destlock_ms=%.1f copy_ms=%.1f resident_ms=%.1f "
+           "release_ms=%.1f publish_ms=%.1f skip_px=%d seq=%u w=%zu h=%zu "
+           "reuse=%d\n",
+           ts, via, costMs, createMs, xferMs, srcLockMs, destLockMs, copyMs,
+           residentMs, releaseMs, publishMs, skipPx, seq, w, h, reuse);
+  const char *logP =
+      ZiYanVarFile(@".ziyan_cap_cost.log").fileSystemRepresentation;
+  if (logP && logP[0]) {
+    struct stat st;
+    if (stat(logP, &st) == 0 && st.st_size > 64 * 1024) {
+      char bak[520];
+      snprintf(bak, sizeof(bak), "%s.1", logP);
+      unlink(bak);
+      rename(logP, bak);
+    }
+    int lfd = open(logP, O_WRONLY | O_CREAT | O_APPEND, 0666);
+    if (lfd >= 0) {
+      (void)write(lfd, line, strlen(line));
+      close(lfd);
+      chmod(logP, 0666);
+    }
+  }
+}
+
 // C-65.11-91/92：热成功路径禁止 NSString CapLog；CapLogC 必须纯 C
 //（C91 仍调 ZiYanVarFile/NSDate → .166 C91@min2 SIGSEGV objc_retain）。
 static void CapLogC(const char *msg) {
@@ -1859,13 +1925,33 @@ static BOOL HandleOnceUnlocked(NSString *nonce) {
     long long freshAge = ZiYanFrameShmPeekAgeMs();
     uint8_t freshProv = ZiYanFrameShmPeekProvider();
     uint8_t freshSt = ZiYanFrameShmPeekStatus();
+    BOOL heavy3x = NO;
+    {
+      size_t hw = 0, hh = 0;
+      NSString *nwh = [NSString
+          stringWithContentsOfFile:ZiYanVarFile(@".ziyan_native_wh")
+                          encoding:NSUTF8StringEncoding
+                             error:nil];
+      NSArray *nlh = [nwh componentsSeparatedByString:@"\n"];
+      if (nlh.count >= 3 && [nlh[2] intValue] >= 3) {
+        heavy3x = YES;
+      } else if (ZiYanFrameShmHasPixels(&hw, &hh, NULL) &&
+                 (hw * hh > 4000000)) {
+        heavy3x = YES;
+      }
+    }
+    long long surfReuseMs = heavy3x ? 2500 : 250;
+    BOOL softForce = callerForceSurf && !ZiYanForceRecapPending() &&
+                     ZiYanShmBidMatchesFront();
     BOOL freshCurrent =
-        !callerForceSurf && freshSt == ZiYanFrameStatusValid &&
+        (!callerForceSurf || softForce) &&
+        freshSt == ZiYanFrameStatusValid &&
         (freshProv == ZiYanFrameProviderScreenIOSurface ||
          freshProv == ZiYanFrameProviderAppWindow) &&
         freshAge >= 0 &&
         freshAge <=
-            (freshProv == ZiYanFrameProviderScreenIOSurface ? 250 : 900) &&
+            (freshProv == ZiYanFrameProviderScreenIOSurface ? surfReuseMs
+                                                            : 900) &&
         ZiYanShmBidMatchesFront() &&
         ZiYanFrameKeepGenerationSealed() &&
         ZiYanFrameResidentHasPixels(NULL, NULL, NULL);
@@ -1893,6 +1979,10 @@ static BOOL HandleOnceUnlocked(NSString *nonce) {
           chmod(ackPath, 0666);
         }
       }
+      CapWriteCost((freshProv == ZiYanFrameProviderScreenIOSurface)
+                       ? "uisurface"
+                       : "appwindow",
+                   0.0, kseq, kw, kh, 1);
       sLastCap = now;
       return YES;
     }
@@ -2021,6 +2111,7 @@ static BOOL HandleOnceUnlocked(NSString *nonce) {
       sQuietForBid = [frontBid copy];
       sRecapQuietUntil = now + 0.12;
       sSurfBusyUntil = now + MAX(0.05, appCostMs / 1000.0);
+      CapWriteCost("uisurface", appCostMs, aseq, aw, ah, 0);
       return YES;
       }
     }
@@ -4362,10 +4453,10 @@ static void PollColorReq(void) {
   ZiYanCaptureDecisionUnlock();
 }
 
-/// 给 /snapshot 用：HTTP 处理器与 ServeLoop 同线程，等待等不来帧，只能就地合。
+/// 旧 HTTP 钩子：禁止再从 HTTP 线程 HandleOnce / force_recap。
+/// /snapshot 只写 .ziyan_snap_http_want，由 ServeLoop 合帧。
 static void SnapDriveCapture(void) {
-  ZiYanWriteVarText(@".ziyan_force_recap", @"1\n");
-  (void)HandleOnce(@"snap_http");
+  ZiYanWriteVarText(@".ziyan_snap_http_want", @"1\n");
 }
 
 static void ServeLoop(void) {
@@ -4898,9 +4989,10 @@ static void ServeLoop(void) {
       BOOL busy = hasColor || ZiYanBusinessHot();
       BOOL sessionCold = !ZiYanSessionWantsRun() && !hasColor && !busy && !snapWant;
       // 8-161-113 Phase1-R CPU：冷闲 500ms（旧 300ms）；找色 5ms；keep 批 25ms
+      // BIZ03：embed 后 .53 仍 p50=49。@3x 热环 5ms 空转贵；只放宽合帧节拍，不改找色。
       useconds_t idle = 300000;
       if (hasColor) {
-        idle = 5000;
+        idle = heavy3x ? 25000 : 5000;
       } else if (sessionCold) {
         idle = 500000;
       } else if (onHome && !busy) {

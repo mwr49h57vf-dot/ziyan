@@ -1,0 +1,1 @@
+4e89b9a34cd9a7a6d374a7afd0edfc96a42ba20a5e5ed67b0ebbce6a72543d57  /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSDaemon

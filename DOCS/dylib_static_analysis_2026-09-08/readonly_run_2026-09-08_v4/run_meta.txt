@@ -1,0 +1,6 @@
+v4 read-only collection
+date=2026-09-08
+cwd=/Users/mac/Desktop/ZiYan_副本
+targets:
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/
+/Users/mac/Desktop/ZiYan_副本/ZiYan学习/逆向学习/corpus/touchsprite_helpdoc/

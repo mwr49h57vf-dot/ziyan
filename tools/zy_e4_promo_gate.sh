@@ -42,16 +42,42 @@ mkdir -p "$OUT"
 SSH_OPTS=(-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=12
           -o PreferredAuthentications=password -o PubkeyAuthentication=no
           -o ServerAliveInterval=20 -o ServerAliveCountMax=6)
-ssh_r() { sshpass -p "$PASS" ssh "${SSH_OPTS[@]}" "root@$1" "${@:2}"; }
+SSH_KEY_OPTS=(-o BatchMode=yes -o PasswordAuthentication=no -o PubkeyAuthentication=yes
+              -o PreferredAuthentications=publickey -o StrictHostKeyChecking=no
+              -o UserKnownHostsFile=/dev/null -o ConnectTimeout=12
+              -o ServerAliveInterval=20 -o ServerAliveCountMax=6)
+ssh_r() {
+  if ssh "${SSH_KEY_OPTS[@]}" "root@$1" "${@:2}"; then
+    return 0
+  fi
+  sshpass -p "$PASS" ssh "${SSH_OPTS[@]}" "root@$1" "${@:2}"
+}
 # 越狱机 sshd 在短时间大量连接后会偶发 "Permission denied"（认证限流）。
 # 单次传输失败不得中断整场多机长跑，退避重试后仍失败才跳过该机。
 scp_r() {
   local i
+  local -a SCP_KEY_OPTS=(
+    -o BatchMode=yes
+    -o PasswordAuthentication=no
+    -o PubkeyAuthentication=yes
+    -o PreferredAuthentications=publickey
+    -o StrictHostKeyChecking=no
+    -o UserKnownHostsFile=/dev/null
+    -o ConnectTimeout=12
+    -o ServerAliveInterval=20
+    -o ServerAliveCountMax=6
+  )
   for i in 1 2 3 4 5; do
-    if sshpass -p "$PASS" scp "${SSH_OPTS[@]}" "$1" "root@$2:$3"; then
+    if scp "${SCP_KEY_OPTS[@]}" "$1" "root@$2:$3"; then
+      echo "SCP_AUTH=public_key host=$2"
       return 0
     fi
-    echo "WARN scp retry $i/5 → $2:$3"
+    echo "WARN scp public-key failed retry $i/5 → $2:$3"
+    if sshpass -p "$PASS" scp "${SSH_OPTS[@]}" "$1" "root@$2:$3"; then
+      echo "SCP_AUTH=password host=$2"
+      return 0
+    fi
+    echo "WARN scp password retry $i/5 → $2:$3"
     sleep $((i * 4))
   done
   return 1
@@ -68,6 +94,8 @@ echo "SHA256_ios8p=$SHA8" | tee -a "$OUT/OUT_PATH.txt"
 
 # 先清场（禁 kickstart -k）
 bash "$ROOT/tools/zy_pretest_clean_4phone.sh" 2>&1 | tee "$OUT/pretest_clean.txt" | tail -20
+echo "POST_CLEAN_WAIT_SEC=60" | tee -a "$OUT/pretest_clean.txt"
+sleep 60
 
 run_remote() {
   local H="$1"

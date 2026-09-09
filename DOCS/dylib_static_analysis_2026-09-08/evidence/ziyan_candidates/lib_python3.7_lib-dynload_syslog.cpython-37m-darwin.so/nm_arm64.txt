@@ -1,0 +1,1 @@
+00000000000074a8 T _PyInit_syslog

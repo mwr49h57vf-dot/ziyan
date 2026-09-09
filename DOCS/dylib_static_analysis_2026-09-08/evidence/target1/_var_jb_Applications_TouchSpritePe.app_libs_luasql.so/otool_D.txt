@@ -1,0 +1,4 @@
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/luasql.so (architecture armv7s):
+/Users/Fish/Documents/MyFiles/触动精灵/luasql.so.openapi/build/luasql.so
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/luasql.so (architecture arm64):
+/Users/Fish/Documents/MyFiles/触动精灵/luasql.so.openapi/build/luasql.so

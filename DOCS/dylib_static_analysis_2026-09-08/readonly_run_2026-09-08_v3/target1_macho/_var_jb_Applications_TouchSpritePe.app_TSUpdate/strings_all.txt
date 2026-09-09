@@ -1,0 +1,308 @@
+xD~DkhB
+BfzD
+(FAF
+h0F)F
+h0F!F
+2P"F
+xDyD
+GBxD
+h{D F
+[BxD
+h{D F
+MBxD
+tCzD
+h{D(F
+?BxD
+RCzD
+h{D(F
+zDyD
+zDyD
+zDyD
+h{D F
+h{D F
+~3zD
+h{D F
+EBxD
+\3zD
+h{D F
+gBxD
+:3zD
+h{D F
+h{D F
+}D(h8
+D}DzD
+xDzD
+yD@F
+z`"F
+f`2F
+#FxD
+!6{D
+D~D{D|D}D
+0F)FBF
+%(F]
+ F)F
+F i 
+Eh F
+ FAF2F
+5`xD
+yD|D}D
+zD!hA
+`{D5h@
+~DV`A
+{D6h
+{DSaA
+h3`A
+X&{D
+h3`A
+{DSbA
+,&{D
+h3`A
+~D)`B
+xD `
+AFxD"F
+AFxD"F
+AFxD"F
+AFxD"F
+QFxDBF#F
+LbxD
+h(F1F
+yDzDxD
+AFZF
+QF#F
+(F1F
+3i5h#
+h,i$
+hph(
+hzDC
+2F+F
+0i C0a(iVF@
+`)F0F
+0FAF
+(F!F
+0FAF
+(F!F
+0FAF
+(F!F
+h{D(F
+20AF
+RFxD
+ FQF
+FXFQF
+F FAF*F3F
+!i*i
+ `(F
+Ah(F
+PF2F
+xDzDyD
+xDzDyD
+P"+F
+xD}DO
+F F)F
+ F)F
+(FyD
+!F2F
+`0.E
+2FxD+F
+xDzD
+(!2F
+CFyD
+Update...
+/Applications/TouchSprite.app/unzip -o %s -d %@
+/private/var/mobile/Media/TouchSprite/update/tmp/
+cp -r /private/var/mobile/Media/TouchSprite/update/tmp/TouchSprite.app /Applications/
+cp -r /private/var/mobile/Media/TouchSprite/update/tmp/TS* /Library/MobileSubstrate/DynamicLibraries/
+chown -R root:admin /Applications/TouchSprite.app
+chmod -R u=rwx,go=rx /Applications/TouchSprite.app
+chmod ug=rwx,o=rx /Applications/TouchSprite.app
+chown root:wheel /Applications/TouchSprite.app/NewTouchSprite /Applications/TouchSprite.app/TSDaemon /Library/MobileSubstrate/DynamicLibraries/TSTweak* /Applications/TouchSprite.app/libs/* /Applications/TouchSprite.app/*.png /Applications/TouchSprite.app/*.plist
+chmod u=rwx,go=rx /Library/MobileSubstrate/DynamicLibraries/TSTweak*.dylib
+chmod ug+s /Applications/TouchSprite.app/TSDaemon
+chmod u+s /Applications/TouchSprite.app/TSLn
+chmod u+s /Applications/TouchSprite.app/unzip
+chmod u+s /Applications/TouchSprite.app/TSUpdate
+killall -9 TSDaemon NewTouchSprite
+rm -rf /private/var/mobile/Media/TouchSprite/update/tmp
+rm -rf /Applications/TouchSprite.app/default
+su -c /usr/bin/uicache mobile > /dev/null
+killall -9 SpringBoard backboardd
+uncompress update files...
+copy update files...
+set permission...
+shutdown service...
+clean tmp files...
+clean icon cache...
+respring...
+update completed!
+NSAutoreleasePool
+_objc_autoreleasePoolPush
+_objc_autoreleasePoolPop
+__TEXT
+__LINKEDIT
+NSArray
+NSMutableArray
+NSDictionary
+NSOrderedSet
+NSMutableOrderedSet
+NSMutableDictionary
+_object_setInstanceVariable
+_object_setIvar
+_object_copy
+_objc_retain
+_objc_retainBlock
+_objc_release
+_objc_autorelease
+_objc_retainAutorelease
+_objc_autoreleaseReturnValue
+_objc_retainAutoreleaseReturnValue
+_objc_retainAutoreleasedReturnValue
+_objc_storeStrong
+NSUndoManagerProxy
+_targetClass
+NSManagedObject
+NSConstantString
+NSString
+NSKnownKeysMappingStrategy1
+NSKnownKeysDictionary1
+_objc_readClassPair
+_objc_allocateClassPair
+_object_getIndexedIvars
+_objc_getClass
+_objc_getMetaClass
+_objc_getRequiredClass
+_objc_lookUpClass
+_objc_getProtocol
+_class_getName
+_protocol_getName
+_objc_copyClassNamesForImage
+Swift
+_Tt%cSs%zu%.*s%s
+_Tt%c%zu%.*s%zu%.*s%s
+_TtP
+_TtC
+%.*s.%.*s
+stringWithFormat:
+UTF8String
+load
+drain
+objectAtIndexedSubscript:
+setObject:atIndexedSubscript:
+objectForKeyedSubscript:
+objectAtIndex:
+count
+addObject:
+replaceObjectAtIndex:withObject:
+objectForKey:
+setObject:forKeyedSubscript:
+setObject:atIndex:
+setObject:forKey:
+removeObjectForKey:
+retain
+release
+autorelease
+isKindOfClass:
+init
+allocWithEntity:
+allocBatch:withEntity:count:
+fastIndexForKnownKey:
+indexForKey:
+addEntriesFromDictionary:
+self
+initialize
+lengthOfBytesUsingEncoding:
+getCString:maxLength:encoding:
+alloc
+initWithBytes:length:encoding:
+keyEnumerator
+nextObject
+__ARCLite__
+__ARCLiteIndexedSubscripting__
+__ARCLiteKeyedSubscripting__
+@12@0:4I8
+v16@0:4@8I12
+@12@0:4@8
+v16@0:4@8@12
+T*9@
+'A))
+h&G)
+Update...
+/Applications/TouchSprite.app/unzip -o %s -d %@
+/private/var/mobile/Media/TouchSprite/update/tmp/
+cp -r /private/var/mobile/Media/TouchSprite/update/tmp/TouchSprite.app /Applications/
+cp -r /private/var/mobile/Media/TouchSprite/update/tmp/TS* /Library/MobileSubstrate/DynamicLibraries/
+chown -R root:admin /Applications/TouchSprite.app
+chmod -R u=rwx,go=rx /Applications/TouchSprite.app
+chmod ug=rwx,o=rx /Applications/TouchSprite.app
+chown root:wheel /Applications/TouchSprite.app/NewTouchSprite /Applications/TouchSprite.app/TSDaemon /Library/MobileSubstrate/DynamicLibraries/TSTweak* /Applications/TouchSprite.app/libs/* /Applications/TouchSprite.app/*.png /Applications/TouchSprite.app/*.plist
+chmod u=rwx,go=rx /Library/MobileSubstrate/DynamicLibraries/TSTweak*.dylib
+chmod ug+s /Applications/TouchSprite.app/TSDaemon
+chmod u+s /Applications/TouchSprite.app/TSLn
+chmod u+s /Applications/TouchSprite.app/unzip
+chmod u+s /Applications/TouchSprite.app/TSUpdate
+killall -9 TSDaemon NewTouchSprite
+rm -rf /private/var/mobile/Media/TouchSprite/update/tmp
+rm -rf /Applications/TouchSprite.app/default
+su -c /usr/bin/uicache mobile > /dev/null
+killall -9 SpringBoard backboardd
+uncompress update files...
+copy update files...
+set permission...
+shutdown service...
+clean tmp files...
+clean icon cache...
+respring...
+update completed!
+NSMutableDictionary
+NSUndoManagerProxy
+_targetClass
+NSManagedObject
+NSConstantString
+NSString
+NSKnownKeysMappingStrategy1
+NSKnownKeysDictionary1
+_objc_readClassPair
+_objc_allocateClassPair
+_object_getIndexedIvars
+_objc_getClass
+_objc_getMetaClass
+_objc_getRequiredClass
+_objc_lookUpClass
+_objc_getProtocol
+_class_getName
+_protocol_getName
+_objc_copyClassNamesForImage
+Swift
+_Tt%cSs%zu%.*s%s
+_Tt%c%zu%.*s%zu%.*s%s
+_TtP
+_TtC
+%.*s.%.*s
+__TEXT
+__LINKEDIT
+stringWithFormat:
+UTF8String
+load
+setObject:forKeyedSubscript:
+setObject:forKey:
+removeObjectForKey:
+objectForKeyedSubscript:
+isKindOfClass:
+init
+allocWithEntity:
+allocBatch:withEntity:count:
+fastIndexForKnownKey:
+indexForKey:
+objectForKey:
+addEntriesFromDictionary:
+self
+initialize
+release
+lengthOfBytesUsingEncoding:
+getCString:maxLength:encoding:
+alloc
+initWithBytes:length:encoding:
+keyEnumerator
+nextObject
+__ARCLite__
+__ARCLiteKeyedSubscripting__
+@24@0:8@16
+v32@0:8@16@24

@@ -1,0 +1,1 @@
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/nm: error: /Users/mac/Desktop/ZiYan_副本/--- ZiYan candidate paths ---: No such file or directory

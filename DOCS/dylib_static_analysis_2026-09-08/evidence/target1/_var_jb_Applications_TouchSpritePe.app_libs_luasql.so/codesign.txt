@@ -1,0 +1,20 @@
+Executable=/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/luasql.so
+Identifier=luasql.so
+Format=Mach-O universal (armv7s arm64)
+CodeDirectory v=20400 size=28802 flags=0x0(none) hashes=895+2 location=embedded
+Hash type=sha256 size=32
+CandidateCDHash sha1=197bf2ea8fbb08c3d8a87685128303cd73139d70
+CandidateCDHashFull sha1=197bf2ea8fbb08c3d8a87685128303cd73139d70
+CandidateCDHash sha256=81a4ce7dae94687591503e4572c54efcdcdd56eb
+CandidateCDHashFull sha256=81a4ce7dae94687591503e4572c54efcdcdd56eb5a5fc9b6b287b03adac9f3e1
+Hash choices=sha1,sha256
+CMSDigest=da098df3b42b4f165b95e7789c8c10a6d25b2d1009d3efc815eeff513ca42c12
+CMSDigestType=2
+Launch Constraints:
+	None
+CDHash=81a4ce7dae94687591503e4572c54efcdcdd56eb
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/luasql.so: no signature
+Info.plist=not bound
+TeamIdentifier=not set
+Sealed Resources=none
+Internal requirements count=1 size=128

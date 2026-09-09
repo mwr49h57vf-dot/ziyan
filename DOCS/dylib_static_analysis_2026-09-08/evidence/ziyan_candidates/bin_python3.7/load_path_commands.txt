@@ -1,0 +1,26 @@
+192-Load command 13
+193:          cmd LC_LOAD_DYLIB
+194-      cmdsize 96
+195-         name /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (offset 24)
+196-   time stamp 2 Thu Jan  1 08:00:02 1970
+197-      current version 1443.0.0
+198-compatibility version 150.0.0
+199-Load command 14
+200:          cmd LC_LOAD_DYLIB
+201-      cmdsize 64
+202-         name /usr/lib/ziyan/lib/libpython3.7m.dylib (offset 24)
+203-   time stamp 2 Thu Jan  1 08:00:02 1970
+204-      current version 3.7.0
+205-compatibility version 3.7.0
+206-Load command 15
+207:          cmd LC_LOAD_DYLIB
+208-      cmdsize 56
+209-         name /usr/lib/libSystem.B.dylib (offset 24)
+210-   time stamp 2 Thu Jan  1 08:00:02 1970
+211-      current version 1252.0.0
+212-compatibility version 1.0.0
+--
+228-Load command 19
+229:          cmd LC_RPATH
+230-      cmdsize 32
+231-         path /usr/lib/ziyan/lib (offset 12)

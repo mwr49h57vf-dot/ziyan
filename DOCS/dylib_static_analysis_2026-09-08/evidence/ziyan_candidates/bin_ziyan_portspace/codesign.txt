@@ -1,0 +1,20 @@
+Executable=/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/bin/ziyan_portspace
+Identifier=ziyan_portspace.d49319a4.unsigned
+Format=Mach-O thin (arm64)
+CodeDirectory v=20400 size=890 flags=0x0(none) hashes=17+7 location=embedded
+Hash type=sha256 size=32
+CandidateCDHash sha1=998728274e274f8108e6eb167ca9adba30288261
+CandidateCDHashFull sha1=998728274e274f8108e6eb167ca9adba30288261
+CandidateCDHash sha256=10ee1c54c71354098512f7b242eba0132dfbbc11
+CandidateCDHashFull sha256=10ee1c54c71354098512f7b242eba0132dfbbc11148bb2e35c75f6738787846f
+Hash choices=sha1,sha256
+CMSDigest=c873aa9292ddd160987d41ef2f76581ac126ea29b15e5db13733ecef0c44099d
+CMSDigestType=2
+Launch Constraints:
+	None
+CDHash=10ee1c54c71354098512f7b242eba0132dfbbc11
+/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/bin/ziyan_portspace: no signature
+Info.plist=not bound
+TeamIdentifier=not set
+Sealed Resources=none
+Internal requirements count=1 size=152

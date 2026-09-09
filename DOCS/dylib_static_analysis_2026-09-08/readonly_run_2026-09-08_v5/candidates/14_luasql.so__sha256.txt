@@ -1,0 +1,1 @@
+951940fe77cda1c86eb0ffa5f8e7188baf366ff874235c0b4da165738ad9e3a0  /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/luasql.so

@@ -1,0 +1,20 @@
+Executable=/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/bin/ziyan_iomfb_diag
+Identifier=ziyan_iomfb_diag.d279fea9.unsigned
+Format=Mach-O thin (arm64)
+CodeDirectory v=20400 size=1051 flags=0x0(none) hashes=22+7 location=embedded
+Hash type=sha256 size=32
+CandidateCDHash sha1=60c54c823d1ac1e30d9d565c217ef927432fe7a2
+CandidateCDHashFull sha1=60c54c823d1ac1e30d9d565c217ef927432fe7a2
+CandidateCDHash sha256=9296c25ead1b555b03c1f5204ffb041e117cfbc9
+CandidateCDHashFull sha256=9296c25ead1b555b03c1f5204ffb041e117cfbc9999d03d9dcae2ec1cff11b31
+Hash choices=sha1,sha256
+CMSDigest=5290f0c6064b457b30f658a434123549ec7d62b1382baede4fe0b36656bdce3a
+CMSDigestType=2
+Launch Constraints:
+	None
+CDHash=9296c25ead1b555b03c1f5204ffb041e117cfbc9
+/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/bin/ziyan_iomfb_diag: no signature
+Info.plist=not bound
+TeamIdentifier=not set
+Sealed Resources=none
+Internal requirements count=1 size=152

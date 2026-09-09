@@ -1,0 +1,68 @@
+448-Load command 14
+449:          cmd LC_LOAD_DYLIB
+450-      cmdsize 56
+451-         name /usr/lib/libobjc.A.dylib (offset 24)
+452-   time stamp 2 Thu Jan  1 08:00:02 1970
+453-      current version 228.0.0
+454-compatibility version 1.0.0
+455-Load command 15
+456:          cmd LC_LOAD_DYLIB
+457-      cmdsize 88
+458-         name /System/Library/Frameworks/Foundation.framework/Foundation (offset 24)
+459-   time stamp 2 Thu Jan  1 08:00:02 1970
+460-      current version 1953.255.0
+461-compatibility version 300.0.0
+462-Load command 16
+463:          cmd LC_LOAD_DYLIB
+464-      cmdsize 96
+465-         name /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (offset 24)
+466-   time stamp 2 Thu Jan  1 08:00:02 1970
+467-      current version 1953.255.0
+468-compatibility version 150.0.0
+469-Load command 17
+470:          cmd LC_LOAD_DYLIB
+471-      cmdsize 80
+472-         name /System/Library/Frameworks/UIKit.framework/UIKit (offset 24)
+473-   time stamp 2 Thu Jan  1 08:00:02 1970
+474-      current version 6209.0.0
+475-compatibility version 1.0.0
+476-Load command 18
+477:          cmd LC_LOAD_DYLIB
+478-      cmdsize 80
+479-         name /System/Library/Frameworks/Vision.framework/Vision (offset 24)
+480-   time stamp 2 Thu Jan  1 08:00:02 1970
+481-      current version 6.0.48
+482-compatibility version 1.0.0
+483-Load command 19
+484:          cmd LC_LOAD_DYLIB
+485-      cmdsize 56
+486-         name /usr/lib/libSystem.B.dylib (offset 24)
+487-   time stamp 2 Thu Jan  1 08:00:02 1970
+488-      current version 1319.0.0
+489-compatibility version 1.0.0
+490-Load command 20
+491:          cmd LC_LOAD_DYLIB
+492-      cmdsize 88
+493-         name /System/Library/Frameworks/CoreGraphics.framework/CoreGraphics (offset 24)
+494-   time stamp 2 Thu Jan  1 08:00:02 1970
+495-      current version 1690.3.1
+496-compatibility version 64.0.0
+497-Load command 21
+498:          cmd LC_RPATH
+499-      cmdsize 40
+500-         path /var/jb/Library/Frameworks (offset 12)
+501-Load command 22
+502:          cmd LC_RPATH
+503-      cmdsize 32
+504-         path /var/jb/usr/lib (offset 12)
+505-Load command 23
+506:          cmd LC_RPATH
+507-      cmdsize 56
+508-         path @loader_path/.jbroot/Library/Frameworks (offset 12)
+509-Load command 24
+510:          cmd LC_RPATH
+511-      cmdsize 48
+512-         path @loader_path/.jbroot/usr/lib (offset 12)
+513-Load command 25
+514-      cmd LC_FUNCTION_STARTS
+515-  cmdsize 16

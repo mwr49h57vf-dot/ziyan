@@ -1,0 +1,1 @@
+Mach-O universal binary with 2 architectures: [arm_v7:Mach-O bundle arm_v7] [arm64:Mach-O 64-bit bundle arm64]

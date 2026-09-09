@@ -1,0 +1,5 @@
+## exact requested token occurrences in target 1
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/控制信息/control:2:Name: TouchSpritePe-rootless
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/控制信息/control:8:Description: TouchSpritePe 4.1.1 (rootless, iOS15+) repacked from live .53 for ZiYan architecture study ONLY.
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/tsdebug.lua:92:local mac = not win and (os and os.getenv and os.getenv('DYLD_LIBRARY_PATH') or not io.open("/proc")) and true or false
+## exact requested token occurrences in target 2

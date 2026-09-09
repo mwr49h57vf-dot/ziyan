@@ -1,0 +1,1 @@
+b2894705bcc77c0f7e9da9465a18c60e4e24565c07b3f03cc56ef789906d074e  /Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/bin/ziyan_ocr

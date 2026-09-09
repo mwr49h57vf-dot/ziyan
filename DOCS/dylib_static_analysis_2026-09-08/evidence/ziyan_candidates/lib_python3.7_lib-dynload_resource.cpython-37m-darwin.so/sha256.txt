@@ -1,0 +1,1 @@
+7e09949097d3356efa3e83601bc26acc7dace0c189df4b9ac99c19cebedacc73  /Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/python3.7/lib-dynload/resource.cpython-37m-darwin.so

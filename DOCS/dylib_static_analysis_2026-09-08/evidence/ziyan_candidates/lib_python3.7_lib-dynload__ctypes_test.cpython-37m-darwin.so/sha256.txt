@@ -1,0 +1,1 @@
+50248dc03046956ca9d311924c729908ed4bc101106b3baca80dc0760d549a0d  /Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/python3.7/lib-dynload/_ctypes_test.cpython-37m-darwin.so

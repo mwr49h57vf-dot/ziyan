@@ -1,0 +1,1202 @@
+===== /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/Hades =====
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/Hades: Mach-O 64-bit executable arm64
+Non-fat file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/Hades is architecture: arm64
+69058be7235731772247ce8492f931922e46db81ef7a263bf8927035045a7d8a  /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/Hades
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/Hades:
+          cmd LC_LOAD_DYLIB
+      cmdsize 88
+         name /System/Library/Frameworks/Foundation.framework/Foundation (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1946.102.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 80
+         name /System/Library/Frameworks/UIKit.framework/UIKit (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 6092.1.111
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libobjc.A.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 228.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libSystem.B.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1319.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 96
+         name /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1946.102.0
+===== /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/OcrPlugin.dylib =====
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/OcrPlugin.dylib: Mach-O 64-bit dynamically linked shared library arm64
+Non-fat file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/OcrPlugin.dylib is architecture: arm64
+39edd4cf95b5fbca3c390fe19bd30998bfe4da9f767498de9d5b1e1697257625  /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/OcrPlugin.dylib
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/OcrPlugin.dylib:
+/usr/local/lib/OcrPlugin64.dylib
+          cmd LC_ID_DYLIB
+      cmdsize 64
+         name /usr/local/lib/OcrPlugin64.dylib (offset 24)
+   time stamp 1 Thu Jan  1 08:00:01 1970
+      current version 1.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 48
+         name /usr/lib/libc++.1.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1300.32.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 88
+         name /System/Library/Frameworks/QuartzCore.framework/QuartzCore (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1.11.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 88
+         name /System/Library/Frameworks/CoreGraphics.framework/CoreGraphics (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1673.1.2
+          cmd LC_LOAD_DYLIB
+      cmdsize 80
+         name /System/Library/Frameworks/UIKit.framework/UIKit (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 6092.1.111
+          cmd LC_LOAD_DYLIB
+      cmdsize 88
+         name /System/Library/Frameworks/Foundation.framework/Foundation (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1946.102.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libobjc.A.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 228.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libSystem.B.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1319.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 96
+         name /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1946.102.0
+===== /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSDaemon =====
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSDaemon: Mach-O 64-bit executable arm64
+Non-fat file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSDaemon is architecture: arm64
+4e89b9a34cd9a7a6d374a7afd0edfc96a42ba20a5e5ed67b0ebbce6a72543d57  /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSDaemon
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSDaemon:
+          cmd LC_LOAD_DYLIB
+      cmdsize 88
+         name /System/Library/Frameworks/QuartzCore.framework/QuartzCore (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1.11.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 96
+         name /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1673.126.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 88
+         name /System/Library/Frameworks/CoreGraphics.framework/CoreGraphics (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1348.12.1
+          cmd LC_LOAD_DYLIB
+      cmdsize 88
+         name /System/Library/Frameworks/AVFoundation.framework/AVFoundation (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 2.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 112
+         name /System/Library/PrivateFrameworks/SpringBoardServices.framework/SpringBoardServices (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 120
+         name /System/Library/PrivateFrameworks/SoftwareUpdateServices.framework/SoftwareUpdateServices (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 88
+         name /System/Library/Frameworks/IOKit.framework/Versions/A/IOKit (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 275.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 88
+         name /System/Library/Frameworks/Foundation.framework/Foundation (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1673.126.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 104
+         name /System/Library/Frameworks/MobileCoreServices.framework/MobileCoreServices (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 727.5.3
+          cmd LC_LOAD_DYLIB
+      cmdsize 80
+         name /System/Library/Frameworks/ImageIO.framework/ImageIO (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 88
+         name /System/Library/Frameworks/AudioToolbox.framework/AudioToolbox (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 492.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 112
+         name /System/Library/PrivateFrameworks/IOMobileFramebuffer.framework/IOMobileFramebuffer (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 104
+         name /System/Library/PrivateFrameworks/GraphicsServices.framework/GraphicsServices (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 14.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 88
+         name /System/Library/PrivateFrameworks/Celestial.framework/Celestial (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 88
+         name /System/Library/PrivateFrameworks/IOSurface.framework/IOSurface (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 96
+         name /System/Library/Frameworks/CoreTelephony.framework/CoreTelephony (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 0.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 80
+         name /System/Library/Frameworks/UIKit.framework/UIKit (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 61000.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libsqlite3.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 308.4.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libobjc.A.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 228.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 48
+         name /usr/lib/libc++.1.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 800.7.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libSystem.B.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1281.0.0
+===== /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSInstaller =====
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSInstaller: Mach-O 64-bit executable arm64
+Non-fat file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSInstaller is architecture: arm64
+aacdf47219bb07bcd6379d3e5c5c42a023d26e92280740cb70b8d92c88d3a3be  /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSInstaller
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSInstaller:
+          cmd LC_LOAD_DYLIB
+      cmdsize 80
+         name /System/Library/Frameworks/UIKit.framework/UIKit (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 6092.1.111
+          cmd LC_LOAD_DYLIB
+      cmdsize 112
+         name /System/Library/PrivateFrameworks/MobileInstallation.framework/MobileInstallation (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 88
+         name /System/Library/Frameworks/Foundation.framework/Foundation (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1946.102.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libobjc.A.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 228.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libSystem.B.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1319.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 96
+         name /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1946.102.0
+          cmd LC_RPATH
+      cmdsize 40
+         path @executable_path/Frameworks (offset 12)
+Load command 20
+      cmd LC_FUNCTION_STARTS
+===== /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSLn =====
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSLn: Mach-O 64-bit executable arm64
+Non-fat file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSLn is architecture: arm64
+9859bd2a5df6fda0ea533289a285a3837f237036e6f3f45647803a6f2b1b1c10  /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSLn
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSLn:
+          cmd LC_LOAD_DYLIB
+      cmdsize 80
+         name /System/Library/Frameworks/UIKit.framework/UIKit (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 6092.1.111
+          cmd LC_LOAD_DYLIB
+      cmdsize 88
+         name /System/Library/Frameworks/Foundation.framework/Foundation (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1946.102.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libobjc.A.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 228.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libSystem.B.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1319.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 96
+         name /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1946.102.0
+===== /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSUpdate =====
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSUpdate: Mach-O universal binary with 2 architectures: [arm_v7:
+- Mach-O executable arm_v7] [arm64:Mach-O 64-bit executable arm64]
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSUpdate (for architecture armv7):	Mach-O executable arm_v7
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSUpdate (for architecture arm64):	Mach-O 64-bit executable arm64
+Architectures in the fat file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSUpdate are: armv7 arm64 
+bb7c986049615a986091036c37ab4e4581709b542322de96a24fa1f84d3beeba  /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSUpdate
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSUpdate (architecture armv7):
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSUpdate (architecture arm64):
+          cmd LC_LOAD_DYLIB
+      cmdsize 84
+         name /System/Library/Frameworks/Foundation.framework/Foundation (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1240.1.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 52
+         name /usr/lib/libobjc.A.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 228.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 52
+         name /usr/lib/libSystem.B.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1225.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 92
+         name /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1240.1.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 88
+         name /System/Library/Frameworks/Foundation.framework/Foundation (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1240.1.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libobjc.A.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 228.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libSystem.B.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1225.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 96
+         name /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1240.1.0
+===== - Mach-O executable arm_v7] [arm64:Mach-O 64-bit executable arm64] =====
+fatal error: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/lipo: unknown flag: - Mach-O executable arm_v7] [arm64:Mach-O 64-bit executable arm64]
+error: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool: unknown char ` ' in flag - Mach-O executable arm_v7] [arm64:Mach-O 64-bit executable arm64]
+
+Usage: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool [-arch arch_type] [-fahlLDtdorSTMRIHGvVcXmqQjCP] [-mcpu=arg] [--version] <object file> ...
+	-f print the fat headers
+	-a print the archive header
+	-h print the mach header
+	-l print the load commands
+	-L print shared libraries used
+	-D print shared library id name
+	-t print the text section (disassemble with -v)
+	-x print all text sections (disassemble with -v)
+	-p <routine name>  start dissassemble from routine name
+	-s <segname> <sectname> print contents of section
+	-d print the data section
+	-o print the Objective-C segment
+	-r print the relocation entries
+	-S print the table of contents of a library (obsolete)
+	-T print the table of contents of a dynamic shared library (obsolete)
+	-M print the module table of a dynamic shared library (obsolete)
+	-R print the reference table of a dynamic shared library (obsolete)
+	-I print the indirect symbol table
+	-H print the two-level hints table (obsolete)
+	-G print the data in code table
+	-v print verbosely (symbolically) when possible
+	-V print disassembled operands symbolically
+	-c print argument strings of a core file
+	-X print no leading addresses or headers
+	-m don't use archive(member) syntax
+	-B force Thumb disassembly (ARM objects only)
+	-q use llvm's disassembler (the default)
+	-Q use otool(1)'s disassembler
+	-mcpu=arg use `arg' as the cpu for disassembly
+	-j print opcode bytes
+	-P print the info plist section as strings
+	-C print linker optimization hints
+	--version print the version of /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool
+===== /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSUpdate (for architecture armv7):	Mach-O executable arm_v7 =====
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSUpdate (for architecture armv7):	Mach-O executable arm_v7: cannot open `/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSUpdate (for architecture armv7):	Mach-O executable arm_v7' (No such file or directory)
+fatal error: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/lipo: can't open input file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSUpdate (for architecture armv7):	Mach-O executable arm_v7 (No such file or directory)
+error: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic: can't open file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSUpdate (for architecture armv7):	Mach-O executable arm_v7 (No such file or directory)
+===== /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSUpdate (for architecture arm64):	Mach-O 64-bit executable arm64 =====
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSUpdate (for architecture arm64):	Mach-O 64-bit executable arm64: cannot open `/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSUpdate (for architecture arm64):	Mach-O 64-bit executable arm64' (No such file or directory)
+fatal error: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/lipo: can't open input file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSUpdate (for architecture arm64):	Mach-O 64-bit executable arm64 (No such file or directory)
+error: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic: can't open file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSUpdate (for architecture arm64):	Mach-O 64-bit executable arm64 (No such file or directory)
+===== /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TouchSpritePe =====
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TouchSpritePe: Mach-O universal binary with 2 architectures: [arm_v7:
+- Mach-O executable arm_v7] [arm64]
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TouchSpritePe (for architecture armv7):	Mach-O executable arm_v7
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TouchSpritePe (for architecture arm64):	Mach-O 64-bit executable arm64
+Architectures in the fat file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TouchSpritePe are: armv7 arm64 
+3f5b65129956e0d5b005beae7bdfab596d5f7c27cd12ef3c477db290bd3a9d25  /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TouchSpritePe
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TouchSpritePe (architecture armv7):
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TouchSpritePe (architecture arm64):
+          cmd LC_LOAD_DYLIB
+      cmdsize 48
+         name /usr/lib/libc++.1.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 800.7.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 52
+         name /usr/lib/libsqlite3.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 308.4.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 48
+         name /usr/lib/libz.1.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1.2.11
+          cmd LC_LOAD_DYLIB
+      cmdsize 84
+         name /System/Library/Frameworks/CFNetwork.framework/CFNetwork (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 0.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 92
+         name /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1673.126.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 88
+         name /System/Library/Frameworks/CoreGraphics.framework/CoreGraphics (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1348.12.1
+          cmd LC_LOAD_DYLIB
+      cmdsize 88
+         name /System/Library/Frameworks/CoreLocation.framework/CoreLocation (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 2388.0.21
+          cmd LC_LOAD_DYLIB
+      cmdsize 84
+         name /System/Library/Frameworks/CoreMotion.framework/CoreMotion (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 2388.0.21
+          cmd LC_LOAD_DYLIB
+      cmdsize 92
+         name /System/Library/Frameworks/CoreTelephony.framework/CoreTelephony (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 0.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 80
+         name /System/Library/Frameworks/ImageIO.framework/ImageIO (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 0.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 100
+         name /System/Library/Frameworks/MobileCoreServices.framework/MobileCoreServices (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1069.12.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 84
+         name /System/Library/Frameworks/QuartzCore.framework/QuartzCore (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1.11.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 80
+         name /System/Library/Frameworks/Security.framework/Security (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 59306.42.2
+          cmd LC_LOAD_DYLIB
+      cmdsize 104
+         name /System/Library/Frameworks/SystemConfiguration.framework/SystemConfiguration (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1061.40.2
+          cmd LC_LOAD_DYLIB
+      cmdsize 76
+         name /System/Library/Frameworks/UIKit.framework/UIKit (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 61000.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 80
+         name /System/Library/Frameworks/Twitter.framework/Twitter (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 164.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 92
+         name /System/Library/Frameworks/JavaScriptCore.framework/JavaScriptCore (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 608.3.10
+          cmd LC_LOAD_DYLIB
+      cmdsize 84
+         name /System/Library/Frameworks/MessageUI.framework/MessageUI (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 3601.9.7
+          cmd LC_LOAD_DYLIB
+      cmdsize 92
+         name /System/Library/Frameworks/SafariServices.framework/SafariServices (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 84
+         name /System/Library/Frameworks/AdSupport.framework/AdSupport (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 80
+         name /System/Library/Frameworks/CoreText.framework/CoreText (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 52
+         name /usr/lib/libiconv.2.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 7.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 84
+         name /System/Library/Frameworks/CoreVideo.framework/CoreVideo (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1.5.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 84
+         name /System/Library/Frameworks/CoreMedia.framework/CoreMedia (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 88
+         name /System/Library/Frameworks/AVFoundation.framework/AVFoundation (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 2.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 84
+         name /System/Library/Frameworks/Foundation.framework/Foundation (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1673.126.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 52
+         name /usr/lib/libobjc.A.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 228.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 52
+         name /usr/lib/libSystem.B.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1281.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 84
+         name /System/Library/Frameworks/Accelerate.framework/Accelerate (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 4.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 92
+         name /System/Library/Frameworks/AssetsLibrary.framework/AssetsLibrary (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 84
+         name /System/Library/Frameworks/CoreImage.framework/CoreImage (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 5.0.0
+          cmd LC_RPATH
+      cmdsize 40
+         path @executable_path/Frameworks (offset 12)
+Load command 48
+      cmd LC_FUNCTION_STARTS
+          cmd LC_LOAD_DYLIB
+      cmdsize 48
+         name /usr/lib/libc++.1.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 800.7.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libsqlite3.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 308.4.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 48
+         name /usr/lib/libz.1.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1.2.11
+          cmd LC_LOAD_DYLIB
+      cmdsize 88
+         name /System/Library/Frameworks/CFNetwork.framework/CFNetwork (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 0.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 96
+         name /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1673.126.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 88
+         name /System/Library/Frameworks/CoreGraphics.framework/CoreGraphics (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1348.12.1
+          cmd LC_LOAD_DYLIB
+      cmdsize 88
+         name /System/Library/Frameworks/CoreLocation.framework/CoreLocation (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 2388.0.21
+          cmd LC_LOAD_DYLIB
+      cmdsize 88
+         name /System/Library/Frameworks/CoreMotion.framework/CoreMotion (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 2388.0.21
+          cmd LC_LOAD_DYLIB
+      cmdsize 96
+         name /System/Library/Frameworks/CoreTelephony.framework/CoreTelephony (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 0.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 80
+         name /System/Library/Frameworks/ImageIO.framework/ImageIO (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 0.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 104
+         name /System/Library/Frameworks/MobileCoreServices.framework/MobileCoreServices (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1069.12.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 88
+         name /System/Library/Frameworks/QuartzCore.framework/QuartzCore (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1.11.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 80
+         name /System/Library/Frameworks/Security.framework/Security (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 59306.42.2
+          cmd LC_LOAD_DYLIB
+      cmdsize 104
+         name /System/Library/Frameworks/SystemConfiguration.framework/SystemConfiguration (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1061.40.2
+          cmd LC_LOAD_DYLIB
+      cmdsize 80
+         name /System/Library/Frameworks/UIKit.framework/UIKit (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 61000.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 80
+         name /System/Library/Frameworks/Twitter.framework/Twitter (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 164.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 96
+         name /System/Library/Frameworks/JavaScriptCore.framework/JavaScriptCore (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 608.3.10
+          cmd LC_LOAD_DYLIB
+      cmdsize 88
+         name /System/Library/Frameworks/MessageUI.framework/MessageUI (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 3601.9.7
+          cmd LC_LOAD_DYLIB
+      cmdsize 96
+         name /System/Library/Frameworks/SafariServices.framework/SafariServices (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 88
+         name /System/Library/Frameworks/AdSupport.framework/AdSupport (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 80
+         name /System/Library/Frameworks/CoreText.framework/CoreText (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libiconv.2.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 7.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 88
+         name /System/Library/Frameworks/CoreVideo.framework/CoreVideo (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1.5.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 88
+         name /System/Library/Frameworks/CoreMedia.framework/CoreMedia (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 88
+         name /System/Library/Frameworks/AVFoundation.framework/AVFoundation (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 2.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 88
+         name /System/Library/Frameworks/Foundation.framework/Foundation (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1673.126.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libobjc.A.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 228.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libSystem.B.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1281.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 88
+         name /System/Library/Frameworks/Accelerate.framework/Accelerate (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 4.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 96
+         name /System/Library/Frameworks/AssetsLibrary.framework/AssetsLibrary (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 88
+         name /System/Library/Frameworks/CoreImage.framework/CoreImage (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 5.0.0
+          cmd LC_RPATH
+      cmdsize 40
+         path @executable_path/Frameworks (offset 12)
+Load command 48
+      cmd LC_FUNCTION_STARTS
+===== - Mach-O executable arm_v7] [arm64] =====
+fatal error: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/lipo: unknown flag: - Mach-O executable arm_v7] [arm64]
+error: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool: unknown char ` ' in flag - Mach-O executable arm_v7] [arm64]
+
+Usage: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool [-arch arch_type] [-fahlLDtdorSTMRIHGvVcXmqQjCP] [-mcpu=arg] [--version] <object file> ...
+	-f print the fat headers
+	-a print the archive header
+	-h print the mach header
+	-l print the load commands
+	-L print shared libraries used
+	-D print shared library id name
+	-t print the text section (disassemble with -v)
+	-x print all text sections (disassemble with -v)
+	-p <routine name>  start dissassemble from routine name
+	-s <segname> <sectname> print contents of section
+	-d print the data section
+	-o print the Objective-C segment
+	-r print the relocation entries
+	-S print the table of contents of a library (obsolete)
+	-T print the table of contents of a dynamic shared library (obsolete)
+	-M print the module table of a dynamic shared library (obsolete)
+	-R print the reference table of a dynamic shared library (obsolete)
+	-I print the indirect symbol table
+	-H print the two-level hints table (obsolete)
+	-G print the data in code table
+	-v print verbosely (symbolically) when possible
+	-V print disassembled operands symbolically
+	-c print argument strings of a core file
+	-X print no leading addresses or headers
+	-m don't use archive(member) syntax
+	-B force Thumb disassembly (ARM objects only)
+	-q use llvm's disassembler (the default)
+	-Q use otool(1)'s disassembler
+	-mcpu=arg use `arg' as the cpu for disassembly
+	-j print opcode bytes
+	-P print the info plist section as strings
+	-C print linker optimization hints
+	--version print the version of /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool
+===== /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TouchSpritePe (for architecture armv7):	Mach-O executable arm_v7 =====
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TouchSpritePe (for architecture armv7):	Mach-O executable arm_v7: cannot open `/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TouchSpritePe (for architecture armv7):	Mach-O executable arm_v7' (No such file or directory)
+fatal error: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/lipo: can't open input file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TouchSpritePe (for architecture armv7):	Mach-O executable arm_v7 (No such file or directory)
+error: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic: can't open file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TouchSpritePe (for architecture armv7):	Mach-O executable arm_v7 (No such file or directory)
+===== /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TouchSpritePe (for architecture arm64):	Mach-O 64-bit executable arm64 =====
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TouchSpritePe (for architecture arm64):	Mach-O 64-bit executable arm64: cannot open `/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TouchSpritePe (for architecture arm64):	Mach-O 64-bit executable arm64' (No such file or directory)
+fatal error: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/lipo: can't open input file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TouchSpritePe (for architecture arm64):	Mach-O 64-bit executable arm64 (No such file or directory)
+error: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic: can't open file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TouchSpritePe (for architecture arm64):	Mach-O 64-bit executable arm64 (No such file or directory)
+===== /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/luasql.so =====
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/luasql.so: Mach-O universal binary with 2 architectures: [arm_v7s:Mach-O dynamically linked shared library arm_v7s] [arm64]
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/luasql.so (for architecture armv7s):	Mach-O dynamically linked shared library arm_v7s
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/luasql.so (for architecture arm64):	Mach-O 64-bit dynamically linked shared library arm64
+Architectures in the fat file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/luasql.so are: armv7s arm64 
+951940fe77cda1c86eb0ffa5f8e7188baf366ff874235c0b4da165738ad9e3a0  /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/luasql.so
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/luasql.so (architecture armv7s):
+/Users/Fish/Documents/MyFiles/触动精灵/luasql.so.openapi/build/luasql.so
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/luasql.so (architecture arm64):
+/Users/Fish/Documents/MyFiles/触动精灵/luasql.so.openapi/build/luasql.so
+          cmd LC_ID_DYLIB
+      cmdsize 104
+         name /Users/Fish/Documents/MyFiles/触动精灵/luasql.so.openapi/build/luasql.so (offset 24)
+   time stamp 1 Thu Jan  1 08:00:01 1970
+      current version 0.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 84
+         name /System/Library/Frameworks/Foundation.framework/Foundation (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1452.23.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 76
+         name /System/Library/Frameworks/UIKit.framework/UIKit (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 3698.54.4
+          cmd LC_LOAD_DYLIB
+      cmdsize 92
+         name /System/Library/Frameworks/CoreTelephony.framework/CoreTelephony (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 0.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 84
+         name /System/Library/Frameworks/CoreImage.framework/CoreImage (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 5.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 104
+         name /System/Library/Frameworks/SystemConfiguration.framework/SystemConfiguration (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 963.50.8
+          cmd LC_LOAD_DYLIB
+      cmdsize 52
+         name /usr/lib/libobjc.A.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 228.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 48
+         name /usr/lib/libc++.1.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 400.9.1
+          cmd LC_LOAD_DYLIB
+      cmdsize 52
+         name /usr/lib/libSystem.B.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1252.50.4
+          cmd LC_LOAD_DYLIB
+      cmdsize 92
+         name /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1452.23.0
+          cmd LC_ID_DYLIB
+      cmdsize 104
+         name /Users/Fish/Documents/MyFiles/触动精灵/luasql.so.openapi/build/luasql.so (offset 24)
+   time stamp 1 Thu Jan  1 08:00:01 1970
+      current version 0.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 88
+         name /System/Library/Frameworks/Foundation.framework/Foundation (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1452.23.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 80
+         name /System/Library/Frameworks/UIKit.framework/UIKit (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 3698.54.4
+          cmd LC_LOAD_DYLIB
+      cmdsize 96
+         name /System/Library/Frameworks/CoreTelephony.framework/CoreTelephony (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 0.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 88
+         name /System/Library/Frameworks/CoreImage.framework/CoreImage (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 5.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 104
+         name /System/Library/Frameworks/SystemConfiguration.framework/SystemConfiguration (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 963.50.8
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libobjc.A.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 228.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 48
+         name /usr/lib/libc++.1.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 400.9.1
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libSystem.B.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1252.50.4
+          cmd LC_LOAD_DYLIB
+      cmdsize 96
+         name /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1452.23.0
+===== /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/luasql.so (for architecture armv7s):	Mach-O dynamically linked shared library arm_v7s =====
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/luasql.so (for architecture armv7s):	Mach-O dynamically linked shared library arm_v7s: cannot open `/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/luasql.so (for architecture armv7s):	Mach-O dynamically linked shared library arm_v7s' (No such file or directory)
+fatal error: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/lipo: can't open input file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/luasql.so (for architecture armv7s):	Mach-O dynamically linked shared library arm_v7s (No such file or directory)
+error: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic: can't open file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/luasql.so (for architecture armv7s):	Mach-O dynamically linked shared library arm_v7s (No such file or directory)
+===== /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/luasql.so (for architecture arm64):	Mach-O 64-bit dynamically linked shared library arm64 =====
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/luasql.so (for architecture arm64):	Mach-O 64-bit dynamically linked shared library arm64: cannot open `/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/luasql.so (for architecture arm64):	Mach-O 64-bit dynamically linked shared library arm64' (No such file or directory)
+fatal error: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/lipo: can't open input file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/luasql.so (for architecture arm64):	Mach-O 64-bit dynamically linked shared library arm64 (No such file or directory)
+error: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic: can't open file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/luasql.so (for architecture arm64):	Mach-O 64-bit dynamically linked shared library arm64 (No such file or directory)
+===== /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/sz.so =====
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/sz.so: Mach-O universal binary with 2 architectures: [arm_v7:Mach-O bundle arm_v7] [arm64:Mach-O 64-bit bundle arm64]
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/sz.so (for architecture armv7):	Mach-O bundle arm_v7
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/sz.so (for architecture arm64):	Mach-O 64-bit bundle arm64
+Architectures in the fat file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/sz.so are: armv7 arm64 
+1abc6b40812896b48e02a61fdad6d1f0febdfac1d28017b3151617b93726e2ac  /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/sz.so
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/sz.so (architecture armv7):
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/sz.so (architecture arm64):
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libMobileGestalt.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 52
+         name /usr/lib/libsqlite3.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 274.8.1
+          cmd LC_LOAD_DYLIB
+      cmdsize 52
+         name /usr/lib/libiconv.2.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 7.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 84
+         name /System/Library/Frameworks/Foundation.framework/Foundation (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1452.23.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 48
+         name /usr/lib/libc++.1.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 400.9.1
+          cmd LC_LOAD_DYLIB
+      cmdsize 92
+         name /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1452.23.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 52
+         name /usr/lib/libobjc.A.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 228.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libMobileGestalt.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libsqlite3.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 274.8.1
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libiconv.2.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 7.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 88
+         name /System/Library/Frameworks/Foundation.framework/Foundation (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1452.23.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 48
+         name /usr/lib/libc++.1.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 400.9.1
+          cmd LC_LOAD_DYLIB
+      cmdsize 96
+         name /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1452.23.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libobjc.A.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 228.0.0
+===== /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/sz.so (for architecture armv7):	Mach-O bundle arm_v7 =====
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/sz.so (for architecture armv7):	Mach-O bundle arm_v7: cannot open `/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/sz.so (for architecture armv7):	Mach-O bundle arm_v7' (No such file or directory)
+fatal error: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/lipo: can't open input file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/sz.so (for architecture armv7):	Mach-O bundle arm_v7 (No such file or directory)
+error: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic: can't open file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/sz.so (for architecture armv7):	Mach-O bundle arm_v7 (No such file or directory)
+===== /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/sz.so (for architecture arm64):	Mach-O 64-bit bundle arm64 =====
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/sz.so (for architecture arm64):	Mach-O 64-bit bundle arm64: cannot open `/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/sz.so (for architecture arm64):	Mach-O 64-bit bundle arm64' (No such file or directory)
+fatal error: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/lipo: can't open input file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/sz.so (for architecture arm64):	Mach-O 64-bit bundle arm64 (No such file or directory)
+error: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic: can't open file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/libs/sz.so (for architecture arm64):	Mach-O 64-bit bundle arm64 (No such file or directory)
+===== /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/model.so =====
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/model.so: Mach-O 64-bit bundle arm64
+Non-fat file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/model.so is architecture: arm64
+84e45e7523ba94e83f3037662039d2fe6a15071f28944f25b139e6e2bd61fcf1  /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/model.so
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/model.so:
+          cmd LC_LOAD_DYLIB
+      cmdsize 80
+         name /System/Library/Frameworks/Vision.framework/Vision (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 6.0.46
+          cmd LC_LOAD_DYLIB
+      cmdsize 80
+         name /System/Library/Frameworks/CoreML.framework/CoreML (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 80
+         name /System/Library/Frameworks/UIKit.framework/UIKit (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 6092.1.111
+          cmd LC_LOAD_DYLIB
+      cmdsize 88
+         name /System/Library/Frameworks/CoreImage.framework/CoreImage (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 5.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 88
+         name /System/Library/Frameworks/Foundation.framework/Foundation (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1946.102.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libobjc.A.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 228.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libSystem.B.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1281.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 96
+         name /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1946.102.0
+===== /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/paddleocr.so =====
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/paddleocr.so: Mach-O 64-bit bundle arm64
+Non-fat file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/paddleocr.so is architecture: arm64
+c2e9f6e65741e79f379515027f2adfeee0b6f2a3e2ed4b475c4e2e17c158665c  /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/paddleocr.so
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/paddleocr.so:
+          cmd LC_LOAD_DYLIB
+      cmdsize 48
+         name /usr/lib/libc++.1.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 800.7.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 88
+         name /System/Library/Frameworks/CoreMedia.framework/CoreMedia (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 96
+         name /System/Library/Frameworks/AssetsLibrary.framework/AssetsLibrary (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 88
+         name /System/Library/Frameworks/AVFoundation.framework/AVFoundation (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 2.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 88
+         name /System/Library/Frameworks/CoreGraphics.framework/CoreGraphics (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1673.1.2
+          cmd LC_LOAD_DYLIB
+      cmdsize 80
+         name /System/Library/Frameworks/UIKit.framework/UIKit (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 6092.1.111
+          cmd LC_LOAD_DYLIB
+      cmdsize 88
+         name /System/Library/Frameworks/Foundation.framework/Foundation (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1946.102.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libobjc.A.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 228.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libSystem.B.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1281.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 96
+         name /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1946.102.0
+===== /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/unzip =====
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/unzip: Mach-O executable arm
+Non-fat file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/unzip is architecture: arm
+3a5d2fa996d98d6783a4f3a66da7a1b65704ea4d1d8cecabc1ea8f14c4ff0168  /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/unzip
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/unzip:
+          cmd LC_LOAD_DYLIB
+      cmdsize 52
+         name /usr/lib/libgcc_s.1.dylib (offset 24)
+   time stamp 1213336007 Fri Jun 13 13:46:47 2008
+      current version 1.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 52
+         name /usr/lib/libSystem.B.dylib (offset 24)
+   time stamp 1211709570 Sun May 25 17:59:30 2008
+      current version 111.0.10
+===== /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Library/MobileSubstrate/DynamicLibraries/TSTweak.dylib =====
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Library/MobileSubstrate/DynamicLibraries/TSTweak.dylib: Mach-O universal binary with 2 architectures: [arm64:Mach-O 64-bit dynamically linked shared library arm64] [arm64e:Mach-O 64-bit dynamically linked shared library arm64e]
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Library/MobileSubstrate/DynamicLibraries/TSTweak.dylib (for architecture arm64):	Mach-O 64-bit dynamically linked shared library arm64
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Library/MobileSubstrate/DynamicLibraries/TSTweak.dylib (for architecture arm64e):	Mach-O 64-bit dynamically linked shared library arm64e
+Architectures in the fat file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Library/MobileSubstrate/DynamicLibraries/TSTweak.dylib are: arm64 arm64e 
+1c0e783e277ae76e13252c32a76917b1cbe488bd1a417836495f905f3734357d  /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Library/MobileSubstrate/DynamicLibraries/TSTweak.dylib
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Library/MobileSubstrate/DynamicLibraries/TSTweak.dylib (architecture arm64):
+@rpath/TSTweakNoRoot.dylib
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Library/MobileSubstrate/DynamicLibraries/TSTweak.dylib (architecture arm64e):
+@rpath/TSTweakNoRoot.dylib
+          cmd LC_ID_DYLIB
+      cmdsize 56
+         name @rpath/TSTweakNoRoot.dylib (offset 24)
+   time stamp 1 Thu Jan  1 08:00:01 1970
+      current version 0.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libobjc.A.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 228.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 88
+         name /System/Library/Frameworks/Foundation.framework/Foundation (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1677.104.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 96
+         name /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1677.104.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 80
+         name /System/Library/Frameworks/UIKit.framework/UIKit (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 61000.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 88
+         name /System/Library/Frameworks/CoreGraphics.framework/CoreGraphics (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1355.22.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 96
+         name /System/Library/PrivateFrameworks/AppSupport.framework/AppSupport (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 29.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 80
+         name /System/Library/Frameworks/WebKit.framework/WebKit (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 609.3.5
+          cmd LC_LOAD_DYLIB
+      cmdsize 48
+         name /usr/lib/libc++.1.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 902.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libSystem.B.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1281.100.1
+          cmd LC_RPATH
+      cmdsize 40
+         path /var/jb/Library/Frameworks (offset 12)
+Load command 23
+          cmd LC_RPATH
+      cmdsize 32
+         path /var/jb/usr/lib (offset 12)
+Load command 24
+          cmd LC_RPATH
+      cmdsize 56
+         path @loader_path/.jbroot/Library/Frameworks (offset 12)
+Load command 25
+          cmd LC_RPATH
+      cmdsize 48
+         path @loader_path/.jbroot/usr/lib (offset 12)
+Load command 26
+      cmd LC_FUNCTION_STARTS
+          cmd LC_ID_DYLIB
+      cmdsize 56
+         name @rpath/TSTweakNoRoot.dylib (offset 24)
+   time stamp 1 Thu Jan  1 08:00:01 1970
+      current version 0.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libobjc.A.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 228.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 88
+         name /System/Library/Frameworks/Foundation.framework/Foundation (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1677.104.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 96
+         name /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1677.104.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 80
+         name /System/Library/Frameworks/UIKit.framework/UIKit (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 61000.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 88
+         name /System/Library/Frameworks/CoreGraphics.framework/CoreGraphics (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1355.22.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 96
+         name /System/Library/PrivateFrameworks/AppSupport.framework/AppSupport (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 29.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 80
+         name /System/Library/Frameworks/WebKit.framework/WebKit (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 609.3.5
+          cmd LC_LOAD_DYLIB
+      cmdsize 48
+         name /usr/lib/libc++.1.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 902.0.0
+          cmd LC_LOAD_DYLIB
+      cmdsize 56
+         name /usr/lib/libSystem.B.dylib (offset 24)
+   time stamp 2 Thu Jan  1 08:00:02 1970
+      current version 1281.100.1
+          cmd LC_RPATH
+      cmdsize 40
+         path /var/jb/Library/Frameworks (offset 12)
+Load command 23
+          cmd LC_RPATH
+      cmdsize 32
+         path /var/jb/usr/lib (offset 12)
+Load command 24
+          cmd LC_RPATH
+      cmdsize 56
+         path @loader_path/.jbroot/Library/Frameworks (offset 12)
+Load command 25
+          cmd LC_RPATH
+      cmdsize 48
+         path @loader_path/.jbroot/usr/lib (offset 12)
+Load command 26
+      cmd LC_FUNCTION_STARTS
+===== /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Library/MobileSubstrate/DynamicLibraries/TSTweak.dylib (for architecture arm64):	Mach-O 64-bit dynamically linked shared library arm64 =====
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Library/MobileSubstrate/DynamicLibraries/TSTweak.dylib (for architecture arm64):	Mach-O 64-bit dynamically linked shared library arm64: cannot open `/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Library/MobileSubstrate/DynamicLibraries/TSTweak.dylib (for architecture arm64):	Mach-O 64-bit dynamically linked shared library arm64' (No such file or directory)
+fatal error: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/lipo: can't open input file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Library/MobileSubstrate/DynamicLibraries/TSTweak.dylib (for architecture arm64):	Mach-O 64-bit dynamically linked shared library arm64 (No such file or directory)
+error: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic: can't open file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Library/MobileSubstrate/DynamicLibraries/TSTweak.dylib (for architecture arm64):	Mach-O 64-bit dynamically linked shared library arm64 (No such file or directory)
+===== /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Library/MobileSubstrate/DynamicLibraries/TSTweak.dylib (for architecture arm64e):	Mach-O 64-bit dynamically linked shared library arm64e =====
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Library/MobileSubstrate/DynamicLibraries/TSTweak.dylib (for architecture arm64e):	Mach-O 64-bit dynamically linked shared library arm64e: cannot open `/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Library/MobileSubstrate/DynamicLibraries/TSTweak.dylib (for architecture arm64e):	Mach-O 64-bit dynamically linked shared library arm64e' (No such file or directory)
+fatal error: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/lipo: can't open input file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Library/MobileSubstrate/DynamicLibraries/TSTweak.dylib (for architecture arm64e):	Mach-O 64-bit dynamically linked shared library arm64e (No such file or directory)
+error: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic: can't open file: /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Library/MobileSubstrate/DynamicLibraries/TSTweak.dylib (for architecture arm64e):	Mach-O 64-bit dynamically linked shared library arm64e (No such file or directory)

@@ -1,0 +1,1 @@
+Mach-O dynamically linked shared library arm_v7s

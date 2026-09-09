@@ -1,0 +1,20 @@
+Executable=/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/python3.7/lib-dynload/_curses.cpython-37m-darwin.so
+Identifier=_curses.cpython-37m-darwin.so
+Format=Mach-O thin (arm64)
+CodeDirectory v=20200 size=1086 flags=0x0(none) hashes=29+2 location=embedded
+Hash type=sha256 size=32
+CandidateCDHash sha1=f0fc970da340464f70f72f691446f9bc81bf3c31
+CandidateCDHashFull sha1=f0fc970da340464f70f72f691446f9bc81bf3c31
+CandidateCDHash sha256=c2f71e368cbe9def3e63ae05a088464935921a3c
+CandidateCDHashFull sha256=c2f71e368cbe9def3e63ae05a088464935921a3c6e88310124126e72550f69bb
+Hash choices=sha1,sha256
+CMSDigest=8f5851d6ff2f0c4e05e37e537e60179b2427152eca36fb35ccc0ff53e985f443
+CMSDigestType=2
+Launch Constraints:
+	None
+CDHash=c2f71e368cbe9def3e63ae05a088464935921a3c
+/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/python3.7/lib-dynload/_curses.cpython-37m-darwin.so: no signature
+Info.plist=not bound
+TeamIdentifier=not set
+Sealed Resources=none
+Internal requirements count=0 size=12

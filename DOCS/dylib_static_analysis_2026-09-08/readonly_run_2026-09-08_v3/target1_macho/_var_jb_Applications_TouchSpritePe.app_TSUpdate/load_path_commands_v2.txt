@@ -1,0 +1,58 @@
+LC_ID_DYLIB / LC_LOAD_DYLIB / LC_RPATH extracted from otool -l
+384-Load command 12
+385:          cmd LC_LOAD_DYLIB
+386-      cmdsize 84
+387-         name /System/Library/Frameworks/Foundation.framework/Foundation (offset 24)
+388-   time stamp 2 Thu Jan  1 08:00:02 1970
+389-      current version 1240.1.0
+390-compatibility version 300.0.0
+391-Load command 13
+392:          cmd LC_LOAD_DYLIB
+393-      cmdsize 52
+394-         name /usr/lib/libobjc.A.dylib (offset 24)
+395-   time stamp 2 Thu Jan  1 08:00:02 1970
+396-      current version 228.0.0
+397-compatibility version 1.0.0
+398-Load command 14
+399:          cmd LC_LOAD_DYLIB
+400-      cmdsize 52
+401-         name /usr/lib/libSystem.B.dylib (offset 24)
+402-   time stamp 2 Thu Jan  1 08:00:02 1970
+403-      current version 1225.0.0
+404-compatibility version 1.0.0
+405-Load command 15
+406:          cmd LC_LOAD_DYLIB
+407-      cmdsize 92
+408-         name /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (offset 24)
+409-   time stamp 2 Thu Jan  1 08:00:02 1970
+410-      current version 1240.1.0
+411-compatibility version 150.0.0
+--
+810-Load command 13
+811:          cmd LC_LOAD_DYLIB
+812-      cmdsize 88
+813-         name /System/Library/Frameworks/Foundation.framework/Foundation (offset 24)
+814-   time stamp 2 Thu Jan  1 08:00:02 1970
+815-      current version 1240.1.0
+816-compatibility version 300.0.0
+817-Load command 14
+818:          cmd LC_LOAD_DYLIB
+819-      cmdsize 56
+820-         name /usr/lib/libobjc.A.dylib (offset 24)
+821-   time stamp 2 Thu Jan  1 08:00:02 1970
+822-      current version 228.0.0
+823-compatibility version 1.0.0
+824-Load command 15
+825:          cmd LC_LOAD_DYLIB
+826-      cmdsize 56
+827-         name /usr/lib/libSystem.B.dylib (offset 24)
+828-   time stamp 2 Thu Jan  1 08:00:02 1970
+829-      current version 1225.0.0
+830-compatibility version 1.0.0
+831-Load command 16
+832:          cmd LC_LOAD_DYLIB
+833-      cmdsize 96
+834-         name /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (offset 24)
+835-   time stamp 2 Thu Jan  1 08:00:02 1970
+836-      current version 1240.1.0
+837-compatibility version 150.0.0

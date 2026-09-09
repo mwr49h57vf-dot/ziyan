@@ -1,0 +1,201 @@
+\8("
+s[8H
+C^8(
+s^8h
+s^8h
+c]8H
+c]8(
+s[8H
+s_8@
+S_8 
+.ziyan_daemon_v2
+ziyadaemond_already_running pid=%d
+.ziyan_zero_sb_inject_off
+.ziyan_zero_sb_full_off
+.ziyan_zero_sb_inject
+/var/jb/Library/MobileSubstrate/DynamicLibraries/ZiYanVol.plist
+/var/jb/usr/lib/TweakInject/ZiYanVol.plist
+/Library/MobileSubstrate/DynamicLibraries/ZiYanVol.plist
+.ziyan_zero_sb_full
+.ziyan_find_sb_banned
+.ziyan_sb_vol_thin_off
+.ziyan_sb_vol_thin
+.ziyan_off
+restore_filter_thin %@
+zero_sb_full ON + sb_vol_thin (keep Vol filter)
+unload_filter %@
+restore_filter %@
+zero_sb_full OFF (opt-out)
+.ziyan_no_framerelay
+/var/jb/Library/MobileSubstrate/DynamicLibraries/ZiYanFrameRelay.plist
+/var/jb/usr/lib/TweakInject/ZiYanFrameRelay.plist
+/Library/MobileSubstrate/DynamicLibraries/ZiYanFrameRelay.plist
+unload_framerelay %@
+no_framerelay ON (experimental)
+restore_framerelay %@
+ziyadaemond_start
+com.ziyan.ziyan
+.ziyan_open_app
+ensure_app_open (zero_sb_full volume)
+ensure_app_open skip sb_vol_thin
+ensure_app_open skip user_closed
+.ziyan_app_heartbeat
+ensure_app_open retry
+v8@?0
+ziyadaemond_stop
+/usr/lib/ziyan
+rootless
+/var/jb
+rootful
+/var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua
+/usr/lib/ziyan/lib/lua/ziyan_run.lua
+/var/mobile/Library/Preferences/com.ziyan.ziyan.runtime_scheme
+.ziyan_daemon_log
+%.0f %@
+.ziyan_app_user_closed
+.ziyan_vol_disarmed
+uiopen skip user_closed
+uiopen skip sb_vol_thin
+uiopen skip vol_disarmed
+/var/jb/usr/bin/uiopen
+/usr/bin/uiopen
+com.ziyan.ziyan
+com.ziyan.ziyan://
+/var/jb/
+.ziyan_daemon_app_cmd
+vol_up
+vol_down
+toast
+pause
+stop
+.ziyan_app_vol_menu_req
+.ziyan_vol_trig
+toast
+.ziyan_cmd
+toast
+.ziyan_overlay_toast
+app_cmd toast
+app_cmd pause
+app_cmd stop
+ts=%.0f icon_daemon_start
+hide
+__ICON_HIDE__
+__ICON_RESTORE__
+.ziyan_daemon_icon_cmd
+.ziyan_jb_icons_hidden
+/var/mobile/Media/ZiYan/.ziyan_jb_icons_hidden
+/var/mobile/Media/ZiYan/ZYCV/res/.ziyan_jb_icons_hidden
+.ziyan_fs_cloak_hide_req
+.ziyan_icon_hide_req
+.ziyan_fs_cloak_restore_req
+.ziyan_app_session
+/var/mobile/Media/ZiYan/.ziyan_app_session
+/var/mobile/Media/ZiYan/ZYCV/res/.ziyan_app_session
+.ziyan_icon_restore_req
+restore
+.ziyan_disk_write_per_sec
+ts=%.0f writes=%d
+.ziyan_auto_capture_throttle
+.ziyan_sb_capture_throttle
+ts=%.0f ok=1 via=ziyadaemond
+.ziyan_boot_cleanup_daemon
+.ziyan_stop
+.ziyan_user_stopped
+boot_cleanup
+.ziyan_lifecycle
+%.0f daemon_%@
+.ziyan_lua_run.pid
+ps -A -o pid=,args= 2>/dev/null | grep -E 'ziyan_run\.lua' | grep -v grep
+orphan_lua_kill n=%d
+.ziyan_lua_hung
+lua_hung_seen
+.ziyan_run_intent
+stop=1
+.ziyan_session
+state=running
+.ziyan_embed_alive
+/var/mobile/Media/ZiYan/ZYCV/res/.ziyan_sb_restart_stats
+.ziyan_sb_restart_stats
+toast
+1200
+toast
+1200
+daemon
+.ziyan_framecap_alive
+.ziyan_heartbeat_framecap
+.ziyan_watchdog_framecap_need
+ts=%.0f via=ziyadaemond
+framecap_stale
+.ziyan_lua_embedded
+lua_hung_cleared_embed_hot
+.ziyan_watchdog_lua_kick
+lua_hung_kick
+lua_hung_hold_session_no_embed
+.ziyan_app_bridge
+.ziyan_app_revive_need
+ts=%.0f
+ts=%.0f pid=%d via=ziyadaemond
+.ziyan_zydaemon_alive
+.ziyan_control_shm
+.ziyan_shm_disabled
+framecap
+.ziyan_paused
+.ziyan_active
+ZiYanIconShieldDaemon
+ZiYanBootRecoveryDaemon
+ZiYanSbRestartStatsDaemon
+ZiYanWatchdogDaemon
+writeData:
+stringByAppendingPathComponent:
+defaultManager
+whitespaceAndNewlineCharacterSet
+componentsSeparatedByString:
+stringWithUTF8String:
+fileSystemRepresentation
+dataUsingEncoding:
+arrayWithObjects:count:
+removeItemAtPath:error:
+writeToFile:atomically:encoding:error:
+stringWithContentsOfFile:encoding:error:
+fileExistsAtPath:
+createDirectoryAtPath:withIntermediateDirectories:attributes:error:
+timeIntervalSince1970
+dataWithContentsOfFile:
+numberWithInt:
+attributesOfItemAtPath:error:
+hasPrefix:
+UTF8String
+setAttributes:ofItemAtPath:error:
+count
+dictionaryWithObjects:forKeys:count:
+intValue
+stringByAppendingString:
+objectForKeyedSubscript:
+length
+fileHandleForWritingAtPath:
+stringWithFormat:
+seekToEndOfFile
+data
+closeFile
+date
+timeIntervalSinceNow
+objectAtIndexedSubscript:
+writeToFile:atomically:
+countByEnumeratingWithState:objects:count:
+isEqualToString:
+stringByTrimmingCharactersInSet:
+rangeOfString:
+moveItemAtPath:toPath:error:
+start
+emitIcon:
+sessionAlive
+hidingNow
+pollOnce
+appendLog:
+killOrphanLuaProcesses
+appendDaemonLog:
+heartbeatFresh:maxAge:
+v16@0:8
+v24@0:8@16
+B16@0:8
+B32@0:8@16d24

@@ -22,17 +22,28 @@ if errorlevel 1 (
   exit /b 1
 )
 
-%PY% -m PyInstaller --noconfirm --clean --onefile --windowed --name ZiYanColorPicker_v134 ^
-  --hidden-import PIL._tkinter_finder ^
-  --hidden-import formats ^
-  ZiYanColorPicker.py
+REM 先把源码打成加密载荷，再打单文件 exe。发行 zip 只留 exe。
+%PY% protect_build.py
+if errorlevel 1 (
+  echo 加密载荷失败
+  pause
+  exit /b 1
+)
 
-if exist dist\ZiYanColorPicker_v134.exe (
-  copy /Y dist\ZiYanColorPicker_v134.exe .\ZiYanColorPicker_v134.exe >nul
-  copy /Y dist\ZiYanColorPicker_v134.exe .\ZiYanColorPicker.exe >nul
+%PY% -m PyInstaller --noconfirm --clean --onefile --windowed --name ZiYan ^
+  --icon ziyan.ico ^
+  --add-data "ziyan.ico;." ^
+  --add-data "ziyan_picker_icon.png;." ^
+  --add-data "_zy_payload.bin;." ^
+  --hidden-import PIL._tkinter_finder ^
+  --hidden-import _collect_imports ^
+  --hidden-import protect_build ^
+  picker_boot.py
+
+if exist dist\ZiYan.exe (
+  copy /Y dist\ZiYan.exe .\ZiYan.exe >nul
   echo.
-  echo OK: %cd%\ZiYanColorPicker_v134.exe
-  echo OK: %cd%\ZiYanColorPicker.exe
+  echo OK: %cd%\ZiYan.exe
 ) else (
   echo 打包失败
   pause

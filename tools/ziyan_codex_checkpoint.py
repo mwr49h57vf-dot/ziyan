@@ -9,6 +9,8 @@ def git(args):
     return subprocess.run(['git',*args],cwd=ROOT,text=True,capture_output=True).stdout.strip()
 def main():
     ap=argparse.ArgumentParser(); ap.add_argument('action',choices=['show','write'])
+    ap.add_argument('--unfinished', dest='unfinished', action=argparse.BooleanOptionalAction,
+                    default=True, help='set checkpoint completion state')
     ap.add_argument('--stage',default=''); ap.add_argument('--last-command',default='')
     ap.add_argument('--result',default=''); ap.add_argument('--next-action',default='')
     ap.add_argument('--evidence',default='')
@@ -34,7 +36,7 @@ def main():
        'evidence':a.evidence,'latestVerdict':a.latest_verdict,
        'artifacts':{'packageVersion':a.package_version,'packageSha256':a.package_sha256},
        'deviceState':a.device_state,'runningProcesses':a.running_processes,
-       'cleanupStatus':a.cleanup_status,'unfinished':True,'nextAction':a.next_action,
+       'cleanupStatus':a.cleanup_status,'unfinished':a.unfinished,'nextAction':a.next_action,
        'deviceOrder':['.101','.112','.166','.53']}
     t=STATE.with_suffix('.tmp');t.write_text(json.dumps(d,ensure_ascii=False,indent=2)+'\n');t.replace(STATE)
     print(STATE)

@@ -1,0 +1,60 @@
+Jhj58
+system: return: ret: %d
+/var/jb
+%@/Applications/TouchSpritePe.app
+/private/var/mobile/Media/TouchSpritePe/tmp
+TSDaemon
+DYLD_INSERT_LIBRARIES=/Library/MobileSubstrate/DynamicLibraries/TSTweakEx.dylib 
+%@ -R mobile:mobile /private/var/mobile/Media/TouchSpritePe
+chown
+default
+%@ %@/%@ %@
+%@/%@
+%@ root:wheel %@
+%@ 755 %@
+chmod
+%@ u+s %@
+%@ %@ %@/%@
+43d380273d42eb1fe940d06e12bbb5f9d88f8f8bc3c1d4d4d3939e98dbd58f94c5989388c089928fd5d59894ddd48f88d49a9e96df95c48d8ddebbd795bbd7def0dc0025ab6f5340f0b6773c11c862a681
+0a551a74bd805ff49757374a736ec0a3c39e898dd9989eb2de8d9a97d99f3b5d057ad057236c2ef9338e7d876397
+/var/jb/usr/bin/killall %@
+/var/jb/bin/%@
+cmd: %s
+ERROR MD5
+%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x
+lastPathComponent
+boolValue
+setHTTPMethod:
+dataUsingEncoding:
+appendString:
+requestWithURL:cachePolicy:timeoutInterval:
+seekToFileOffset:
+string
+closeFile
+floatValue
+UTF8String
+readDataOfLength:
+currentDevice
+sendSynchronousRequest:returningResponse:error:
+lastObject
+fileExistsAtPath:
+systemVersion
+objectAtIndex:
+componentsSeparatedByString:
+seekToEndOfFile
+getBytes:length:
+stringByAppendingPathComponent:
+length
+stringWithUTF8String:
+attributesOfItemAtPath:error:
+bytes
+URLWithString:
+stringWithFormat:
+objectForKey:
+defaultManager
+integerValue
+count
+fileHandleForReadingAtPath:
+fileExistsAtPath:isDirectory:
+createDirectoryAtPath:withIntermediateDirectories:attributes:error:
+JSONObjectWithData:options:error:

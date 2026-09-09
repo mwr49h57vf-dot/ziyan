@@ -1,0 +1,4 @@
+00000001004a7500 S .gomp_critical_user_
+00000001003e4760 T ___kmp_invoke_microtask
+00000001004a3700 D ___kmp_unnamed_critical_addr
+0000000100000000 T __mh_execute_header

@@ -1,0 +1,1 @@
+aacdf47219bb07bcd6379d3e5c5c42a023d26e92280740cb70b8d92c88d3a3be  /Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/TSInstaller

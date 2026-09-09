@@ -1,0 +1,139 @@
+=(}@
+9*E@
+[P9)
++1@9
+/tmp/iomfb_diag
+REPORT.txt
+/System/Library/PrivateFrameworks/IOMobileFramebuffer.framework/IOMobileFramebuffer
+/System/Library/Frameworks/IOSurface.framework/IOSurface
+IOMobileFramebufferGetMainDisplay
+IOMobileFramebufferGetLayerDefaultSurface
+IOMobileFramebufferGetDisplaySize
+IOSurfaceLock
+IOSurfaceUnlock
+IOSurfaceGetBaseAddress
+IOSurfaceGetBytesPerRow
+IOSurfaceGetWidth
+IOSurfaceGetHeight
+IOSurfaceGetPixelFormat
+IOSurfaceGetAllocSize
+IOSurfaceGetPlaneCount
+IOSurfaceGetBytesPerRowOfPlane
+IOSurfaceGetWidthOfPlane
+IOSurfaceGetHeightOfPlane
+IOSurfaceGetBytesPerElementOfPlane
+IOSurfaceGetBaseAddressOfPlane
+IOSurfaceGetBytesPerElement
+IOSurfaceGetSeed
+ts=%.0f
+dlsym: getMain=%d getLayer=%d getSize=%d lock=%d baseAddr=%d planeCount=%d allocSize=%d
+/usr/lib/ziyan/var/.ziyan_front_bid
+/var/jb/usr/lib/ziyan/var/.ziyan_front_bid
+front_bid=%@
+FATAL dlsym_missing
+FATAL main_display_nil
+display_size=%.0fx%.0f
+IOMobileFramebufferOpen
+IOMobileFramebufferOpen dlsym=%d
+AppleCLCD
+AppleH1CLCD
+AppleMobileCLCD
+IOMobileFramebuffer
+AppleCLCD2
+  fbopen svc=%@ match=nil
+  fbopen svc=%@ match=ok rc=0x%x fb=%p
+    layer0 rc=%d surf=%p
+fbopen_%@_accel.png
+    ACCEL_FBOPEN ok %zux%zu cost_ms=%.1f(xfer=%.1f lock=%.1f) adj_diff=%.1f png=%d
+    ACCEL_FBOPEN fail cost_ms=%.1f %@
+layer=%d rc=%d surf=nil
+warm1
+warm2
+warm3
+layer%d_accel_%s.png
+  ACCEL[%s] ok bpr=%zu cost_ms=%.1f(xfer=%.1f lock=%.1f) adj_diff=%.1f mean_rgb=%.1f,%.1f,%.1f png=%d
+  ACCEL[%s] fail cost_ms=%.1f %@
+layer=%d rc=0 %zux%zu bpr=%zu bpe=%zu fmt=0x%08x('%s') alloc=%zu planes=%zu seed=%d ptr=%p bpr/w=%.2f
+  plane=%zu %zux%zu bpr=%zu bpe=%zu addr=%p
+%02x
+  row0_hex=%@
+layer%d_swap.png
+layer%d_noswap.png
+  png swap=%d noswap=%d
+OUT=%s
+IOSurfaceCreate
+/System/Library/PrivateFrameworks/UIKitCore.framework/UIKitCore
+/System/Library/Frameworks/UIKit.framework/UIKit
+/System/Library/Frameworks/QuartzCore.framework/QuartzCore
+CARenderServerRenderDisplay
+_UICreateScreenUIImage
+PROBE dlsym: uikit=%d uiCreate=%d render=%d
+PROBE screen=%zux%zu
+probe_uiimage.png
+PROBE[uiimage] ok %zux%zu cost_ms=%.1f adj=%.1f mean_rgb=%.1f,%.1f,%.1f png=%d
+PROBE[uiimage] ctx_nil cost_ms=%.1f
+PROBE[uiimage] nil cost_ms=%.1f
+UIWindow
+createScreenIOSurface
+probe_uisurface.png
+PROBE[uisurface] ok %zux%zu cost_ms=%.1f adj=%.1f mean_rgb=%.1f,%.1f,%.1f png=%d
+PROBE[uisurface] base_nil %zux%zu cost_ms=%.1f
+PROBE[uisurface] nil cost_ms=%.1f
+PROBE[uisurface] unavailable cls=%d sel=%d
+IOSurfaceWidth
+IOSurfaceHeight
+IOSurfaceBytesPerElement
+IOSurfaceBytesPerRow
+IOSurfaceAllocSize
+IOSurfacePixelFormat
+IOSurfaceIsGlobal
+carender_ro_lcd
+carender_ro_null
+carender_rw_lcd
+carender_rw_null
+PROBE[%s] surf_nil
+probe_%s.png
+PROBE[%s] kr=%u cost_ms=%.1f adj=%.1f mean_rgb=%.1f,%.1f,%.1f png=%d
+PROBE[%s] kr=%u base_nil cost_ms=%.1f
+IOSurfaceAcceleratorCreate
+IOSurfaceAcceleratorTransferSurface
+dlsym accelCreate=%d accelXfer=%d surfCreate=%d
+dst_create_nil
+accel_create rc=0x%x
+xfer rc=0x%x
+public.png
+N/f 
+zzB\
+zzB\
+PLub
+timeIntervalSince1970
+numberWithInt:
+stringByTrimmingCharactersInSet:
+dataWithLength:
+appendFormat:
+dictionaryWithObjects:forKeys:count:
+fileURLWithPath:
+CGImage
+numberWithBool:
+createDirectoryAtPath:withIntermediateDirectories:attributes:error:
+UTF8String
+mainScreen
+stringByAppendingPathComponent:
+defaultManager
+dataWithBytes:length:
+stringWithUTF8String:
+writeToFile:atomically:encoding:error:
+string
+countByEnumeratingWithState:objects:count:
+length
+stringWithFormat:
+initWithFormat:arguments:
+date
+stringWithContentsOfFile:encoding:error:
+appendString:
+bytes
+arrayWithObjects:count:
+whitespaceAndNewlineCharacterSet
+numberWithUnsignedLong:
+nativeBounds
+mutableBytes

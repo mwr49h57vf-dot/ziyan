@@ -1,0 +1,20 @@
+Executable=/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/python3.7/lib-dynload/_elementtree.cpython-37m-darwin.so
+Identifier=_elementtree.cpython-37m-darwin.so
+Format=Mach-O thin (arm64)
+CodeDirectory v=20200 size=931 flags=0x0(none) hashes=24+2 location=embedded
+Hash type=sha256 size=32
+CandidateCDHash sha1=8a0972ddcb2c2f2fd9e1c1eca92a654552b5288d
+CandidateCDHashFull sha1=8a0972ddcb2c2f2fd9e1c1eca92a654552b5288d
+CandidateCDHash sha256=602312aa63f9180abc86a78a7e1334ed41dd0fc8
+CandidateCDHashFull sha256=602312aa63f9180abc86a78a7e1334ed41dd0fc831e2dbcca8ac40ee37e2d343
+Hash choices=sha1,sha256
+CMSDigest=e9dda7a969aa61cddb5026da826c6353657e3d86969bc251dabc85b3533e9e37
+CMSDigestType=2
+Launch Constraints:
+	None
+CDHash=602312aa63f9180abc86a78a7e1334ed41dd0fc8
+/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/python3.7/lib-dynload/_elementtree.cpython-37m-darwin.so: no signature
+Info.plist=not bound
+TeamIdentifier=not set
+Sealed Resources=none
+Internal requirements count=0 size=12

@@ -1,0 +1,1 @@
+fatal error: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/lipo: unknown flag: - Mach-O executable arm_v7] [arm64]

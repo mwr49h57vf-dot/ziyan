@@ -1,0 +1,18 @@
+Executable=/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/Hades
+Identifier=Hades
+Format=Mach-O thin (arm64)
+CodeDirectory v=20400 size=766 flags=0x0(none) hashes=14+7 location=embedded
+Hash type=sha256 size=32
+CandidateCDHash sha256=2559b30a62bd0edbeaa78d063cb86239d2dce5ce
+CandidateCDHashFull sha256=2559b30a62bd0edbeaa78d063cb86239d2dce5ce57783929e90c23b94f951af0
+Hash choices=sha256
+CMSDigest=2559b30a62bd0edbeaa78d063cb86239d2dce5ce57783929e90c23b94f951af0
+CMSDigestType=2
+Launch Constraints:
+	None
+CDHash=2559b30a62bd0edbeaa78d063cb86239d2dce5ce
+/Users/mac/Desktop/触动精灵deb/拆解分析/触动16版/文件系统/var/jb/Applications/TouchSpritePe.app/Hades: no signature
+Info.plist=not bound
+TeamIdentifier=not set
+Sealed Resources=none
+Internal requirements count=1 size=124

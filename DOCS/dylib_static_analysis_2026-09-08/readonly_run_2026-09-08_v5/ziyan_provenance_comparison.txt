@@ -1,0 +1,3 @@
+liblua_vendor_vs_staged=0
+lua_vendor_vs_staged=0
+readline_vendor_vs_staged=0

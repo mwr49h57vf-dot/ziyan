@@ -1,0 +1,4 @@
+358:/usr/lib/libAccessibility.dylib
+384:[TSPath] rootless: %@
+2182:/usr/lib/libAccessibility.dylib
+2208:[TSPath] rootless: %@

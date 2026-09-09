@@ -1,0 +1,20 @@
+Executable=/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/python3.7/lib-dynload/pyexpat.cpython-37m-darwin.so
+Identifier=pyexpat.cpython-37m-darwin.so
+Format=Mach-O thin (arm64)
+CodeDirectory v=20200 size=926 flags=0x0(none) hashes=24+2 location=embedded
+Hash type=sha256 size=32
+CandidateCDHash sha1=6c9a843d0a1cc7b43d3be4420770d8d465b534ca
+CandidateCDHashFull sha1=6c9a843d0a1cc7b43d3be4420770d8d465b534ca
+CandidateCDHash sha256=6d56ffe1429c5dac6c5228d85566bed541f9ff5e
+CandidateCDHashFull sha256=6d56ffe1429c5dac6c5228d85566bed541f9ff5e054c42911f745ea1dce567eb
+Hash choices=sha1,sha256
+CMSDigest=b7c310c9aa5752569050d3746e9f6abfc361983ba2496f1de9dd7a6c6db114dc
+CMSDigestType=2
+Launch Constraints:
+	None
+CDHash=6d56ffe1429c5dac6c5228d85566bed541f9ff5e
+/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/python3.7/lib-dynload/pyexpat.cpython-37m-darwin.so: no signature
+Info.plist=not bound
+TeamIdentifier=not set
+Sealed Resources=none
+Internal requirements count=0 size=12

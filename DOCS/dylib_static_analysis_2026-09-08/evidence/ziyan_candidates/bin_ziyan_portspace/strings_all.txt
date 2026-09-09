@@ -1,0 +1,5 @@
+usage: %s <pid>
+invalid pid: %s
+{"ok":false,"error":"task_for_pid_failed","kr":%d,"pid":%d}
+{"ok":false,"error":"mach_port_space_basic_info_failed","kr":%d,"release_kr":%d,"pid":%d}
+{"ok":true,"pid":%d,"table_size":%u,"table_next":%u,"table_inuse":%u,"genno_mask":%u,"release_kr":%d}

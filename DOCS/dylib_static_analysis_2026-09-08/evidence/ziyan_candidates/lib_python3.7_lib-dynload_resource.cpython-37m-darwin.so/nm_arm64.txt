@@ -1,0 +1,1 @@
+0000000000007380 T _PyInit_resource

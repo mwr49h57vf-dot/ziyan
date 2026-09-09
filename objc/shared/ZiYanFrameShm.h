@@ -85,6 +85,9 @@ BOOL ZiYanFrameShmWriteEx(const void *pixels, size_t width, size_t height,
                           size_t bpr, uint8_t provider, uint8_t orient,
                           uint32_t frontHash, uint8_t status);
 
+/// BIZ07：上一笔 WriteEx 是否跳过了文件 shm 像素 memcpy（header/resident 仍更新）。
+int ZiYanFrameShmLastWriteSkippedPixels(void);
+
 /// 只读映射；*outMap 需 ZiYanFrameShmUnmap。失败返回 NO。
 /// 校验 magic/version/长度/payload/bpr/status/commit 一致性。
 BOOL ZiYanFrameShmMapRead(const ZiYanFrameShmHeader *_Nullable *_Nonnull outHdr,

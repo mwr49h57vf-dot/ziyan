@@ -1,0 +1,20 @@
+Executable=/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/python3.7/lib-dynload/_testmultiphase.cpython-37m-darwin.so
+Identifier=_testmultiphase.cpython-37m-darwin.so
+Format=Mach-O thin (arm64)
+CodeDirectory v=20200 size=614 flags=0x0(none) hashes=14+2 location=embedded
+Hash type=sha256 size=32
+CandidateCDHash sha1=c9b4d7c34f43c00e0cca548dbe6b9ebc3c78a821
+CandidateCDHashFull sha1=c9b4d7c34f43c00e0cca548dbe6b9ebc3c78a821
+CandidateCDHash sha256=bc6b39025cd3921d20ffff96d5aef5b691fa2a3a
+CandidateCDHashFull sha256=bc6b39025cd3921d20ffff96d5aef5b691fa2a3a420fa0c96832a80cdf2797a5
+Hash choices=sha1,sha256
+CMSDigest=7488717debe571b02453c706f537be65c8256eb91a216ea1c26d9bff7fcbb656
+CMSDigestType=2
+Launch Constraints:
+	None
+CDHash=bc6b39025cd3921d20ffff96d5aef5b691fa2a3a
+/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/python3.7/lib-dynload/_testmultiphase.cpython-37m-darwin.so: no signature
+Info.plist=not bound
+TeamIdentifier=not set
+Sealed Resources=none
+Internal requirements count=0 size=12

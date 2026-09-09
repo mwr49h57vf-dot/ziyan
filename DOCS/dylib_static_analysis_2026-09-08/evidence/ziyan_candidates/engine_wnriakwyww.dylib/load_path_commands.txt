@@ -1,0 +1,143 @@
+254-Load command 3
+255:          cmd LC_ID_DYLIB
+256-      cmdsize 48
+257-         name /bin//wnriakwyww.dylib (offset 24)
+258-   time stamp 1 Thu Jan  1 08:00:01 1970
+259-      current version 0.0.0
+260-compatibility version 0.0.0
+--
+321-Load command 11
+322:          cmd LC_LOAD_DYLIB
+323-      cmdsize 52
+324-         name /usr/lib/libobjc.A.dylib (offset 24)
+325-   time stamp 2 Thu Jan  1 08:00:02 1970
+326-      current version 228.0.0
+327-compatibility version 1.0.0
+328-Load command 12
+329:          cmd LC_LOAD_DYLIB
+330-      cmdsize 84
+331-         name /System/Library/Frameworks/Foundation.framework/Foundation (offset 24)
+332-   time stamp 2 Thu Jan  1 08:00:02 1970
+333-      current version 1675.129.0
+334-compatibility version 300.0.0
+335-Load command 13
+336:          cmd LC_LOAD_DYLIB
+337-      cmdsize 92
+338-         name /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (offset 24)
+339-   time stamp 2 Thu Jan  1 08:00:02 1970
+340-      current version 1675.129.0
+341-compatibility version 150.0.0
+342-Load command 14
+343:          cmd LC_LOAD_DYLIB
+344-      cmdsize 84
+345-         name /Library/Frameworks/CydiaSubstrate.framework/CydiaSubstrate (offset 24)
+346-   time stamp 2 Thu Jan  1 08:00:02 1970
+347-      current version 0.0.0
+348-compatibility version 0.0.0
+349-Load command 15
+350:          cmd LC_LOAD_DYLIB
+351-      cmdsize 48
+352-         name /usr/lib/libc++.1.dylib (offset 24)
+353-   time stamp 2 Thu Jan  1 08:00:02 1970
+354-      current version 902.0.0
+355-compatibility version 1.0.0
+356-Load command 16
+357:          cmd LC_LOAD_DYLIB
+358-      cmdsize 56
+359-         name /usr/lib/libMobileGestalt.dylib (offset 24)
+360-   time stamp 2 Thu Jan  1 08:00:02 1970
+361-      current version 1.0.0
+362-compatibility version 1.0.0
+363-Load command 17
+364:          cmd LC_LOAD_DYLIB
+365-      cmdsize 48
+366-         name /usr/lib/libz.1.dylib (offset 24)
+367-   time stamp 2 Thu Jan  1 08:00:02 1970
+368-      current version 1.2.11
+369-compatibility version 1.0.0
+370-Load command 18
+371:          cmd LC_LOAD_DYLIB
+372-      cmdsize 52
+373-         name /usr/lib/libSystem.B.dylib (offset 24)
+374-   time stamp 2 Thu Jan  1 08:00:02 1970
+375-      current version 1281.100.1
+376-compatibility version 1.0.0
+377-Load command 19
+378:          cmd LC_LOAD_DYLIB
+379-      cmdsize 76
+380-         name /System/Library/Frameworks/UIKit.framework/UIKit (offset 24)
+381-   time stamp 2 Thu Jan  1 08:00:02 1970
+382-      current version 61000.0.0
+383-compatibility version 1.0.0
+--
+676-Load command 3
+677:          cmd LC_ID_DYLIB
+678-      cmdsize 48
+679-         name /bin//wnriakwyww.dylib (offset 24)
+680-   time stamp 1 Thu Jan  1 08:00:01 1970
+681-      current version 0.0.0
+682-compatibility version 0.0.0
+--
+744-Load command 11
+745:          cmd LC_LOAD_DYLIB
+746-      cmdsize 56
+747-         name /usr/lib/libobjc.A.dylib (offset 24)
+748-   time stamp 2 Thu Jan  1 08:00:02 1970
+749-      current version 228.0.0
+750-compatibility version 1.0.0
+751-Load command 12
+752:          cmd LC_LOAD_DYLIB
+753-      cmdsize 88
+754-         name /System/Library/Frameworks/Foundation.framework/Foundation (offset 24)
+755-   time stamp 2 Thu Jan  1 08:00:02 1970
+756-      current version 1675.129.0
+757-compatibility version 300.0.0
+758-Load command 13
+759:          cmd LC_LOAD_DYLIB
+760-      cmdsize 96
+761-         name /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (offset 24)
+762-   time stamp 2 Thu Jan  1 08:00:02 1970
+763-      current version 1675.129.0
+764-compatibility version 150.0.0
+765-Load command 14
+766:          cmd LC_LOAD_DYLIB
+767-      cmdsize 88
+768-         name /Library/Frameworks/CydiaSubstrate.framework/CydiaSubstrate (offset 24)
+769-   time stamp 2 Thu Jan  1 08:00:02 1970
+770-      current version 0.0.0
+771-compatibility version 0.0.0
+772-Load command 15
+773:          cmd LC_LOAD_DYLIB
+774-      cmdsize 48
+775-         name /usr/lib/libc++.1.dylib (offset 24)
+776-   time stamp 2 Thu Jan  1 08:00:02 1970
+777-      current version 902.0.0
+778-compatibility version 1.0.0
+779-Load command 16
+780:          cmd LC_LOAD_DYLIB
+781-      cmdsize 56
+782-         name /usr/lib/libMobileGestalt.dylib (offset 24)
+783-   time stamp 2 Thu Jan  1 08:00:02 1970
+784-      current version 1.0.0
+785-compatibility version 1.0.0
+786-Load command 17
+787:          cmd LC_LOAD_DYLIB
+788-      cmdsize 48
+789-         name /usr/lib/libz.1.dylib (offset 24)
+790-   time stamp 2 Thu Jan  1 08:00:02 1970
+791-      current version 1.2.11
+792-compatibility version 1.0.0
+793-Load command 18
+794:          cmd LC_LOAD_DYLIB
+795-      cmdsize 56
+796-         name /usr/lib/libSystem.B.dylib (offset 24)
+797-   time stamp 2 Thu Jan  1 08:00:02 1970
+798-      current version 1281.100.1
+799-compatibility version 1.0.0
+800-Load command 19
+801:          cmd LC_LOAD_DYLIB
+802-      cmdsize 80
+803-         name /System/Library/Frameworks/UIKit.framework/UIKit (offset 24)
+804-   time stamp 2 Thu Jan  1 08:00:02 1970
+805-      current version 61000.0.0
+806-compatibility version 1.0.0

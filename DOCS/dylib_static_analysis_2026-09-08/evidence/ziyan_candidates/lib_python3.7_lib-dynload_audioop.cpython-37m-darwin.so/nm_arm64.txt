@@ -1,0 +1,1 @@
+0000000000007af4 T _PyInit_audioop

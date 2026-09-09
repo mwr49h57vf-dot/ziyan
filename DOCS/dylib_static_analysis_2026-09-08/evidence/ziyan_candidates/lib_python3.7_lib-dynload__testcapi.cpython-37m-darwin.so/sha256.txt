@@ -1,0 +1,1 @@
+e5dfee706a5974a3351e610551c396d4f6325d91373a56cf92b159e7e6cee309  /Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/python3.7/lib-dynload/_testcapi.cpython-37m-darwin.so

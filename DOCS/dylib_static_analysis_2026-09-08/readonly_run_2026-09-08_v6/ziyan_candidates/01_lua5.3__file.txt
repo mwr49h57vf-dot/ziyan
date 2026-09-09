@@ -1,0 +1,1 @@
+vendor/bin/lua5.3: Mach-O 64-bit executable arm64

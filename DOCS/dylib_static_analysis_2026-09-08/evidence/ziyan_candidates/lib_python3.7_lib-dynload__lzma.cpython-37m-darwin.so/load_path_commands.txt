@@ -1,0 +1,14 @@
+231-Load command 10
+232:          cmd LC_LOAD_DYLIB
+233-      cmdsize 56
+234-         name /usr/local/lib/liblzma.5.dylib (offset 24)
+235-   time stamp 2 Thu Jan  1 08:00:02 1970
+236-      current version 8.4.0
+237-compatibility version 8.0.0
+238-Load command 11
+239:          cmd LC_LOAD_DYLIB
+240-      cmdsize 56
+241-         name /usr/lib/libSystem.B.dylib (offset 24)
+242-   time stamp 2 Thu Jan  1 08:00:02 1970
+243-      current version 1252.0.0
+244-compatibility version 1.0.0

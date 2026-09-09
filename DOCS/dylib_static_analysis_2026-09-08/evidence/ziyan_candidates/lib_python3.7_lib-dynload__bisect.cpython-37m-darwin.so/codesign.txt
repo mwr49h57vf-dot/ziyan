@@ -1,0 +1,20 @@
+Executable=/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/python3.7/lib-dynload/_bisect.cpython-37m-darwin.so
+Identifier=_bisect.cpython-37m-darwin.so
+Format=Mach-O thin (arm64)
+CodeDirectory v=20200 size=574 flags=0x0(none) hashes=13+2 location=embedded
+Hash type=sha256 size=32
+CandidateCDHash sha1=23cf1b0db7ab617508476e545ca61e2e7699c8b6
+CandidateCDHashFull sha1=23cf1b0db7ab617508476e545ca61e2e7699c8b6
+CandidateCDHash sha256=3391231061c506207b163fd76068d65591159dcd
+CandidateCDHashFull sha256=3391231061c506207b163fd76068d65591159dcd9a212fbb1998d14a127eb29e
+Hash choices=sha1,sha256
+CMSDigest=3783618aa0facf07b4a57edd60fd79007a01db804ef180acd55b2b97bdd30840
+CMSDigestType=2
+Launch Constraints:
+	None
+CDHash=3391231061c506207b163fd76068d65591159dcd
+/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/python3.7/lib-dynload/_bisect.cpython-37m-darwin.so: no signature
+Info.plist=not bound
+TeamIdentifier=not set
+Sealed Resources=none
+Internal requirements count=0 size=12

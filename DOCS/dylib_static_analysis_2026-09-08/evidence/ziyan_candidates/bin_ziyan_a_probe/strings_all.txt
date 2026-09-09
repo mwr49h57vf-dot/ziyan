@@ -1,0 +1,328 @@
+SY8L
+sP8h
+sX8I
+C@9 
+3R8H
+s[8H
+sR8H
+cS8)
+cS8(
+(qU9
+?@9)
+N9I)@
+(i*8
+@9))@
+ii8I)@
+)ij8
+OG9H
+.Affffff
+@ARGBARGBABGR
+uisurface
+/tmp/ziyan_a_probe
+--source
+--out
+shm_live
+appwindow
+springboard
+appwindow_not_for_home
+.raw
+.json
+raw_write_fail
+{"ok":%@,"source":"%@","err":"%@","provider":%u,"pixfmt":%u,"orient":%u,"w":%zu,"h":%zu,"bpr":%zu,"bytes":%lu,"wall_ms":%.3f,"cpu_ms":%.3f,"rss0_kb":%ld,"rss1_kb":%ld,"rss_delta_kb":%ld,"front_bid":"%@","shm_seq":%u,"shm_provider":%u,"pid":%d,"wrote_shm":false}
+true
+false
+shm_map_fail
+appwindow_not_active
+shm_empty
+shm_copy_oom
+.ziyan_front_bid
+/usr/lib/ziyan
+rootless
+/var/jb
+v8@?0
+rootful
+/var/jb/usr/lib/ziyan/lib/lua/ziyan_run.lua
+/usr/lib/ziyan/lib/lua/ziyan_run.lua
+/var/mobile/Library/Preferences/com.ziyan.ziyan.runtime_scheme
+ZYPR
+.ziyan_display_locked
+.ziyan_lock_state
+uicreate_dump_fail err=%s w=%zu h=%zu bpr=%zu
+unknown
+uiimage_nil
+uiimage_bad_size
+cgctx_nil
+capture_nil
+.ziyan_iomfb_accel_profile
+iomfb_skipped_front
+iomfb
+skip_front
+accel=
+fail
+/var/jb/
+surf_nil
+uicreate
+carender
+black
+carender_black
+front_guard
+changed
+front_changed_during_capture
+phase=GLOBAL via=%@ front_guard=changed expected_hash=%u live_bid=%@ live_hash=%u chain=%@
+.ziyan_iomfb_accel_accept_dark
+phase=GLOBAL iomfb_accel_dark_content_accept
+global_black_refuse
+shm_write
+black_refuse
+;perf=iomfb=%.1f,prepare=%.1f,write=%.1f
+phase=GLOBAL via=%@ %zux%zu status=%u chain=%@ err=ok
+global_nil
+phase=GLOBAL via=%@ chain=%@ err=%@
+uisurface_nil
+uisurface_black
+relay
+skipped_mutates_production_shm
+unknown_source
+probe_nil
+probe_rotate_fail
+publish_empty
+uniform
+uicreate_dlsym
+uicreate_exc_%@
+NSException
+uicreate_nil
+uicreate_bad_geom
+uicreate_oom
+uicreate_ctx
+uicreate_%@
+uicreate_foreign_front_inflight
+uicreate_inflight
+phase=UICREATE_CHILD pid=%d deadline_kill=1 rc=%d dump=%d
+uicreate_child_reap_pending
+.ziyan_uicreate_dump_%d_%u.bin
+.err
+.ziyan_uicreate_fork_on
+ziyan_framecap
+uicreate-dump
+uicreate_spawn_%d
+exec_failed errno=%d (%s) bin=%s
+uicreate_fork
+phase=UICREATE_CHILD pid=%d timeout=1 dump=%d stderr=%@
+uicreate_child_timeout
+phase=UICREATE_CHILD pid=%d exit=%d sig=%d dump=%d stderr=%@
+uicreate_dump_fail err=uicreate_black
+uicreate_black
+uicreate_child_black
+uicreate_child_sig_%d
+uicreate_child_exit_%d
+phase=UICREATE_CHILD pid=%d front_changed child_hash=%u expected_hash=%u
+uicreate_child_front_changed
+uicreate_dump_short
+uicreate_dump_magic
+uicreate_dump_geom
+/var/jb/usr/lib/ziyan/bin/ziyan_framecap
+/usr/lib/ziyan/bin/ziyan_framecap
+memorystatus_control
+write_%@
+phase=WRITE_REJECT unhealthy=%@ %zux%zu
+phase=WRITE_ACCEPT iomfb_accel_dark_content
+ZiYanFrameResidentSetWritePixelFormat
+shm_write_fail
+.ziyan_orient
+.ziyan_init_args
+.ziyan_buf_wh
+.ziyan_native_wh
+%.0f
+/System/Library/PrivateFrameworks/UIKitCore.framework/UIKitCore
+/System/Library/Frameworks/UIKit.framework/UIKit
+_UICreateScreenUIImage
+/System/Library/Frameworks/IOSurface.framework/IOSurface
+/System/Library/Frameworks/QuartzCore.framework/QuartzCore
+IOSurfaceCreate
+IOSurfaceLock
+IOSurfaceUnlock
+IOSurfaceGetBaseAddress
+IOSurfaceGetBytesPerRow
+CARenderServerRenderDisplay
+carender_dlsym
+carender_bad_size
+carender_surf_nil
+IOSurfaceBytesPerElement
+IOSurfaceBytesPerRow
+IOSurfaceWidth
+IOSurfaceHeight
+IOSurfacePixelFormat
+IOSurfaceAllocSize
+IOSurfaceIsGlobal
+IOSurfaceCacheMode
+carender_surf_nil_p%df%d_%zux%zu
+carender_%@
+carender_kr_or_black
+phase=A create_ok=%d create_fail=%d render_ok=%d black=%d kr=%d last=%zux%zu sticky=0 err=ok via=carender_copy_release
+phase=A create_ok=%d create_fail=%d render_ok=%d black=%d kr=%d last=%zux%zu err=%@ via=carender_copy_release
+.ziyan_iomfb_app_skip
+%@=%@
+/System/Library/PrivateFrameworks/IOMobileFramebuffer.framework/IOMobileFramebuffer
+IOMobileFramebufferGetMainDisplay
+IOMobileFramebufferGetLayerDefaultSurface
+IOMobileFramebufferGetDisplaySize
+IOSurfaceGetWidth
+IOSurfaceGetHeight
+iomfb_dlsym
+phase=IOMFB err=iomfb_dlsym
+iomfb_main_nil
+phase=IOMFB err=iomfb_main_nil
+IOSurfaceGetPixelFormat
+IOSurfaceGetPlaneCount
+phase=IOMFB_ACCEL layer=%d %zux%zu fmt=0x%x err=ok via=iomfb_accel_copy_release
+iomfb_accel_fail
+iomfb_surf_nil
+iomfb_compressed
+iomfb_unhealthy
+phase=IOMFB err=%@ nonnil=%d compressed=%d linear_bad=%d layers=0..7
+iomfb_nil
+iomfb_bad_geom
+.ziyan_iomfb_noswap
+.ziyan_iomfb_swap
+phase=IOMFB layer=%d %zux%zu fmt=0x%x swap=%d err=ok_alt_swap mean_rgb=%llu,%llu,%llu
+iomfb_chroma_skew
+phase=IOMFB layer=%d %zux%zu fmt=0x%x swap=%d err=iomfb_chroma_skew mean_rgb=%llu,%llu,%llu
+phase=IOMFB layer=%d %zux%zu fmt=0x%x swap=%d black=%d err=ok via=iomfb_copy_release
+.ziyan_iomfb_accel_on
+iomfb_accel_off
+IOSurfaceAcceleratorCreate
+IOSurfaceAcceleratorTransferSurface
+iomfb_accel_dlsym
+iomfb_accel_geom
+iomfb_accel_dst
+iomfb_accel_create
+iomfb_accel_xfer_%x
+accel=setup=%.1f,create=%.1f,srclock=%.1f,xfer=%.1f,dstlock=%.1f,copy=%.1f
+framecap
+.ziyan_uicreate_inprocess_on
+.ziyan_disable_uicreate_child
+uicreate_disabled
+uicreate_black_suppressed
+uicreate_circuit_open
+child_black
+child_exit_1
+phase=UICREATE_BLACK_RETRY bid=%@ retry_ms=%.0f streak=%d
+phase=UICREATE_CIRCUIT fork=%@ backoff_ms=%.0f
+child_fail
+uicreate_child_fail
+.ziyan_cap_diag
+phase=IOMFB_ACCEL
+err=ok
+iomfb_accel_dark_content
+phase=GLOBAL via=iomfb
+%@/%d
+who=%@ t=%.0f %@
+UIWindow
+createScreenIOSurface
+uisurface_sel
+uisurface_dlsym
+uisurface_geom
+uisurface_accel
+uisurface_linear_copy
+uisurface_ok fmt=0x%x
+rot_oom
+.tmp
+.clr.%d.tmp
+.%d.tmp
+.ziyan_sb_capture_throttle
+.ziyan_sb_mem_cooldown
+until=%.0f
+until=
+[PASS] %@
+v16@?0@"NSString"8
+[FAIL] %@
+workDir empty
+test_frame_shm
+com.example.app
+write_ex ok
+write_ex
+peek meta
+map_read intact
+truncated reject
+bad_bpr write reject
+bad_payload reject
+v1 compat read
+writing reject
+com.apple.springboard
+invalidate released
+seq bump in-place
+seq bump in-place s1=%u s2=%u
+released_v1 offset40 clear
+summary fail=%d sizeof_hdr=%zu
+.ziyan_frame_shm
+isMainThread
+stringWithUTF8String:
+isEqualToString:
+dataWithBytes:length:
+lastPathComponent
+setObject:forKeyedSubscript:
+name
+drawAtPoint:
+numberWithUnsignedLong:
+processInfo
+length
+scale
+date
+hasSuffix:
+componentsSeparatedByCharactersInSet:
+appendString:
+firstObject
+stringByAppendingFormat:
+numberWithInt:
+size
+imageOrientation
+UTF8String
+contentsOfDirectoryAtPath:error:
+stringWithContentsOfFile:encoding:error:
+mutableBytes
+stringByDeletingLastPathComponent
+writeToFile:atomically:encoding:error:
+componentsSeparatedByString:
+processName
+stringByAppendingPathComponent:
+timeIntervalSinceNow
+objectAtIndexedSubscript:
+fileExistsAtPath:
+dataWithContentsOfFile:
+bytes
+whitespaceAndNewlineCharacterSet
+stringByReplacingOccurrencesOfString:withString:
+copy
+lowercaseString
+dictionaryWithObjects:forKeys:count:
+newlineCharacterSet
+hasPrefix:
+setLength:
+substringFromIndex:
+countByEnumeratingWithState:objects:count:
+defaultManager
+characterAtIndex:
+stringWithFormat:
+doubleValue
+CGImage
+integerValue
+string
+numberWithUnsignedInt:
+createDirectoryAtPath:withIntermediateDirectories:attributes:error:
+timeIntervalSince1970
+stringByAppendingString:
+dataWithLength:
+unsignedLongLongValue
+mutableCopy
+fileSystemRepresentation
+appendFormat:
+objectForKeyedSubscript:
+attributesOfItemAtPath:error:
+containsString:
+bounds
+mainScreen
+count
+numberWithBool:
+stringByTrimmingCharactersInSet:
+removeItemAtPath:error:
+description

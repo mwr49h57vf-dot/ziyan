@@ -1,0 +1,35 @@
+312-Load command 14
+313:          cmd LC_LOAD_DYLIB
+314-      cmdsize 80
+315-         name /System/Library/Frameworks/UIKit.framework/UIKit (offset 24)
+316-   time stamp 2 Thu Jan  1 08:00:02 1970
+317-      current version 6092.1.111
+318-compatibility version 1.0.0
+319-Load command 15
+320:          cmd LC_LOAD_DYLIB
+321-      cmdsize 88
+322-         name /System/Library/Frameworks/Foundation.framework/Foundation (offset 24)
+323-   time stamp 2 Thu Jan  1 08:00:02 1970
+324-      current version 1946.102.0
+325-compatibility version 300.0.0
+326-Load command 16
+327:          cmd LC_LOAD_DYLIB
+328-      cmdsize 56
+329-         name /usr/lib/libobjc.A.dylib (offset 24)
+330-   time stamp 2 Thu Jan  1 08:00:02 1970
+331-      current version 228.0.0
+332-compatibility version 1.0.0
+333-Load command 17
+334:          cmd LC_LOAD_DYLIB
+335-      cmdsize 56
+336-         name /usr/lib/libSystem.B.dylib (offset 24)
+337-   time stamp 2 Thu Jan  1 08:00:02 1970
+338-      current version 1319.0.0
+339-compatibility version 1.0.0
+340-Load command 18
+341:          cmd LC_LOAD_DYLIB
+342-      cmdsize 96
+343-         name /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation (offset 24)
+344-   time stamp 2 Thu Jan  1 08:00:02 1970
+345-      current version 1946.102.0
+346-compatibility version 150.0.0

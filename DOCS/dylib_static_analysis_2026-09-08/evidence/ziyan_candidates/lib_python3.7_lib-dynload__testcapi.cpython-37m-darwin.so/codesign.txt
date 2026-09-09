@@ -1,0 +1,20 @@
+Executable=/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/python3.7/lib-dynload/_testcapi.cpython-37m-darwin.so
+Identifier=_testcapi.cpython-37m-darwin.so
+Format=Mach-O thin (arm64)
+CodeDirectory v=20200 size=1152 flags=0x0(none) hashes=31+2 location=embedded
+Hash type=sha256 size=32
+CandidateCDHash sha1=1c6ebb458f3c95aa26416049bd77567750da8438
+CandidateCDHashFull sha1=1c6ebb458f3c95aa26416049bd77567750da8438
+CandidateCDHash sha256=45adc15af52e99ae08674b5336591b6506a0257c
+CandidateCDHashFull sha256=45adc15af52e99ae08674b5336591b6506a0257cf6358632128e2e9d1d917078
+Hash choices=sha1,sha256
+CMSDigest=29633db93f889631fd380c4bdd990848ab7549d1e7e9bf1c04f3a145d6091d80
+CMSDigestType=2
+Launch Constraints:
+	None
+CDHash=45adc15af52e99ae08674b5336591b6506a0257c
+/Users/mac/Desktop/ZiYan_副本/.theos/_/var/jb/usr/lib/ziyan/lib/python3.7/lib-dynload/_testcapi.cpython-37m-darwin.so: no signature
+Info.plist=not bound
+TeamIdentifier=not set
+Sealed Resources=none
+Internal requirements count=0 size=12

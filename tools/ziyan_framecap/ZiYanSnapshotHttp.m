@@ -1105,12 +1105,22 @@ static void HandleClient(int cfd) {
   }
 
   if ([pathOnly isEqualToString:@"/snapshot"]) {
-    // 先经已注册的唯一 capture hook 取得本次 canonical frame；空 SHM 时
-    // 不驱动一帧会把真机点击验收永久降级为 503。随后仍只编码 canonical
-    // current frame，不读取旁路帧。
+    // HTTP 线程禁止重入 HandleOnce / 写 force_recap。
+    // .53 2026-09-05 04:46：冷闲 shm_clear 后取色器 /snapshot 走
+    // SnapDriveCapture→force_recap+HandleOnce→appwindow/UICreate，
+    // SpringBoard EXC_RESOURCE PORT_SPACE（Limit 115094）被杀。
+    // 只写 ServeLoop 已识别的 .ziyan_snap_http_want，短等已提交帧；
+    // 无帧 503 frame_unavailable，禁止 CARender/旁路新帧。
     ZiYanWriteVarText(@".ziyan_snap_http_busy", @"1\n");
-    if (sCaptureHook) {
-      sCaptureHook();
+    ZiYanWriteVarText(@".ziyan_snap_http_want", @"1\n");
+    for (int i = 0; i < 8; i++) {
+      ZiYanCanonicalFrameToken probe;
+      memset(&probe, 0, sizeof(probe));
+      if (ZiYanCanonicalFrameTokenReadCommitted(&probe, NO) &&
+          probe.frame_seq > 0) {
+        break;
+      }
+      usleep(50000);
     }
     int orient = -1;
     if (query.length) {

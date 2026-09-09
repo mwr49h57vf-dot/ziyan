@@ -1,0 +1,8 @@
+<luaopen_luasql_mysql> invaild luasql.so!
+<luaopen_luasql_sqlite3> invaild luasql.so!
+/tmp/mysql.sock
+.dylib
+<luaopen_luasql_mysql> invaild luasql.so!
+<luaopen_luasql_sqlite3> invaild luasql.so!
+/tmp/mysql.sock
+.dylib

@@ -1,0 +1,14 @@
+243-Load command 10
+244:          cmd LC_LOAD_DYLIB
+245-      cmdsize 56
+246-         name /usr/lib/libsqlite3.dylib (offset 24)
+247-   time stamp 2 Thu Jan  1 08:00:02 1970
+248-      current version 274.1.0
+249-compatibility version 9.0.0
+250-Load command 11
+251:          cmd LC_LOAD_DYLIB
+252-      cmdsize 56
+253-         name /usr/lib/libSystem.B.dylib (offset 24)
+254-   time stamp 2 Thu Jan  1 08:00:02 1970
+255-      current version 1252.0.0
+256-compatibility version 1.0.0

@@ -33,6 +33,10 @@ ZYCV="$DIR/ZYCV"
 
 mkdir -p "$DIR" "$DIR/lua" \
   "$ZYCV" "$ZYCV/config" "$ZYCV/log" "$ZYCV/tmp" "$ZYCV/res"
+# 错误自动收集（ErrorReporter/OfflineQueue）：
+# rootless 设备 /bin/sh 缺失时 Lua 无法 mkdir，目录必须在安装期以 root 预建
+mkdir -p "$ZYCV/res/错误报告" "$ZYCV/res/错误报告/.upload_spool" 2>/dev/null || true
+chown mobile:mobile "$ZYCV/res/错误报告" 2>/dev/null || true
 mkdir -p "$DIR/Agent游戏/游戏配置" "$DIR/Agent游戏/人工学习" \
   "$DIR/Agent游戏/学习数据" "$DIR/Agent游戏/运行记录" \
   "$DIR/Agent游戏/错误报告" "$DIR/Agent游戏/生成脚本" \
@@ -517,12 +521,19 @@ chmod 666 "$ROOT/var/.ziyan_buf_wh" "$ROOT/var/.ziyan_native_wh" 2>/dev/null || 
 # Home/front_bid/Toast 会停在旧文件。BBFrame 默认不链进 TweakInject。
 if [ -n "$JB" ] && [ -d "${JB}/usr/lib/TweakInject" ]; then
   TI="${JB}/usr/lib/TweakInject"
-  for name in ZiYanVol ZiYanFrameRelay ZiYanAppTouch ZiYanDefense ZiYanFsCloak; do
-    if [ -f "$MS/$name.dylib" ]; then
-      ln -sfn "$MS/$name.dylib" "$TI/$name.dylib"
-      ln -sfn "$MS/$name.plist" "$TI/$name.plist"
-    fi
-  done
+  # Dopamine commonly aliases DynamicLibraries directly to TweakInject.
+  # Canonicalize both directories so an installed payload is never replaced
+  # by a self-referential symlink and consequently disappears after install.
+  MS_REAL="$(cd "$MS" 2>/dev/null && pwd -P)"
+  TI_REAL="$(cd "$TI" 2>/dev/null && pwd -P)"
+  if [ "$MS_REAL" != "$TI_REAL" ]; then
+    for name in ZiYanVol ZiYanFrameRelay ZiYanAppTouch ZiYanDefense ZiYanFsCloak; do
+      if [ -f "$MS/$name.dylib" ]; then
+        ln -sfn "$MS/$name.dylib" "$TI/$name.dylib"
+        ln -sfn "$MS/$name.plist" "$TI/$name.plist"
+      fi
+    done
+  fi
   if [ ! -f "$ROOT/var/.ziyan_bbframe_on" ]; then
     rm -f "$TI/ZiYanBBFrame.dylib" "$TI/ZiYanBBFrame.plist"
   fi

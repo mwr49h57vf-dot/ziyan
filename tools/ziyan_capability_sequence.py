@@ -11,7 +11,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 LEDGER = ROOT / "tmp_shots" / "CAPABILITY_SEQUENCE" / "ledger.json"
-DEVICES = [".101", ".112", ".166", ".53"]
+DEVICES = [".101", ".112", ".166", ".53", ".61"]
 CAPABILITIES = {"chat", "rules", "decision", "non_visual"}
 
 

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ZiYan 日志服务管理页</title>
+<style>
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",monospace;margin:0;background:#111;color:#ddd}
+header{background:#1b1b1b;padding:12px 16px;border-bottom:1px solid #333}
+h1{font-size:18px;margin:0}
+main{padding:16px;max-width:1200px;margin:0 auto}
+section{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:14px;margin-bottom:16px}
+h2{font-size:15px;margin:0 0 10px;color:#fff}
+label{display:inline-block;margin:4px 8px 4px 0;font-size:13px}
+input,select,textarea{background:#222;color:#eee;border:1px solid #444;border-radius:4px;padding:6px 8px;font-size:13px}
+input[type=text]{width:220px}
+button{background:#2f7cf6;color:#fff;border:0;border-radius:4px;padding:7px 14px;font-size:13px;cursor:pointer;margin:4px 6px 4px 0}
+button:hover{background:#1f63d8}
+button.danger{background:#444}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}
+th,td{border:1px solid #333;padding:6px 8px;text-align:left;vertical-align:top}
+th{background:#222;color:#fff}
+td.msg{max-width:420px;word-break:break-all;white-space:pre-wrap}
+.stat{display:inline-block;background:#222;border:1px solid #333;border-radius:6px;padding:8px 14px;margin:4px 8px 4px 0;font-size:13px}
+.stat b{color:#7fd4ff;font-size:15px}
+#status{font-size:12px;color:#9fb;white-space:pre-wrap}
+#pubResult{font-size:12px;color:#7fd4ff;white-space:pre-wrap;word-break:break-all}
+.err{color:#f88}
+</style>
+</head>
+<body>
+<header><h1>ZiYan 日志服务 · 本地管理页（契约 v1 · 端口 18091）</h1></header>
+<main>
+<section>
+<h2>看板</h2>
+<div id="board"><span class="stat">总数 <b id="stTotal">-</b></span></div>
+<div id="byDevice" style="margin-top:6px"></div>
+<div id="byType" style="margin-top:6px"></div>
+<div><button id="btnRefresh">刷新看板</button> <span id="boardMsg"></span></div>
+</section>
+<section>
+<h2>筛选 / 列表</h2>
+<div>
+<label>设备 <input type="text" id="fDevice" placeholder="如 unknown / iPhone"></label>
+<label>类型 <input type="text" id="fType" placeholder="如 script_error"></label>
+<label>since <input type="text" id="fSince" placeholder="2026-09-11 或 time_unix"></label>
+<label>until <input type="text" id="fUntil" placeholder="2026-09-12 或 time_unix"></label>
+<label>limit <input type="text" id="fLimit" value="50" style="width:70px"></label>
+</div>
+<div>
+<button id="btnQuery">查询</button>
+<button id="btnDownload">一键下载错误日志（按当前筛选）</button>
+<button id="btnDownloadAll" class="danger">下载全部</button>
+<h2>本地自签 APT（LAN 验证）</h2>
+<div style="font-size:13px;color:#444">本地自签测试仓库（非官方密钥）。密钥指纹见服务端日志；公钥：<a href="/apt/ziyan-apt-key.asc">/apt/ziyan-apt-key.asc</a>；
+InRelease 为说明文本（非 GPG clearsign）；签名验证走 Release + Release.gpg detached 签名。</div>
+<div style="margin-top:6px">
+<button id="btnAptRelease">查看 Release</button>
+<button id="btnAptKey">下载公钥</button>
+<button id="btnAptArm">Packages(arm)</button>
+<button id="btnAptArm64">Packages(arm64)</button>
+<span id="aptMsg"></span>
+</div>
+<pre id="aptResult">尚未查询</pre>
+<h2>一键下载错误日志到桌面「ziyan错误日志」</h2>
+<button id="btnExportDesktop">一键下载到桌面「ziyan错误日志」</button>
+<span id="listMsg"></span>
+</div>
+<table><thead><tr><th>event_id</th><th>device</th><th>time</th><th>type</th><th>script</th><th>message</th><th>详情</th></tr></thead>
+<tbody id="rows"><tr><td colspan="7">尚未查询</td></tr></tbody></table>
+</section>
+<section>
+<h2>事件详情</h2>
+<pre id="detail" style="font-size:12px;white-space:pre-wrap;word-break:break-all">点击某行「查看」加载 GET /api/logs/&lt;id&gt; 完整 JSON</pre>
+</section>
+<section>
+<h2>一键发布热更新（POST /api/hotupdate/publish）</h2>
+<div>
+<label>version <input type="text" id="pVersion" value="0.0.92-test1"></label>
+<label>channel <input type="text" id="pChannel" value="stable" style="width:110px"></label>
+<label>package_path(服务端本地绝对路径) <input type="text" id="pPkg" style="width:480px" value="/Users/mac/Desktop/ZiYan_副本/packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-15_iphoneos-arm.deb"></label>
+</div>
+<div>
+<label>architecture <select id="pArch"><option value="iphoneos-arm">iphoneos-arm</option><option value="iphoneos-arm64">iphoneos-arm64</option></select></label>
+<label>min_os <input type="text" id="pMinOs" value="13.0" style="width:90px"></label>
+<label>max_os <input type="text" id="pMaxOs" value="16.7" style="width:90px"></label>
+<label>ziyan_min <input type="text" id="pZMin" value="0.0.92" style="width:110px"></label>
+<label>notes <input type="text" id="pNotes" value="" style="width:220px"></label>
+</div>
+<div><button id="btnPublish">一键发布热更新</button> <span id="pubMsg"></span></div>
+<pre id="pubResult">尚未发布</pre>
+</section>
+<section>
+<h2>热更新检查（GET /api/hotupdate/check）</h2>
+<div>
+<label>device_id <input type="text" id="cDev" value="test-dev" style="width:130px"></label>
+<label>os <input type="text" id="cOs" value="15.8.8" style="width:90px"></label>
+<label>arch <input type="text" id="cArch" value="arm" style="width:90px"></label>
+<label>ziyan <input type="text" id="cZiyan" value="0.0.92" style="width:110px"></label>
+<label>channel <input type="text" id="cChan" value="stable" style="width:110px"></label>
+<button id="btnCheck">检查更新</button>
+</div>
+<pre id="checkResult" style="font-size:12px;white-space:pre-wrap">尚未检查</pre>
+<section style="border:0;padding:0;margin:8px 0 0;background:transparent">
+<h2>当前 manifest（GET /hotupdate/manifest.json）</h2>
+<div><button id="btnManifest">拉取 manifest</button></div>
+<pre id="manifestBox" style="font-size:12px;white-space:pre-wrap">尚未拉取</pre>
+</section>
+</section>
+<div id="status"></div>
+</main>
+<script>
+(function(){
+"use strict";
+function $(id){return document.getElementById(id);}
+function setMsg(id,t,isErr){var e=$(id);e.textContent=t;e.className=isErr?"err":"";}
+function esc(s){return String(s==null?"":s);}
+function qstr(){
+  var p=[];
+  if($("fDevice").value) p.push("device="+encodeURIComponent($("fDevice").value.trim()));
+  if($("fType").value) p.push("type="+encodeURIComponent($("fType").value.trim()));
+  if($("fSince").value) p.push("since="+encodeURIComponent($("fSince").value.trim()));
+  if($("fUntil").value) p.push("until="+encodeURIComponent($("fUntil").value.trim()));
+  if($("fLimit").value) p.push("limit="+encodeURIComponent($("fLimit").value.trim()));
+  return p.join("&");
+}
+function renderRows(items){
+  var tb=$("rows");tb.innerHTML="";
+  if(!items||!items.length){tb.innerHTML='<tr><td colspan="7">无数据</td></tr>';return;}
+  items.forEach(function(it){
+    var tr=document.createElement("tr");
+    function td(t,cls){var d=document.createElement("td");d.textContent=t==null?"":String(t);if(cls)d.className=cls;return d;}
+    tr.appendChild(td(it.event_id));
+    tr.appendChild(td(it.device));
+    tr.appendChild(td(it.time));
+    tr.appendChild(td(it.type));
+    tr.appendChild(td(it.script));
+    tr.appendChild(td(it.message,"msg"));
+    var act=document.createElement("td");
+    var b=document.createElement("button");b.textContent="查看";
+    b.onclick=function(){loadDetail(it.event_id);};
+    act.appendChild(b);tr.appendChild(act);
+    tb.appendChild(tr);
+  });
+}
+function loadDetail(id){
+  $("detail").textContent="加载中 "+id+" ...";
+  fetch("/api/logs/"+encodeURIComponent(id)).then(function(r){return r.text().then(function(t){return {st:r.status,t:t};});}).then(function(o){
+    try{var j=JSON.parse(o.t);$("detail").textContent=JSON.stringify(j,null,2);}catch(e){$("detail").textContent="HTTP "+o.st+"\n"+o.t;}
+  }).catch(function(e){$("detail").textContent="请求失败: "+e;});
+}
+function query(){
+  setMsg("listMsg","查询中...",false);
+  fetch("/api/logs?"+qstr()).then(function(r){return r.json();}).then(function(j){
+    if(!j.ok){setMsg("listMsg","查询失败: "+JSON.stringify(j),true);return;}
+    setMsg("listMsg","total="+j.total+" 返回="+j.items.length,false);
+    renderRows(j.items);
+  }).catch(function(e){setMsg("listMsg","请求失败: "+e,true);});
+}
+function refreshBoard(){
+  $("boardMsg").textContent="加载中...";
+  fetch("/api/logs?limit=2000").then(function(r){return r.json();}).then(function(j){
+    if(!j.ok){$("boardMsg").textContent="失败";return;}
+    $("stTotal").textContent=j.total;
+    var byD={},byT={};
+    // total 用 j.total；按设备/按类型用本次返回 items 聚合（limit 内），最近事件表直接用返回前 20
+    j.items.forEach(function(it){
+      var d=it.device||"(空)";byD[d]=(byD[d]||0)+1;
+      var t=it.type||"(空)";byT[t]=(byT[t]||0)+1;
+    });
+    function stats(el,obj){
+      var box=$(el);box.innerHTML="";
+      Object.keys(obj).sort().forEach(function(k){
+        var s=document.createElement("span");s.className="stat";
+        s.innerHTML="";var a=document.createElement("span");a.textContent=k+" ";
+        var b=document.createElement("b");b.textContent=obj[k];
+        s.appendChild(a);s.appendChild(b);box.appendChild(s);
+      });
+      if(!Object.keys(obj).length) box.textContent="(无)";
+    }
+    // 设备/类型统计用全量 items（limit=2000 内等价全量，小服务场景真实准确）
+    var dTitle=document.createElement("div");dTitle.textContent="按设备：";
+    var tTitle=document.createElement("div");tTitle.textContent="按类型：";
+    var bd=$("byDevice"),bt=$("byType");bd.innerHTML="";bt.innerHTML="";
+    bd.appendChild(dTitle);bt.appendChild(tTitle);
+    function statsInto(box,obj){
+      Object.keys(obj).sort().forEach(function(k){
+        var s=document.createElement("span");s.className="stat";
+        var a=document.createElement("span");a.textContent=k+" ";
+        var b=document.createElement("b");b.textContent=obj[k];
+        s.appendChild(a);s.appendChild(b);box.appendChild(s);
+      });
+      if(!Object.keys(obj).length){var x=document.createElement("span");x.textContent="(无)";box.appendChild(x);}
+    }
+    statsInto(bd,byD);statsInto(bt,byT);
+    $("boardMsg").textContent="已刷新 total="+j.total;
+    renderRows(j.items.slice(0,20));
+    setMsg("listMsg","看板最近 20 条（total="+j.total+")",false);
+  }).catch(function(e){$("boardMsg").textContent="失败: "+e;});
+}
+$("btnRefresh").onclick=refreshBoard;
+$("btnQuery").onclick=query;
+$("btnDownload").onclick=function(){
+  var q=qstr();
+  var url="/api/logs/download.zip"+(q?"?"+q:"");
+  var a=document.createElement("a");a.href=url;a.download="ziyan_logs.zip";document.body.appendChild(a);a.click();a.remove();
+  setMsg("listMsg","已触发下载 GET "+url,false);
+};
+$("btnDownloadAll").onclick=function(){
+  var a=document.createElement("a");a.href="/api/logs/download.zip";a.download="ziyan_logs.zip";document.body.appendChild(a);a.click();a.remove();
+  setMsg("listMsg","已触发下载全部 GET /api/logs/download.zip",false);
+};
+$("btnExportDesktop").onclick = async () => {
+  const q = buildQuery(false);
+  setMsg("listMsg","导出到桌面中...",false);
+  try {
+    const r = await fetch("/api/logs/export_desktop?" + q);
+    const j = await r.json();
+    if (j.ok) setMsg("listMsg","已写入桌面: " + j.dir + "（" + j.count + " 条）",true);
+    else setMsg("listMsg","导出失败: " + (j.error||r.status),false);
+  } catch (e) { setMsg("listMsg","导出异常: " + e,false); }
+};
+$("btnAptRelease").onclick=async()=>{try{const r=await fetch("/apt/Release");$("aptResult").textContent=await r.text();setMsg("aptMsg","HTTP "+r.status,false);}catch(e){setMsg("aptMsg","失败: "+e,false);}};
+$("btnAptKey").onclick=()=>{location.href="/apt/ziyan-apt-key.asc";};
+$("btnAptArm").onclick=async()=>{try{const r=await fetch("/apt/dists/stable/main/binary-iphoneos-arm/Packages");$("aptResult").textContent=await r.text();setMsg("aptMsg","HTTP "+r.status,false);}catch(e){setMsg("aptMsg","失败: "+e,false);}};
+$("btnAptArm64").onclick=async()=>{try{const r=await fetch("/apt/dists/stable/main/binary-iphoneos-arm64/Packages");$("aptResult").textContent=await r.text();setMsg("aptMsg","HTTP "+r.status,false);}catch(e){setMsg("aptMsg","失败: "+e,false);}};
+$("btnPublish").onclick=function(){
+  setMsg("pubMsg","发布中...",false);
+  $("pubResult").textContent="发布中...";
+  var body={
+    version:$("pVersion").value.trim(),
+    channel:$("pChannel").value.trim()||"stable",
+    package_path:$("pPkg").value.trim(),
+    architecture:$("pArch").value,
+    min_os:$("pMinOs").value.trim(),
+    max_os:$("pMaxOs").value.trim(),
+    ziyan_min:$("pZMin").value.trim(),
+    notes:$("pNotes").value
+  };
+  fetch("/api/hotupdate/publish",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}).then(function(r){return r.text().then(function(t){return {st:r.status,t:t};});}).then(function(o){
+    try{var j=JSON.parse(o.t);$("pubResult").textContent="HTTP "+o.st+"\n"+JSON.stringify(j,null,2);}catch(e){$("pubResult").textContent="HTTP "+o.st+"\n"+o.t;}
+    setMsg("pubMsg","完成 HTTP "+o.st,false);
+  }).catch(function(e){setMsg("pubMsg","请求失败: "+e,true);$("pubResult").textContent="请求失败: "+e;});
+};
+$("btnCheck").onclick=function(){
+  var u="/api/hotupdate/check?device_id="+encodeURIComponent($("cDev").value.trim())+"&os="+encodeURIComponent($("cOs").value.trim())+"&arch="+encodeURIComponent($("cArch").value.trim())+"&ziyan="+encodeURIComponent($("cZiyan").value.trim())+"&channel="+encodeURIComponent($("cChan").value.trim());
+  $("checkResult").textContent="请求 "+u+" ...";
+  fetch(u).then(function(r){return r.text();}).then(function(t){
+    try{$("checkResult").textContent=JSON.stringify(JSON.parse(t),null,2);}catch(e){$("checkResult").textContent=t;}
+  }).catch(function(e){$("checkResult").textContent="失败: "+e;});
+};
+$("btnManifest").onclick=function(){
+  fetch("/hotupdate/manifest.json").then(function(r){return r.text();}).then(function(t){
+    try{$("manifestBox").textContent=JSON.stringify(JSON.parse(t),null,2);}catch(e){$("manifestBox").textContent=t;}
+  }).catch(function(e){$("manifestBox").textContent="失败: "+e;});
+};
+refreshBoard();
+})();
+</script>
+</body>
+</html>

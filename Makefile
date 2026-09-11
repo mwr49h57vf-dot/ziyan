@@ -151,7 +151,11 @@ ZiYanFsCloak_INSTALL_PATH = /Library/MobileSubstrate/DynamicLibraries
 include $(THEOS_MAKE_PATH)/application.mk
 include $(THEOS_MAKE_PATH)/tweak.mk
 
-TOOL_NAME = ziyan_ocr ziyan_mem ziyan_portspace ziyan_framecap ziyan_framecap_bootstrap ziyan_scriptgen_smoke ziyanctl ziyadaemond ziyan_shm_selftest ziyan_iomfb_diag ziyan_a_probe
+TOOL_NAME = ziyan_ocr ziyan_mem ziyan_plist ziyan_portspace ziyan_framecap ziyan_framecap_bootstrap ziyan_scriptgen_smoke ziyanctl ziyadaemond ziyan_shm_selftest ziyan_iomfb_diag ziyan_a_probe
+ziyan_plist_FILES = tools/ziyan_plist/main.m
+ziyan_plist_FRAMEWORKS = Foundation
+ziyan_plist_CFLAGS = -fobjc-arc
+ziyan_plist_INSTALL_PATH = /usr/lib/ziyan/bin
 ziyan_ocr_FILES = tools/ziyan_ocr/main.m tools/ziyan_ocr/ziyan_fontocr.m
 ziyan_ocr_FRAMEWORKS = Foundation UIKit Vision CoreGraphics ImageIO CoreImage CoreText
 ziyan_ocr_CFLAGS = -fobjc-arc -Wno-deprecated-declarations -Itools/ziyan_ocr
@@ -478,7 +482,22 @@ stage-runtime:
 		"$$DEST/private/var/mobile/Media/ZiYan/login_usb.lua" 2>/dev/null || true; \
 	echo "[ZiYan] staged (pre-remap) → $$DEST/usr/lib/ziyan scheme=$(THEOS_PACKAGE_SCHEME)"
 
-after-stage:: stage-runtime
+.PHONY: rewrite-rootless-tehook
+rewrite-rootless-tehook: stage-runtime
+	@if [ -n "$(THEOS_PACKAGE_INSTALL_PREFIX)" ]; then \
+		DEST="$(THEOS_STAGING_DIR)"; \
+		for TEHOOK in \
+			"$$DEST/Library/MobileSubstrate/DynamicLibraries/ZiYanTEHook.dylib" \
+			"$$DEST$(THEOS_PACKAGE_INSTALL_PREFIX)/Library/MobileSubstrate/DynamicLibraries/ZiYanTEHook.dylib"; do \
+			[ -f "$$TEHOOK" ] || continue; \
+			install_name_tool -id "$(THEOS_PACKAGE_INSTALL_PREFIX)/Library/MobileSubstrate/DynamicLibraries/ZiYanTEHook.dylib" "$$TEHOOK"; \
+			install_name_tool -change /Library/Frameworks/CydiaSubstrate.framework/CydiaSubstrate \
+				@rpath/CydiaSubstrate.framework/CydiaSubstrate "$$TEHOOK"; \
+			ldid -S "$$TEHOOK"; \
+		done; \
+	fi
+
+after-stage:: rewrite-rootless-tehook
 
 # 8-161-74：一次 make 打双包（rootful arm + rootless arm64），兼容 iPhone7/8Plus
 # 用法：make   或  make dual-package

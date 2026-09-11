@@ -4,18 +4,18 @@
 # 一轮必须全部完成：
 #   1) 硬缺口修复探测：绝对零 SB / carender_surf_nil + F4/F5/F6/F7/F8/F9/F11/F12
 #   2) 拉取 .149/.171 触动找色效率与稳定性日志，写入对比优化证据
-#   3) Desktop ios7.lua / ios8p.lua 仅 scp 到 .53/.101/.112/.166 自测
-#   4) 门禁：inject + HOT20 + 脚本功能/性能有效（四机全过）
+#   3) Desktop ios7.lua / ios8p.lua 仅 scp 到 .53/.101/.112/.166/.61 自测
+#   4) 门禁：inject + HOT20 + 脚本功能/性能有效（五机全过）
 #
 # 已移除：24h /「超越触动」人工审核跳过（改为 TS 日志驱动优化 + VERDICT 证据）
 #
 # 用法：
 #   tools/ziyan_self_iterate.sh status
 #   tools/ziyan_self_iterate.sh build
-#   tools/ziyan_self_iterate.sh deploy [53|101|112|166|all]
-#   tools/ziyan_self_iterate.sh scripts [53|101|112|166|all]   # scp Desktop lua + 拉起
-#   tools/ziyan_self_iterate.sh selftest [53|101|112|166|all]  # 脚本功能/性能自测
-#   tools/ziyan_self_iterate.sh gate [53|101|112|166|all]      # inject + HOT20
+#   tools/ziyan_self_iterate.sh deploy [53|101|112|166|53|61|all]
+#   tools/ziyan_self_iterate.sh scripts [53|101|112|166|61|all]   # scp Desktop lua + 拉起
+#   tools/ziyan_self_iterate.sh selftest [53|101|112|166|61|all]  # 脚本功能/性能自测
+#   tools/ziyan_self_iterate.sh gate [53|101|112|166|61|all]      # inject + HOT20
 #   tools/ziyan_self_iterate.sh gap-carender                   # 绝对零合帧探测
 #   tools/ziyan_self_iterate.sh gap-fx                         # F4–F12 硬缺口探测
 #   tools/ziyan_self_iterate.sh ts-pull                        # .149/.171 触动日志
@@ -57,13 +57,17 @@ RC_FX=0
 RC_TS=0
 
 ssh_r() {
-  local ip="$1"; shift
-  sshpass -p "$PASS" ssh "${SSH_OPTS[@]}" "root@$ip" "$@"
+  local ip="$1" user=root; shift
+  [[ "$ip" == "192.168.31.61" ]] && user=mobile
+  sshpass -p "$PASS" ssh "${SSH_OPTS[@]}" "$user@$ip" "$@"
 }
 scp_r() {
   local src="$1" ip="$2" dst="$3"
-  sshpass -p "$PASS" scp "${SSH_OPTS[@]}" "$src" "root@$ip:$dst"
+  local user=root
+  [[ "$ip" == "192.168.31.61" ]] && user=mobile
+  sshpass -p "$PASS" scp "${SSH_OPTS[@]}" "$src" "$user@$ip:$dst"
 }
+user_for() { [[ "$1" == "192.168.31.61" ]] && echo mobile || echo root; }
 
 list_targets() {
   local want="${1:-all}"
@@ -251,7 +255,7 @@ cmd_scripts() {
     # 远端 setsid 脱离 SSH 会话，避免 nohup 子进程拖死 ssh；本机 timeout 防挂死
     LUALIB="${RUN%/ziyan_run.lua}"
     if ! sshpass -p "$PASS" ssh "${SSH_OPTS[@]}" -o ConnectTimeout=15 \
-      "root@$ip" "SCHEME=$scheme SCRIPT=$script VAR=$VAR LUA=$LUA RUN=$RUN LUALIB=$LUALIB MEDIA=$MEDIA bash -s" <<'EOS' 2>&1 \
+      "$(user_for "$ip")@$ip" "SCHEME=$scheme SCRIPT=$script VAR=$VAR LUA=$LUA RUN=$RUN LUALIB=$LUALIB MEDIA=$MEDIA bash -s" <<'EOS' 2>&1 \
       | tee "$OUT/scripts_${tag}.log"
 set +e
 # rootless 部分机无 awk：用 sed/cut

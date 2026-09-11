@@ -1680,18 +1680,21 @@ ftp.quit()
   end
 
   function PlistRead(path)
-    local outf = ZIYAN_VAR .. "/.ziyan_plist.json"
-    local st = os.execute(string.format(
-      '/usr/lib/ziyan/bin/python3 -c "import plistlib,json,sys; d=plistlib.load(open(sys.argv[1],\'rb\')); json.dump(d, open(sys.argv[2],\'w\'))" "%s" "%s" 2>/dev/null',
-      tostring(path), outf))
-    if not (st == true or st == 0) then
-      os.execute(string.format(
-        'plutil -convert json -o "%s" "%s" 2>/dev/null', outf, tostring(path)))
+    if type(path) ~= "string" or path == "" then return nil end
+    local function quote(value) return "'" .. value:gsub("'", "'\\''") .. "'" end
+    local made, outf = pcall(os.tmpname)
+    if not made then return nil end
+    local ok, st = pcall(os.execute, quote(ZIYAN_ROOT .. "/bin/ziyan_plist")
+      .. " read " .. quote(path) .. " " .. quote(outf) .. " 2>/dev/null")
+    if not ok or not (st == true or st == 0) then
+      os.remove(outf)
+      return nil
     end
     local f = io.open(outf, "r")
-    if not f then return nil end
+    if not f then os.remove(outf); return nil end
     local body = f:read("*a") or ""
     f:close()
+    os.remove(outf)
     local ok, obj = pcall(json_decode, body)
     if ok then return obj end
     return nil
@@ -1699,17 +1702,22 @@ ftp.quit()
 
   function PlistWrite(path, data)
     if type(path) ~= "string" or path == "" then return false end
-    local tmpj = ZIYAN_VAR .. "/.ziyan_plist_w.json"
+    local function quote(value) return "'" .. value:gsub("'", "'\\''") .. "'" end
+    local encoded, body = pcall(json_encode, type(data) == "table" and data or { value = data })
+    if not encoded then return false end
+    local made, tmpj = pcall(os.tmpname)
+    if not made then return false end
     local f = io.open(tmpj, "w")
-    if not f then return false end
-    f:write(json_encode(type(data) == "table" and data or { value = data }))
-    f:close()
-    local dir = path:match("(.+)/[^/]+$")
-    if dir then os.execute(string.format('mkdir -p "%s"', dir)) end
-    local st = os.execute(string.format(
-      '/usr/lib/ziyan/bin/python3 -c "import plistlib,json,sys; d=json.load(open(sys.argv[1])); plistlib.dump(d, open(sys.argv[2],\'wb\'))" "%s" "%s" 2>/dev/null',
-      tmpj, path))
-    return st == true or st == 0
+    if not f then os.remove(tmpj); return false end
+    local wrote = f:write(body)
+    local closed = f:close()
+    local ok, st = false, nil
+    if wrote and closed then
+      ok, st = pcall(os.execute, quote(ZIYAN_ROOT .. "/bin/ziyan_plist")
+        .. " write " .. quote(tmpj) .. " " .. quote(path) .. " 2>/dev/null")
+    end
+    os.remove(tmpj)
+    return ok and (st == true or st == 0)
   end
 
   plist_read = PlistRead

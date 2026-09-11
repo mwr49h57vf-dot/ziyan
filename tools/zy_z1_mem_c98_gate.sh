@@ -7,9 +7,9 @@ PASS="${ZY_SSH_PASS:-alpine}"
 MIN="${ZY_E4_MIN:-5}"
 SEC=$((MIN * 60))
 RMAX100="${ZY_E4_RMAX100_RF:-120}"
-if [ "$#" -eq 0 ]; then HOSTS=(101 112 166); else HOSTS=("$@"); fi
+if [ "$#" -eq 0 ]; then HOSTS=(101 112 166 53 61); else HOSTS=("$@"); fi
 for h in "${HOSTS[@]}"; do
-  case "$h" in 53|101|112|166) ;; *) echo "refuse host=$h (ZiYan accept: 53 101 112 166; TS observe only)"; exit 2 ;; esac
+  case "$h" in 53|61|101|112|166) ;; *) echo "refuse host=$h (ZiYan accept: 53 61 101 112 166; TS observe only)"; exit 2 ;; esac
 done
 STAMP="$(date '+%Y%m%d_%H%M%S')"
 OUT="$ROOT/tmp_shots/Z1_MEM_C98_${STAMP}"
@@ -22,20 +22,23 @@ SSH_OPTS=(-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
           -o PubkeyAuthentication=no -o ServerAliveInterval=20
           -o ServerAliveCountMax=6)
 # 探测必须 ssh -n，避免吃掉调用方 heredoc；真正执行禁止 -n。
+# 密钥优先对 mobile 同样生效：.61 的密码通道是间歇性的（实测连续 3 次里约 1 次
+# Permission denied），密码路径还会被设备 sshd 限流（2026-09-11 五机 E48 实测
+# 跑到一半 rc=255）。密钥不可用才回退 alpine。
 ssh_mem() {
-  local ip="$1"; shift
-  if ssh -n "${SSH_KEY_OPTS[@]}" "root@$ip" "true" >/dev/null 2>&1; then
-    ssh "${SSH_KEY_OPTS[@]}" "root@$ip" "$@"
+  local user="$1" ip="$2"; shift 2
+  if ssh -n "${SSH_KEY_OPTS[@]}" "$user@$ip" "true" >/dev/null 2>&1; then
+    ssh "${SSH_KEY_OPTS[@]}" "$user@$ip" "$@"
   else
-    sshpass -p "$PASS" ssh "${SSH_OPTS[@]}" "root@$ip" "$@"
+    sshpass -p "$PASS" ssh "${SSH_OPTS[@]}" "$user@$ip" "$@"
   fi
 }
 scp_mem() {
-  local ip="$1" src="$2" dst="$3"
-  if ssh -n "${SSH_KEY_OPTS[@]}" "root@$ip" "true" >/dev/null 2>&1; then
-    scp "${SSH_KEY_OPTS[@]}" "root@$ip:$src" "$dst"
+  local user="$1" ip="$2" src="$3" dst="$4"
+  if ssh -n "${SSH_KEY_OPTS[@]}" "$user@$ip" "true" >/dev/null 2>&1; then
+    scp "${SSH_KEY_OPTS[@]}" "$user@$ip:$src" "$dst"
   else
-    sshpass -p "$PASS" scp "${SSH_OPTS[@]}" "root@$ip:$src" "$dst"
+    sshpass -p "$PASS" scp "${SSH_OPTS[@]}" "$user@$ip:$src" "$dst"
   fi
 }
 echo "OUT=$OUT MIN=$MIN hosts=${HOSTS[*]} no_desktop_lua no_pretest" | tee "$OUT/meta.txt"
@@ -51,9 +54,10 @@ app_for() {
 }
 
 run_one() {
-  local H="$1" IP="192.168.31.$1" APP
+  local H="$1" IP="192.168.31.$1" APP USER=root
+  [ "$H" = 61 ] && USER=mobile
   APP=$(app_for "$H")
-  ssh_mem "$IP" \
+  ssh_mem "$USER" "$IP" \
     "H=$H SEC=$SEC MIN=$MIN RMAX100=$RMAX100 APP=$APP bash -s" >"$OUT/gate_${H}.txt" 2>&1 <<'EOS'
 set +e
 if [ -d /var/jb/usr/lib/ziyan/var ]; then
@@ -296,7 +300,7 @@ EOS
 
 ts_snap() {
   local host="$1" dest="$2"
-  ssh_mem "192.168.31.$host" \
+  ssh_mem root "192.168.31.$host" \
     'echo HOST='$host'; date; ps -axo pid=,rss=,%cpu=,etime=,args= | while read -r pid rss cpu etime args; do case "$args" in *TSDaemon\ -server*) echo ROLE=TSDaemon PID=$pid RSS=$rss CPU=$cpu ETIME=$etime;; */System/Library/CoreServices/SpringBoard.app/SpringBoard*) echo ROLE=SpringBoard PID=$pid RSS=$rss CPU=$cpu ETIME=$etime;; esac; done' \
     >"$dest" 2>&1 || echo "SSH_FAIL" >>"$dest"
 }
@@ -368,7 +372,9 @@ FAIL_N=0
       else
         _v=/usr/lib/ziyan/var
       fi
-      scp_mem "192.168.31.$H" "$_v/.ziyan_e4_resource.tsv" \
+      _u=root
+      [ "$H" = 61 ] && _u=mobile
+      scp_mem "$_u" "192.168.31.$H" "$_v/.ziyan_e4_resource.tsv" \
         "$OUT/rss_${H}.tsv" 2>/dev/null || true
       if [ -s "$OUT/rss_${H}.tsv" ]; then
         python3 "$ROOT/tools/zy_rss_slope_analyze.py" "$OUT/rss_${H}.tsv" || echo "OLS .$H analyze_fail"

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Emit the exact first-message prompt for a successor Codex thread.
+"""Emit the exact first-message prompt for a successor Codex task.
 
-Run this immediately before mcp__codex_app.create_thread on compact/handoff.
-Does not call create_thread itself (that is a Codex App MCP tool).
+Run this immediately before a manual compact/handoff continuation.
+This script does not create tasks.
 """
 import argparse
 import json
@@ -54,6 +54,13 @@ STALE_NINE_MARKERS = (
     "标题是「九号接棒任务」",
     "把仓库 `lua/modules/Chat.lua` 的找图回退打进包",
     "登记 `python3 tools/ziyan_capability_sequence.py record --capability chat --device .112",
+    "E48 .112 INVALID_RUN",
+    "仅修复测试通道：检查并修复 E48 matrix runner",
+)
+
+STALE_MANUAL_GATE_MARKERS = (
+    "由人工在 `.101` 实机上确认屏幕真实画面",
+    "唯一动作：\n由人工",
 )
 
 
@@ -66,6 +73,12 @@ def template_is_stale_nine(body, d):
     if stage_is_nine_chat(d):
         return False
     return any(marker in body for marker in STALE_NINE_MARKERS)
+
+
+def template_is_stale_manual_gate(body, d):
+    if not d.get("unfinished", True):
+        return False
+    return any(marker in body for marker in STALE_MANUAL_GATE_MARKERS)
 
 
 def build_prompt_from_checkpoint(d):
@@ -86,14 +99,26 @@ def build_prompt_from_checkpoint(d):
         f"{d.get('nextAction') or ''}\n"
         "禁止点登录、点击前往、go_home、夹具、杀 SB/BB。"
         "坐标只用 ScreenTransform / tapRatio。\n"
+        "完成或阻塞后，必须主动发送任务回执：完成了什么、没有完成什么、阻塞原因、checkpoint 状态和还剩哪些主计划任务。\n"
     )
 
 
 def build_prompt(d):
     body = TEMPLATE.read_text()
+    nxt = (d.get("nextAction") or "").strip()
+    unfinished = d.get("unfinished", True)
+    stop = (not unfinished) or nxt.startswith("等待人工") or nxt.startswith("WAIT_HUMAN")
+    if stop:
+        body = build_prompt_from_checkpoint(d)
     if template_is_stale_nine(body, d):
         print(
             "TEMPLATE_STALE: CONTINUATION_FIRST_MESSAGE.txt 仍是九号 Chat，已改用 checkpoint 正文",
+            file=sys.stderr,
+        )
+        body = build_prompt_from_checkpoint(d)
+    if template_is_stale_manual_gate(body, d):
+        print(
+            "TEMPLATE_STALE: CONTINUATION_FIRST_MESSAGE.txt 仍是人工门禁正文，已改用 checkpoint 正文",
             file=sys.stderr,
         )
         body = build_prompt_from_checkpoint(d)
@@ -130,6 +155,8 @@ def main():
     unfinished = d.get("unfinished", True)
     stop = (not unfinished) or nxt.startswith("等待人工") or nxt.startswith("WAIT_HUMAN")
     prompt = build_prompt(d)
+    if args.write:
+        TEMPLATE.write_text(prompt.rstrip() + "\n", encoding="utf-8")
     print("SPAWN_REQUIRED=" + ("0" if stop else "1"))
     print("STAGE=" + str(d.get("stage") or ""))
     print("NEXT_ACTION=" + nxt)

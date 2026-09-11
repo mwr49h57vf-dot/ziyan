@@ -1,6 +1,35 @@
-日期: 2026-09-07
+日期: 2026-09-11
 
-一句话状态: BIZ11 复核完成：窗口内 publish p50=79.1ms、resident p50=63.7ms、rest5=430.7ms；窗口、合同和停止状态均通过，等待人工最终审核，不进入 Probe 优化。
+默认首条助手动作: 先读取 checkpoint；迁移阶段本地闭环已完成，不重复生成/验证 19 个 wrapper；当前处理 101 项非 Agent API 功能矩阵，随后核心回归与发布判定。
+
+一句话状态: 2026-09-11 API101-PLIST-CANDIDATE-DEVICE101-PARTIAL：原生 plist 与 JSON 空字典修复，本地 12 项合同通过；156/157 双包完成，只有 .101 安装 156，三族 40/7/13 场景通过；.61 sudo 凭据未配置，停止扩展部署，主计划及发布门禁未完成。
+
+## 2026-09-11 plist 候选阶段收尾
+- 完整报告：`/Users/mac/Desktop/ZiYan_副本/tmp_shots/API_FUNCTIONAL_20260911_1909/plist_candidate/VERDICT.md`。
+- 新增 Foundation plist helper，PlistRead/Write 不再依赖 Python/plutil；缺失/损坏输入不读取旧结果，写失败保留原文件；JSON 保留已解码空字典类型。本地 12 项合同通过，包括缺 sudo 时不上传候选。
+- 双包：rootful 17-156 SHA256=`bd5a9fe8cb65ac1256aa8b55c7044f668fcd94b60dca805f7f9ea14731abcf07`；rootless 17-157 SHA256=`02f01699aae540ccf1af30888dfc6a2820c5e5a3b29413633f717452dd979268`，后者未部署。
+- `.101` 17-156：file/codec/memory 场景分别 40/7/13 通过，均 terminal=true、exit_code=0、runtime_payload_verified=129、embedded_host_verified=true、cleanup=PASS；file 输出经独立 plistlib 解析匹配。三族仍 DEVICE_INCONCLUSIVE/coverage_incomplete。
+- `.101` framecap=98211、SB=50778、FC_N=1、lua_n=0、keep/active/embed=0。未 sbreload。安装后 postinst 创建的 active 标记在原生 idle ACK 后清理，初始 INSTALL_INCONCLUSIVE 记录保留。
+- `.112/.166` 仍 17-152，`.53/.61` 仍 17-153；新包只部署 `.101`。源任务已确认 `.61` key SSH 可用、专用 sudo 凭据未配置，通用环境密码一次验证失败，不再尝试，不扩展部署。
+- 剩余：其他四机候选验证；codec 4 项 MISSING_RUNTIME；memory 3 项功能夹具；三族超时/异常退出/强制停止等覆盖；其余九族、核心回归与正式发布门禁。正常清理不替代 stop_cleanup 场景。
+- 旧包及回滚 manifest 保存在 `plist_candidate/rollback_packages/`。后续安全注入专用凭据后按 `.112→.166→.53→.61` 继续，rootless 候选锚点需更新为 17-157；`unfinished=true`，不得进入等待人工最终审核状态。
+
+## 2026-09-11 file 归因与 .61 采样恢复
+- 诊断证据：`/Users/mac/Desktop/ZiYan_副本/tmp_shots/API_FUNCTIONAL_20260911_1909/diagnosis_1938/`。`.101/.112` Python plistlib 缺 `libexpat.1.dylib`；`.53/.61` Python 链接 rootful libpython，独立 Lua `os.execute` 返回 127；五机均无 plutil。
+- `.166` 缺失 plist 返回上一次结果：PlistRead 固定输出未清理且未检查两后端均失败。尚未修改产品实现。
+- `.61` mobile 的 ps 将 root argv 隐藏为 `(ziyan_framecap)`，旧解析器误报 FC_N=0。新解析要求唯一精确进程名、匹配 owner/心跳 PID，时间差不超过既有 12s 健康窗；清理同时要求 keep/active/embed=0、lua_n=0、SB PID 不变。
+- 新增两项回归先红后绿，本地合同 8/8。仅是采样器合同，不是设备功能 PASS。
+- 既有清场入口已执行，.61 framecap owner 从 68314 变为 80060；没有 sbreload 或 SpringBoard 重启。清场入口自身仍显示旧的 FC_N=0，后续采样使用修正后的严格解析。
+- `.61` 重试三族：file SCENARIO_PASS/FAIL=26/12，codec=7/0，memory=13/0；均 terminal=true、exit_code=0、runtime_payload_verified=127、cleanup=PASS。仍为 DEVICE_INCONCLUSIVE/coverage_incomplete。
+- 下一步：同一夹具做 embed 对照并补覆盖；随后修归属层，按 .101→.112→.166→.53→.61 重验。原失败/未运行/历史包证据保留，禁止提升为最终 PASS。
+
+## 2026-09-11 非 Agent API 功能矩阵
+- 证据目录：`/Users/mac/Desktop/ZiYan_副本/tmp_shots/API_FUNCTIONAL_20260911_1909/`，逐项清单 `inventory.json`；原矩阵及旧绑定证据未覆盖。
+- 101 项分布：sys=18、touch=8、screen=15、image=9、ocr=8、app=6、file=10、net=8、codec=6、memory=7、control=2、orient=4。
+- 旧证据仅每机 86 RUNTIME_PRESENT / 15 MISSING_RUNTIME；签名合同不是功能夹具；chat/rules/decision/non_visual 不能替代全部 API；旧 `.101` chat PASS 是 17-127，不能继承给 17-152。
+- 新增 `tests/api_functional/scenarios.lua`、`tools/ziyan_api_functional.py`、`tools/test_api_functional_contract.py`。本地 unittest 5/5 PASS，Lua loadfile PASS；这不是 DEVICE_PASS。
+- 已校验本地 rootful 17-152 包 SHA，提取 127 项运行时载荷哈希。预检四机版本符合 checkpoint，FC_N=1；.61 待本轮采样。
+- 下一步：既有清场入口后串行五机文件/codec/memory 功能验证；没有覆盖的 timeout/abnormal_exit/stop_cleanup 继续标未测；不改 Chat.lua、金标或阈值，不重复已闭合阶段。
 
 ## 2026-09-07 业务风暴十一号复核（.53 publish_ms 账本）
 - `ZiYanFrameCapturePublishPixels` 从函数入口计时，经唯一收口写耗时；覆盖输入失败、尺寸解析、旋转、unhealthy、WriteEx 与 ResidentRenew。
@@ -635,7 +664,7 @@
 - RELEASE_SCOPE 预检未通过（脏树已收为基线后，仍须授权才可部署验收）
 
 ## 默认首条助手动作
-只读追溯 `.53` SpringBoard PID 漂移：读取 SpringBoard/framecap PID 与 elapsed、系统 uptime、可访问的 crash/reset/launchd/watchdog 记录、framecap owner/heartbeat 与二进制 SHA；不得部署、重启、杀进程、采样、写日志、建基线、进 Probe、触碰其他设备或改源码。无充分归因证据则保持 `STATE_MISMATCH / FREEZE_INVALID`。
+生成并核验 connection_inventory.md、e48_legend_manifest.json、e48_legend_api_usage.json、e48_legend_dependency_map.md、e48_legend_sensitive_exclusion.md；随后对迁移样本和非 Agent API 矩阵完成真实证据汇总。
 
 ## 2026-09-05 五十五号审核
 - 执行面 PASS：只 `.112` 三次 menu_run；未改产品代码；未重装；未杀 SB/BB。
@@ -931,3 +960,190 @@
 - 四机 session 均 `state=idle`，`.ziyan_active` 均不存在，前台为 `.101/.112/.166=com.xztl.ios`、`.53=com.ljzbbadao.game`。
 - 口径：`RELOAD_BASELINE=PASS_PENDING_HUMAN`。未执行重载、安装、删除 pending、脚本、Chat、Smoke 或 Agent。
 - 证据：`tmp_shots/FIFTYNINE_RELOAD_BASELINE_20260905_083106/VERDICT.md` 与 `raw/`。
+## 2026-09-09 `.61` 附加真机登记
+
+- `192.168.31.61` SSH 连通性验证通过；只读探测通过，认证用户为 `mobile`（UID 501）。
+- 设备信息：ProductType `iPhone9,1`（iPhone 7），iOS `15.8.8`，检测到 `/var/jb`，登记为 rootless。
+- 证据：`tmp_shots/DEVICE61_SSH_REGISTER_20260909/`。
+- 已加入 `DEVICE_RULES.md`、`ROADMAP.md`、`monitor_devices.py` 附加设备登记；现有 `.101 -> .112 -> .166 -> .53` 四机 PASS 门禁和执行顺序保持不变。
+- 当前 verdict：`SSH_REGISTERED`，未装 ZiYan、未执行功能样本矩阵，不得写成设备 PASS。
+- 下一步：定义 `.61` rootless 包/脚本/资源合同，再执行独立预检、安装、样本矩阵和设备端 final verdict。
+
+## 2026-09-10 五机 Z2-30M 长稳（先设备、后状态污染）
+
+### 包与通道基线
+- 五机统一到配对包：`.101/.112/.166 = 0.0.92-8-161-205-C-65.11-98+debug-10-38-17-152+debug`（arm，SHA `ceabeacb…eff5`）；`.53/.61 = …17-153+debug`（arm64，SHA `68e853a1…f26f`）。
+- `.53/.61` 由 `17-155` 降级安装到 `17-153`，`INSTALL_OK no_auto_respring=1`，未自动 respring。证据 `tmp_shots/P2_UNIFY_PKG_20260910_172936/`。
+- 包内差异核对：`17-140`→`17-153` 每版 `ZiYanVol.dylib` 与 `ziyan_framecap` 都不同；`17-154` 与 `17-155` 两者完全相同（`e4641f04`/`a7784c6a`）。
+- `.61` 认证：`mobile` 密码通道是**间歇性**的（连续 3 次里约 1 次 `Permission denied`）。已部署授权公钥后 `BatchMode` 连续 **10/10 OK**；门禁脚本改为 `mobile` 也优先走密钥。
+- 五机执行过一次受控重载（`sbreload`；`.61` 走 `mobile` + `sudo`），重载后 `hooks sb_pid` 全部对齐新 SB。证据 `tmp_shots/P2_SBRELOAD_20260910_191111/`。
+- 五机 framecap 已用当前包二进制重建：`.101=67119 .112=6046 .166=30563 .53=49367 .61=14580`。证据 `tmp_shots/P2_FC_REBUILD_20260910_173805/`。
+
+### 门禁脚本修正（`tools/zy_p2_c98_30m_gate.sh`）
+1. var 路径改按**已装包 arch** 判定。旧写法按目录存在性，`.101` 上 Sep 1 残留的 `/var/jb/usr/lib/ziyan/var` 会让 rootful 机一直走 rootless 路径，把 `.ziyan_color_req` 写进死目录，表现为 `REQ=100`/`COLOR` 空 —— 环境问题被误判成产品 FAIL。
+2. `meta.txt` 增加每机实际生效的 `app/color/user`；修正报告中 `last_color` 被 `EXPECTED_COLOR` 贪婪匹配污染（曾把 FAIL 显示成命中金标）。
+3. Home 请求按 2026-09-04 起的合同改写：带 `owner=com.ziyan.ziyan`，且先把 ZiYan App 拉回前台。实测裸写 `1` 会被 SB 侧 `go_home policy_reject_missing_ziyan_owner` 拒绝。
+4. Home 请求改**原子写**（`.tmp` + `mv`）；非原子 `printf >` 被 SB 读到截断空文件时会静默丢弃。
+5. 停写 `.ziyan_open_app` 后静置 3s 再 Home；连写期间排队启动意图会在 Home 后把 App 拉回前台（实测 T+1s 弹回）。
+6. `fc_n()` 增加 `grep -v grep`：zydaemon 看门狗自身那条 `grep -F ziyan_framecap serve` 会被旧计数当成第 2 个宿主（`.53` 60 次采样误报 4 次），使「单宿主」判据随机 FAIL。修后 60/60 全为 1。
+7. `ts_snap()` 补 `root` 参数：旧调用只传 ip，`.149/.171` 只读对照快照长期写 `SSH_FAIL`；现已正常。
+- 合同测试 `tools/test_p2_gate_var_path_contract.py`（10 项）全绿。
+
+### 金标坐实
+- 默认 app `com.xztl.ios`（`.101/.112/.166/.61`，bundle 已核）；金标 `12754024`。
+- `.53` app 实为 `com.ljzbbadao.game`（`龙界争霸-拔刀传奇`），金标 `16775151`。用**独立路径** `/snapshot` PNG 在逻辑 (706,449) 复算得 `16775151`，与门禁 `getColor` 一致；先前一次读数 `1117707` 经复核为 App 尚在加载的瞬态。
+
+### 长稳结果
+- 冒烟：`tmp_shots/P2_30M_C98_20260910_193855` 五机 PASS 1/1。
+- 第一轮 30min：`tmp_shots/P2_30M_C98_20260910_194716` —— `.112/.166/.61` 30/30 PASS；`.101` 第 3 分钟 FAIL（`HOK=0 HOME_MS=8000`）；`.53` 第 20 分钟 FAIL（`FCN=2`）。
+  - `.101` 该分钟根因：Home 请求非原子写被丢弃；同序列复测 10/10 正常、帧日志整分钟无 `front→springboard` 迁移。
+  - `.53` 该分钟根因：门禁 `fc_n()` 误匹配看门狗自身的 grep；真实 framecap 全程只有一个（pid 49367，17:38:10 启动，未重启）。
+- 第二轮 30min（修完上述两点后）：`tmp_shots/P2_30M_C98_20260910_210210`
+  - `.112/.166/.53/.61` **30/30 PASS**，设备端 `…/Media/ZiYan/verdicts/z2_<h>_<ts>.txt` 齐备，`FC_N=1`、`SB/BB/FC` PID 全程不变。
+  - `.101` 第 12 分钟 FAIL：仅金标像素 `COLOR=10255699 ≠ 12754024`。该机 12 分钟内 `HOK=1`、`HOME_MS=0~2000`、`SB=25561/BB=25560/FC=67119` 全程不变、`FCN=1`。
+  - `.101` 画面取证：连续 3 张 `/snapshot` 6 秒内**逐字节相同**（完全静止），屏上无金标色（`findColor 12754024` 无结果），亮度图显示居中亮面板 + 大面积暗区；杀掉并重启该 App 后画面不变。
+  - 未定论：是「游戏自身停在该静态页」，还是「App 已在前台但合帧仍是冻结帧」。需要人工看 .101 实机屏幕与合帧是否一致才能定论，不臆断。
+
+### 口径
+- 五机 Z2-30M：`4/5 PASS，.101 未过`，整体 **不是** 五机全绿，**不得**写成 Z2 绿，更不得出现「超越触动」。
+- `.149/.171` 全程只读，未作为 ZiYan PASS 来源。
+
+## 2026-09-11 五机 E48 在统一当前包闭合 + `.61` 颜色识别根因结案
+
+### 五机 E48（当前包 rootful 152 / rootless 153）
+| 设备 | 结果 | 证据 |
+|---|---|---|
+| `.101` | 9/9 PASS | `tmp_shots/E48_DEVICE101_20260911_003005/SUMMARY.txt` |
+| `.112` | 9/9 PASS | `tmp_shots/E48_DEVICE112_20260911_002355/SUMMARY.txt` |
+| `.166` | 9/9 PASS | `tmp_shots/E48_DEVICE166_20260911_002658/SUMMARY.txt` |
+| `.53` | 9/9 PASS | `tmp_shots/E48_DEVICE53_20260911_003312/SUMMARY.txt` |
+| `.61` | 9/9 PASS | `tmp_shots/E48_DEVICE61_20260911_001259/SUMMARY.txt` |
+- 五机 `total_cases=9 pass_cases=9 all_cases_pass=1`，设备端 `final_verdict=PASS` + `final_cleanup=1` 齐备。
+- 这是五机门禁**首次在统一当前包上闭合**（此前是 147/148/151 的混合包）。
+- 传输修复：E48 runner 原先对 mobile 走密码通道。实测五机各 20+ 次密码认证后设备 sshd 开始限流，
+  表现为矩阵跑到一半 `rc=255` 且 stderr 只有 known_hosts 警告（`.101` 8/9、`.112` 0/9、`.166` 4/9、`.53` 0/9）；
+  同一时段密钥通道全程稳定。已改为**默认密钥传输**，密码路径仅在显式 `E48_TRANSPORT=password` 时启用。
+  同步把 `zy_z1_mem_c98_gate.sh` 也改为密钥优先；`test_device61_transport_contract.py` 改断言新不变式。
+  另注：环境里 `ZY_SSH_PASS=dummy` 会覆盖脚本默认 `alpine`，跑矩阵必须显式 `ZY_SSH_PASS=alpine`。
+
+### `.61` 专用 rootless contract 工件（替换 06:10 的 INVALID_RUN）
+- `tmp_shots/E48_DEVICE61_ROOTLESS_CONTRACT_20260911_003849/`，`run_id=e48_rootless_contract_61_1789058332_61355`，
+  `final_verdict=PASS`，设备端 `/var/mobile/Media/ZiYan/verdicts/` 同名 verdict 已落盘。
+- 核实点：iOS 15.8.8 / `runtime_scheme=rootless` / `/var/jb` 前缀 / **rootful 树 `/usr/lib/ziyan` 不存在** /
+  Lua 5.3.5 / `framecap_disk_sha=a3e20670` 与 `vol_dylib_disk_sha=4f8adc55` 与 153 包内一致 /
+  `hooks sb_pid=14296` 等于真实 SB / `FC_N=1` / 停后 `active=0 keep=0 script_procs=0`。
+- 安装模式记录为 `mobile(uid501) + sudo`（06:10 那次失败的 `root_password_rc=5` 已不再适用）。
+
+### `.61` 为什么「无法识别颜色」——结案：**`.61` 认色正常，且是五机里最灵敏的一台**
+用同一份 `ios7.lua` 原参数做三组独立实验，结论一致：
+
+1. **ColorMatch 文件协议直调**（`findMulti` + `getColor`），`.61` 与 `.101` 六项返回**逐字节相同**：
+   - search#1 `(0x8d2619 + 0,2/0,4/0,6)` ROI `(1010,294)-(1010,300)` 90% → 两台都 `ok:false`
+   - search#2 `(0x735338 + 0,2/1,3/1,4/1,6)` ROI `(633,440)-(634,446)` 90% → 两台都 `ok:true x=633 y=440 score=100`
+2. **端到端跑真实 `ios7.lua`**（经 `.ziyan_run_intent`/`.ziyan_embed_go` 正常启动链路）：
+   - `.61` toast 出现 **8 次「登录」**（search#2 命中）；`.101/.112/.166` 各 1 次；
+   - `.61` 的 `find_shm_log` 有 `result=hit` 记录，`n=31..34`。
+3. **像素级对照**（`/snapshot` 独立代码路径）：
+   - `.112` 与 `.61` 在 search#2 五点上 `maxdelta=6~7`（命中），`.101` 与 `.166` 是 `81~90`（不命中）；
+   - `.101` 与 `.166` 的 snapshot **sha256 完全相同** —— 两台停在同一个深色画面（游戏自身停在该页），
+     这才是 `.101` Z2-30M 第 12 分钟 `COLOR=10255699 ≠ 12754024` 的原因。
+
+**结论**：`.61` 的分辨率/画布/像素格式/取色与 `.101/.112/.166` 完全一致
+（`native_wh=640|1136|2`、`orient=1|1136|640`、`pixel_format=1`、`shm=2908224`、`provider=9`），
+不存在「iOS 15 认不出颜色」。历史观察到的「认不出」来自**画面不在金标页/App 不在前台**，
+不是颜色引擎缺陷。`.61` 上唯一真实存在的差异是 framecap 四路链在该机能报
+`iomfb_accel_off / carender_black / uicreate_inflight_stale / relay_forbidden_business`（rootless iOS 15 的既有降级路径），
+但最终仍以 `provider=9` 提交有效帧，取色与找色均正常。
+
+### 口径
+- 五机 E48 门禁：**已闭合（当前包）**。
+- 五机 Z2-30M：仍 4/5（`.101` 因游戏自身停在非金标页而未过），**不是** Z2 绿。
+- 仍未开始：19 个 BLOCKED 迁移样本重写、101 项功能矩阵、动态库运行加载、核心回归与发布判定。
+
+### 动态库运行加载闭环（五机）
+- 报告：`tmp_shots/DYLIB_RUNTIME_20260911_004010/VERDICT.md`。
+- 磁盘清单与身份：包内 7 dylib + 7 plist；rootful 三机逐字节相同、rootless 两机逐字节相同，两套为独立 arch 构建。
+- 运行期标记五机齐备：`.ziyan_hooks(sb_pid==真实SB)`、`dispatcher_alive active=1`、`frame_hook_alive`、
+  `mem_hook_alive`、`framecap_alive`、`zydaemon_alive`（rootless 自检 0/1 正确）、`touch_native ok=1`。
+- **发现并修复真实缺陷**：`.61` 缺 `ZiYanBBFrame.dylib/.plist`（同一 153 包、`.53` 完整）。
+  成因是 `.61` 早期 `half-configured` 时 postinst 未落盘。已从包内提取补装并补 TweakInject 链接，
+  sha 复核 `f9c11421153ba91a` 与 `.53` 完全一致；重载后 E48 重跑 9/9 PASS
+  （`tmp_shots/E48_DEVICE61_20260911_004610/`）。修复证据 `tmp_shots/P2_61_BBFRAME_REPAIR_20260911_004132/`。
+- `ZiYanTEHook` 五机均不装，安装日志写明 `TE optional`，记为有意不装。
+
+### 五机 E48 最终状态（当前包 + 当前进程）
+| 设备 | 结果 | 证据 |
+|---|---|---|
+| `.101` | 9/9 | `E48_DEVICE101_20260911_003005` |
+| `.112` | 9/9 | `E48_DEVICE112_20260911_002355` |
+| `.166` | 9/9 | `E48_DEVICE166_20260911_002658` |
+| `.53` | 9/9 | `E48_DEVICE53_20260911_003312` |
+| `.61` | 9/9（BBFrame 修复+重载后） | `E48_DEVICE61_20260911_004610` |
+
+### 2026-09-11 迁移阶段本地闭环
+- 22 个迁移候选已落盘；状态为 `19 MIGRATED_BOUNDED_REWRITE + 2 MIGRATED_EXECUTABLE + 1 MIGRATED_RESOURCE`。
+- 19 个 wrapper 已重新生成，逐文件 `lua loadfile` **19/19 PASS**；每条 bounded rewrite 在 `migration_resolution.json` 中带 `loadfile_only/pass` 证据。
+- `python3 tools/ziyan_migration_audit.py`：`MIGRATION_AUDIT_OK samples=22 api_cases=101 static_only=True`。
+- `python3 tools/test_migration_rewrites_contract.py`：`MIGRATION_REWRITES_CONTRACT=PASS candidates=19`。
+- `python3 tools/test_ziyan_migration_artifacts.py`：`ZIYAN_MIGRATION_ARTIFACTS_CONTRACT=PASS samples=22 api_cases=101`；`python3 -m unittest tools.test_ziyan_migration_artifacts`：3 tests OK。
+- 本地迁移证据仅证明 bounded wrapper 可加载/可执行，不证明 TouchSprite 行为等价或真机 PASS；来源副本保持 immutable。
+
+### 仍未完成
+- 101 项非 Agent API 的功能矩阵（现全部 `NOT_FUNCTIONALLY_TESTED`，15 项 `MISSING_RUNTIME`）。
+- 核心回归族与正式发布判定。
+
+## 2026-09-11 通用性验收门禁（新建）
+
+### 背景（用户红线）
+用户明确：**最终产品必须 iPhone 7 / 7P / 8 / 8P × iOS 13~17 全部通用**；现有测试机只是抽样；
+矩阵未覆盖的格子不得写成 PASS，也不得当成 FAIL。兼容矩阵上限由 `16.7.16` 改为 **17**
+（`DEVICE_RULES.md` 第 14 行 / 总则；`ROADMAP.md` 第 52 行）。
+
+### 为什么必须新建这条门禁
+`ios7.lua` 进游那一步写死桌面图标坐标 `findMultiColorInRegionFuzzy(0x8d2619, …, 90, 1010,294, 1010,300)`：
+- `.101/.112/.166`（iOS 13）首页是「效率文件夹 + AppStore + 设置」3 格，(1010,294) 恰好命中 → 脚本自己进游
+- `.61`（iOS 15.8.8）首页多了两个小组件 + Safari 共 6 格，同一坐标落在壁纸上 → 脚本永远进不了游戏
+- 设备自己的 `IconState.plist` 直接证实布局差异（`.61` 首页 6 格含 2 个 widget；三机 3 格）
+- 单机跑通**永远**发现不了这类缺陷 → 必须有「同一份脚本跨机型跨系统比对」的门禁
+
+### 门禁定义
+`bash tools/zy_universal_script_gate.sh <script.lua> <target-bid> [devices...]`
+- 只接受**一份**脚本；拒绝 per-device 变体
+- 每机：规范冷态 → 发同一份字节 → 远端 sha256 必须与本机逐字节一致 → 只用产品自身触发路径
+  （`.ziyan_menu_run_trig`，与 App 内「运行」/音量菜单同一条路）→ 目标 App 连续 3 次前台才算达成 → 收尾清场
+- 判定：`PASS` 仅当所有设备都跑到且都自己达成；有 SKIP 只能算 `INCOMPLETE`；任一未达成 `FAIL`
+- 报告把「矩阵覆盖」与「结论」分开写，未覆盖机型/系统显式列为「无真机」
+- 合同测试 `tools/test_universal_script_contract.py`（10 项）全绿
+
+### 门禁自证（用已知有缺陷的 ios7.lua 跑五机）
+`tmp_shots/UNIVERSAL_20260911_111059/REPORT.md`
+
+| 设备 | 机型 | iOS | 脚本 sha 一致 | 判定 | 达成耗时 |
+|---|---|---|---|---|---|
+| `.101` | iPhone7 | 13.6 | yes | PASS | 3s |
+| `.112` | iPhone7 | 13.2.2 | yes | PASS | 3s |
+| `.166` | iPhone7 | 13.1.2 | yes | PASS | 3s |
+| `.53` | iPhone8Plus | 16.7.16 | n/a | SKIP（未装 `com.xztl.ios`） | — |
+| `.61` | iPhone7 | 15.8.8 | yes | **FAIL**（60s 未达成） | — |
+
+`UNIVERSAL_SCRIPT=FAIL pass=3 fail=1 skip=1 total=5`
+
+→ 门禁**成功抓出真缺陷**；同时说明「同一款游戏没装在全部测试机上」本身也是通用性缺口。
+
+### 矩阵覆盖现状
+- 已覆盖：iPhone7 × iOS 13.1.2 / 13.2.2 / 13.6 / 15.8.8；iPhone8Plus × iOS 16.7.16
+- **未覆盖**：iPhone7Plus、iPhone8（无真机）；iOS 14.x、iOS 17.x（无真机）
+
+### 本轮门禁自身修掉的坑（都可复现）
+1. var 路径又踩「目录存在性」：`.101` 上 Sep 1 残留 `/var/jb/usr/lib/ziyan/bin` 把路径带偏，
+   请求写进死目录 → 表现为「脚本没跑」而不是产品 FAIL。已改为按**已装包 arch** 判定。
+2. 机型识别：iOS 13 上 `sysctl -n hw.model` 给的是板号（`D10AP`/`D101AP`），
+   且 `mobile` 非交互环境没有 sysctl。改用 `uname -m`（五机实测都给 ProductType：iPhone9,1/iPhone9,3/iPhone10,2），
+   并补板号映射与 `/var/jb/usr/sbin/sysctl` 回退。
+3. 未装目标 App 记 `SKIP` 而不是 FAIL（不是脚本的错，但也不能算 PASS）。
+
+### 口径
+- 五机通用性验收当前**未通过**：同一份 `ios7.lua` 在 `.61` 上不成立。
+- 这是**测试程序**层面的缺陷（脚本写死坐标），最终产品要满足「7/7P/8/8P × iOS 13~17 全通用」，
+  必须让进游不依赖桌面图标绝对坐标（走 `App.launch/activate` 或 findImage 模板匹配）。
+- 本轮未改 `lua/`、`objc/`、桌面 `ios7.lua`；仅新增门禁与合同测试。

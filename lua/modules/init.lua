@@ -38,7 +38,28 @@ local names = {
   "HealthMonitor", "SafeExecutor", "MemoryGuard", "CrashLog",
   "ScriptTimeout", "CacheHealth", "Util", "HttpCtl", "PerfGate",
   "AppDump", "AntiDetect", "Sandbox", "FrameHook", "AutoInject",
+  "ErrorReporter", "OfflineQueue",
 }
+
+-- 错误自动收集：先于其它模块初始化，并刻意不进 .ziyan_light 跳过表
+-- （错误证据必须始终可见；模块本身只写文件，不参与业务热路径）
+do
+  local function _load(name)
+    local mod = nil
+    local ok = pcall(function() mod = require("modules." .. name) end)
+    if not ok or type(mod) ~= "table" then
+      pcall(function() mod = dofile(LUALIB .. "/modules/" .. name .. ".lua") end)
+    end
+    return mod
+  end
+  -- 队列先装：ErrorReporter 写报告时要用它入队
+  for _, _name in ipairs({ "OfflineQueue", "ErrorReporter" }) do
+    local _mod = _load(_name)
+    if type(_mod) == "table" and type(_mod.install) == "function" then
+      pcall(function() _mod.install() end)
+    end
+  end
+end
 
 -- 8-161-59：.ziyan_light → 跳过监控/安全包装（对齐触动轻热路径，禁反作弊抬间隔）
 do

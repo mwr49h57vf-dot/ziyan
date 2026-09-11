@@ -353,6 +353,9 @@ function input.readPasteboard()
   if n then return n() end
   return ""
 end
+function input.clipText()
+  return input.readPasteboard()
+end
 function input.copyText(text)
   return input.writePasteboard(text)
 end
@@ -649,6 +652,15 @@ end
 function device.getOSVer()
   local __n_getOSVer = native("getOSVer"); if __n_getOSVer then return __n_getOSVer() end
   return ""
+end
+function device.getVersion()
+  if type(_G.ZIYAN_VERSION) == "string" and _G.ZIYAN_VERSION ~= "" then
+    return _G.ZIYAN_VERSION
+  end
+  if type(_G.Zy) == "table" and type(_G.Zy.version) == "string" then
+    return _G.Zy.version
+  end
+  return M.version
 end
 function device.getDeviceType()
   local __n_getDeviceType = native("getDeviceType"); if __n_getDeviceType then return __n_getDeviceType() end

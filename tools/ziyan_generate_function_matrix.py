@@ -10,7 +10,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 CATALOG = ROOT / "api_spec/catalog.json"
 DEFAULT_OUT = ROOT / "api_spec/device_function_matrix.json"
-DEVICES = [".101", ".112", ".166", ".53"]
+DEVICE_PROBE = ROOT / "tests/touchsprite_migration/api_101_device_probe.lua"
+DEVICES = [".101", ".112", ".166", ".53", ".61"]
 COVERAGE = [
     "normal",
     "error",
@@ -67,6 +68,52 @@ def load_apis() -> list[dict]:
     return rows
 
 
+def write_device_probe(rows: list[dict]) -> None:
+    """Generate the real-device binding probe consumed through Zy.TestMatrix."""
+    lines = [
+        "-- Generated from api_spec/catalog.json; do not hand-edit.",
+        "-- This records runtime binding evidence only; it never upgrades it to functional PASS.",
+        'local Zy = require("modules.init")',
+        "local cases = {",
+    ]
+    for row in rows:
+        lines.append(
+            "  { case_id = %s, module = %s, fn = %s },"
+            % (
+                json.dumps(row["case_id"], ensure_ascii=False),
+                json.dumps(row["module"], ensure_ascii=False),
+                json.dumps(row["function"], ensure_ascii=False),
+            )
+        )
+    lines.extend(
+        [
+            "}",
+            "local function resolve(path)",
+            "  local value = _G",
+            '  for part in path:gmatch("[^.]+") do',
+            '    if type(value) ~= "table" then return nil end',
+            "    value = value[part]",
+            "  end",
+            "  return value",
+            "end",
+            'local output = assert(io.open(os.getenv("ZIYAN_API_MATRIX_RESULT") or "/tmp/ziyan_api_101.txt", "w"))',
+            "local present = 0",
+            "for _, case in ipairs(cases) do",
+            '  local valid = Zy.TestMatrix.validate({ case_id = case.case_id, module = case.module, ["function"] = case.fn })',
+            '  local status = valid and resolve(case.fn) ~= nil and "RUNTIME_PRESENT" or "MISSING_RUNTIME"',
+            '  if status == "RUNTIME_PRESENT" then present = present + 1 end',
+            '  output:write(case.case_id, "|", status, "\\n")',
+            "end",
+            'output:write("SUMMARY|total=", #cases, "|present=", present, "|missing=", #cases - present, "\\n")',
+            "output:close()",
+            'print(string.format("API_101_BINDINGS total=%d present=%d missing=%d", #cases, present, #cases - present))',
+            "",
+        ]
+    )
+    DEVICE_PROBE.parent.mkdir(parents=True, exist_ok=True)
+    DEVICE_PROBE.write_text("\n".join(lines), encoding="utf-8")
+
+
 def build(out: Path) -> None:
     rows = load_apis()
     active = [row for row in rows if not row["excluded"]]
@@ -99,6 +146,7 @@ def build(out: Path) -> None:
     }
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    write_device_probe(rows)
     print(f"MATRIX_WRITTEN={out}")
     print(f"CATALOG_TOTAL={len(rows)} ACTIVE_TOTAL={len(active)} EXCLUDED_TOTAL={len(rows)-len(active)}")
 

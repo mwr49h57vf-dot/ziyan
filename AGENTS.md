@@ -22,4 +22,5 @@
 出现 `call_id` / `previous_response_id` / `WebSocket v2` / `502`：同样停手，只输出 PROMPT，不要重试工具链。
 
 循环直到 `checkpoint.unfinished=false` 且 `nextAction` 为等待人工最终审核。
-PASS 只来自 `.101 → .112 → .166 → .53`。
+PASS 只来自 `.101 → .112 → .166 → .53 → .61`；`.61` 是 iOS 15.8.8 rootless
+兼容性验收设备，缺少 `.61` final verdict 不得宣布主计划真机 PASS。

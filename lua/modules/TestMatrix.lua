@@ -5,7 +5,7 @@
 local M = {
   name = "TestMatrix",
   version = "1.0.0",
-  devices = { ".101", ".112", ".166", ".53" },
+  devices = { ".101", ".112", ".166", ".53", ".61" },
   coverage = {
     "normal", "error", "repeated", "timeout",
     "abnormal_exit", "stop_cleanup", "rootful", "rootless",

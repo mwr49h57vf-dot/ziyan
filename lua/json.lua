@@ -23,6 +23,7 @@
 --
 
 local json = { _version = "0.1.2" }
+local object_mt = {}
 
 -------------------------------------------------------------------------------
 -- Encode
@@ -65,7 +66,7 @@ local function encode_table(val, stack)
 
   stack[val] = true
 
-  if rawget(val, 1) ~= nil or next(val) == nil then
+  if getmetatable(val) ~= object_mt and (rawget(val, 1) ~= nil or next(val) == nil) then
     -- Treat as array -- check keys are valid and it is not sparse
     local n = 0
     for k in pairs(val) do
@@ -317,7 +318,7 @@ end
 
 
 local function parse_object(str, i)
-  local res = {}
+  local res = setmetatable({}, object_mt)
   i = i + 1
   while 1 do
     local key, val

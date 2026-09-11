@@ -9,9 +9,9 @@ MIN="${ZY_E4_MIN:-${ZY_P2_EXPECTED_MINUTES:-30}}"
 APP="${ZY_P2_APP:-com.xztl.ios}"
 # 当前四机实测金标为 12754024；旧默认 12688231 会假 FAIL。
 EXP="${ZY_P2_COLOR:-12754024}"
-if [ "$#" -eq 0 ]; then HOSTS=(101 112 166); else HOSTS=("$@"); fi
+if [ "$#" -eq 0 ]; then HOSTS=(101 112 166 53 61); else HOSTS=("$@"); fi
 for h in "${HOSTS[@]}"; do
-  case "$h" in 53|101|112|166) ;; *) echo "refuse host=$h (ZiYan accept: 53 101 112 166; TS observe only)"; exit 2 ;; esac
+  case "$h" in 53|61|101|112|166) ;; *) echo "refuse host=$h (ZiYan accept: 53 61 101 112 166; TS observe only)"; exit 2 ;; esac
 done
 STAMP="$(date '+%Y%m%d_%H%M%S')"
 OUT="$ROOT/tmp_shots/P2_30M_C98_${STAMP}"
@@ -26,12 +26,14 @@ SSH_OPTS=(-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
 echo "OUT=$OUT MIN=$MIN hosts=${HOSTS[*]} no_desktop_lua no_pretest no_ts_home" | tee "$OUT/meta.txt"
 
 ssh_one() {
-  local ip="$1"
-  shift
-  if ssh -n "${SSH_KEY_OPTS[@]}" "root@$ip" "true" >/dev/null 2>&1; then
-    ssh "${SSH_KEY_OPTS[@]}" "root@$ip" "$@"
+  local user="$1" ip="$2"
+  shift 2
+  # 密钥优先对 mobile 同样生效：.61 的密码通道是间歇性的（实测单机连续 3 次里
+  # 会有 1 次 Permission denied），30 分钟 30 次连接必然出假 FAIL。
+  if ssh -n "${SSH_KEY_OPTS[@]}" "$user@$ip" "true" >/dev/null 2>&1; then
+    ssh "${SSH_KEY_OPTS[@]}" "$user@$ip" "$@"
   else
-    sshpass -p "$PASS" ssh "${SSH_OPTS[@]}" "root@$ip" "$@"
+    sshpass -p "$PASS" ssh "${SSH_OPTS[@]}" "$user@$ip" "$@"
   fi
 }
 
@@ -51,29 +53,49 @@ color_for() {
   fi
 }
 
+# 每机实际生效的 app / 金标 / 用户必须落盘：8/15 那次 .53 用了区别于默认的
+# 金标，但只存在于当时 shell 环境里，事后无法复现，报告因此不可审计。
+{
+  echo "# per-host effective overrides"
+  echo "# home_mode=owner_app_then_target (2026-09-04 go_home owner policy)"
+  for h in "${HOSTS[@]}"; do
+    printf 'host=.%s app=%s color=%s user=%s\n' \
+      "$h" "$(app_for "$h")" "$(color_for "$h")" "$([ "$h" = 61 ] && echo mobile || echo root)"
+  done
+} >>"$OUT/meta.txt"
+
 sample_host() {
-  local H="$1" APP_H EXP_H
+  local H="$1" APP_H EXP_H USER=root
+  [ "$H" = 61 ] && USER=mobile
   APP_H=$(app_for "$H")
   EXP_H=$(color_for "$H")
-  ssh_one "192.168.31.$H" "H='$H' EXPECTED_COLOR='$EXP_H' EXPECTED_APP='$APP_H' bash -s" <<'REMOTE'
+  ssh_one "$USER" "192.168.31.$H" "H='$H' EXPECTED_COLOR='$EXP_H' EXPECTED_APP='$APP_H' bash -s" <<'REMOTE'
 set +e
 if [ -d /var/jb/usr/bin ]; then
   export PATH=/var/jb/usr/bin:/var/jb/bin:/usr/bin:/bin:/usr/sbin:/sbin
 else
   export PATH=/usr/bin:/bin:/usr/sbin:/sbin
 fi
-if [ -d /var/jb/usr/lib/ziyan/var ]; then
-  V=/var/jb/usr/lib/ziyan/var
-else
-  V=/usr/lib/ziyan/var
-fi
+# 运行 scheme 必须由「已装包 arch」决定，不能用目录存在性：rootful 机若残留
+# /var/jb/usr/lib/ziyan/var，会一直被当成 rootless，把 .ziyan_color_req 写进死
+# 目录，表现为 REQ=100 / COLOR 空，把环境问题误判成产品 FAIL。
+ZY_ARCH=$(dpkg-query -W -f='${Architecture}' com.ziyan.ziyan 2>/dev/null)
+case "$ZY_ARCH" in
+  iphoneos-arm64) V=/var/jb/usr/lib/ziyan/var ;;
+  *)              V=/usr/lib/ziyan/var ;;
+esac
 APP="${EXPECTED_APP:-com.xztl.ios}"
 EXP="${EXPECTED_COLOR:-12688231}"
 
 od1(){ od -An -t u1 -j "$2" -N 1 "$1" 2>/dev/null | tr -d ' \n'; }
 od4(){ od -An -t u4 -j "$2" -N 4 "$1" 2>/dev/null | tr -d ' \n'; }
 pid_of(){ ps -axo pid=,args= | grep "$1" | grep -v grep | head -1 | sed 's/^ *//;s/ .*//'; }
-fc_n(){ sleep 0.5; ps -axo args= | grep '[z]iyan_framecap serve' | grep -v grep | wc -l | tr -dc '0-9'; }
+# mobile on rootless can see only "(ziyan_framecap)", not root's full argv.
+# 必须排除其它 grep：zydaemon 看门狗自己有一条 `grep -F ziyan_framecap serve`，
+# 旧写法会把它算成第 2 个宿主（实测 .53 60 次采样误报 4 次 FCN=2），使
+# 「单宿主 FC_N=1」判据随机 FAIL。不能改成只认完整路径——.61 的 mobile 视图
+# 只给 "(ziyan_framecap)"，那样会漏计真宿主。
+fc_n(){ sleep 0.5; ps -axo state=,args= | grep '[z]iyan_framecap' | grep -v grep | grep -v '^[[:space:]]*Z' | wc -l | tr -dc '0-9'; }
 
 get_color(){
   rm -f "$V/.ziyan_color_rep"
@@ -94,15 +116,43 @@ get_color(){
 }
 
 SB0=$(pid_of 'SpringBoard.app/SpringBoard')
-FC0=$(pid_of 'ziyan_framecap serve')
+FC0=$(pid_of 'ziyan_framecap')
 BB0=$(pid_of 'backboardd')
 APP0=$(pid_of 'FGCQLibClient-mobile')
 FCN0=$(fc_n)
 
 rm -f "$V/.ziyan_open_app" /private/var/mobile/Media/ZiYan/.ziyan_open_app
+# 2026-09-04 起产品合同：远程 Home 只接受 owner=com.ziyan.ziyan，且前台必须是
+# ZiYan App（Tweak.m ZiYanGoHomeRequestOwnedByZiYan + frontBid 双闸门）。
+# 8/15 那次 PASS 早于该策略，旧写法（裸写 1）在现包里被
+# `go_home policy_reject_missing_ziyan_owner` 拒绝，会把策略问题误报成产品 FAIL。
+# 因此按当前合同：先把 ZiYan App 拉回前台，再带 owner 发 Home。
+OWNER=com.ziyan.ziyan
+if [ "$(cat "$V/.ziyan_front_bid" 2>/dev/null | tr -d '\r\n')" != "$OWNER" ]; then
+  j=0
+  while test "$j" -lt 120; do
+    printf '%s\n' "$OWNER" >"$V/.ziyan_open_app"
+    chmod 666 "$V/.ziyan_open_app" 2>/dev/null
+    f=$(cat "$V/.ziyan_front_bid" 2>/dev/null | tr -d '\r\n')
+    test "$f" = "$OWNER" && break
+    sleep 0.5
+    j=$((j+1))
+  done
+fi
+# 停写 open_app 并静置：连写期间 Vol/FrameRelay 留有排队启动意图，会在 Home 之后
+# 把 App 拉回前台（实测 T+1s 就弹回），HOK 复检于是永远为 0。静置 3s 后 24 个
+# 采样点里 23 个停在桌面。
+rm -f "$V/.ziyan_open_app" /private/var/mobile/Media/ZiYan/.ziyan_open_app
+sleep 3
+OWNER_FRONT=$(cat "$V/.ziyan_front_bid" 2>/dev/null | tr -d '\r\n')
 t0=$(date +%s)
-printf '1\n' >"$V/.ziyan_go_home"
-chmod 666 "$V/.ziyan_go_home" 2>/dev/null
+# 原子写：SB 侧 fileExists → 读内容 → 删除。非原子的 printf> 若被读到截断空文件，
+# 请求被判 owner 缺失并丢弃，Home 静默不执行（.101 第 3 分钟实测 HOME_MS=8000、
+# 帧日志整分钟无 front→springboard 迁移，10/10 复测正常）。findColor/getColor
+# 早已用同样的 rename 约定，这里补齐。
+printf '1\nowner=com.ziyan.ziyan\n' >"$V/.ziyan_go_home.tmp"
+chmod 666 "$V/.ziyan_go_home.tmp" 2>/dev/null
+mv "$V/.ziyan_go_home.tmp" "$V/.ziyan_go_home"
 i=0; HOK=0
 while test "$i" -lt 80; do
   f=$(cat "$V/.ziyan_front_bid" 2>/dev/null)
@@ -158,7 +208,7 @@ done
 echo "OPEN_N=$OPEN_N"
 
 SB1=$(pid_of 'SpringBoard.app/SpringBoard')
-FC1=$(pid_of 'ziyan_framecap serve')
+FC1=$(pid_of 'ziyan_framecap')
 BB1=$(pid_of 'backboardd')
 APP1=$(pid_of 'FGCQLibClient-mobile')
 FCN1=$(fc_n)
@@ -168,7 +218,7 @@ test "$HOK" = 1 && test "$AOK" = 1 && test "$HOME_MS" -le 5000 \
   && test "$SB1" = "$SB0" && test "$FC1" = "$FC0" && test "$BB1" = "$BB0" \
   && test -n "$APP1" && test "$FCN1" = 1 && pass=1
 
-echo "ZY.$H PASS=$pass HOK=$HOK HOME_MS=$HOME_MS HP=$HP HS=$HS AOK=$AOK APP_RETRY=$k OPEN_N=$OPEN_N COLOR=$COL AP=$AP AS=$AS SEQ=$SEQ REQ=$REQ FCN=$FCN1"
+echo "ZY.$H PASS=$pass HOK=$HOK HOME_MS=$HOME_MS HP=$HP HS=$HS AOK=$AOK APP_RETRY=$k OPEN_N=$OPEN_N FRONT=$f2 EXPECTED_APP=$APP COLOR=$COL EXPECTED_COLOR=$EXP AP=$AP AS=$AS SEQ=$SEQ REQ=$REQ FCN=$FCN1 OWNER_FRONT=$OWNER_FRONT"
 echo "ZY.${H}_PROC ROLE=framecap PID=$FC1"
 echo "ZY.${H}_PROC ROLE=SpringBoard PID=$SB1"
 echo "ZY.${H}_PROC ROLE=backboardd PID=$BB1"
@@ -242,16 +292,18 @@ ZY.$H SSH_FAIL RC=$zy_rc try=$ssh_try"
   local snap
   snap=$(ssh_one "192.168.31.$H" "H='$H' bash -s" <<'SNAP' || true
 set +e
-if [ -d /var/jb/usr/lib/ziyan/var ]; then V=/var/jb/usr/lib/ziyan/var; else V=/usr/lib/ziyan/var; fi
+# 不用 case：bash 3.2 会把 $( ) 内 heredoc 的 body 当代码解析，分支终止符直接语法错误。
+ZY_ARCH=$(dpkg-query -W -f='${Architecture}' com.ziyan.ziyan 2>/dev/null || /var/jb/usr/bin/dpkg-query -W -f='${Architecture}' com.ziyan.ziyan 2>/dev/null)
+if [ "$ZY_ARCH" = "iphoneos-arm64" ]; then V=/var/jb/usr/lib/ziyan/var; else V=/usr/lib/ziyan/var; fi
 M=/private/var/mobile/Media/ZiYan
-echo FC_N=$(ps -axo args= | grep -F 'ziyan_framecap serve' | grep -vc grep | tr -dc '0-9')
+echo FC_N=$(ps -axo state=,args= | grep '[z]iyan_framecap' | grep -v '^[[:space:]]*Z' | wc -l | tr -dc '0-9')
 echo SB_PID=$(ps -axo pid=,args= | grep 'SpringBoard.app/SpringBoard' | grep -v grep | head -1 | sed 's/^ *//;s/ .*//')
 echo KEEP_AFTER_STOP=$(test -f "$V/.ziyan_keep_daemon" && echo 1 || echo 0)
 echo ACTIVE=$(test -f "$V/.ziyan_active" && echo 1 || echo 0)
 echo STATS=$(tr '\n' ' ' <"$V/.ziyan_path_stats" 2>/dev/null)
 echo WORKSET=$(tr '\n' ' ' <"$V/.ziyan_workset_bytes" 2>/dev/null)
 echo FRONT=$(tr -d '\r\n' <"$V/.ziyan_front_bid" 2>/dev/null)
-echo RSS=$(ps -axo rss=,args= | grep -F 'ziyan_framecap serve' | grep -v grep | head -1 | sed 's/^ *//;s/ .*//')
+echo RSS=$(ps -axo rss=,args= | grep '[z]iyan_framecap' | grep -v grep | head -1 | sed 's/^ *//;s/ .*//')
 echo ZOMBIE=$(ps -axo stat= | grep -c Z || true)
 RID="z2_${H}_$(date +%s)"
 mkdir -p "$M/verdicts"
@@ -260,7 +312,7 @@ mkdir -p "$M/verdicts"
   echo "host=.$H"
   echo "pkg=$(dpkg -s com.ziyan.ziyan 2>/dev/null | sed -n 's/^Version: //p')"
   echo "gate=Z2-30M"
-  echo "FC_N=$(ps -axo args= | grep -F 'ziyan_framecap serve' | grep -vc grep | tr -dc '0-9')"
+  echo "FC_N=$(ps -axo state=,args= | grep '[z]iyan_framecap' | grep -v '^[[:space:]]*Z' | wc -l | tr -dc '0-9')"
   echo "KEEP_AFTER_STOP=$(test -f "$V/.ziyan_keep_daemon" && echo 1 || echo 0)"
   echo "ACTIVE=$(test -f "$V/.ziyan_active" && echo 1 || echo 0)"
   echo "VERDICT=PASS"
@@ -275,7 +327,9 @@ SNAP
 
 ts_snap() {
   local host="$1" dest="$2"
-  ssh_one "192.168.31.$host" \
+  # ssh_one 现在签名为 <user> <ip> ...；旧调用只传了 ip，把命令行当成主机名，
+  # 导致 .149/.171 只读对照快照长期写 SSH_FAIL。观察机一律 root。
+  ssh_one root "192.168.31.$host" \
     'echo HOST='$host'; date; ps -axo pid=,rss=,%cpu=,etime=,args= | while read -r pid rss cpu etime args; do case "$args" in *TSDaemon\ -server*) echo ROLE=TSDaemon PID=$pid RSS=$rss CPU=$cpu ETIME=$etime;; */System/Library/CoreServices/SpringBoard.app/SpringBoard*) echo ROLE=SpringBoard PID=$pid RSS=$rss CPU=$cpu ETIME=$etime;; esac; done' \
     >"$dest" 2>&1 || echo "SSH_FAIL" >>"$dest"
 }
@@ -320,7 +374,9 @@ FAIL_N=0
     last=$(ls -1 "$OUT/$H/minutes/"*.sample 2>/dev/null | tail -1)
     last_c=""; last_ap=""
     if [ -n "$last" ]; then
-      last_c=$(sed -n "s/.*COLOR=\\([^ ]*\\).*/\\1/p" "$last" | tail -1)
+      # 只取实测 COLOR，不能写成 s/.*COLOR=.../：贪婪匹配会命中同一行的
+      # EXPECTED_COLOR，把整表 last_color 显示成金标，FAIL 也被读成命中。
+      last_c=$(sed -n 's/.* EXPECTED_APP=[^ ]* COLOR=\([^ ]*\).*/\1/p' "$last" | tail -1)
       last_ap=$(sed -n "s/.* AP=\\([^ ]*\\).*/\\1/p" "$last" | tail -1)
     fi
     [ "$local_v" = PASS ] && PASS_N=$((PASS_N+1)) || FAIL_N=$((FAIL_N+1))

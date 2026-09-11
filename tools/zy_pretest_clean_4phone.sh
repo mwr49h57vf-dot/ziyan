@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 铁律：每次自测前必须四机清场——停脚本、杀业务进程、收僵尸、压内存。
+# 铁律：每次自测前必须五机清场——停脚本、杀业务进程、收僵尸、压内存。
 # 202：FC_N!=1 清场后由 launchd 单次重建（禁 kickstart -k / 禁保留最新一个叠跑）
 # 用法：bash tools/zy_pretest_clean_4phone.sh
 set -euo pipefail
@@ -7,21 +7,22 @@ PASS="${ZY_SSH_PASS:-alpine}"
 SSH_COMMON=(-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
             -o ConnectTimeout=12)
 ssh_r() {
-  local host="$1"
-  shift
-  # 四机已部署公钥时优先无密码通道；仅在密钥不可用时回退 alpine。
-  if ssh "${SSH_COMMON[@]}" -o BatchMode=yes "root@$host" "$@"; then
+  local user="$1" host="$2"
+  shift 2
+  # 已部署公钥时优先无密码通道（.61 的 mobile 也适用：密码通道间歇性拒登，
+  # 五机并行清场时必然踩到）；仅在密钥不可用时回退 alpine。
+  if ssh "${SSH_COMMON[@]}" -o BatchMode=yes "$user@$host" "$@"; then
     return 0
   fi
   sshpass -p "$PASS" ssh "${SSH_COMMON[@]}" \
     -o PreferredAuthentications=password -o PubkeyAuthentication=no \
-    -o NumberOfPasswordPrompts=1 "root@$host" "$@"
+    -o NumberOfPasswordPrompts=1 "$user@$host" "$@"
 }
 
 clean_one() {
-  local tag="$1" ip="$2" scheme="$3"
-  echo "======== CLEAN .$tag ($ip $scheme) ========"
-  ssh_r "$ip" "SCHEME=$scheme TAG=$tag bash -s" <<'EOS'
+  local tag="$1" ip="$2" scheme="$3" user="$4"
+  echo "======== CLEAN .$tag ($ip $scheme user=$user) ========"
+  ssh_r "$user" "$ip" "SCHEME=$scheme TAG=$tag bash -s" <<'EOS'
 set +e
 if [ "$SCHEME" = rootless ]; then
   VAR=/var/jb/usr/lib/ziyan/var
@@ -155,16 +156,18 @@ echo "CLEAN_OK tag=$TAG FC_N=$FC_N Z_N=$Z_N LUA_N=$LUA_N owner=$OWNER"
 EOS
 }
 
-clean_one 53 192.168.31.53 rootless &
+clean_one 53 192.168.31.53 rootless root &
 P53=$!
-clean_one 101 192.168.31.101 rootful &
+clean_one 101 192.168.31.101 rootful root &
 P101=$!
-clean_one 112 192.168.31.112 rootful &
+clean_one 112 192.168.31.112 rootful root &
 P112=$!
-clean_one 166 192.168.31.166 rootful &
+clean_one 166 192.168.31.166 rootful root &
 P166=$!
+clean_one 61 192.168.31.61 rootless mobile &
+P61=$!
 FAIL=0
-for pid in "$P53" "$P101" "$P112" "$P166"; do
+for pid in "$P53" "$P101" "$P112" "$P166" "$P61"; do
   wait "$pid" || FAIL=1
 done
 if [ "$FAIL" -ne 0 ]; then

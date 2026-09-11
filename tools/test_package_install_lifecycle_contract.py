@@ -45,6 +45,13 @@ def main() -> None:
         require(text, ".ziyan_inject_reload_pending")
         require(text, "pending_manual_inject_reload")
 
+    # Rootless jailbreaks may expose DynamicLibraries as a symlink to
+    # TweakInject. Linking a payload back onto itself deletes the installed
+    # dylib, so postinst must compare canonical directories before linking.
+    require(postinst, 'MS_REAL="$(cd "$MS"')
+    require(postinst, 'TI_REAL="$(cd "$TI"')
+    require(postinst, 'if [ "$MS_REAL" != "$TI_REAL" ]; then')
+
     upgrade_case = re.search(
         r"case \"\$1\" in\s+upgrade\|failed-upgrade\)(.*?)^\s*;;",
         prerm,

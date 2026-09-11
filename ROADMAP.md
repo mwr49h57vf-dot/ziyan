@@ -29,8 +29,8 @@ Z0 基线校准  →  Z1 对齐  →  Z2-30M 长稳  →  Z3 超越
 | 阶段 | 门禁 | 含义 |
 |---|---|---|
 | **Z0** | `Z0-GIT` `Z0-TS` `Z0-METRIC` | 回滚锚点、触动同协议真值、度量口径正确 |
-| **Z1** | `Z1-MEM` `Z1-VIS` `Z1-TOUCH` `Z1-ASSET` | 四机在同协议下不劣于触动 |
-| **Z2** | `Z2-30M` | 四机 30 分钟长稳，无 SB 重启环 |
+| **Z1** | `Z1-MEM` `Z1-VIS` `Z1-TOUCH` `Z1-ASSET` | 五台主计划真机在同协议下不劣于触动 |
+| **Z2** | `Z2-30M` | 五台主计划真机 30 分钟长稳，无 SB 重启环 |
 | **Z3** | `Z3-SB` `Z3-PERF` | 稳定性与效率优于 `.171` |
 
 阶段之间是**硬依赖**：Z0 未完成则 Z1 的阈值无效；Z1 未全绿禁开 Z2；Z2 未全绿禁谈 Z3。
@@ -43,10 +43,16 @@ Z0 基线校准  →  Z1 对齐  →  Z2-30M 长稳  →  Z3 超越
 |---|---|---|
 | `.53` | iPhone 8 Plus · rootless · @3x | ZiYan 验收 |
 | `.101` `.112` `.166` | iPhone 7 · rootful · @2x | ZiYan 验收 |
+| `.61` | iPhone 7 · rootless · iOS 15.8.8 | **主计划第五台验收真机** |
 | `.149` `.171` | TouchSprite 观察机 | **只读**；`.171` 为找色长跑参考机 |
 
-- PASS 只出在 `.53/.101/.112/.166`；观察机不得部署 ZiYan、不得作为验收结论来源。
-- 兼容矩阵：iPhone 7 / 7P / 8 / 8P × iOS 13 ～ **16.7.16**（上限写死，扩展待用户通知）。
+- PASS 只出在 `.53/.101/.112/.166/.61`；观察机不得部署 ZiYan、不得作为验收结论来源。
+- 主计划验收顺序固定为 `.101 -> .112 -> .166 -> .53 -> .61`；五台设备均须有当前包、当前脚本、当前资源、run_id、设备端 final verdict 和清理证据。
+- `.61` 是 iOS 15.8.8 rootless 兼容性强制验收点，缺少它的 final verdict 时，原四机结果也不得提升为主计划 PASS。
+- 兼容矩阵：iPhone 7 / 7P / 8 / 8P × iOS 13 ～ **17**（用户 2026-09-11 明确要求全通用）。
+  现有真机只覆盖 iPhone 7 × iOS 13.1.2 / 13.2.2 / 13.6 / 15.8.8 与 iPhone 8 Plus × iOS 16.7.16；
+  未覆盖格子（7P / 8 / iOS 14 / iOS 17）**不得**写成 PASS。
+- **通用性验收**：`bash tools/zy_universal_script_gate.sh <script.lua> <bid> [devices]` —— 同一份业务脚本字节必须跨机型跨系统全部自己跑通；禁止 per-device 脚本变体。
 - Desktop `ios7.lua` / `ios8p.lua` 仅 scp，**不改内容**。
 
 ---
@@ -108,12 +114,12 @@ Z0 基线校准  →  Z1 对齐  →  Z2-30M 长稳  →  Z3 超越
 
 ### Z1-MEM · 内存
 
-工具：`ZY_E4_MIN=5 bash tools/zy_e4_promo_gate.sh 101 53`
+工具：`ZY_E4_MIN=5 bash tools/zy_e4_promo_gate.sh 101 112 166 53 61`
 
 | 判据 | 阈值 | 出处 |
 |---|---|---|
 | `fc_rss_slope_per100` rootful | **≤120 KB/100s** | 现场快判用；短窗口噪声大，**不作 FAIL 唯一依据** |
-| `fc_rss_slope_per100` rootless `.53` | **≤240 KB/100s** | 同上 |
+| `fc_rss_slope_per100` rootless `.53/.61` | **≤240 KB/100s** | 同上，`.61` 需单独记录 |
 | **OLS 斜率（≥30min 窗口）** | **≈0，不劣于触动** | `.171` 长窗口实测 −1.6 KB/100s |
 | `WORKSET` | ≤6 MB | 常驻帧预算 |
 | `FC_N_MAX` | =1 | 单宿主 |
@@ -127,7 +133,7 @@ Z0 基线校准  →  Z1 对齐  →  Z2-30M 长稳  →  Z3 超越
 ### Z1-VIS · 视觉命中
 
 工具：`bash tools/zy_run1_script_logic_gate.sh`
-四机均须 `TYPED=BUSINESS_PASS`。`VISION_MISS` 与 `TOUCH_SENT_NO_UI_CHANGE` 是不同故障，
+五机均须 `TYPED=BUSINESS_PASS`。`VISION_MISS` 与 `TOUCH_SENT_NO_UI_CHANGE` 是不同故障，
 **不得用改找色坐标掩盖触控问题**。
 
 ### Z1-TOUCH · 触控链
@@ -137,11 +143,11 @@ Z0 基线校准  →  Z1 对齐  →  Z2-30M 长稳  →  Z3 超越
 
 ### Z1-ASSET · 图文识别
 
-工具：`bash tools/zy_vision_asset_gate.sh 101 53`，配合 `tests/vision_assets/`。
+工具：`bash tools/zy_vision_asset_gate.sh 101 112 166 53 61`，配合 `tests/vision_assets/`。
 
 ### Z2-30M · 长稳
 
-`ZY_E4_MIN=30` 四机全绿，`SB_CHG=0` 且无重启环。三小时长稳不再是当前门禁。
+`ZY_E4_MIN=30` 五机全绿，`SB_CHG=0` 且无重启环。三小时长稳不再是当前门禁。
 
 ### Z3 · 超越
 
@@ -194,9 +200,9 @@ CF/CG/IOSurface 释放路径均已有界，增长来自**回收节拍**而非未
 1. 阈值必须标注实测出处，无出处的数字不得作为 FAIL 依据。
 2. 同一症状自研改动 ≥2 轮仍 FAIL → 下一动作强制 `.171` 采证，不得开第三轮纯猜改。
 3. 一刀一验，禁止叠改后归因。
-4. 观察机 `.149/.171` 只读；PASS 只出在 `.53/.101/.112/.166`。
+4. 观察机 `.149/.171` 只读；PASS 只出在 `.53/.101/.112/.166/.61`。
 5. Z2 未全绿前禁止任何「超越触动」表述。
-6. 自测前必须 `bash tools/zy_pretest_clean_4phone.sh`，不清不测。
+6. 自测前必须 `bash tools/zy_pretest_clean_4phone.sh`，不清不测；该脚本必须覆盖 `.101/.112/.166/.53/.61`。
 7. 允许抄触动的 API 名/参/语义与找色/合帧/keep/Home 等逻辑算法，实现落 `lua/`/`objc/`；
    仅禁止把触动 dylib / TSDaemon 链进包作运行依赖。
 

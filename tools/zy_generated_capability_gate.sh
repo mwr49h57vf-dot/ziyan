@@ -4,15 +4,16 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-TAG="${1:?usage: $0 <101|112|166|53> <chat|rules|decision|non_visual>}"
-CAP="${2:?usage: $0 <101|112|166|53> <chat|rules|decision|non_visual>}"
+TAG="${1:?usage: $0 <101|112|166|53|61> <chat|rules|decision|non_visual>}"
+CAP="${2:?usage: $0 <101|112|166|53|61> <chat|rules|decision|non_visual>}"
 EXPECTED_PACKAGE_VERSION="${ZY_EXPECTED_PACKAGE_VERSION:-}"
 EXPECTED_PACKAGE_SHA="${ZY_EXPECTED_PACKAGE_SHA:-}"
 TARGET_BID="${ZY_CAPABILITY_BID:-com.ziyan.ziyan}"
 PACKAGE_FILE="${ZY_CAPABILITY_PACKAGE_FILE:-}"
 case "$TAG" in
-  101|112|166) HOST="192.168.31.$TAG"; SCHEME=rootful; VAR=/usr/lib/ziyan/var ;;
-  53) HOST=192.168.31.53; SCHEME=rootless; VAR=/var/jb/usr/lib/ziyan/var ;;
+  101|112|166) HOST="192.168.31.$TAG"; USER=root; SCHEME=rootful; VAR=/usr/lib/ziyan/var ;;
+  53) HOST=192.168.31.53; USER=root; SCHEME=rootless; VAR=/var/jb/usr/lib/ziyan/var ;;
+  61) HOST=192.168.31.61; USER=mobile; SCHEME=rootless; VAR=/var/jb/usr/lib/ziyan/var ;;
   *) echo "invalid device .$TAG" >&2; exit 2 ;;
 esac
 case "$CAP" in
@@ -26,11 +27,11 @@ mkdir -p "$OUT"
 PASS="${ZY_SSH_PASS:-alpine}"
 SSH_OPTS=(-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=15
           -o ServerAliveInterval=10 -o ServerAliveCountMax=6)
-if ssh "${SSH_OPTS[@]}" -o BatchMode=yes "root@$HOST" true >/dev/null 2>&1; then
-  SSH=(ssh "${SSH_OPTS[@]}" "root@$HOST")
+if ssh "${SSH_OPTS[@]}" -o BatchMode=yes "$USER@$HOST" true >/dev/null 2>&1; then
+  SSH=(ssh "${SSH_OPTS[@]}" "$USER@$HOST")
   SCP=(scp "${SSH_OPTS[@]}")
 else
-  SSH=(sshpass -p "$PASS" ssh "${SSH_OPTS[@]}" "root@$HOST")
+  SSH=(sshpass -p "$PASS" ssh "${SSH_OPTS[@]}" "$USER@$HOST")
   SCP=(sshpass -p "$PASS" scp "${SSH_OPTS[@]}")
 fi
 
@@ -84,7 +85,7 @@ return main
 LUA
 
 MEDIA=/private/var/mobile/Media/ZiYan
-"${SCP[@]}" "$BOOT" "root@$HOST:$MEDIA/capability_bootstrap_${CAP}.lua" >"$OUT/scp.txt" 2>&1
+"${SCP[@]}" "$BOOT" "$USER@$HOST:$MEDIA/capability_bootstrap_${CAP}.lua" >"$OUT/scp.txt" 2>&1
 "${SSH[@]}" "SCHEME='$SCHEME' VAR='$VAR' MEDIA='$MEDIA' CAP='$CAP' TARGET_BID='$TARGET_BID' PACKAGE_FILE='$PACKAGE_FILE' EXPECTED_PACKAGE_VERSION='$EXPECTED_PACKAGE_VERSION' EXPECTED_PACKAGE_SHA='$EXPECTED_PACKAGE_SHA' bash -s" >"$OUT/device.txt" 2>&1 <<'REMOTE'
 set -e
 SCRIPT="$MEDIA/capability_bootstrap_${CAP}.lua"

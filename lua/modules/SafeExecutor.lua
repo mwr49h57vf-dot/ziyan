@@ -86,6 +86,17 @@ local function crash_log_path()
   return var_dir() .. "/.ziyan_crash_log.jsonl"
 end
 
+local function self_pid()
+  local f = io.open("/proc/self/status", "r")
+  if f then
+    local body = f:read("*a") or ""
+    f:close()
+    local pid = body:match("^Pid:%s*(%d+)")
+    if pid then return pid end
+  end
+  return "unknown"
+end
+
 local function write_crash_log(err_type, detail)
   local line = string.format(
     '{"ts":%d,"loop":%d,"type":%q,"detail":%q,"rss":%d}\n',
@@ -94,6 +105,25 @@ local function write_crash_log(err_type, detail)
   pcall(function()
     local f = io.open(crash_log_path(), "a")
     if f then f:write(line); f:close() end
+  end)
+end
+
+--- 错误自动收集桥：把脚本错误落到 ZYCV/res/错误报告（模块缺失时不报错）
+local function report_script_error(err)
+  pcall(function()
+    local er = _G.ErrorReporter
+    if type(er) ~= "table" then return end
+    local msg = tostring(err or "unknown")
+    -- 停止/暂停类信号不是业务错误，不写错误报告
+    if msg:find("ziyan_stop", 1, true)
+        or msg:find("interrupted", 1, true) then
+      return
+    end
+    if type(er.handle) == "function" then
+      local phase = "script"
+      if msg:find("ScriptTimeout", 1, true) then phase = "timeout" end
+      er.handle(er.current_script(), msg, { phase = phase, module = "SafeExecutor" })
+    end
   end)
 end
 
@@ -284,6 +314,21 @@ function M.wrap(script_fn)
     return false, "script_fn is not a function"
   end
 
+  -- 运行标记（异常退出检测）：进程被强杀/崩溃时文件留存，下次启动由
+  -- ErrorReporter.on_process_start 读取并记为 abnormal_exit
+  pcall(function()
+    local er = _G.ErrorReporter
+    local script = "unknown"
+    if type(er) == "table" and type(er.current_script) == "function" then
+      script = tostring(er.current_script())
+    end
+    local f = io.open(var_dir() .. "/.ziyan_running", "w")
+    if f then
+      f:write(string.format("%s pid=%s ts=%d\n", script, tostring(self_pid()), os.time()))
+      f:close()
+    end
+  end)
+
   -- 保存原始函数
   _orig_tap = _G.tap
   _orig_mSleep = _G.mSleep
@@ -320,8 +365,12 @@ function M.wrap(script_fn)
   if not ok then
     M.state.error_count = M.state.error_count + 1
     write_crash_log("script_error", tostring(err))
+    report_script_error(err)
+    -- 异常退出标记保留（供下次启动归因）；正常结束才清除
     return false, err
   end
+
+  pcall(os.remove, var_dir() .. "/.ziyan_running")
 
   return true
 end

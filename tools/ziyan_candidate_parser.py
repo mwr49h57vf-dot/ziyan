@@ -57,11 +57,68 @@ def call_counts(text: str) -> dict[str, int]:
     }
 
 
-def requires(text: str) -> list[str]:
+def call_arguments(text: str, function_name: str) -> list[str]:
     active = mask_comments(text)
-    values = re.findall(r'require\s*\(\s*["\']([^"\']+)["\']', active)
-    values += re.findall(r"require\s*\(\s*\(\s*[^)]*string\.char[^)]*\)", active)
+    arguments = []
+    pattern = re.compile(rf"\b{re.escape(function_name)}\s*\(")
+    for match in pattern.finditer(active):
+        start = match.end()
+        depth = 1
+        quote = None
+        escaped = False
+        for index in range(start, len(active)):
+            char = active[index]
+            if quote:
+                if escaped:
+                    escaped = False
+                elif char == "\\":
+                    escaped = True
+                elif char == quote:
+                    quote = None
+                continue
+            if char in ("'", '"'):
+                quote = char
+            elif char == "(":
+                depth += 1
+            elif char == ")":
+                depth -= 1
+                if depth == 0:
+                    arguments.append(active[start:index].strip())
+                    break
+    return arguments
+
+
+def quoted_argument(argument: str) -> str | None:
+    match = re.fullmatch(r"""(['"])(.*)\1""", argument, flags=re.S)
+    return match.group(2) if match else None
+
+
+def requires(text: str) -> list[str]:
+    values = [
+        value
+        for argument in call_arguments(text, "require")
+        if (value := quoted_argument(argument)) is not None
+    ]
     return sorted(set(values))
+
+
+def dynamic_requires(text: str) -> list[str]:
+    return sorted(
+        {
+            argument
+            for argument in call_arguments(text, "require")
+            if quoted_argument(argument) is None
+        }
+    )
+
+
+def dependency_gaps(text: str) -> list[str]:
+    gaps = set()
+    if dynamic_requires(text):
+        gaps.add("dynamic_module_path_unresolved")
+    if any(quoted_argument(argument) is None for argument in call_arguments(text, "dofile")):
+        gaps.add("dynamic_dofile_path_unresolved")
+    return sorted(gaps)
 
 
 def entry_kind(relative: str, text: str) -> str:
@@ -84,6 +141,7 @@ def status_for(relative: str, text: str, counts: dict[str, int]) -> tuple[str, l
             if needle in active
         }
     )
+    gaps = sorted(set(gaps) | set(dependency_gaps(active)))
     if not text.strip():
         return "unmigratable_encrypted_or_empty", ["empty_source"]
     if not counts and gaps:
@@ -98,9 +156,19 @@ def status_for(relative: str, text: str, counts: dict[str, int]) -> tuple[str, l
 def parse_candidate(relative: str, text: str) -> dict:
     counts = call_counts(text)
     status, gaps = status_for(relative, text, counts)
+    static_requires = requires(text)
+    dynamic = dynamic_requires(text)
     return {
         "entryKind": entry_kind(relative, text),
-        "requires": requires(text),
+        "requires": static_requires,
+        "dynamicRequires": dynamic,
+        "dependencyStatus": (
+            "dynamic_unresolved"
+            if dynamic
+            else "static_candidates_unresolved"
+            if static_requires
+            else "none_detected"
+        ),
         "apiCalls": counts,
         "apiMapping": {name: API_MAP[name] for name in counts},
         "stopSemantics": {

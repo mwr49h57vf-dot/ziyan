@@ -18,19 +18,30 @@ cd "$TMP"
 ar x "$DEB"
 tar xf data.tar.lzma 2>/dev/null || tar xf data.tar.gz 2>/dev/null || tar xf data.tar.xz 2>/dev/null || tar xf data.tar
 FAIL=0
+COUNT=0
 while IFS= read -r -d '' dy; do
   base=$(basename "$dy")
-  # 只强制校验 SpringBoard 主 tweak；其它可用 @rpath
-  if [[ "$base" != "ZiYanVol.dylib" ]]; then
-    continue
-  fi
+  COUNT=$((COUNT + 1))
   name=$(otool -D "$dy" 2>/dev/null | tail -1 | tr -d '[:space:]')
   echo "CHECK $base install_name=$name"
-  if [[ "$name" != /var/jb/Library/MobileSubstrate/DynamicLibraries/ZiYanVol.dylib ]]; then
+  if [[ "$base" == "ZiYanVol.dylib" && "$name" != /var/jb/Library/MobileSubstrate/DynamicLibraries/ZiYanVol.dylib ]]; then
     echo "FAIL: ZiYanVol install_name must be /var/jb/Library/... (got: $name)" >&2
     echo "HINT: THEOS_PACKAGE_SCHEME=rootless make clean package  （禁止 rootful 后不 clean 直接打 rootless）" >&2
     FAIL=1
   fi
+  if [[ "$name" == /Library/* || "$name" == /usr/lib/ziyan/* ]]; then
+    echo "FAIL: rootful install_name in rootless package: $base -> $name" >&2
+    FAIL=1
+  fi
+  while IFS= read -r dep; do
+    dep="${dep#"${dep%%[![:space:]]*}"}"
+    case "$dep" in
+      /Library/MobileSubstrate/*|/Library/Frameworks/CydiaSubstrate.framework/*|/usr/lib/ziyan/*|/usr/lib/libsubstrate.dylib*)
+        echo "FAIL: rootful dependency in rootless package: $base -> $dep" >&2
+        FAIL=1
+        ;;
+    esac
+  done < <(otool -L "$dy" 2>/dev/null | tail -n +2)
   case "$dy" in
     */var/jb/Library/MobileSubstrate/*) ;;
     *)
@@ -38,8 +49,12 @@ while IFS= read -r -d '' dy; do
       FAIL=1
       ;;
   esac
-done < <(find . -name 'ZiYanVol.dylib' -print0)
+done < <(find . -path '*/var/jb/Library/MobileSubstrate/DynamicLibraries/*.dylib' -print0)
+if [[ $COUNT -eq 0 ]]; then
+  echo "FAIL: no packaged rootless injection dylibs found" >&2
+  FAIL=1
+fi
 if [[ $FAIL -ne 0 ]]; then
   exit 2
 fi
-echo "PASS: $DEB ZiYanVol install_name OK"
+echo "PASS: $DEB rootless injection install names OK count=$COUNT"

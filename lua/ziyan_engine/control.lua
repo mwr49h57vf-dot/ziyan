@@ -47,6 +47,18 @@ end
 local function exit_on_stop()
   if not exists(STOP_FLAG) then return end
   pcall(os.remove, PAUSE_FLAG)
+  -- 错误自动收集：强制停止是真实事件（幂等，一次停止只记一条）
+  pcall(function()
+    local er = _G.ErrorReporter
+    if type(er) ~= "table" or type(er.on_stop) ~= "function" then return end
+    local name = er.STOP_GUARD or ".ziyan_error_reporter_stop_done"
+    local guard = ZIYAN_VAR .. "/" .. name
+    local g = io.open(guard, "r")
+    if g then g:close(); return end
+    local w = io.open(guard, "w")
+    if w then w:write(os.date("%Y-%m-%d %H:%M:%S") .. " stop\n"); w:close() end
+    er.on_stop("user_stop", { phase = "control" })
+  end)
   if type(scriptStop) == "function" then
     pcall(scriptStop)
   end

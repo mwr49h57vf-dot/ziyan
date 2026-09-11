@@ -57,4 +57,12 @@ end
 -- 函数模块层（平台 API：Zy.*）
 pcall(dofile, LUALIB .. "/modules/init.lua")
 
+-- 错误自动收集：记录冷启动 / SpringBoard 重启 / 上次异常退出（真实落盘，不依赖网络）
+pcall(function()
+  local er = _G.ErrorReporter
+  if type(er) == "table" and type(er.on_process_start) == "function" then
+    er.on_process_start("ziyan_te_boot")
+  end
+end)
+
 return true

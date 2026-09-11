@@ -2,7 +2,7 @@
 # Z1-MEM 资源门禁：只用 Desktop ios7.lua / ios8p.lua 长跑旁路采样
 # 禁生成 _e4_promo.lua；暖机 60s 后 5 点中位数作基线，末段中位数判定
 # 用法: ZY_E4_MIN=30 bash tools/zy_e4_promo_gate.sh
-# 可选: ZY_E4_MIN=5 短测；HOSTS 默认 101 112 166 53
+# 可选: ZY_E4_MIN=5 短测；HOSTS 默认 101 112 166 53 61
 #
 # ── 斜率口径（Z0-METRIC 修正）────────────────────────────────────────
 # 旧版把「整窗差值 END-BASE」直接与「Δ/100s 预算」比较，导致 ZY_E4_MIN=5
@@ -33,7 +33,7 @@ RMAX100_R53="${ZY_E4_RMAX100_R53:-240}"
 # 硬上限管「塌成冻帧」。业务圈速 ~300ms，一圈内换帧则中位数应在千毫秒内。
 AGEMED_MAX="${ZY_E4_AGE_MED_MAX:-1200}"
 AGEHARD_MAX="${ZY_E4_AGE_HARD_MAX:-5000}"
-if [ "$#" -eq 0 ]; then HOSTS=(101 112 166 53); else HOSTS=("$@"); fi
+if [ "$#" -eq 0 ]; then HOSTS=(101 112 166 53 61); else HOSTS=("$@"); fi
 STAMP="$(date '+%Y%m%d_%H%M%S')"
 OUT="${ROOT}/tmp_shots/E4_PROMO_${STAMP}"
 DESKTOP_IOS7="/Users/mac/Desktop/ios7.lua"
@@ -47,15 +47,17 @@ SSH_KEY_OPTS=(-o BatchMode=yes -o PasswordAuthentication=no -o PubkeyAuthenticat
               -o UserKnownHostsFile=/dev/null -o ConnectTimeout=12
               -o ServerAliveInterval=20 -o ServerAliveCountMax=6)
 ssh_r() {
-  if ssh "${SSH_KEY_OPTS[@]}" "root@$1" "${@:2}"; then
+  local user="$1" ip="$2"
+  shift 2
+  if ssh "${SSH_KEY_OPTS[@]}" "$user@$ip" "$@"; then
     return 0
   fi
-  sshpass -p "$PASS" ssh "${SSH_OPTS[@]}" "root@$1" "${@:2}"
+  sshpass -p "$PASS" ssh "${SSH_OPTS[@]}" "$user@$ip" "$@"
 }
 # 越狱机 sshd 在短时间大量连接后会偶发 "Permission denied"（认证限流）。
 # 单次传输失败不得中断整场多机长跑，退避重试后仍失败才跳过该机。
 scp_r() {
-  local i
+  local src="$1" ip="$2" dst="$3" user="$4" i
   local -a SCP_KEY_OPTS=(
     -o BatchMode=yes
     -o PasswordAuthentication=no
@@ -68,16 +70,16 @@ scp_r() {
     -o ServerAliveCountMax=6
   )
   for i in 1 2 3 4 5; do
-    if scp "${SCP_KEY_OPTS[@]}" "$1" "root@$2:$3"; then
-      echo "SCP_AUTH=public_key host=$2"
+    if scp "${SCP_KEY_OPTS[@]}" "$src" "$user@$ip:$dst"; then
+      echo "SCP_AUTH=public_key host=$ip user=$user"
       return 0
     fi
-    echo "WARN scp public-key failed retry $i/5 → $2:$3"
-    if sshpass -p "$PASS" scp "${SSH_OPTS[@]}" "$1" "root@$2:$3"; then
-      echo "SCP_AUTH=password host=$2"
+    echo "WARN scp public-key failed retry $i/5 → $user@$ip:$dst"
+    if sshpass -p "$PASS" scp "${SSH_OPTS[@]}" "$src" "$user@$ip:$dst"; then
+      echo "SCP_AUTH=password host=$ip user=$user"
       return 0
     fi
-    echo "WARN scp password retry $i/5 → $2:$3"
+    echo "WARN scp password retry $i/5 → $user@$ip:$dst"
     sleep $((i * 4))
   done
   return 1
@@ -101,19 +103,24 @@ run_remote() {
   local H="$1"
   local IP="192.168.31.$H"
   local SCHEME=rootful
+  local USER=root
   local SCRIPT=ios7.lua
   local LOCAL="$DESKTOP_IOS7"
   local SHA="$SHA7"
   local RMAX100="$RMAX100_RF"
-  [ "$H" = "53" ] && SCHEME=rootless && SCRIPT=ios8p.lua && LOCAL="$DESKTOP_IOS8P" && SHA="$SHA8" && RMAX100="$RMAX100_R53"
+  if [ "$H" = "53" ]; then
+    SCHEME=rootless; SCRIPT=ios8p.lua; LOCAL="$DESKTOP_IOS8P"; SHA="$SHA8"; RMAX100="$RMAX100_R53"
+  elif [ "$H" = "61" ]; then
+    SCHEME=rootless; USER=mobile; SCRIPT=ios7.lua; LOCAL="$DESKTOP_IOS7"; SHA="$SHA7"; RMAX100="$RMAX100_R53"
+  fi
   echo "==== start .$H script=$SCRIPT (${MIN}min) ===="
-  if ! scp_r "$LOCAL" "$IP" "/private/var/mobile/Media/ZiYan/$SCRIPT"; then
+  if ! scp_r "$LOCAL" "$IP" "/private/var/mobile/Media/ZiYan/$SCRIPT" "$USER"; then
     echo "SKIP .$H scp_failed_after_retry" | tee "$OUT/gate_${H}.txt"
     return 0
   fi
   # MIN 必须显式传进远端：漏传时远端 FMAX=$((MIN*2+5)) 里 MIN 为空，
   # 恒等于 5，30min 长跑也只允许 5 次催帧，正常节奏就被判 force_storm。
-  ssh_r "$IP" "SCHEME=$SCHEME SEC=$SEC MIN=$MIN H=$H SCRIPT=$SCRIPT SHA=$SHA RMAX100=$RMAX100 AGEMED_MAX=$AGEMED_MAX AGEHARD_MAX=$AGEHARD_MAX bash -s" <<'R' >"$OUT/gate_${H}.txt" 2>&1 &
+  ssh_r "$USER" "$IP" "SCHEME=$SCHEME SEC=$SEC MIN=$MIN H=$H SCRIPT=$SCRIPT SHA=$SHA RMAX100=$RMAX100 AGEMED_MAX=$AGEMED_MAX AGEHARD_MAX=$AGEHARD_MAX bash -s" <<'R' >"$OUT/gate_${H}.txt" 2>&1 &
 set +e
 if [ "$SCHEME" = rootless ]; then
   V=/var/jb/usr/lib/ziyan/var; B=/var/jb/usr/lib/ziyan/bin

@@ -112,7 +112,9 @@ print("T2 reason=" .. tostring(r2) .. " update=" .. tostring(i2 and i2.update))
 -- 3) 本地闸
 local other = (H.arch() == "iphoneos-arm") and "iphoneos-arm64" or "iphoneos-arm"
 local a1 = H.compatible({{ architecture = other }})
-local a2 = H.compatible({{ architecture = H.arch(), min_os = "13.0", max_os = "16.7" }})
+local a2 = H.compatible({{ architecture = H.arch(), min_os = "13.0", max_os = "17.0" }})
+local a2b = H.compatible({{ architecture = H.arch(), min_os = "13.0", max_os = "16.7", os = "16.7.16" }})
+print("T3b point_release_gate=" .. tostring(a2b))
 local a3 = H.compatible({{ architecture = H.arch(), min_os = "99.0" }})
 print("T3 arch_gate=" .. tostring(a1) .. " ok_gate=" .. tostring(a2) .. " min_os_gate=" .. tostring(a3))
 
@@ -142,6 +144,7 @@ print("T5 bad_download=" .. tostring(d1) .. " why=" .. tostring(r1))
     check("compatible() arch 闸（异架构拒绝）", "T3 arch_gate=false" in out, out)
     check("compatible() 正常通过", "ok_gate=true" in out, out)
     check("compatible() min_os 闸", "min_os_gate=false" in out, out)
+    check("compatible() 点版本不越界（16.7.16 vs max 16.7）", "T3b point_release_gate=true" in out, out)
     check("verify() 正确 sha 通过", "T4 ok_sha=true" in out, out)
     check("verify() 错误 sha 拒绝", "bad_sha=false/checksum_mismatch" in out, out)
     check("verify() 非 deb 拒绝", "not_deb=false/not_a_deb" in out, out)

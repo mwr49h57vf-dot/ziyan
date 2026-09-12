@@ -1,0 +1,30 @@
+[
+  {
+    "Path": "D:\\Khabarovsk\\K.Develop\\ziyan\\tools\\ziyan_log_server\\server.py",
+    "Hash": "A1CCC71734359B091C9F9102FE341C6BB28F437A1E3BF2FA23BCB0A2AA3AF112"
+  },
+  {
+    "Path": "D:\\Khabarovsk\\K.Develop\\ziyan\\tools\\ziyan_log_server\\package_contract.py",
+    "Hash": "D412C81DFC6CC851C1A031E47DDE06E2F7FD58CB546B36AB7C93640D19E344AC"
+  },
+  {
+    "Path": "D:\\Khabarovsk\\K.Develop\\ziyan\\tools\\ziyan_log_server\\index.html",
+    "Hash": "49440377990C3388F9E7359CE1263E8352148B1CA3E315E0D6F6445B7F79D740"
+  },
+  {
+    "Path": "D:\\Khabarovsk\\K.Develop\\ziyan\\lua\\modules\\HotUpdate.lua",
+    "Hash": "FF125A62167E1F982D57E982424574A01A131785EBD4594E4813D04FDB5C68A5"
+  },
+  {
+    "Path": "D:\\Khabarovsk\\K.Develop\\ziyan\\tools\\ziyan_log_server\\test_repairs.py",
+    "Hash": "5F5AF4C72FD82C3B97C9E81070104515F5A63ED1FB2F6A375525DAA609803628"
+  },
+  {
+    "Path": "D:\\Khabarovsk\\K.Develop\\ziyan\\tools\\ziyan_log_server\\test_hotupdate_repairs.lua",
+    "Hash": "CEDC36FAE83ECCD91B0C556EA39383B7F0161FCB90182DC96E1771885D2FB4C5"
+  },
+  {
+    "Path": "D:\\Khabarovsk\\K.Develop\\ziyan\\tools\\ziyan_log_server\\test_admin_ui.mjs",
+    "Hash": "04041EEB04C53B22DF21A506EC50B4ED87D6580D2C54955FF341F996F107A1B4"
+  }
+]

@@ -1,0 +1,14 @@
+pid=62812 RESULT enqueue normal=true orphan=false
+test_real_files_survive_orphan_commit_restart_and_network_recovery (test_queue_disk_restart.QueueDiskRestart.test_real_files_survive_orphan_commit_restart_and_network_recovery) ... ok
+pid=38168 RESULT offline tried=2 sent=0 pending=2
+pid=48692 RESULT backoff tried=0 pending=2
+pid=21512 RESULT online tried=2 sent=2 pending=0
+pid=51516 RESULT repeat sent=1 dedup=1
+pid=62104 RESULT restart total=2 sent=2 pending=0
+SOURCE_SHA256=0a97feb0c8634bd54a755b511bb862b53fe733ffb5def0008c6f7999bedd1e87
+HTTP_RECEIPTS=[{"event_id": "zye_normal", "ok": false, "phase": "offline"}, {"event_id": "zye_orphan", "ok": false, "phase": "offline"}, {"event_id": "zye_normal", "ok": true, "phase": "online"}, {"event_id": "zye_orphan", "ok": true, "phase": "online"}, {"event_id": "zye_normal", "ok": true, "phase": "repeat"}]
+
+----------------------------------------------------------------------
+Ran 1 test in 3.169s
+
+OK

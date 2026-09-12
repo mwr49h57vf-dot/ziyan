@@ -1,0 +1,84 @@
+test_authorization_disabled_revoked_and_separate_ingest_permissions (__main__.HTTPRepairs.test_authorization_disabled_revoked_and_separate_ingest_permissions) ... ok
+test_debian_selection_arch_fallback_incompatible_and_encoded_versions (__main__.HTTPRepairs.test_debian_selection_arch_fallback_incompatible_and_encoded_versions) ... ok
+test_debian_version_semantics (__main__.HTTPRepairs.test_debian_version_semantics) ... ok
+test_dual_arch_publish_download_and_strict_upgrade (__main__.HTTPRepairs.test_dual_arch_publish_download_and_strict_upgrade) ... ok
+test_event_conflicts_do_not_overwrite_and_export_matches (__main__.HTTPRepairs.test_event_conflicts_do_not_overwrite_and_export_matches) ... ok
+test_index_failure_recovers_without_false_success (__main__.HTTPRepairs.test_index_failure_recovers_without_false_success) ... ok
+test_legacy_theos_lzma_alone_deb_publishes_and_downloads (__main__.HTTPRepairs.test_legacy_theos_lzma_alone_deb_publishes_and_downloads) ... ok
+test_metadata_limits_wrong_identity_and_errors_do_not_leak_paths (__main__.HTTPRepairs.test_metadata_limits_wrong_identity_and_errors_do_not_leak_paths) ... ok
+test_parallel_idempotent_posts_and_other_events_finish_consistently (__main__.HTTPRepairs.test_parallel_idempotent_posts_and_other_events_finish_consistently) ... ok
+test_publish_rejects_outside_fake_and_mismatched_package (__main__.HTTPRepairs.test_publish_rejects_outside_fake_and_mismatched_package) ... ok
+test_publish_requires_admin_and_rejects_device_token (__main__.HTTPRepairs.test_publish_requires_admin_and_rejects_device_token) ... ok
+test_real_process_interruption_restarts_from_durable_journal (__main__.HTTPRepairs.test_real_process_interruption_restarts_from_durable_journal) ... ok
+test_republishing_identical_bytes_is_idempotent_and_conflicts_preserve_download (__main__.HTTPRepairs.test_republishing_identical_bytes_is_idempotent_and_conflicts_preserve_download) ... ok
+test_startup_rejects_implicit_lan_and_shared_role_token (__main__.HTTPRepairs.test_startup_rejects_implicit_lan_and_shared_role_token) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 10.129s
+
+OK
+127.0.0.1 - "POST /api/hotupdate/publish HTTP/1.1" 403 -
+127.0.0.1 - "GET /api/admin/session HTTP/1.1" 403 -
+127.0.0.1 - "POST /api/logs HTTP/1.1" 403 -
+127.0.0.1 - "POST /api/logs HTTP/1.1" 200 -
+127.0.0.1 - "POST /api/hotupdate/publish HTTP/1.1" 503 -
+127.0.0.1 - "POST /api/hotupdate/publish HTTP/1.1" 200 -
+127.0.0.1 - "POST /api/hotupdate/publish HTTP/1.1" 200 -
+127.0.0.1 - "POST /api/hotupdate/publish HTTP/1.1" 200 -
+127.0.0.1 - "POST /api/hotupdate/publish HTTP/1.1" 200 -
+127.0.0.1 - "POST /api/hotupdate/publish HTTP/1.1" 200 -
+127.0.0.1 - "GET /api/hotupdate/check?arch=iphoneos-arm&os=15.8.8&ziyan=1.0-2 HTTP/1.1" 200 -
+127.0.0.1 - "GET /api/hotupdate/check?arch=iphoneos-arm64&os=15.8.8&ziyan=1%3A99.0 HTTP/1.1" 200 -
+127.0.0.1 - "GET /api/hotupdate/check?arch=iphoneos-arm&os=17.0&ziyan=1.0 HTTP/1.1" 200 -
+127.0.0.1 - "POST /api/hotupdate/publish HTTP/1.1" 200 -
+127.0.0.1 - "GET /hotupdate/packages/1.2-1/iphoneos-arm-1afdd35e066d2e383ab51aae65a56137ab17112d92a5fc18794d97975bb5b32b.deb HTTP/1.1" 200 -
+127.0.0.1 - "POST /api/hotupdate/publish HTTP/1.1" 200 -
+127.0.0.1 - "GET /hotupdate/packages/1.2-1/iphoneos-arm64-6de50eaaef1e0e367c893b82b058eb02db29d9724940e008847507403c1853d9.deb HTTP/1.1" 200 -
+127.0.0.1 - "GET /api/hotupdate/check?arch=iphoneos-arm&os=15.8.8&ziyan=1.1 HTTP/1.1" 200 -
+127.0.0.1 - "GET /api/hotupdate/check?arch=iphoneos-arm&os=15.8.8&ziyan=1.2-1 HTTP/1.1" 200 -
+127.0.0.1 - "GET /api/hotupdate/check?arch=iphoneos-arm&os=15.8.8&ziyan=2.0 HTTP/1.1" 200 -
+127.0.0.1 - "GET /api/hotupdate/check?arch=iphoneos-arm64&os=15.8.8&ziyan=1.1 HTTP/1.1" 200 -
+127.0.0.1 - "GET /api/hotupdate/check?arch=iphoneos-arm64&os=15.8.8&ziyan=1.2-1 HTTP/1.1" 200 -
+127.0.0.1 - "GET /api/hotupdate/check?arch=iphoneos-arm64&os=15.8.8&ziyan=2.0 HTTP/1.1" 200 -
+127.0.0.1 - "POST /api/logs HTTP/1.1" 200 -
+127.0.0.1 - "POST /api/logs HTTP/1.1" 409 -
+127.0.0.1 - "GET /api/logs/shared HTTP/1.1" 200 -
+127.0.0.1 - "POST /api/logs HTTP/1.1" 200 -
+127.0.0.1 - "GET /api/logs/download.zip HTTP/1.1" 200 -
+127.0.0.1 - "GET /api/logs HTTP/1.1" 200 -
+127.0.0.1 - "POST /api/logs HTTP/1.1" 500 -
+127.0.0.1 - "GET /api/logs HTTP/1.1" 200 -
+127.0.0.1 - "POST /api/hotupdate/publish HTTP/1.1" 200 -
+127.0.0.1 - "GET /hotupdate/packages/1.2-1/iphoneos-arm-6675f686dd382931cab440cf79cf76f8c83d92e131b8c2e05c8d8b401dd8c543.deb HTTP/1.1" 200 -
+127.0.0.1 - "POST /api/hotupdate/publish HTTP/1.1" 400 -
+127.0.0.1 - "POST /api/hotupdate/publish HTTP/1.1" 400 -
+127.0.0.1 - "POST /api/hotupdate/publish HTTP/1.1" 400 -
+127.0.0.1 - "POST /api/hotupdate/publish HTTP/1.1" 400 -
+127.0.0.1 - "POST /api/hotupdate/publish HTTP/1.1" 400 -
+127.0.0.1 - "POST /api/logs HTTP/1.1" 200 -
+127.0.0.1 - "POST /api/logs HTTP/1.1" 200 -
+127.0.0.1 - "POST /api/logs HTTP/1.1" 200 -
+127.0.0.1 - "POST /api/logs HTTP/1.1" 200 -
+127.0.0.1 - "POST /api/logs HTTP/1.1" 200 -
+127.0.0.1 - "POST /api/logs HTTP/1.1" 200 -
+127.0.0.1 - "POST /api/logs HTTP/1.1" 200 -
+127.0.0.1 - "POST /api/logs HTTP/1.1" 200 -
+127.0.0.1 - "POST /api/logs HTTP/1.1" 200 -
+127.0.0.1 - "POST /api/logs HTTP/1.1" 200 -
+127.0.0.1 - "POST /api/logs HTTP/1.1" 200 -
+127.0.0.1 - "POST /api/logs HTTP/1.1" 200 -
+127.0.0.1 - "POST /api/logs HTTP/1.1" 200 -
+127.0.0.1 - "POST /api/logs HTTP/1.1" 200 -
+127.0.0.1 - "POST /api/logs HTTP/1.1" 200 -
+127.0.0.1 - "POST /api/logs HTTP/1.1" 200 -
+CONCURRENCY 16 requests / 4 workers: 0.265s; 9 immutable events
+127.0.0.1 - "POST /api/hotupdate/publish HTTP/1.1" 400 -
+127.0.0.1 - "POST /api/hotupdate/publish HTTP/1.1" 400 -
+127.0.0.1 - "POST /api/hotupdate/publish HTTP/1.1" 400 -
+127.0.0.1 - "POST /api/hotupdate/publish HTTP/1.1" 401 -
+127.0.0.1 - "POST /api/hotupdate/publish HTTP/1.1" 403 -
+127.0.0.1 - "POST /api/hotupdate/publish HTTP/1.1" 200 -
+127.0.0.1 - "POST /api/hotupdate/publish HTTP/1.1" 200 -
+127.0.0.1 - "GET /hotupdate/manifest.json HTTP/1.1" 200 -
+127.0.0.1 - "POST /api/hotupdate/publish HTTP/1.1" 409 -
+127.0.0.1 - "GET /hotupdate/packages/1.2-1/iphoneos-arm-517c0c94458a9fe15b1014e688d333f3d67da69347120402b70377fb442dbe0c.deb HTTP/1.1" 200 -

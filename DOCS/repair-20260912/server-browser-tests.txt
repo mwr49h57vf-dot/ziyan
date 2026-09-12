@@ -1,0 +1,39 @@
+
+DevTools listening on ws://127.0.0.1:37952/devtools/browser/a266fd04-abde-4d69-812b-baca994ced12
+[25760:49464:0912/144352.529:ERROR:chrome\browser\extensions\external_registry_loader_win.cc:161] File C:\Users\Administrator\AppData\Local\ChromeExtensionCache\xl_ext_chrome.crx for key Software\Google\Chrome\Extensions\ncennffkjdiamlpmcbajkmaiiiddgioo does not exist or is not readable.
+Connected fixture port=37944 browser=37952
+Enabling CDP domains
+{
+  "missing": "缺少管理员凭证，请输入后验证授权。",
+  "denied": "凭证无效、已失效或权限不足。请使用发布管理员凭证。",
+  "expired": "凭证无效、已失效或权限不足。请使用发布管理员凭证。",
+  "authorized": "已获得发布权限。凭证仅保留在此页面。",
+  "published": "发布成功。",
+  "exceptions": [],
+  "consoleErrors": [],
+  "loadingFailures": [],
+  "responses": [
+    {
+      "url": "http://127.0.0.1:37944/api/logs?limit=2000",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:37944/api/admin/session",
+      "status": 403
+    },
+    {
+      "url": "http://127.0.0.1:37944/api/hotupdate/publish",
+      "status": 403
+    },
+    {
+      "url": "http://127.0.0.1:37944/api/admin/session",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:37944/api/hotupdate/publish",
+      "status": 200
+    }
+  ],
+  "credentialStored": false
+}
+CDP socket closed 1000

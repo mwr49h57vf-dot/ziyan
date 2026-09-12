@@ -1,0 +1,22 @@
+{
+  "bash -n layout/DEBIAN/postinst": 0,
+  "bash -n tools/zy_deploy_rootful_3phone.sh": 0,
+  "ast tools/zy_stage_runtime.py": 0,
+  "ast tools/ziyan_apt/verify_repo.py": 0,
+  "ast tools/test_build_install_repairs.py": 0,
+  "ast tools/ziyan_apt/test_signing_fixture.py": 0,
+  "git diff --check": 0,
+  "baseline": "cfb4695bd83c8a11dbaf428b1bc0c9f58d39b090",
+  "Theos_env_present": false,
+  "theos_default_exists": false,
+  "ios_sdk_available": false,
+  "source_sha256": {
+    "Makefile": "0a58e45f2bc5e682b77c1a69063b3a0cb71e805bd252e70f69f83988cbdcb887",
+    "layout/DEBIAN/postinst": "52397b4c65d7ec926eba09e33d6449cefc2b716a64054efbd1579664df539be3",
+    "tools/zy_deploy_rootful_3phone.sh": "154334643f770be6e2413635e18b3db86358304bae43cac6e672c49fa846bdf4",
+    "tools/ziyan_apt/verify_repo.py": "702ceb8ed60cdf1eb962fa0fd2c81ca122b323c98b8891a997876e60b6b1f0e0",
+    "tools/zy_stage_runtime.py": "4949cd4c026e9fa42df64bd8e97b2528fe920773f5f9aa58f97b56873e55dbe9",
+    "tools/test_build_install_repairs.py": "76e6535dcbab587344337502ca6621c2f97b6f2164a7b6455da81eea27af7df5",
+    "tools/ziyan_apt/test_signing_fixture.py": "ef9799e263abaa40f7fb399519ebd2e00a7268b11529dba66197bdc0f7a88658"
+  }
+}

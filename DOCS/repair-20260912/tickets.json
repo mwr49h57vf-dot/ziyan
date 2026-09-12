@@ -1,0 +1,658 @@
+{
+  "tracker": "github",
+  "repository": "mwr49h57vf-dot/ziyan",
+  "account": "Vinzelles",
+  "public": true,
+  "labels": [],
+  "dependencyMode": "text",
+  "baseline": "cfb4695bd83c8a11dbaf428b1bc0c9f58d39b090",
+  "breakdownApproved": true,
+  "tickets": [
+    {
+      "number": 1,
+      "audit": "AUD-005",
+      "title": "将双包资源写入限制在构建暂存目录",
+      "slug": "staging-boundary",
+      "deliver": "构建 rootful 与 rootless 安装包时，所有复制、重写和清理只作用于该次构建的暂存目录。缺失目录或任一步骤失败时停止打包，并给出明确错误。",
+      "acceptance": [
+        "先用命令替身重现暂存目录变量丢失，断言当前路径越界；再修复并让同一断言通过。",
+        "暂存路径为空、等于系统根或越出指定构建目录时，在任何写操作前拒绝执行。",
+        "所有实际写入和清理目标都被证明位于本次暂存目录内；不能通过全局改变 make 的执行语义影响其他目标。",
+        "模拟复制、同步、签名重写中的任一步失败，打包必须返回非零且不得报告完成。",
+        "在现有 Theos 环境生成并解包两种安装包，核对运行时、Lua/Agent、资源和启动文件完整；保留 control 恢复与架构检查。",
+        "记录基线、命令退出码和两种包的哈希；真实构建未完成时不得以替身验证关闭最终验收。"
+      ],
+      "approach": "先将这一段资源暂存收敛到单一执行上下文，明确参数和失败传播；不进行整个构建系统重写。",
+      "rollback": "保留此前可用构建脚本及安装包。源码回退不清理用户设备数据。",
+      "blockedBy": [],
+      "status": "published",
+      "draftFile": "E:\\X.AppData\\.codex\\visualizations\\2026\\09\\12\\01a09425-eb1f-7df0-9740-f2e6ff531343\\ziyan-remediation\\drafts\\01-staging-boundary.md",
+      "github": {
+        "ticket": 1,
+        "audit": "AUD-005",
+        "number": 1,
+        "title": "[审计修复 T01] 将双包资源写入限制在构建暂存目录",
+        "url": "https://github.com/mwr49h57vf-dot/ziyan/issues/1",
+        "blockedBy": [],
+        "bodySha256": "64991d926d9f7413cd92824fafbbc1c03b09000824b3cb85ad39348e6c6d3a29",
+        "createdAt": "2026-09-12T06:16:34.791530+00:00"
+      }
+    },
+    {
+      "number": 2,
+      "audit": "AUD-003",
+      "title": "安装迁移失败或发生冲突时保留用户数据",
+      "slug": "safe-install-migration",
+      "deliver": "升级旧布局时，只有已完整迁移且内容核对通过的数据才允许删除源副本。不同内容的同名文件同时保留，用户可以知道并恢复冲突。",
+      "acceptance": [
+        "先用独立临时数据集重现复制失败后仍删除源数据，以及同名不同内容被跳过后源数据丢失。",
+        "正常迁移后逐项内容和哈希一致；复制失败、磁盘不足、权限错误或进程中断均保留原始数据。",
+        "目标同名但内容不同时保留双方内容并记录冲突；不得只以目标存在判定迁移完成。",
+        "对配置、资源及用户脚本采用相同的数据保留规则；重复安装不重复删除或覆盖已迁移数据。",
+        "迁移未完整提交时安装返回可诊断状态，不吞掉失败后报告成功。",
+        "使用设备用户数据的受控副本验证两种安装方案的升级与回退，不自动重启系统界面。"
+      ],
+      "approach": "把复制、核验、冲突记录、提交分成可验证的小步骤；先保留数据再删除，禁止用新的清理器试跑真实目录。",
+      "rollback": "迁移前保存只读备份；失败保留旧布局及冲突副本，确认可恢复后再重试。",
+      "blockedBy": [],
+      "status": "published",
+      "draftFile": "E:\\X.AppData\\.codex\\visualizations\\2026\\09\\12\\01a09425-eb1f-7df0-9740-f2e6ff531343\\ziyan-remediation\\drafts\\02-safe-install-migration.md",
+      "github": {
+        "ticket": 2,
+        "audit": "AUD-003",
+        "number": 2,
+        "title": "[审计修复 T02] 安装迁移失败或发生冲突时保留用户数据",
+        "url": "https://github.com/mwr49h57vf-dot/ziyan/issues/2",
+        "blockedBy": [],
+        "bodySha256": "0a9e43cc5331ee724ff9098d6fc7fa2bed477af897f6d580f222ff39d44d9b0f",
+        "createdAt": "2026-09-12T06:16:36.291816+00:00"
+      }
+    },
+    {
+      "number": 3,
+      "audit": "AUD-004",
+      "title": "热更新仅在安装和健康检查成功后提交新版本",
+      "slug": "transactional-hot-update",
+      "deliver": "热更新能区分下载、解包、配置完成和运行健康。安装失败或查询无结果时向调用者报告失败，保留旧版本状态，并在可安全恢复时执行并核对回滚。",
+      "acceptance": [
+        "先覆盖安装输出包含进度文字但退出非零、维护脚本失败、半配置、查询空结果等用例，确认原逻辑会误判。",
+        "安装成功须同时满足命令退出成功、完整安装状态与准确版本匹配，禁止按进度文字判定。",
+        "新版本指针和健康记录只在上述检查通过后提交；状态写入失败必须向上返回。",
+        "安装前保留可读且校验有效的回滚包；健康失败尝试回滚并核验真实安装状态，失败则明确保留故障状态。",
+        "成功、重复运行、安装中断、回滚成功和回滚失败均有确定返回值及可定位记录。",
+        "在两种安装方案的受控设备上验证正常升级与失败恢复；不自动重启 SpringBoard/BackBoard，不伪造设备通过结果。"
+      ],
+      "approach": "将 shell 执行结果收敛为退出码和输出，把状态检查与指针提交分开；不新建一套并行更新框架。",
+      "rollback": "保留旧包和提交前状态。恢复失败时停止继续更新，并保留完整故障证据。",
+      "blockedBy": [],
+      "status": "published",
+      "draftFile": "E:\\X.AppData\\.codex\\visualizations\\2026\\09\\12\\01a09425-eb1f-7df0-9740-f2e6ff531343\\ziyan-remediation\\drafts\\03-transactional-hot-update.md",
+      "github": {
+        "ticket": 3,
+        "audit": "AUD-004",
+        "number": 3,
+        "title": "[审计修复 T03] 热更新仅在安装和健康检查成功后提交新版本",
+        "url": "https://github.com/mwr49h57vf-dot/ziyan/issues/3",
+        "blockedBy": [],
+        "bodySha256": "4447a438f46874464f33ccd50fb180ac15791f4e2996cb8f0d7a0e13403dd179",
+        "createdAt": "2026-09-12T06:16:37.791164+00:00"
+      }
+    },
+    {
+      "number": 4,
+      "audit": "AUD-001",
+      "title": "为更新发布建立管理鉴权和包来源边界",
+      "slug": "publisher-access-control",
+      "deliver": "只有获授权的管理员可以发布真实安装包。服务进程可以读取的其他文件无法经发布接口变成下载文件，现有管理页面提供完整的登录或授权失败反馈。",
+      "acceptance": [
+        "用合成文件验证未授权发布、越出允许导入范围及伪装为安装包的输入均被拒绝。",
+        "发布与日志上报采用明确分离的权限；管理员授权不能通过设备上报凭证获得。",
+        "发布时从真实安装包解析身份和兼容元数据，并校对请求声明；不信任调用者声明的架构和包信息。",
+        "默认监听范围受控，局域网管理需显式启用；下载接口仍可按既定分发需求公开，不暴露源文件位置或内部错误。",
+        "管理页面与调用端同步适配授权方式，缺凭证、失效凭证和权限不足显示清楚结果。",
+        "合法 rootful/rootless 包能完成授权发布、清单选择、下载与哈希核对，原下载路径归属检查继续有效。"
+      ],
+      "approach": "先明确管理发布的信任边界与输入模型，再在同一工单交付服务端和现有管理页面的完整路径。",
+      "rollback": "保留现有分发清单和包。回退不重新开放未受控的管理发布入口。",
+      "blockedBy": [],
+      "status": "published",
+      "draftFile": "E:\\X.AppData\\.codex\\visualizations\\2026\\09\\12\\01a09425-eb1f-7df0-9740-f2e6ff531343\\ziyan-remediation\\drafts\\04-publisher-access-control.md",
+      "github": {
+        "ticket": 4,
+        "audit": "AUD-001",
+        "number": 4,
+        "title": "[审计修复 T04] 为更新发布建立管理鉴权和包来源边界",
+        "url": "https://github.com/mwr49h57vf-dot/ziyan/issues/4",
+        "blockedBy": [],
+        "bodySha256": "3d6bc82b349ac8309d91968b66bd9f3f41c1a2a9b667ab9b0683c57b18e2d904",
+        "createdAt": "2026-09-12T06:16:39.562110+00:00"
+      }
+    },
+    {
+      "number": 5,
+      "audit": "AUD-002",
+      "title": "设备截屏仅向获授权的取色客户端开放",
+      "slug": "paired-screenshot-access",
+      "deliver": "用户显式启用局域网取色并完成短期配对后，指定客户端才能读取画面或修改方向。关闭远程取色或撤销配对后，远程访问立即失效。",
+      "acceptance": [
+        "先验证当前未配对访问能到达截图或方向操作，再以受控服务替身建立拒绝测试。",
+        "默认仅允许本机访问或关闭远程入口；局域网模式由用户显式开启并具有清楚状态。",
+        "截图、状态以及修改方向等入口按各自敏感程度统一校验，帧一致性标记不能充当访问凭证。",
+        "现有取色客户端在同一工单内支持配对、携带凭证、失效提示和重新配对。",
+        "过期、错误、被撤销凭证均被拒绝，关闭功能后远程端口或敏感操作不可用。",
+        "按项目规定设备顺序验证有效配对正常取色、未配对拒绝及方向更新；不影响既有采帧单实例和停止清理。"
+      ],
+      "approach": "先冻结客户端与设备端的最小配对契约；同票交付两端，避免只改服务端导致工具不可用。",
+      "rollback": "撤销凭证并关闭远程服务作为安全回退；保留回环诊断路径。",
+      "blockedBy": [],
+      "status": "published",
+      "draftFile": "E:\\X.AppData\\.codex\\visualizations\\2026\\09\\12\\01a09425-eb1f-7df0-9740-f2e6ff531343\\ziyan-remediation\\drafts\\05-paired-screenshot-access.md",
+      "github": {
+        "ticket": 5,
+        "audit": "AUD-002",
+        "number": 5,
+        "title": "[审计修复 T05] 设备截屏仅向获授权的取色客户端开放",
+        "url": "https://github.com/mwr49h57vf-dot/ziyan/issues/5",
+        "blockedBy": [],
+        "bodySha256": "f4ec2a9676124ced89bab7045d71af4e76f264a6d1b48cd38c0e6fdf6c9961e7",
+        "createdAt": "2026-09-12T06:16:41.515632+00:00"
+      }
+    },
+    {
+      "number": 6,
+      "audit": "AUD-007",
+      "title": "同名脚本导入失败时保留原脚本并提示错误",
+      "slug": "atomic-script-import",
+      "deliver": "导入同名脚本时，原文件一直保留到新内容已复制并校验成功。任何导入失败都向用户说明，其他选中文件可按明确策略继续处理。",
+      "acceptance": [
+        "先模拟源文件不可读、文件提供器拒绝和存储不足，复现原文件先被删除。",
+        "复制到同目录唯一临时文件，验证成功后才提交替换；失败时原文件哈希不变。",
+        "同名覆盖有明确用户语义，导入来源与目标是同一文件时不会自删。",
+        "多文件导入提供逐项成功或失败结果，不用列表刷新代替错误提示。",
+        "成功覆盖内容完整，取消、失败、重复导入和临时文件清理都有行为测试。",
+        "在真实文档选择器与安全作用域文件访问下验证，保持用户其他脚本不变。"
+      ],
+      "approach": "将单项导入做成一个带结果的操作；保留现有目录与文件名规则。",
+      "rollback": "原文件在提交前保持完整；失败只清理本次临时文件。",
+      "blockedBy": [],
+      "status": "published",
+      "draftFile": "E:\\X.AppData\\.codex\\visualizations\\2026\\09\\12\\01a09425-eb1f-7df0-9740-f2e6ff531343\\ziyan-remediation\\drafts\\06-atomic-script-import.md",
+      "github": {
+        "ticket": 6,
+        "audit": "AUD-007",
+        "number": 6,
+        "title": "[审计修复 T06] 同名脚本导入失败时保留原脚本并提示错误",
+        "url": "https://github.com/mwr49h57vf-dot/ziyan/issues/6",
+        "blockedBy": [],
+        "bodySha256": "29fd873fd6cdcc8513add8ab7e163268e7cd726c53030eaff9dc316323fb4583",
+        "createdAt": "2026-09-12T06:16:43.012588+00:00"
+      }
+    },
+    {
+      "number": 7,
+      "audit": "AUD-008",
+      "title": "旧内存缓存迁移失败时隔离数据并阻止错误写回",
+      "slug": "isolated-memory-cache-migration",
+      "deliver": "读取旧应用缓存时，只能返回该应用本次成功解析的数据。解析或转换失败不会借用其他应用的结果，也不会写出遮蔽旧数据的新缓存。",
+      "acceptance": [
+        "先读有效应用 A，再读损坏应用 B或令转换工具失败，重现旧结果串用。",
+        "每次转换独立关联输入与输出，显式区分文件不存在、解析失败和成功空缓存。",
+        "失败不得返回 A 的内容，也不得生成遮蔽 B 原状态的新缓存。",
+        "后续读取、列键、导出和写入遵守相同错误语义，不把失败静默转换为空缓存。",
+        "新 JSON 缓存的既有行为保持兼容，迁移可重复执行且保留原 plist。",
+        "用两种运行方案验证不依赖有故障的旧 Python 路径，覆盖并发和连续迁移。"
+      ],
+      "approach": "复用已验证的原生 plist 能力及其失败语义，不另建固定输出文件的转换旁路。",
+      "rollback": "保留旧 plist；新缓存只有在成功迁移后才生效，错误时可撤回新状态。",
+      "blockedBy": [],
+      "status": "published",
+      "draftFile": "E:\\X.AppData\\.codex\\visualizations\\2026\\09\\12\\01a09425-eb1f-7df0-9740-f2e6ff531343\\ziyan-remediation\\drafts\\07-isolated-memory-cache-migration.md",
+      "github": {
+        "ticket": 7,
+        "audit": "AUD-008",
+        "number": 7,
+        "title": "[审计修复 T07] 旧内存缓存迁移失败时隔离数据并阻止错误写回",
+        "url": "https://github.com/mwr49h57vf-dot/ziyan/issues/7",
+        "blockedBy": [],
+        "bodySha256": "5dbde256c00f21d762e1188fbf64162d2d83ae98a1a8d35968b57eec6e704e78",
+        "createdAt": "2026-09-12T06:16:44.449517+00:00"
+      }
+    },
+    {
+      "number": 8,
+      "audit": "AUD-009",
+      "title": "离线队列只在可靠落盘后确认入队",
+      "slug": "durable-offline-enqueue",
+      "deliver": "上报事件只有在报告与队列状态均持久保存后才返回入队成功。磁盘故障会被调用者获知，重启后可恢复未完成提交的事件。",
+      "acceptance": [
+        "先注入打开、写入、关闭、原子提交各阶段失败，重现未落盘仍返回成功。",
+        "所有 I/O 结果向上传播，入队失败保留原报告，不提前标记成功。",
+        "报告与状态用可恢复的提交过程保存；崩溃留下的有报告无状态条目被恢复或明确报错。",
+        "错误收集调用方处理入队失败，保留期清理不能删除尚未可靠接管的报告。",
+        "重启、断网、恢复和重复入队均不丢事件；失败重试次数与退避状态保持正确。",
+        "使用隔离存储做故障注入，再在两种设备方案验证持久化和停止清理。"
+      ],
+      "approach": "为队列自身定义一个可观测的写入结果和提交状态，不推广为全项目文件抽象重构。",
+      "rollback": "未确认接管前保留原报告；恢复代码不删除无法解释的孤立条目。",
+      "blockedBy": [],
+      "status": "published",
+      "draftFile": "E:\\X.AppData\\.codex\\visualizations\\2026\\09\\12\\01a09425-eb1f-7df0-9740-f2e6ff531343\\ziyan-remediation\\drafts\\08-durable-offline-enqueue.md",
+      "github": {
+        "ticket": 8,
+        "audit": "AUD-009",
+        "number": 8,
+        "title": "[审计修复 T08] 离线队列只在可靠落盘后确认入队",
+        "url": "https://github.com/mwr49h57vf-dot/ziyan/issues/8",
+        "blockedBy": [],
+        "bodySha256": "612140f75c25c702c4af907502dde86e312519431c8ec1937961e8b744bec352",
+        "createdAt": "2026-09-12T06:16:45.928489+00:00"
+      }
+    },
+    {
+      "number": 9,
+      "audit": "AUD-010",
+      "title": "并发重复日志上报保持正文和索引一致",
+      "slug": "atomic-event-ingestion",
+      "deliver": "同一个事件并发重投时，服务只提交一份确定的正文，索引哈希始终对应该正文。相同编号但内容冲突的上报返回明确冲突，不覆盖已接收证据。",
+      "acceptance": [
+        "先用受控并发调度复现相同事件编号的正文覆盖与索引哈希失配。",
+        "首次创建、正文保存和索引提交构成同一事件事务，成功回执在可恢复提交后发出。",
+        "相同内容重投得到幂等成功；不同内容冲突不会覆盖先前正文。",
+        "并发、写入失败和进程中断后重启，文件、索引及回执保持一致。",
+        "列表、详情和导出读取到同一份内容，历史合法事件不被重写。",
+        "验证锁或事务范围不会无界阻塞其他事件，记录基本并发测试结果。"
+      ],
+      "approach": "围绕单事件提交建立最小一致性边界，保留已有原子文件替换和公开 API 字段。",
+      "rollback": "保留旧事件与索引备份；冲突保留证据，不自动挑一份覆盖。",
+      "blockedBy": [],
+      "status": "published",
+      "draftFile": "E:\\X.AppData\\.codex\\visualizations\\2026\\09\\12\\01a09425-eb1f-7df0-9740-f2e6ff531343\\ziyan-remediation\\drafts\\09-atomic-event-ingestion.md",
+      "github": {
+        "ticket": 9,
+        "audit": "AUD-010",
+        "number": 9,
+        "title": "[审计修复 T09] 并发重复日志上报保持正文和索引一致",
+        "url": "https://github.com/mwr49h57vf-dot/ziyan/issues/9",
+        "blockedBy": [],
+        "bodySha256": "190e00256ef073ddfc1b5540cb6ad30008cd9c891f35d6f4f3311a3fe2b3b4d9",
+        "createdAt": "2026-09-12T06:16:47.335700+00:00"
+      }
+    },
+    {
+      "number": 10,
+      "audit": "AUD-011",
+      "title": "更新链路默认拒绝同版本重装和降级",
+      "slug": "update-version-policy",
+      "deliver": "设备检查更新时，只有严格更高且兼容的候选才被当作更新。相同版本或更高已装版本返回无更新；强制重装和降级只能走明确的独立操作。",
+      "acceptance": [
+        "先验证相同版本与更高已装版本仍被返回为更新的现状。",
+        "服务端按 Debian 版本语义选择兼容候选，覆盖版本后缀、预发布与双架构回退。",
+        "客户端安装前再次核对目标与已装版本，拒绝过期响应造成的重装或降级。",
+        "若保留强制重装或降级能力，必须显式区分普通更新并记录调用意图。",
+        "更新检查、下载到安装期间本机版本变化时，按最新真实状态重新判断。",
+        "覆盖较低、相同、较高已装版本和无兼容候选；普通更新在两种安装方案下仍能完成。"
+      ],
+      "approach": "将版本策略作为服务与客户端共同契约，避免复制不兼容的字符串比较规则。",
+      "rollback": "禁止把回退版本策略改动等同于允许自动降级；保留原已装版本与包。",
+      "blockedBy": [],
+      "status": "published",
+      "draftFile": "E:\\X.AppData\\.codex\\visualizations\\2026\\09\\12\\01a09425-eb1f-7df0-9740-f2e6ff531343\\ziyan-remediation\\drafts\\10-update-version-policy.md",
+      "github": {
+        "ticket": 10,
+        "audit": "AUD-011",
+        "number": 10,
+        "title": "[审计修复 T10] 更新链路默认拒绝同版本重装和降级",
+        "url": "https://github.com/mwr49h57vf-dot/ziyan/issues/10",
+        "blockedBy": [],
+        "bodySha256": "89878da15cc3d5b715c2de3d38656a57723817b551b12e24c616969b7f18ee59",
+        "createdAt": "2026-09-12T06:16:48.774051+00:00"
+      }
+    },
+    {
+      "number": 11,
+      "audit": "AUD-012",
+      "title": "慢客户端超时后释放截屏服务",
+      "slug": "snapshot-response-deadline",
+      "deliver": "一个客户端停止接收截图时，请求会在明确期限内终止，其他健康检查和截图请求可以继续，忙碌状态得到清理。",
+      "acceptance": [
+        "先用可控 socket 或传输替身让发送连续超时，复现单 worker 一直被占用。",
+        "完整响应使用单调时钟截止时间，发送重试不能无限延长总期限。",
+        "超时、断连、EINTR和发送错误均释放连接与忙碌状态，结果可诊断。",
+        "慢读请求到期后，另一客户端的健康检查可在既定测试期限内成功。",
+        "正常大图在合理网络条件下仍能完整传输，保持帧一致性和采帧主循环独立。",
+        "在受控设备上验证期限与资源清理，不以静态代码推断吞吐性能。"
+      ],
+      "approach": "先修串行 worker 的响应期限，不通过增加无界线程掩盖阻塞。",
+      "rollback": "保留单 worker 模型和旧端口契约；回退不得恢复无限重试。",
+      "blockedBy": [],
+      "status": "published",
+      "draftFile": "E:\\X.AppData\\.codex\\visualizations\\2026\\09\\12\\01a09425-eb1f-7df0-9740-f2e6ff531343\\ziyan-remediation\\drafts\\11-snapshot-response-deadline.md",
+      "github": {
+        "ticket": 11,
+        "audit": "AUD-012",
+        "number": 11,
+        "title": "[审计修复 T11] 慢客户端超时后释放截屏服务",
+        "url": "https://github.com/mwr49h57vf-dot/ziyan/issues/11",
+        "blockedBy": [],
+        "bodySha256": "9093d13e159549387b1f3d5049b3c694d5bbba54d839dc751104fea872179d91",
+        "createdAt": "2026-09-12T06:16:50.225915+00:00"
+      }
+    },
+    {
+      "number": 12,
+      "audit": "AUD-013",
+      "title": "完整接收 HTTP 请求后再执行找色",
+      "slug": "complete-snapshot-http-input",
+      "deliver": "分段到达的请求和正常完整请求产生相同结果。缺少正文、超长或超时的请求被明确拒绝，服务不会用默认参数代替用户输入执行找色。",
+      "acceptance": [
+        "先把同一合法请求拆成头部与正文发送，重现参数丢失或静默截断。",
+        "读取完整且受限的头部，再按受限长度收齐正文后才解析业务参数。",
+        "设置头部、正文总大小和时间上限，不支持的传输形式明确拒绝。",
+        "截断、缺正文、超长、错误长度与超时均不会触发业务动作或方向修改。",
+        "超过旧单次缓冲限制但在新契约允许范围内的请求得到正确处理。",
+        "一次发送与多段发送的找色结果一致，取色客户端不需依赖TCP分包方式。"
+      ],
+      "approach": "在现有业务路由之前建立小型有界请求收集器；不在本票更换整个网络框架。",
+      "rollback": "协议错误安全失败，保留正常客户端请求格式。",
+      "blockedBy": [],
+      "status": "published",
+      "draftFile": "E:\\X.AppData\\.codex\\visualizations\\2026\\09\\12\\01a09425-eb1f-7df0-9740-f2e6ff531343\\ziyan-remediation\\drafts\\12-complete-snapshot-http-input.md",
+      "github": {
+        "ticket": 12,
+        "audit": "AUD-013",
+        "number": 12,
+        "title": "[审计修复 T12] 完整接收 HTTP 请求后再执行找色",
+        "url": "https://github.com/mwr49h57vf-dot/ziyan/issues/12",
+        "blockedBy": [],
+        "bodySha256": "80aaedf3d183944db508f03f0853f0c16fc51954b5839957507308879505684e",
+        "createdAt": "2026-09-12T06:16:51.765306+00:00"
+      }
+    },
+    {
+      "number": 13,
+      "audit": "AUD-006",
+      "title": "按业务结果和证据判定 AI 功能测试",
+      "slug": "truthful-ai-test-verdict",
+      "deliver": "功能测试区分执行完成、业务失败和证据不足。业务返回 false、无执行入口或缺少验收证据都不能被记为功能通过，矩阵与后续流程读取同一判定。",
+      "acceptance": [
+        "先覆盖执行入口返回 true、false、nil、抛异常及没有入口五种情形。",
+        "执行成功与业务成功分字段表达；false 必须失败，无入口不能默认成功。",
+        "明确既有返回 nil 脚本的兼容策略，证据不足标未验证而非通过。",
+        "测试矩阵和后续消费者不会重新把未验证结果升级为功能通过。",
+        "保留真实设备限定和能力分支的独立证据校验，不降低最终设备门禁。",
+        "在真实 Lua 运行时与代表设备场景核对失败、成功和证据缺失结果。"
+      ],
+      "approach": "先统一最小结果语义，再修改生产者和直接消费者；避免重写全部智能体状态机。",
+      "rollback": "保留原始业务输出与失败记录，修复前的可疑通过记录不自动改成新的通过。",
+      "blockedBy": [],
+      "status": "published",
+      "draftFile": "E:\\X.AppData\\.codex\\visualizations\\2026\\09\\12\\01a09425-eb1f-7df0-9740-f2e6ff531343\\ziyan-remediation\\drafts\\13-truthful-ai-test-verdict.md",
+      "github": {
+        "ticket": 13,
+        "audit": "AUD-006",
+        "number": 13,
+        "title": "[审计修复 T13] 按业务结果和证据判定 AI 功能测试",
+        "url": "https://github.com/mwr49h57vf-dot/ziyan/issues/13",
+        "blockedBy": [],
+        "bodySha256": "b90d9c53baa1c755b7028930e545afc3af364692816eb907d84a3e22597c03c8",
+        "createdAt": "2026-09-12T06:16:53.297425+00:00"
+      }
+    },
+    {
+      "number": 14,
+      "audit": "AUD-014",
+      "title": "APT 发布校验拒绝空仓库与无效签名",
+      "slug": "strict-apt-verification",
+      "deliver": "发布校验必须证明预期架构的包记录、文件、Release 哈希和可信签名都完整。空目录、缺项或伪签名不能获得成功结果。",
+      "acceptance": [
+        "先用空双架构索引、无哈希Release和伪签名文件重现校验退出成功。",
+        "显式要求预期包身份、数量和架构；空索引、重复冲突或缺失记录返回非零。",
+        "Release 必需字段、覆盖范围、哈希和大小与真实索引逐一对应。",
+        "签名文件存在与密码学验签结果分开报告；发布校验使用指定可信公钥并拒绝伪签名或篡改。",
+        "正常双包仓库通过，缺架构、漏哈希、损坏包、签名错误和未提供信任材料均有明确结果。",
+        "不把当前校验器缺陷外推为历史签名无效；记录本次实际包与信任材料的安全标识。"
+      ],
+      "approach": "先定义发布校验的完整性输入与成功条件，再将现有校验步骤组合起来。",
+      "rollback": "保留已发布目录的不可变副本；失败不更新对外发布指针。",
+      "blockedBy": [],
+      "status": "published",
+      "draftFile": "E:\\X.AppData\\.codex\\visualizations\\2026\\09\\12\\01a09425-eb1f-7df0-9740-f2e6ff531343\\ziyan-remediation\\drafts\\14-strict-apt-verification.md",
+      "github": {
+        "ticket": 14,
+        "audit": "AUD-014",
+        "number": 14,
+        "title": "[审计修复 T14] APT 发布校验拒绝空仓库与无效签名",
+        "url": "https://github.com/mwr49h57vf-dot/ziyan/issues/14",
+        "blockedBy": [],
+        "bodySha256": "6e954fb3d7f2054aae38300e20f90ae42439d6824eb07364670149dcfcc924ae",
+        "createdAt": "2026-09-12T06:16:54.808004+00:00"
+      }
+    },
+    {
+      "number": 15,
+      "audit": "AUD-015",
+      "title": "主线程与协程正确执行 Thread.wait",
+      "slug": "lua-main-thread-wait",
+      "deliver": "主 Lua 线程调用等待时正常休眠，协程调用时正常让出并恢复。兼容入口与模块入口表现一致，不因线程检测错误中断脚本。",
+      "acceptance": [
+        "先在项目实际 Lua 5.3 运行时从主线程与协程调用等待，重现主线程错误yield。",
+        "正确区分主线程和协程，兼顾受支持旧Lua运行时的返回值差异。",
+        "模块入口与兼容别名均应用同一行为。",
+        "覆盖零等待、有效等待、协程恢复以及等待后定时任务调度。",
+        "不得阻断已有停止或取消语义，也不新增忙等。",
+        "本地真实运行时测试通过，并以设备脚本验证代表性调用。"
+      ],
+      "approach": "修正线程判定并保留现有调度结构，不在本票引入新调度器。",
+      "rollback": "保留旧API签名；回退只涉及等待判断，不改已有任务数据。",
+      "blockedBy": [],
+      "status": "published",
+      "draftFile": "E:\\X.AppData\\.codex\\visualizations\\2026\\09\\12\\01a09425-eb1f-7df0-9740-f2e6ff531343\\ziyan-remediation\\drafts\\15-lua-main-thread-wait.md",
+      "github": {
+        "ticket": 15,
+        "audit": "AUD-015",
+        "number": 15,
+        "title": "[审计修复 T15] 主线程与协程正确执行 Thread.wait",
+        "url": "https://github.com/mwr49h57vf-dot/ziyan/issues/15",
+        "blockedBy": [],
+        "bodySha256": "f70eae012731d12cc8726130be8ef3103f21a5f9cacca768d1ce8109a6614b2d",
+        "createdAt": "2026-09-12T06:16:56.271085+00:00"
+      }
+    },
+    {
+      "number": 16,
+      "audit": "AUD-016",
+      "title": "部署后验收失败向调用者返回失败",
+      "slug": "honest-deploy-exit",
+      "deliver": "部署工具能继续收集每台设备的结果，但只有全部目标通过读回和验收才报告完成。任何目标失败都会使最终退出码非零。",
+      "acceptance": [
+        "先用SSH替身覆盖验收返回非零但最终仍显示完成的情况。",
+        "全成功、单机失败、全部失败、连接失败分别得到正确最终退出码。",
+        "逐设备记录失败阶段与原因，继续收集结果不会吞掉先前失败。",
+        "成功完成提示只在所有目标通过时产生，调用方据退出码停止后续扩散。",
+        "保留安装前版本与包检查，不改变授权或自动重启限制。",
+        "在既有部署通道验证读回结果，但不得为了测试故意破坏正在使用的设备。"
+      ],
+      "approach": "聚合失败结果并统一最终返回，不改成遇到第一台失败便丢弃其余诊断。",
+      "rollback": "失败停止后续发布，保留已安装设备清单与既有回滚信息。",
+      "blockedBy": [],
+      "status": "published",
+      "draftFile": "E:\\X.AppData\\.codex\\visualizations\\2026\\09\\12\\01a09425-eb1f-7df0-9740-f2e6ff531343\\ziyan-remediation\\drafts\\16-honest-deploy-exit.md",
+      "github": {
+        "ticket": 16,
+        "audit": "AUD-016",
+        "number": 16,
+        "title": "[审计修复 T16] 部署后验收失败向调用者返回失败",
+        "url": "https://github.com/mwr49h57vf-dot/ziyan/issues/16",
+        "blockedBy": [],
+        "bodySha256": "ac029871ba6c04fc90e86d2030130ffde2917bba99d6631b21a4d73c2da95204",
+        "createdAt": "2026-09-12T06:16:57.838863+00:00"
+      }
+    },
+    {
+      "number": 17,
+      "audit": "AUD-017",
+      "title": "侧车脚本与原生验收使用一致的依赖规则",
+      "slug": "sidecar-script-contract",
+      "deliver": "正常侧车脚本可被原生客户端接受，注释中的说明不会误触发拒绝。真正使用禁止依赖的脚本仍被拒绝并给出明确原因。",
+      "acceptance": [
+        "先将侧车真实生成输出送入当前客户端验收规则，重现正常输出被拒绝。",
+        "生成端和原生端在同一工单内对齐契约，正常输出能进入侧车成功路径。",
+        "注释或普通说明字符串不会被当作依赖调用；真正的禁止依赖仍被拦截。",
+        "缺少业务入口、损坏输出与服务不可用时保留明确回退，不把回退声称为侧车成功。",
+        "契约测试使用真实生成函数输出，覆盖合法、非法与注释提及三类样本。",
+        "用受控侧车到原生客户端的完整交互验证结果来源标记及错误说明。"
+      ],
+      "approach": "先去除必然冲突，随后采用足以表达真实引用的词法或语法规则；不扩大为整个脚本生成重写。",
+      "rollback": "保留本地模板回退与来源标记，不回退到静默误标。",
+      "blockedBy": [],
+      "status": "published",
+      "draftFile": "E:\\X.AppData\\.codex\\visualizations\\2026\\09\\12\\01a09425-eb1f-7df0-9740-f2e6ff531343\\ziyan-remediation\\drafts\\17-sidecar-script-contract.md",
+      "github": {
+        "ticket": 17,
+        "audit": "AUD-017",
+        "number": 17,
+        "title": "[审计修复 T17] 侧车脚本与原生验收使用一致的依赖规则",
+        "url": "https://github.com/mwr49h57vf-dot/ziyan/issues/17",
+        "blockedBy": [],
+        "bodySha256": "965ec7a9d19c8c643133ba58bcd138659f9ce98202dcf2354ca875ef5f6e5d9b",
+        "createdAt": "2026-09-12T06:16:59.290526+00:00"
+      }
+    },
+    {
+      "number": 18,
+      "audit": "AUD-018",
+      "title": "截图刷新只更新发起请求的图像窗口",
+      "slug": "snapshot-target-identity",
+      "deliver": "取色器截图返回后只更新原请求对应的有效窗口。等待期间切换、关闭窗口或切换设备不会覆盖其他图像或未保存内容。",
+      "acceptance": [
+        "先延迟A窗口截图回调，再切到B，重现B被替换。",
+        "请求发起时绑定目标窗口和请求编号，回调核对目标仍存在且请求仍有效。",
+        "切设备、切方向、关闭窗口、取消实时模式会使相应过期回调失效。",
+        "实时刷新固定到明确目标，不随当前活动窗口漂移。",
+        "旧窗口未保存内容保持不变，成功刷新仍更新正确窗口及状态提示。",
+        "完成真实GUI中的延迟响应、切页、关页和连续刷新验收，确认无错误覆盖及回调残留。"
+      ],
+      "approach": "引入本次请求身份和目标引用，不重构所有窗口管理。",
+      "rollback": "过期结果丢弃，保留原图；只清理本次请求状态。",
+      "blockedBy": [],
+      "status": "published",
+      "draftFile": "E:\\X.AppData\\.codex\\visualizations\\2026\\09\\12\\01a09425-eb1f-7df0-9740-f2e6ff531343\\ziyan-remediation\\drafts\\18-snapshot-target-identity.md",
+      "github": {
+        "ticket": 18,
+        "audit": "AUD-018",
+        "number": 18,
+        "title": "[审计修复 T18] 截图刷新只更新发起请求的图像窗口",
+        "url": "https://github.com/mwr49h57vf-dot/ziyan/issues/18",
+        "blockedBy": [],
+        "bodySha256": "912e10b6f4b126cb6da68342de072900e5d083e0d636c1c831501610031cf143",
+        "createdAt": "2026-09-12T06:17:00.681046+00:00"
+      }
+    },
+    {
+      "number": 19,
+      "audit": "AUD-019",
+      "title": "统一全屏 OCR 输入的尺寸上限",
+      "slug": "consistent-ocr-bounds",
+      "deliver": "同一张图片采用不同受支持的全屏坐标写法时，进入OCR前受到相同尺寸或像素上限约束。小区域识别仍按既定策略放大。",
+      "acceptance": [
+        "先比较不传坐标、负角点全屏和显式全图区域，重现预处理尺寸不一致。",
+        "明确实际裁剪与全屏返回的区别，统一约束最终送入OCR的图像。",
+        "大图不能通过全屏参数写法绕过资源保护，小区域放大后也遵守明确上限。",
+        "异常坐标、空图和边界区域有确定错误或结果，不以默认成功掩盖输入错误。",
+        "记录代表性图片的预处理几何和识别结果，验证清晰度没有无依据下降。",
+        "设备验收记录峰值内存及耗时；没有实测时不得宣称解决OOM或性能提升。"
+      ],
+      "approach": "调整裁剪状态与最终输入约束，不在本票替换OCR引擎或调识别模型。",
+      "rollback": "保留现有识别后备策略与输入样本，可回退预处理参数。",
+      "blockedBy": [],
+      "status": "published",
+      "draftFile": "E:\\X.AppData\\.codex\\visualizations\\2026\\09\\12\\01a09425-eb1f-7df0-9740-f2e6ff531343\\ziyan-remediation\\drafts\\19-consistent-ocr-bounds.md",
+      "github": {
+        "ticket": 19,
+        "audit": "AUD-019",
+        "number": 19,
+        "title": "[审计修复 T19] 统一全屏 OCR 输入的尺寸上限",
+        "url": "https://github.com/mwr49h57vf-dot/ziyan/issues/19",
+        "blockedBy": [],
+        "bodySha256": "d402e786b377ca6efb341d59da31b83832c938c16811ac7030aeea16d487fb3f",
+        "createdAt": "2026-09-12T06:17:02.256127+00:00"
+      }
+    },
+    {
+      "number": 20,
+      "audit": "AUD-001…AUD-019",
+      "title": "完成本轮修复候选版本的跨模块与五机验收",
+      "slug": "integrated-remediation-verdict",
+      "deliver": "将本轮修复组成一个可回滚候选版本，验证相互影响和规定设备覆盖。每项结论绑定同一候选包、场景、运行记录与清理结果，输出明确发布建议。",
+      "acceptance": [
+        "前19个修复已完成各自验收且提交可追踪；不得用合并状态代替测试证据。",
+        "固定候选源码、两种安装包及资源哈希，恢复可复现构建环境，记录所有工具和依赖来源。",
+        "对发布管理、设备配对取色、日志重投、脚本导入、侧车生成及桌面多窗口刷新做跨模块回归。",
+        "按项目规定的五机顺序执行适用用例，必须包含iOS15.8.8 rootless设备；保留设备端最终结果、单framecap、系统进程未变化及停止清理证据。",
+        "失败时停止提升候选状态，保留失败记录及回滚点；禁止自动重启SpringBoard/BackBoard，观察设备保持只读。",
+        "对本轮19项逐一标记已验证、失败或未验证；真实环境缺失不能算通过。",
+        "报告继续单列原主计划的未覆盖API、兼容矩阵和发布条件；本票完成不自动宣称整个主计划完成或超越对照产品。"
+      ],
+      "approach": "本票只做集成候选、跨模块回归和证据归档。发现新的独立缺陷单列后续工单，禁止在验收阶段无记录地叠加修复。",
+      "rollback": "每个主题保留独立提交和已核验旧包。回滚按设备状态进行，不覆盖真实用户数据，不清除原失败证据。",
+      "blockedBy": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "status": "published",
+      "draftFile": "E:\\X.AppData\\.codex\\visualizations\\2026\\09\\12\\01a09425-eb1f-7df0-9740-f2e6ff531343\\ziyan-remediation\\drafts\\20-integrated-remediation-verdict.md",
+      "github": {
+        "ticket": 20,
+        "audit": "AUD-001…AUD-019",
+        "number": 20,
+        "title": "[审计修复 T20] 完成本轮修复候选版本的跨模块与五机验收",
+        "url": "https://github.com/mwr49h57vf-dot/ziyan/issues/20",
+        "blockedBy": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19
+        ],
+        "bodySha256": "24b2f04d7182c7a95881c3bd041969968b1cd9ddae709048900476e7bf438f45",
+        "createdAt": "2026-09-12T06:17:03.765608+00:00"
+      }
+    }
+  ],
+  "approval": {
+    "answer": "按此方案发布20个 Issue",
+    "trackerAnswer": "GitHub 公开 Issue，接受文本依赖和不加分诊标签",
+    "recordedAt": "2026-09-12T06:16:31.970240+00:00"
+  }
+}

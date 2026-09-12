@@ -1,0 +1,129 @@
+{
+  "scope": "local_regressions_only",
+  "device_verdict": "NOT_RUN",
+  "native_import": "not_run: requires macOS Foundation and iOS device acceptance",
+  "results": [
+    {
+      "command": [
+        "C:\\Strawberry\\c\\bin\\gcc.EXE",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "D:\\Khabarovsk\\K.Develop\\ziyan\\tests\\repair_20260912\\ocr_geometry.c",
+        "-o",
+        "D:\\Khabarovsk\\K.Develop\\ziyan\\tmp_shots\\repair-20260912\\ocr_geometry.exe"
+      ],
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "D:\\Khabarovsk\\K.Develop\\ziyan\\tmp_shots\\repair-20260912\\ocr_geometry.exe"
+      ],
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "C:\\Strawberry\\c\\bin\\gcc.EXE",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "D:\\Khabarovsk\\K.Develop\\ziyan\\tests\\repair_20260912\\script_dependency_cli.c",
+        "-o",
+        "D:\\Khabarovsk\\K.Develop\\ziyan\\tmp_shots\\repair-20260912\\script_dependency_cli.exe"
+      ],
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "tmp_shots/repair-20260912/toolchain/lua-5.3.5/src/lua-fixed.exe",
+        "D:\\Khabarovsk\\K.Develop\\ziyan\\tests\\repair_20260912\\thread_wait.lua"
+      ],
+      "exit_code": 0,
+      "output": "PASS Thread wait: main, coroutine, compat, timers\n"
+    },
+    {
+      "command": [
+        "tmp_shots/repair-20260912/toolchain/lua-5.3.5/src/lua-fixed.exe",
+        "D:\\Khabarovsk\\K.Develop\\ziyan\\tests\\repair_20260912\\ai_result.lua"
+      ],
+      "exit_code": 0,
+      "output": "PASS AI.test result and matrix semantics (local fixture, not device verdict)\n"
+    },
+    {
+      "command": [
+        "tmp_shots/repair-20260912/toolchain/lua-5.3.5/src/lua-fixed.exe",
+        "D:\\Khabarovsk\\K.Develop\\ziyan\\tests\\repair_20260912\\memory_migration.lua"
+      ],
+      "exit_code": 0,
+      "output": "PASS memory migration: isolation, corruption, write guard, existing JSON, rename failure\n"
+    },
+    {
+      "command": [
+        "tmp_shots/repair-20260912/toolchain/lua-5.3.5/src/lua-fixed.exe",
+        "D:\\Khabarovsk\\K.Develop\\ziyan\\tests\\repair_20260912\\offline_queue.lua"
+      ],
+      "exit_code": 0,
+      "output": "PASS queue open/write/close/rename faults, orphan recovery, durable handoff\n"
+    },
+    {
+      "command": [
+        "C:\\Users\\Administrator\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-X",
+        "utf8",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests/repair_20260912",
+        "-p",
+        "test_*.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "output": "pid=58536 RESULT enqueue normal=true orphan=false\npid=32540 RESULT offline tried=2 sent=0 pending=2\npid=51684 RESULT backoff tried=0 pending=2\npid=58320 RESULT online tried=2 sent=2 pending=0\npid=60152 RESULT repeat sent=1 dedup=1\npid=62888 RESULT restart total=2 sent=2 pending=0\nSOURCE_SHA256=0a97feb0c8634bd54a755b511bb862b53fe733ffb5def0008c6f7999bedd1e87\nHTTP_RECEIPTS=[{\"event_id\": \"zye_normal\", \"ok\": false, \"phase\": \"offline\"}, {\"event_id\": \"zye_orphan\", \"ok\": false, \"phase\": \"offline\"}, {\"event_id\": \"zye_normal\", \"ok\": true, \"phase\": \"online\"}, {\"event_id\": \"zye_orphan\", \"ok\": true, \"phase\": \"online\"}, {\"event_id\": \"zye_normal\", \"ok\": true, \"phase\": \"repeat\"}]\n[sidecar] 127.0.0.1 \"GET /health HTTP/1.1\" 200 -\n[sidecar] 127.0.0.1 \"POST /v1/scriptgen/run HTTP/1.1\" 200 -\n[sidecar] 127.0.0.1 \"POST /v1/scriptgen/run HTTP/1.1\" 200 -\n[sidecar] 127.0.0.1 \"POST /v1/scriptgen/run HTTP/1.1\" 200 -\n[sidecar] 127.0.0.1 \"POST /v1/scriptgen/run HTTP/1.1\" 200 -\ntest_markers_only_in_comments_or_strings_do_not_pass (test_native_dependencies.NativeDependencyContract.test_markers_only_in_comments_or_strings_do_not_pass) ... ok\ntest_real_generator_passes_native_and_lua_load (test_native_dependencies.NativeDependencyContract.test_real_generator_passes_native_and_lua_load) ... ok\ntest_shared_samples (test_native_dependencies.NativeDependencyContract.test_shared_samples) ... ok\ntest_real_files_survive_orphan_commit_restart_and_network_recovery (test_queue_disk_restart.QueueDiskRestart.test_real_files_survive_orphan_commit_restart_and_network_recovery) ... ok\ntest_bad_syntax_fails (test_script_syntax.ScriptSyntax.test_bad_syntax_fails) ... ok\ntest_lua_init_is_never_executed (test_script_syntax.ScriptSyntax.test_lua_init_is_never_executed) ... ok\ntest_native_limits_cleanup_and_result (test_script_syntax.ScriptSyntax.test_native_limits_cleanup_and_result) ... skipped 'Native Foundation build requires macOS SDK'\ntest_normal_script_compiles (test_script_syntax.ScriptSyntax.test_normal_script_compiles) ... ok\ntest_top_level_script_is_never_executed (test_script_syntax.ScriptSyntax.test_top_level_script_is_never_executed) ... ok\ntest_compiler_failure_and_no_execution (test_sidecar_syntax.SidecarSyntax.test_compiler_failure_and_no_execution) ... ok\ntest_http_source_flags_and_fallback_conditions (test_sidecar_syntax.SidecarSyntax.test_http_source_flags_and_fallback_conditions) ... ok\n\n----------------------------------------------------------------------\nRan 11 tests in 5.627s\n\nOK (skipped=1)\n"
+    },
+    {
+      "command": [
+        "C:\\Users\\Administrator\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-X",
+        "utf8",
+        "D:\\Khabarovsk\\K.Develop\\ziyan\\tools\\test_ai_real_device_only_contract.py"
+      ],
+      "exit_code": 0,
+      "output": "AI_REAL_DEVICE_ONLY_CONTRACT=PASS\n"
+    },
+    {
+      "command": [
+        "C:\\Users\\Administrator\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-X",
+        "utf8",
+        "D:\\Khabarovsk\\K.Develop\\ziyan\\tools\\test_capability_sequence_contract.py"
+      ],
+      "exit_code": 0,
+      "output": "CAPABILITY_SEQUENCE_CONTRACT=PASS\n"
+    },
+    {
+      "command": [
+        "C:\\Users\\Administrator\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-X",
+        "utf8",
+        "D:\\Khabarovsk\\K.Develop\\ziyan\\tools\\test_test_matrix_module_contract.py"
+      ],
+      "exit_code": 0,
+      "output": "TEST_MATRIX_MODULE_CONTRACT=PASS\n"
+    },
+    {
+      "command": [
+        "C:\\Users\\Administrator\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-X",
+        "utf8",
+        "D:\\Khabarovsk\\K.Develop\\ziyan\\tools\\test_generated_capability_gate_contract.py"
+      ],
+      "exit_code": 0,
+      "output": "GENERATED_CAPABILITY_GATE_CONTRACT=PASS\n"
+    }
+  ]
+}

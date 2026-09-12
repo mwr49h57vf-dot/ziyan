@@ -1,0 +1,33 @@
+PASS missing runtime health verifier blocks install before mutation
+PASS progress text with failed exit is failure
+PASS failure preserves old current pointer
+PASS rollback failure is propagated
+PASS empty dpkg query fails health
+PASS half configured package fails health
+PASS health requires exact version
+PASS same installed version rejected
+PASS downgrade rejected
+PASS state commit failure returned
+PASS state failure rolls back installed package
+PASS failed install recovers old package
+PASS verified upgrade commits state
+PASS repeated update is no update
+PASS explicit rollback verifies old package
+PASS missing rollback package prevents installation
+PASS runtime health failure recovers old package
+PASS interrupted transaction blocks new installation
+PASS interrupted transaction has explicit verified recovery
+PASS tampered rollback checksum blocks installation
+PASS state write failure preserves committed state and rolls back
+PASS state flush failure preserves committed state and rolls back
+PASS state close failure preserves committed state and rolls back
+PASS state rename failure preserves committed state and rolls back
+PASS zero exit with half configured status rolls back
+PASS empty query after zero exit rolls back
+PASS version changes during preparation prevent stale install
+PASS runtime probe exception rolls back without committing state
+PASS run_once requires runtime verifier before download
+PASS dry run remains available without runtime verifier
+PASS verification only remains available without installation
+PASS capture preserves command nonzero exit and output
+RESULT checks=32 failures=0

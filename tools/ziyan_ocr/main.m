@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #import "ziyan_fontocr.h"
+#include "ZiYanOCRGeometry.h"
 #if ZIYAN_HAS_TESS
 #import "ziyan_tess.h"
 #endif
@@ -22,30 +23,11 @@ static UIImage *ZiYanCropImage(UIImage *img, CGFloat x, CGFloat y, CGFloat x1,
   if (!img || !img.CGImage) {
     return nil;
   }
-  CGFloat w = img.size.width;
-  CGFloat h = img.size.height;
-  // getText(0,0,-1,-1) / 全屏：负角点 → 不裁，整图
-  if (x1 < 0 || y1 < 0) {
-    return img;
-  }
-  if (x < 0) {
-    x = 0;
-  }
-  if (y < 0) {
-    y = 0;
-  }
-  CGFloat left = MIN(x, x1);
-  CGFloat top = MIN(y, y1);
-  CGFloat right = MAX(x, x1);
-  CGFloat bottom = MAX(y, y1);
-  left = MAX(0, MIN(left, w - 1));
-  top = MAX(0, MIN(top, h - 1));
-  right = MAX(left + 1, MIN(right, w));
-  bottom = MAX(top + 1, MIN(bottom, h));
-
+  ZiYanOCRRegion r = ZiYanOCRResolveRegion(img.size.width, img.size.height, 1, x, y, x1, y1);
+  if (!r.valid) return nil;
+  if (!r.cropped) return img;
   CGFloat scale = img.scale > 0 ? img.scale : 1.0;
-  CGRect rect = CGRectMake(left * scale, top * scale,
-                           (right - left) * scale, (bottom - top) * scale);
+  CGRect rect = CGRectMake(r.x * scale, r.y * scale, r.w * scale, r.h * scale);
   CGImageRef cg = CGImageCreateWithImageInRect(img.CGImage, rect);
   if (!cg) {
     return nil;
@@ -55,33 +37,6 @@ static UIImage *ZiYanCropImage(UIImage *img, CGFloat x, CGFloat y, CGFloat x1,
                                orientation:UIImageOrientationUp];
   CGImageRelease(cg);
   return out;
-}
-
-/// 小图放大到最短边 ≥ minSide，提升 Vision 命中率
-static UIImage *ZiYanUpscaleImage(UIImage *img, CGFloat minSide) {
-  if (!img) {
-    return nil;
-  }
-  CGFloat w = img.size.width;
-  CGFloat h = img.size.height;
-  if (w < 1 || h < 1) {
-    return img;
-  }
-  CGFloat shortSide = MIN(w, h);
-  if (shortSide >= minSide) {
-    return img;
-  }
-  CGFloat factor = minSide / shortSide;
-  // 上限避免超大图
-  if (factor > 8.0) {
-    factor = 8.0;
-  }
-  CGSize sz = CGSizeMake(floor(w * factor), floor(h * factor));
-  UIGraphicsBeginImageContextWithOptions(sz, YES, 1.0);
-  [img drawInRect:CGRectMake(0, 0, sz.width, sz.height)];
-  UIImage *out = UIGraphicsGetImageFromCurrentImageContext();
-  UIGraphicsEndImageContext();
-  return out ?: img;
 }
 
 /// 白底重绘（纯 CG）。禁止 CoreImage/EAGL：USB rootless 无窗口进程会 SIGSEGV。
@@ -475,35 +430,48 @@ int main(int argc, char *argv[]) {
     }
 
     BOOL cropped = NO;
-    if (args.count >= 5) {
-      CGFloat x = args[1].doubleValue;
-      CGFloat y = args[2].doubleValue;
-      CGFloat x1 = args[3].doubleValue;
-      CGFloat y1 = args[4].doubleValue;
-      UIImage *crop = ZiYanCropImage(img, x, y, x1, y1);
-      if (crop) {
-        img = crop;
-        cropped = YES;
+    if (args.count > 1) {
+      double coords[4];
+      BOOL valid = args.count == 5;
+      for (NSUInteger i = 0; valid && i < 4; i++) {
+        const char *text = args[i + 1].UTF8String;
+        char *end = NULL;
+        coords[i] = strtod(text, &end);
+        valid = end != text && *end == '\0' && isfinite(coords[i]);
       }
+      ZiYanOCRRegion region = valid ? ZiYanOCRResolveRegion(img.size.width, img.size.height, 1,
+        coords[0], coords[1], coords[2], coords[3]) : (ZiYanOCRRegion){0};
+      if (!valid || !region.valid) {
+        if (wantJSON) printf("{\"ok\":false,\"error\":\"invalid_region\"}\n");
+        else fprintf(stderr, "invalid_region\n");
+        return 1;
+      }
+      UIImage *crop = ZiYanCropImage(img, coords[0], coords[1], coords[2], coords[3]);
+      if (!crop) {
+        if (wantJSON) printf("{\"ok\":false,\"error\":\"crop_failed\"}\n");
+        return 1;
+      }
+      img = crop;
+      cropped = region.cropped;
     }
 
-    // 区域过小则放大；全图不做超大 OCR（防卡死）
-    if (cropped) {
-      img = ZiYanUpscaleImage(img, 220);
-      img = ZiYanPrepForOCR(img);
-    } else if (img.size.width > 900 || img.size.height > 900) {
-      // 全图缩到最长边 900，避免卡死
-      CGFloat longSide = MAX(img.size.width, img.size.height);
-      CGFloat f = 900.0 / longSide;
-      CGSize sz = CGSizeMake(floor(img.size.width * f), floor(img.size.height * f));
+    // Apply the same pixel bound to all full-screen spellings and upscaled ROIs.
+    double targetW, targetH;
+    size_t pixelW = CGImageGetWidth(img.CGImage), pixelH = CGImageGetHeight(img.CGImage);
+    if (!ZiYanOCRTargetSize(pixelW, pixelH, cropped, &targetW, &targetH)) return 1;
+    if (targetW != pixelW || targetH != pixelH) {
+      CGSize sz = CGSizeMake(targetW, targetH);
       UIGraphicsBeginImageContextWithOptions(sz, YES, 1.0);
       [img drawInRect:CGRectMake(0, 0, sz.width, sz.height)];
-      UIImage *small = UIGraphicsGetImageFromCurrentImageContext();
+      UIImage *scaled = UIGraphicsGetImageFromCurrentImageContext();
       UIGraphicsEndImageContext();
-      if (small) {
-        img = small;
+      if (!scaled) {
+        if (wantJSON) printf("{\"ok\":false,\"error\":\"resize_failed\"}\n");
+        return 1;
       }
+      img = scaled;
     }
+    if (cropped) img = ZiYanPrepForOCR(img);
 
     BOOL zhOK = NO;
     NSString *langs = @"";

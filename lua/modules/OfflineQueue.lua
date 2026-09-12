@@ -97,13 +97,26 @@ local function read_text(path)
 end
 
 local function write_text(path, body)
-  local ok = pcall(function()
-    local f = io.open(path, "w")
-    if not f then return end
-    f:write(body)
-    f:close()
+  local made, reservation = pcall(os.tmpname)
+  if not made then return false, "temp_name_failed" end
+  local tmp = path .. "." .. reservation:match("[^/\\]+$") .. ".tmp"
+  local ok, result, err = pcall(function()
+    local f, open_error = io.open(tmp, "wb")
+    if not f then return false, open_error end
+    local wrote, write_error = f:write(body)
+    local closed, close_error = f:close()
+    if not wrote or not closed then return false, write_error or close_error end
+    local renamed, rename_error = os.rename(tmp, path)
+    return renamed and true or false, rename_error
   end)
-  return ok
+  os.remove(reservation)
+  os.remove(tmp)
+  if not ok then return false, tostring(result) end
+  return result, err
+end
+
+local function valid_event_id(id)
+  return type(id) == "string" and #id <= 200 and id:match("^zye_[%w_%-]+$") ~= nil
 end
 
 local function copy_file(src, dst)
@@ -181,6 +194,10 @@ end
 local function read_state(event_id)
   local body = read_text(state_path(event_id))
   if not body then return nil end
+  local status = body:match('"status":"([^"]*)"')
+  if body:match('"event_id":"([^"\\]+)"') ~= event_id
+      or (status ~= "pending" and status ~= "sent" and status ~= "failed")
+      or not body:match('"attempts":%d+') then return nil end
   local st = {
     event_id = event_id,
     attempts = tonumber(body:match('"attempts":(%d+)')) or 0,
@@ -223,17 +240,37 @@ end
 ---------------------------------------------------------------------------
 
 function M.enqueue(event_id, report_path)
-  if type(event_id) ~= "string" or #event_id == 0 then return false end
+  if not valid_event_id(event_id) then return false, "invalid_event_id" end
   local dir = M.spool_dir() .. "/" .. event_id
   if not mkdir_p(dir) then return false end
   local src = report_path or (M.report_dir() .. "/" .. event_id .. "/report.json")
-  if not copy_file(src, dir .. "/report.json") then return false end
+  local existing = read_text(dir .. "/report.json")
+  local incoming = read_text(src)
+  if not incoming then return false, "report_unreadable" end
+  if existing and existing ~= incoming then return false, "event_conflict" end
+  if not existing and not copy_file(src, dir .. "/report.json") then return false, "report_write_failed" end
   local st = read_state(event_id) or { event_id = event_id, attempts = 0, next_retry = 0 }
   st.status = st.status or "pending"
   if st.status == "sent" then st.status = "pending" end
   st.next_retry = 0        -- 新入队立即尝试
-  write_state(st)
+  return write_state(st)
+end
+
+function M.is_durable(event_id, report_path)
+  if not valid_event_id(event_id) or not read_state(event_id) then return false end
+  local saved = read_text(M.spool_dir() .. "/" .. event_id .. "/report.json")
+  if not saved then return false end
+  if report_path then return saved == read_text(report_path) end
   return true
+end
+
+local function recover_state(event_id)
+  local st = read_state(event_id)
+  if st then return st end
+  if not read_text(M.spool_dir() .. "/" .. event_id .. "/report.json") then return nil end
+  st = {event_id=event_id, attempts=0, next_retry=0, status="pending", last_error="recovered_incomplete_commit"}
+  if not write_state(st) then return nil, "recovery_write_failed" end
+  return st
 end
 
 ---------------------------------------------------------------------------
@@ -325,7 +362,7 @@ local function upload_one(event_id, st, timeout)
   if not body then
     st.status = "failed"
     st.last_error = "spool_missing"
-    write_state(st)
+    if not write_state(st) then return false, nil, "state_commit_failed" end
     return false
   end
   local url = M.server_url() .. "/api/logs"
@@ -337,7 +374,11 @@ local function upload_one(event_id, st, timeout)
     st.next_retry = 0
     st.sent_at = os.time()
     st.dedup = dedup and true or false
-    write_state(st)
+    if not write_state(st) then
+      st.status = "pending"
+      st.last_error = "state_commit_failed"
+      return false, nil, "state_commit_failed"
+    end
     return true, dedup
   end
   st.status = "pending"
@@ -348,7 +389,7 @@ local function upload_one(event_id, st, timeout)
   else
     st.next_retry = os.time() + backoff_seconds(st.attempts)
   end
-  write_state(st)
+  if not write_state(st) then return false, nil, "state_commit_failed" end
   return false
 end
 
@@ -364,18 +405,24 @@ function M.flush(opts)
   local names = list_dir(M.spool_dir())
   local min_wait = nil
   for _, event_id in ipairs(names) do
-    if event_id:match("^zye_") then
-      local st = read_state(event_id)
+    if valid_event_id(event_id) then
+      local st, recovery_error = recover_state(event_id)
+      if recovery_error then stats.storage_errors = (stats.storage_errors or 0) + 1 end
       if st then
         if st.status == "pending" then
           if stats.tried < batch and (opts.force or (tonumber(st.next_retry) or 0) <= now) then
             stats.tried = stats.tried + 1
-            local ok, dedup = upload_one(event_id, st, timeout)
+            local ok, dedup, storage_error = upload_one(event_id, st, timeout)
+            if storage_error then
+              stats.storage_errors = (stats.storage_errors or 0) + 1
+              stats.last_storage_error = storage_error
+            end
             if ok then
               stats.sent = stats.sent + 1
               if dedup then stats.dedup = (stats.dedup or 0) + 1 end
             else
-              stats.pending = stats.pending + 1
+              if st.status == "failed" then stats.failed = stats.failed + 1
+              else stats.pending = stats.pending + 1 end
               local wait = (tonumber(st.next_retry) or 0) - now
               if wait >= 0 and (min_wait == nil or wait < min_wait) then min_wait = wait end
             end
@@ -402,7 +449,7 @@ end
 function M.pending_count()
   local n = 0
   for _, event_id in ipairs(list_dir(M.spool_dir())) do
-    local st = read_state(event_id)
+    local st = valid_event_id(event_id) and recover_state(event_id)
     if st and st.status == "pending" then n = n + 1 end
   end
   return n
@@ -411,7 +458,7 @@ end
 function M.stats()
   local s = { pending = 0, sent = 0, failed = 0, total = 0, server = M.server_url() }
   for _, event_id in ipairs(list_dir(M.spool_dir())) do
-    local st = read_state(event_id)
+    local st = valid_event_id(event_id) and recover_state(event_id)
     if st then
       s.total = s.total + 1
       if st.status == "pending" then s.pending = s.pending + 1
@@ -427,7 +474,7 @@ function M.cleanup_sent(older_than_sec)
   local cutoff = os.time() - (tonumber(older_than_sec) or 3 * 86400)
   local removed = 0
   for _, event_id in ipairs(list_dir(M.spool_dir())) do
-    if event_id:match("^zye_") then
+    if valid_event_id(event_id) then
       local st = read_state(event_id)
       if st and st.status == "sent" and (tonumber(st.sent_at) or 0) > 0
           and (tonumber(st.sent_at) or 0) < cutoff then

@@ -77,6 +77,7 @@ function M.run(case, opts)
   if not ok then return false, { phase = "generation_failed", reason = generated } end
   local Zy = assert(_G.Zy, "Zy required")
   local tested, detail = Zy.AI.test(generated.path, {
+    require_capability_evidence = opts.require_capability_evidence == true,
     real_device = true,
     light_test = false,
     load_only = false,

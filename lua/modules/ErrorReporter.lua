@@ -514,17 +514,20 @@ function M.report(err_type, message, extra)
     end
   end
 
-  -- 离线持久队列：写盘成功即入队，服务器不可用时日志留在这里等待续传
-  pcall(function()
-    local q = _G.OfflineQueue
-    if type(q) == "table" and type(q.enqueue) == "function" then
-      q.enqueue(event_id, final)
-    end
-  end)
+  -- Expose the handoff result; retention checks the durable copy again.
+  local queued, queue_error = false, "queue_unavailable"
+  local q = _G.OfflineQueue
+  if type(q) == "table" and type(q.enqueue) == "function" then
+    local called, accepted, reason = pcall(q.enqueue, event_id, final)
+    queued = called and accepted == true
+    if queued then queue_error = nil
+    else queue_error = tostring(reason or (not called and accepted) or "queue_commit_failed") end
+  end
+  M._last_enqueue = {event_id=event_id, ok=queued, error=queue_error}
 
   -- 每次写报告顺手做一次保留期清理（3 天）
   pcall(M.purge)
-  return event_id, final
+  return event_id, final, {queued=queued, queue_error=queue_error}
 end
 
 ---------------------------------------------------------------------------
@@ -637,7 +640,13 @@ function M.purge(retention_days)
           if st_out then ts = tonumber(trim(st_out)) end
         end
         if ts and ts > 0 then
-          if ts < cutoff then
+          local handed_off = false
+          local queue = _G.OfflineQueue
+          if type(queue) == "table" and type(queue.is_durable) == "function" then
+            local checked, durable = pcall(queue.is_durable, name, path .. "/report.json")
+            handed_off = checked and durable == true
+          end
+          if ts < cutoff and handed_off then
             pcall(function()
               os.execute(SH_PATH .. string.format("rm -rf '%s' 2>/dev/null", path))
             end)

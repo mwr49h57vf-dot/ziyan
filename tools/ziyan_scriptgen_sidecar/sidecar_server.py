@@ -13,9 +13,16 @@ import re
 import socket
 import threading
 import time
+import sys
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+
+# Support both direct execution and importlib-based contract tests.
+if str(Path(__file__).resolve().parent) not in sys.path:
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+from dependency_contract import dependency_contract, NEEDED
+from syntax_contract import validate_script_syntax
 
 ROOT = Path("/Users/mac/Desktop/ZiYan_副本")
 HF = ROOT / "vendor" / "hf_models"
@@ -62,16 +69,11 @@ def weight_ready(repo: str) -> tuple[bool, int]:
 
 def score_prompt_guard(text: str) -> dict:
     """A：启发式风险分（本地，不替代真权重存在性）。"""
-    bad = ["忽略以上", "jailbreak", "DAN", "bypass lock", 'require("ts")', "require('ts')"]
+    bad = ["忽略以上", "jailbreak", "DAN", "bypass lock"]
     hits = sum(1 for k in bad if k.lower() in text.lower())
-    # 真正引用 TSLib 才计风险；注释「禁止 TSLib」不计
-    for line in text.splitlines():
-        s = line.strip()
-        if s.startswith("--"):
-            continue
-        if "TSLib" in s or "require(\"ts\")" in s:
-            hits += 1
-            break
+    dependency_status, _ = dependency_contract(text)
+    if dependency_status:
+        hits += 1
     conf = min(0.95, 0.02 + hits * 0.25)
     label = "risk" if hits else "safe"
     return {"id": "A", "label": label, "conf": round(conf, 3), "ok": hits == 0}
@@ -87,24 +89,10 @@ def score_vincentoh(text: str) -> dict:
 
 def score_mmbert(text: str) -> dict:
     """C：语义完整性（业务阶段关键词）。"""
-    need = [
-        "phase_login",
-        "phase_role_select",
-        "phase_enter_game",
-        "phase_auto_battle",
-        "runApp",
-    ]
-    miss = [k for k in need if k not in text]
-    conf = round(0.05 + 0.18 * (len(need) - len(miss)), 3)
-    tslib_live = False
-    for line in text.splitlines():
-        s = line.strip()
-        if s.startswith("--"):
-            continue
-        if "TSLib" in s or 'require("ts")' in s:
-            tslib_live = True
-            break
-    ok = len(miss) == 0 and not tslib_live
+    status, identifiers = dependency_contract(text)
+    miss = [name for name in NEEDED if name not in identifiers]
+    conf = round(0.05 + 0.18 * (len(NEEDED) - len(miss)), 3)
+    ok = len(miss) == 0 and status == 0
     return {
         "id": "C",
         "label": "ok" if ok else "incomplete",
@@ -166,7 +154,7 @@ def emit_full_lua(req: dict, doc: dict) -> str:
     return f'''-- ZiYan full business script R8.4.3 (sidecar A→Codegen→B→C)
 -- family={fam} imported={str(imported).lower()} models=ABC
 -- app={name} bid={bid}
--- DO NOT require TSLib/ts/sz — ZiYan engine APIs only
+-- Use ZiYan engine APIs only
 -- flows: boot→login→server→role→enter→battle
 local BID = "{bid}"
 local RES = {{ profile = "{profile}", family = "{fam}", imported = {str(imported).lower()} }}
@@ -342,7 +330,9 @@ def run_pipeline(req: dict) -> dict:
         lua = emit_full_lua(req, doc)
         c = score_mmbert(lua)
 
-    models_ok = all(ready[m]["ok"] for m in ("A", "B", "C")) and a["ok"] and b["ok"] and c["ok"]
+    syntax_ok, syntax_error = validate_script_syntax(lua)
+    accepted = bool(c["ok"] and syntax_ok)
+    models_ok = accepted and all(ready[m]["ok"] for m in ("A", "B", "C")) and a["ok"] and b["ok"] and c["ok"]
     audit = datetime.now().strftime("%Y%m%d_%H%M%S") + "_" + hashlib.md5(
         (req.get("bid") or "").encode()
     ).hexdigest()[:8]
@@ -359,7 +349,9 @@ def run_pipeline(req: dict) -> dict:
         encoding="utf-8",
     )
     return {
-        "ok": bool(c["ok"] and "runApp" in lua and "phase_login" in lua),
+        "ok": accepted,
+        "syntax_checked": syntax_ok,
+        "error": syntax_error if not syntax_ok else (None if c["ok"] else "script_dependency_or_entry_invalid"),
         "lua": lua,
         "models": {
             "prompt_guard": a,
@@ -369,7 +361,7 @@ def run_pipeline(req: dict) -> dict:
         "weights_ready": ready,
         "models_combined": True,
         "models_ready": models_ok,
-        "from_sidecar": True,
+        "from_sidecar": accepted,
         "audit_id": audit,
         "pipeline": "A→Codegen→B→C",
         "game_family": family,

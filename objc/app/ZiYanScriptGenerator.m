@@ -1,3 +1,5 @@
+#include "ZiYanScriptDependencies.h"
+#import "ZiYanScriptSyntax.h"
 #import "ZiYanScriptGenerator.h"
 #import "ZiYanLLMSidecarClient.h"
 #import "ZiYanLiveVisionLearn.h"
@@ -1027,13 +1029,30 @@
   BOOL fromKnowledge = NO;
   BOOL modelsCombined = NO;
 
+  NSString *candidate = [result[@"lua"] isKindOfClass:[NSString class]] ? result[@"lua"] : nil;
+  unsigned int businessMask = 0;
+  int dependencyStatus = ZiYanScriptDependencyCheck(candidate.UTF8String, &businessMask);
+  if (dependencyStatus != 0) {
+    scErr = dependencyStatus == 1 ? @"sidecar_forbidden_dependency" : @"sidecar_dependency_unverified";
+    [retryReasons addObject:scErr];
+  } else if (businessMask != 31) {
+    scErr = @"sidecar_business_entry_missing";
+    [retryReasons addObject:scErr];
+  }
+  NSString *syntaxFailure = nil;
+  BOOL syntaxValid = dependencyStatus == 0 && businessMask == 31 &&
+      ZiYanValidateLuaSyntax(candidate, [ZiYanRuntimeBin() stringByAppendingPathComponent:@"lua5.3"], &syntaxFailure);
+  if (dependencyStatus == 0 && businessMask == 31 && !syntaxValid) {
+    scErr = syntaxFailure ?: @"sidecar_syntax_unverified";
+    [retryReasons addObject:scErr];
+  }
   if ([result[@"ok"] boolValue] &&
       [result[@"lua"] isKindOfClass:[NSString class]] &&
       [result[@"lua"] length] > 64 &&
       [result[@"lua"] containsString:@"phase_login"] &&
       [result[@"lua"] containsString:@"phase_auto_battle"] &&
       [result[@"lua"] containsString:@"runApp("] &&
-      ![result[@"lua"] containsString:@"TSLib"]) {
+      dependencyStatus == 0 && businessMask == 31 && syntaxValid) {
     lua = result[@"lua"];
     audit = [result[@"audit_id"] description];
     fromSidecar = YES;

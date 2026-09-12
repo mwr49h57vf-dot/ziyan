@@ -1,8 +1,8 @@
 {
   "schemaVersion": 2,
-  "updatedAt": 1789177254,
-  "stage": "AUTHORIZED-4ITEMS-COMPLETE-FIVE-DEVICE-164-53-EMBED-PASS",
-  "head": "bbe81f3653c5c06b3c747c7d15a6cf4fb315ba6a",
+  "updatedAt": 1789179158,
+  "stage": "AUTHORIZED-4ITEMS-COMPLETE-FIVE-DEVICE-164-53-RUNONCE-PASS",
+  "head": "fc90184ffe4c8238297d35f77c4fa7094daa0a44",
   "changedFiles": [
     "M api_spec/device_function_matrix.json",
     " M monitor_devices.py",
@@ -24,19 +24,19 @@
     "?? ziyan_apt_repo/",
     "?? ziyan_web_data/"
   ],
-  "lastSuccessfulCommand": "python3 tools/test_hotupdate_contract.py + tools/test_error_reporter_contract.py + tools/test_offline_queue_contract.py (RESULT=PASS x3); .53 embed accept v1+v2 (EMBED=true, FLUSH 2/2, check update=true 164-2); git commit 8015dfd",
-  "literalResult": ".53 embed闭环PASS: 报告目录形态三件套/保留期deleted=1 kept=14/队列FLUSH tried=2 sent=2/热更新check+download+verify ok/兼容闸拒arm; 点版本闸旧参数误报已定位为脚本调用问题并补T3b回归断言; 三合同PASS; 授权4表与清单已更新",
-  "evidence": "DOCS/E2E验证_错误收集_离线队列_热更新_APT_20260911.md 授权4节; ziyan_web_data/logs/index.jsonl (zye_1789176939/zye_1789176943); tools/test_hotupdate_contract.py T3b",
-  "latestVerdict": "AUTH1_SUDO_CLOSED; AUTH2_DRILL_101_PASS+61_OK; AUTH3_LOCALSIGN_APT_LAN_PASS+PUBLIC_BLOCKED; AUTH4_SEQ_112_PASS+166_PASS+53_EMBED_PASS; GIT_SYNCED_8015DFD; MAIN_PLAN_INCOMPLETE",
+  "lastSuccessfulCommand": "T1 本地回归PASS + T2a .101 run_once dry_run/verify_only PASS + T2b .53 embed v3只读闭环PASS + doc commit fc90184",
+  "literalResult": ".53 run_once verify_only ok/闸正名; .101 run_once双模式ok; 三合同PASS; E2E doc补记; commit fc90184",
+  "evidence": "DOCS/E2E验证_错误收集_离线队列_热更新_APT_20260911.md 第四轮补记; ziyan_web_data/logs/index.jsonl zye_1789179045; /tmp/zy_53_v3_result.txt + ZYCV/res/_zy_53_v3_result.txt",
+  "latestVerdict": "AUTH1_SUDO_CLOSED; AUTH2_DRILL_101_PASS+61_OK; AUTH3_LOCALSIGN_APT_LAN_PASS+PUBLIC_BLOCKED; AUTH4_SEQ_112_PASS+166_PASS+53_EMBED_PASS+RUNONCE_PASS; GIT_SYNCED_FC90184; MAIN_PLAN_INCOMPLETE",
   "artifacts": {
     "packageVersion": "17-164-1 rootful(.101/.112/.166) / 17-164-2 rootless(.53/.61)",
     "packageSha256": "164-1: 8446f9d1780fda93a8592123b28b10897fbeb02c896f20a8936963971540d447; 164-2: a0ff0f93730472213c4aad2de85425a0eccf83844e291208b2706ad957e5ef82"
   },
-  "deviceState": "五机164在装: .101/.112/.166=164-1, .53/.61=164-2; .53 embed闭环PASS(FLUSH 2/2, check 164-2); .101/.61热更新指针current=164-x",
+  "deviceState": "五机164在装; .53 embed v3只读闭环PASS(run_once verified 164-2, 闸正名); .101 run_once双模式PASS",
   "runningProcesses": "日志服务18091在跑; APT静态服务18092在跑; 无残留构建/Agent进程",
-  "cleanupStatus": "设备临时脚本已清理; .53 v1/v2结果文件在设备/tmp与ZYCV/res双落盘; 错误报告与队列数据保留为证据; Git已提交8015dfd",
+  "cleanupStatus": "设备/tmp+ZYCV/res双落盘保留为证据; 错误报告与队列数据保留; Git已提交fc90184",
   "unfinished": true,
-  "nextAction": "主计划剩余: 其余九族API与核心回归、正式发布门禁; .53 embed证据已落盘(E2E doc授权4节); 公网发布需人工提供服务器/DNS权限; sbreload注入验证需人工窗口(Home解锁)",
+  "nextAction": "主计划剩余: 其余九族API与核心回归、正式发布门禁; 公网发布需人工服务器/DNS权限; sbreload注入验证需人工窗口(Home解锁)",
   "deviceOrder": [
     ".101",
     ".112",

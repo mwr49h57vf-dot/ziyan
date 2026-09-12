@@ -12,6 +12,10 @@ NS_ASSUME_NONNULL_BEGIN
 ///   不一致返回 frame_changed，不得换帧。JSON 带回完整令牌。
 /// POST /biztest  → ios7/ios8p 业务 if/else 分支仿真（FIND1→FIND2，同源 ColorMatch）
 void ZiYanSnapshotHttpStart(void);
+/// 默认只监听回环。仅由设备本机明确启用；配对码 120 秒有效，授权 15 分钟。
+/// 再次启用或关闭会立即撤销旧授权。凭证仅存内存，不写日志或磁盘。
+NSString *ZiYanSnapshotHttpBeginPairing(void);
+void ZiYanSnapshotHttpStopPairing(void);
 void ZiYanSnapshotHttpPoll(void);
 /// Day9：写 .ziyan_health_ack。不采帧、不 sleep、不重入 ServeLoop。
 void ZiYanSnapshotHttpWriteHealthAck(void);

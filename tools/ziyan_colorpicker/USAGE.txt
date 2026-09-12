@@ -15,11 +15,32 @@
 发给别人：只发 ZiYan.zip（里面只有 ZiYan.exe，没有源码）
 
 设备截屏（不需要 SSH）
-  1. 手机子砚 framecap 监听 50005（占用则 50015）
-  2. 主窗「文件 → 连接设备」填 IP → 探测 / 截屏
-  3. 测试找色：取色面板「<-测试」走 POST /findtest（PC 不弹结果窗）
+  1. 默认只允许设备本机访问。手机 framecap 监听 50005（占用则 50015）。
+  2. 在设备本机终端执行以下命令。端口按本机实际监听值填写。
+     curl --fail --silent --show-error --max-time 10 -X POST -d 'enable=1' http://127.0.0.1:50005/pairing/start
+     返回 pairing_code。配对码仅在本机显示，2 分钟内使用，不要贴到日志或聊天。
+  3. 主窗「文件 → 连接设备」填手机 IP 和配对码，点击「配对」。
+     成功后清空配对码输入框。再点「探测」或「截屏」。
+  4. 测试找色：取色面板「<-测试」走 POST /findtest（PC 不弹结果窗）。
+  5. 授权 15 分钟后失效。按第 2、3 步重新配对。
+     一个配对码只用一次，授权仅限完成配对的客户端 IP。
+  6. 点击「撤销配对并关闭设备远程入口」即可清除授权并关闭远程入口。
+     客户端无法连接时，在设备本机终端执行：
+     curl --fail --silent --show-error --max-time 10 -X POST -d 'disable=1' http://127.0.0.1:50005/pairing/stop
+  7. 设备端尚无设置按钮，启用和本机撤销需要设备本机终端。
+     本轮源码尚未经过 iOS 原生编译、真机验证或 Windows exe 重新打包。
+     仓库旧 ZiYan.zip 不含本轮修复。先按源码启动方式使用本轮候选。
+  8. 仅在可信局域网使用。HTTP 配对不加密传输，旁路监听仍属于待解决边界。
+
+刷新图像
+  「刷新画面」只替换发起请求时的窗口。切页不会改变目标。
+  关闭目标、切手机、切方向或停止实时，会丢弃尚未返回的旧截图。
+  实时模式固定刷新启动时的窗口。需要换目标时先停实时，再选图重开。
 
 协议
+  本机 POST /pairing/start、/pairing/stop，需要非空表单。
+  POST /pair 换取短期凭证。后续请求携带 Authorization: Bearer 凭证。
+  POST /pairing/revoke 撤销授权和远程入口。
   GET  /status
   GET  /snapshot?orient=
   POST /findtest

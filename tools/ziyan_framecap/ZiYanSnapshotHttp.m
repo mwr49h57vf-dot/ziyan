@@ -1,4 +1,5 @@
 #import "ZiYanSnapshotHttp.h"
+#import "ZiYanSnapshotTransport.h"
 #import "ZiYanFrameShm.h"
 #import "ZiYanFrameResident.h"
 #import "ZiYanFrameKeep.h"
@@ -14,13 +15,15 @@
 #import <fcntl.h>
 #import <netinet/in.h>
 #import <pthread.h>
+#import <poll.h>
+#import <mach/mach_time.h>
 #import <sys/socket.h>
 #import <unistd.h>
 
 /*
  * 触动抓色器：判环境是否在跑 → HTTP 拉图，不走 SSH。
  * 子砚对位：framecap 监听 50005（占用则 50015）
- *   /status + /snapshot + /findtest（找色测试 toast）+ CORS。
+ *   默认回环；本机显式配对后开放 /status + /snapshot + /findtest。
  * PNG 用 ImageIO（daemon 禁 UIImagePNGRepresentation，曾导致 Empty reply）。
  */
 
@@ -28,6 +31,86 @@ static int sListenFd = -1;
 static int sPort = 0;
 static pthread_t sHttpThread;
 static volatile int sHttpThreadStarted = 0;
+static pthread_mutex_t sAuthLock = PTHREAD_MUTEX_INITIALIZER;
+static ZYSnapshotAuth sAuth;
+static BOOL sRemoteBound = NO;
+
+static mach_timebase_info_data_t sClockScale;
+static pthread_once_t sClockOnce = PTHREAD_ONCE_INIT;
+static void InitMonotonicClock(void) { mach_timebase_info(&sClockScale); }
+static double MonotonicNow(void *unused) {
+  (void)unused;
+  pthread_once(&sClockOnce, InitMonotonicClock);
+  return (double)mach_absolute_time() * sClockScale.numer / sClockScale.denom / 1e9;
+}
+
+static NSString *RandomPairingSecret(void) {
+  uint8_t bytes[32]; arc4random_buf(bytes, sizeof(bytes));
+  NSMutableString *s = [NSMutableString stringWithCapacity:64];
+  for (size_t i=0;i<sizeof(bytes);i++) [s appendFormat:@"%02x",bytes[i]];
+  return s;
+}
+
+NSString *ZiYanSnapshotHttpBeginPairing(void) {
+  NSString *code = RandomPairingSecret();
+  pthread_mutex_lock(&sAuthLock);
+  ZYSnapshotPairingBegin(&sAuth, code.UTF8String, MonotonicNow(NULL));
+  pthread_mutex_unlock(&sAuthLock);
+  return code;
+}
+
+void ZiYanSnapshotHttpStopPairing(void) {
+  pthread_mutex_lock(&sAuthLock);
+  ZYSnapshotPairingStop(&sAuth);
+  pthread_mutex_unlock(&sAuthLock);
+}
+
+typedef struct {
+  int fd;
+  BOOL loopback, guard;
+  uint32_t peer;
+  unsigned generation;
+  char bearer[129];
+  double sendDeadline;
+  BOOL sendFailed;
+} SnapshotConnection;
+/* One serial HTTP worker owns this context. Capture never uses it. */
+static SnapshotConnection sConnection;
+
+static int ClientAllowed(void *context) {
+  SnapshotConnection *c = context;
+  if (!c->guard) return 1;
+  pthread_mutex_lock(&sAuthLock);
+  int ok = c->generation == sAuth.generation &&
+      ZYSnapshotAuthorized(&sAuth,c->loopback,c->bearer,c->peer,MonotonicNow(NULL));
+  pthread_mutex_unlock(&sAuthLock);
+  return ok;
+}
+
+static int WaitClient(void *context, int writing, double deadline) {
+  SnapshotConnection *c = context;
+  while (MonotonicNow(NULL)<deadline) {
+    if (writing && !ClientAllowed(context)) return 0;
+    double left = deadline-MonotonicNow(NULL);
+    int ms = (int)(left*1000.0)+1;
+    if (ms>100) ms=100; /* revocation is observed while the peer is stalled */
+    struct pollfd p = {c->fd,writing ? POLLOUT : POLLIN,0};
+    int n = poll(&p,1,ms);
+    if (n>0) return (p.revents & (writing ? POLLOUT : POLLIN)) ? 1 : -1;
+    if (n<0 && errno!=EINTR) return -1;
+  }
+  return 0;
+}
+static long ReadClient(void *context,void *data,size_t n) {
+  return (long)recv(((SnapshotConnection *)context)->fd,data,n,0);
+}
+static long WriteClient(void *context,const void *data,size_t n) {
+  return (long)send(((SnapshotConnection *)context)->fd,data,n,0);
+}
+static ZYSnapshotIO ClientIO(void) {
+  ZYSnapshotIO io={&sConnection,MonotonicNow,WaitClient,ReadClient,WriteClient,ClientAllowed};
+  return io;
+}
 
 static void HandleClient(int cfd);
 static void *SnapshotHttpThreadMain(void *unused);
@@ -709,7 +792,7 @@ static void ApplyOrientQuery(int orient) {
   }
 }
 
-static int BindPort(int port) {
+static int BindPort(int port, BOOL remote) {
   int fd = socket(AF_INET, SOCK_STREAM, 0);
   if (fd < 0) {
     return -1;
@@ -722,7 +805,7 @@ static int BindPort(int port) {
   struct sockaddr_in addr;
   memset(&addr, 0, sizeof(addr));
   addr.sin_family = AF_INET;
-  addr.sin_addr.s_addr = htonl(INADDR_ANY);
+  addr.sin_addr.s_addr = htonl(remote ? INADDR_ANY : INADDR_LOOPBACK);
   addr.sin_port = htons((uint16_t)port);
   if (bind(fd, (struct sockaddr *)&addr, sizeof(addr)) != 0) {
     close(fd);
@@ -733,7 +816,10 @@ static int BindPort(int port) {
     return -1;
   }
   int flags = fcntl(fd, F_GETFL, 0);
-  fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+  if (flags<0 || fcntl(fd,F_SETFL,flags | O_NONBLOCK)<0) {
+    close(fd);
+    return -1;
+  }
   return fd;
 }
 
@@ -779,7 +865,7 @@ void ZiYanSnapshotHttpStart(void) {
   }
   const int ports[] = {50005, 50015};
   for (int i = 0; i < 2; i++) {
-    int fd = BindPort(ports[i]);
+    int fd = BindPort(ports[i], NO);
     if (fd >= 0) {
       sListenFd = fd;
       sPort = ports[i];
@@ -793,6 +879,7 @@ void ZiYanSnapshotHttpStart(void) {
   ZiYanWriteVarText(@".ziyan_snap_http_port",
                     [NSString stringWithFormat:@"%d\n", sPort]);
   ZiYanWriteVarText(@".ziyan_snap_http_alive", @"1\n");
+  ZiYanWriteVarText(@".ziyan_snap_http_access", @"loopback_only\n");
   SnapLog([NSString stringWithFormat:@"listen ok port=%d (TS-compat /status /snapshot)",
                                      sPort]);
   // status 是健康/帧龄门禁，不能和 IOMFB/UICreate 串行地困在 ServeLoop。
@@ -803,70 +890,50 @@ void ZiYanSnapshotHttpStart(void) {
     SnapLog(@"http_worker_start");
   } else {
     SnapLog(@"http_worker_start_fail");
+    close(sListenFd);
+    sListenFd=-1;
+    ZiYanWriteVarText(@".ziyan_snap_http_alive", @"0\n");
   }
 }
 
 static void SendAll(int fd, const void *buf, size_t len) {
-  const char *p = (const char *)buf;
-  size_t off = 0;
-  while (off < len) {
-    size_t chunk = len - off;
-    if (chunk > 64 * 1024) {
-      chunk = 64 * 1024;
-    }
-    ssize_t n = send(fd, p + off, chunk, 0);
-    if (n < 0) {
-      if (errno == EINTR || errno == EAGAIN) {
-        usleep(2000);
-        continue;
-      }
-      SnapLog([NSString stringWithFormat:@"send_fail errno=%d off=%zu/%zu", errno,
-                                         off, len]);
-      break;
-    }
-    if (n == 0) {
-      break;
-    }
-    off += (size_t)n;
+  if (fd!=sConnection.fd || sConnection.sendFailed) return;
+  if (!sConnection.sendDeadline) {
+    sConnection.sendDeadline=MonotonicNow(NULL)+ZY_SNAPSHOT_SEND_SECONDS;
+  }
+  ZYSnapshotIO io=ClientIO();
+  if (!ZYSnapshotSend(&io,buf,len,sConnection.sendDeadline)) {
+    sConnection.sendFailed=YES;
+    SnapLog([NSString stringWithFormat:@"send_stopped errno=%d deadline_or_disconnect_or_revocation",errno]);
   }
 }
 
-static void HandleClient(int cfd) {
-  char buf[2048];
-  ssize_t n = recv(cfd, buf, sizeof(buf) - 1, 0);
-  if (n <= 0) {
-    close(cfd);
-    return;
-  }
-  buf[n] = 0;
-  NSString *req = [[NSString alloc] initWithBytes:buf
-                                           length:(NSUInteger)n
-                                         encoding:NSUTF8StringEncoding];
-  if (!req) {
-    close(cfd);
-    return;
-  }
-  if ([req hasPrefix:@"OPTIONS"]) {
-    const char *resp = "HTTP/1.0 204 No Content\r\n"
-                       "Access-Control-Allow-Origin: *\r\n"
-                       "Access-Control-Allow-Methods: GET, POST, OPTIONS\r\n"
-                       "Access-Control-Allow-Headers: *\r\n"
-                       "Content-Length: 0\r\n\r\n";
-    SendAll(cfd, resp, strlen(resp));
-    close(cfd);
-    return;
-  }
+static void SendJSON(int fd,int status,NSDictionary *value) {
+  NSData *data=[NSJSONSerialization dataWithJSONObject:value options:0 error:nil];
+  NSString *head=[NSString stringWithFormat:@"HTTP/1.0 %d %@\r\nContent-Type: application/json\r\nCache-Control: no-store\r\nConnection: close\r\nContent-Length: %lu\r\n\r\n",status,status==200?@"OK":@"Rejected",(unsigned long)data.length];
+  NSData *hd=[head dataUsingEncoding:NSUTF8StringEncoding];
+  SendAll(fd,hd.bytes,hd.length);
+  SendAll(fd,data.bytes,data.length);
+}
 
-  BOOL isPost = [req hasPrefix:@"POST "];
-  NSString *path = @"/";
-  NSRange g = [req rangeOfString:isPost ? @"POST " : @"GET "];
-  if (g.location != NSNotFound) {
-    NSUInteger skip = isPost ? 5 : 4;
-    NSString *rest = [req substringFromIndex:g.location + skip];
-    NSRange sp = [rest rangeOfString:@" "];
-    if (sp.location != NSNotFound) {
-      path = [rest substringToIndex:sp.location];
-    }
+static void HandleClient(int cfd) {
+  ZYSnapshotRequest request;
+  ZYSnapshotIO io=ClientIO();
+  int received=ZYSnapshotReceive(&io,&request,MonotonicNow(NULL)+ZY_SNAPSHOT_RECEIVE_SECONDS);
+  if (received!=200) {
+    SendJSON(cfd,received,@{@"ok":@NO,@"err":@"invalid_or_incomplete_request"});
+    return;
+  }
+  if (request.has_origin) {
+    SendJSON(cfd,403,@{@"ok":@NO,@"err":@"browser_origin_rejected"});
+    return;
+  }
+  BOOL isPost = strcmp(request.method,"POST")==0;
+  NSString *path = [NSString stringWithUTF8String:request.target];
+  NSString *postBody = [[NSString alloc] initWithBytes:request.body length:request.body_length encoding:NSUTF8StringEncoding];
+  if (!path || !postBody) {
+    SendJSON(cfd,400,@{@"ok":@NO,@"err":@"invalid_utf8"});
+    return;
   }
   NSString *pathOnly = path;
   NSString *query = nil;
@@ -875,13 +942,49 @@ static void HandleClient(int cfd) {
     pathOnly = [path substringToIndex:q.location];
     query = [path substringFromIndex:q.location + 1];
   }
-  // POST body（找色测试参数）
-  NSString *postBody = nil;
-  if (isPost) {
-    NSRange sep = [req rangeOfString:@"\r\n\r\n"];
-    if (sep.location != NSNotFound) {
-      postBody = [req substringFromIndex:sep.location + 4];
+  if ([pathOnly isEqualToString:@"/pairing/start"] || [pathOnly isEqualToString:@"/pairing/stop"]) {
+    if (!sConnection.loopback || !isPost) {
+      SendJSON(cfd,403,@{@"ok":@NO,@"err":@"local_consent_required"});
+      return;
     }
+    if ([pathOnly hasSuffix:@"/start"]) {
+      NSString *code=ZiYanSnapshotHttpBeginPairing();
+      SendJSON(cfd,200,@{@"ok":@YES,@"pairing_code":code,@"pairing_seconds":@120,@"session_seconds":@900});
+    } else {
+      ZiYanSnapshotHttpStopPairing();
+      SendJSON(cfd,200,@{@"ok":@YES,@"remote_enabled":@NO});
+    }
+    return;
+  }
+  if ([pathOnly isEqualToString:@"/pair"]) {
+    if (!isPost) { SendJSON(cfd,405,@{@"ok":@NO,@"err":@"post_required"}); return; }
+    NSString *code=ParseQueryOrForm(postBody)[@"code"] ?: @"";
+    NSString *token=RandomPairingSecret();
+    pthread_mutex_lock(&sAuthLock);
+    BOOL paired=ZYSnapshotPair(&sAuth,code.UTF8String,token.UTF8String,sConnection.peer,MonotonicNow(NULL));
+    pthread_mutex_unlock(&sAuthLock);
+    SendJSON(cfd,paired?200:401,paired?@{@"ok":@YES,@"token":token,@"expires_in":@900}:@{@"ok":@NO,@"err":@"pairing_expired_or_invalid"});
+    return;
+  }
+  memcpy(sConnection.bearer,request.bearer,sizeof(sConnection.bearer));
+  pthread_mutex_lock(&sAuthLock);
+  sConnection.generation=sAuth.generation;
+  BOOL authorized=ZYSnapshotAuthorized(&sAuth,sConnection.loopback,request.bearer,sConnection.peer,MonotonicNow(NULL));
+  pthread_mutex_unlock(&sAuthLock);
+  if (!authorized) {
+    SendJSON(cfd,401,@{@"ok":@NO,@"err":@"pairing_required_or_expired"});
+    return;
+  }
+  if ([pathOnly isEqualToString:@"/pairing/revoke"]) {
+    if (!isPost) { SendJSON(cfd,405,@{@"ok":@NO,@"err":@"post_required"}); return; }
+    ZiYanSnapshotHttpStopPairing();
+    SendJSON(cfd,200,@{@"ok":@YES,@"remote_enabled":@NO});
+    return;
+  }
+  sConnection.guard=YES;
+  if (([pathOnly isEqualToString:@"/findtest"] || [pathOnly isEqualToString:@"/biztest"]) && !isPost) {
+    SendJSON(cfd,405,@{@"ok":@NO,@"err":@"post_required"});
+    return;
   }
 
   if ([pathOnly isEqualToString:@"/health"]) {
@@ -896,14 +999,12 @@ static void HandleClient(int cfd) {
     NSData *bd = [body dataUsingEncoding:NSUTF8StringEncoding];
     NSString *hdr = [NSString
         stringWithFormat:@"HTTP/1.0 200 OK\r\n"
-                         @"Access-Control-Allow-Origin: *\r\n"
                          @"Content-Type: text/plain; charset=utf-8\r\n"
                          @"Content-Length: %lu\r\n\r\n",
                          (unsigned long)bd.length];
     NSData *hd = [hdr dataUsingEncoding:NSUTF8StringEncoding];
     SendAll(cfd, hd.bytes, hd.length);
     SendAll(cfd, bd.bytes, bd.length);
-    close(cfd);
     return;
   }
 
@@ -1048,14 +1149,12 @@ static void HandleClient(int cfd) {
     NSData *bd = [body dataUsingEncoding:NSUTF8StringEncoding];
     NSString *hdr = [NSString
         stringWithFormat:@"HTTP/1.0 200 OK\r\n"
-                         @"Access-Control-Allow-Origin: *\r\n"
                          @"Content-Type: text/plain; charset=utf-8\r\n"
                          @"Content-Length: %lu\r\n\r\n",
                          (unsigned long)bd.length];
     NSData *hd = [hdr dataUsingEncoding:NSUTF8StringEncoding];
     SendAll(cfd, hd.bytes, hd.length);
     SendAll(cfd, bd.bytes, bd.length);
-    close(cfd);
     return;
   }
 
@@ -1070,14 +1169,12 @@ static void HandleClient(int cfd) {
     NSData *bd = [json dataUsingEncoding:NSUTF8StringEncoding];
     NSString *hdr = [NSString
         stringWithFormat:@"HTTP/1.0 200 OK\r\n"
-                         @"Access-Control-Allow-Origin: *\r\n"
                          @"Content-Type: application/json; charset=utf-8\r\n"
                          @"Content-Length: %lu\r\n\r\n",
                          (unsigned long)bd.length];
     NSData *hd = [hdr dataUsingEncoding:NSUTF8StringEncoding];
     SendAll(cfd, hd.bytes, hd.length);
     SendAll(cfd, bd.bytes, bd.length);
-    close(cfd);
     return;
   }
 
@@ -1093,14 +1190,12 @@ static void HandleClient(int cfd) {
     NSData *bd = [json dataUsingEncoding:NSUTF8StringEncoding];
     NSString *hdr = [NSString
         stringWithFormat:@"HTTP/1.0 200 OK\r\n"
-                         @"Access-Control-Allow-Origin: *\r\n"
                          @"Content-Type: application/json; charset=utf-8\r\n"
                          @"Content-Length: %lu\r\n\r\n",
                          (unsigned long)bd.length];
     NSData *hd = [hdr dataUsingEncoding:NSUTF8StringEncoding];
     SendAll(cfd, hd.bytes, hd.length);
     SendAll(cfd, bd.bytes, bd.length);
-    close(cfd);
     return;
   }
 
@@ -1122,6 +1217,7 @@ static void HandleClient(int cfd) {
       }
       usleep(50000);
     }
+    if (!ClientAllowed(&sConnection)) return;
     int orient = -1;
     if (query.length) {
       for (NSString *part in [query componentsSeparatedByString:@"&"]) {
@@ -1148,7 +1244,6 @@ static void HandleClient(int cfd) {
       SnapLog(@"snap_encode_empty frame_unavailable");
       NSString *hdr = [NSString
           stringWithFormat:@"HTTP/1.0 503 Unavailable\r\n"
-                           @"Access-Control-Allow-Origin: *\r\n"
                            @"Content-Type: application/json; charset=utf-8\r\n"
                            @"%@"
                            @"Content-Length: %lu\r\n\r\n",
@@ -1157,7 +1252,6 @@ static void HandleClient(int cfd) {
       NSData *hd = [hdr dataUsingEncoding:NSUTF8StringEncoding];
       SendAll(cfd, hd.bytes, hd.length);
       SendAll(cfd, bd.bytes, bd.length);
-      close(cfd);
       [[NSFileManager defaultManager]
           removeItemAtPath:ZiYanVarFile(@".ziyan_snap_http_busy")
                      error:nil];
@@ -1169,7 +1263,6 @@ static void HandleClient(int cfd) {
                                        tok.frame_seq]);
     NSString *hdr = [NSString
         stringWithFormat:@"HTTP/1.0 200 OK\r\n"
-                         @"Access-Control-Allow-Origin: *\r\n"
                          @"Content-Type: image/png\r\n"
                          @"Width: %zu\r\n"
                          @"Height: %zu\r\n"
@@ -1180,7 +1273,6 @@ static void HandleClient(int cfd) {
     NSData *hd = [hdr dataUsingEncoding:NSUTF8StringEncoding];
     SendAll(cfd, hd.bytes, hd.length);
     SendAll(cfd, png.bytes, png.length);
-    close(cfd);
     [[NSFileManager defaultManager]
         removeItemAtPath:ZiYanVarFile(@".ziyan_snap_http_busy")
                    error:nil];
@@ -1188,33 +1280,44 @@ static void HandleClient(int cfd) {
   }
 
   const char *resp = "HTTP/1.0 404 Not Found\r\n"
-                     "Access-Control-Allow-Origin: *\r\n"
                      "Content-Length: 10\r\n\r\n"
                      "not_found\n";
   SendAll(cfd, resp, strlen(resp));
-  close(cfd);
 }
 
-static void ConfigureClientSocket(int cfd) {
+static BOOL ConfigureClientSocket(int cfd) {
   int on = 1;
 #ifdef SO_NOSIGPIPE
   setsockopt(cfd, SOL_SOCKET, SO_NOSIGPIPE, &on, sizeof(on));
 #endif
-  struct timeval tv;
-  tv.tv_sec = 20;
-  tv.tv_usec = 0;
-  setsockopt(cfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
-  setsockopt(cfd, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv));
-  // 客户端必须阻塞发送完整 PNG（listen fd 才是 nonblock）。
+  // poll + one monotonic deadline covers the complete request/response.
   int fl = fcntl(cfd, F_GETFL, 0);
-  if (fl >= 0) {
-    fcntl(cfd, F_SETFL, fl & ~O_NONBLOCK);
+  return fl>=0 && fcntl(cfd,F_SETFL,fl | O_NONBLOCK)==0;
+}
+
+static void RefreshListenerBinding(void) {
+  pthread_mutex_lock(&sAuthLock);
+  double now=MonotonicNow(NULL);
+  BOOL remote=sAuth.pairing_until>now || sAuth.session_until>now;
+  pthread_mutex_unlock(&sAuthLock);
+  if (remote==sRemoteBound) return;
+  close(sListenFd);
+  sListenFd=BindPort(sPort,remote);
+  if (sListenFd<0 && remote) {
+    ZiYanSnapshotHttpStopPairing();
+    remote=NO;
+    sListenFd=BindPort(sPort,NO);
   }
+  sRemoteBound=remote;
+  ZiYanWriteVarText(@".ziyan_snap_http_access",sListenFd<0?@"unavailable\n":remote?@"lan_pairing_or_paired\n":@"loopback_only\n");
+  SnapLog([NSString stringWithFormat:@"listener_access %@",sListenFd<0?@"unavailable":remote?@"lan":@"loopback"]);
 }
 
 static void *SnapshotHttpThreadMain(void *unused) {
   (void)unused;
   while (sListenFd >= 0) {
+    RefreshListenerBinding();
+    if (sListenFd<0) break;
     struct sockaddr_in peer;
     socklen_t plen = sizeof(peer);
     int cfd = accept(sListenFd, (struct sockaddr *)&peer, &plen);
@@ -1227,11 +1330,29 @@ static void *SnapshotHttpThreadMain(void *unused) {
       usleep(10000);
       continue;
     }
-    ConfigureClientSocket(cfd);
+    if (!ConfigureClientSocket(cfd)) {
+      close(cfd);
+      SnapLog(@"http_nonblocking_setup_failed");
+      continue;
+    }
     @autoreleasepool {
-      HandleClient(cfd);
+      memset(&sConnection,0,sizeof(sConnection));
+      sConnection.fd=cfd;
+      sConnection.peer=peer.sin_addr.s_addr;
+      sConnection.loopback=(ntohl(peer.sin_addr.s_addr)>>24)==127;
+      @try {
+        HandleClient(cfd);
+      } @catch (NSException *exception) {
+        (void)exception;
+        SnapLog(@"http_request_exception");
+      } @finally {
+        close(cfd);
+        [[NSFileManager defaultManager] removeItemAtPath:ZiYanVarFile(@".ziyan_snap_http_busy") error:nil];
+      }
     }
   }
+  sHttpThreadStarted=0;
+  ZiYanWriteVarText(@".ziyan_snap_http_alive", @"0\n");
   return NULL;
 }
 

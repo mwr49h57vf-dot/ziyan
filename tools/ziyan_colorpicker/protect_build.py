@@ -57,10 +57,11 @@ def decrypt_bytes(blob: bytes) -> bytes:
 
 
 def build_payload(out_path=None) -> str:
-    files = ("formats.py", "ZiYanColorPicker.py")
+    files = ("formats.py", "paired_http.py", "ZiYanColorPicker.py")
     codes = {}
     for name in files:
-        src = open(os.path.join(HERE, name), "r", encoding="utf-8").read()
+        with open(os.path.join(HERE, name), "r", encoding="utf-8") as source:
+            src = source.read()
         codes[name] = compile(src, name, "exec")
     raw = marshal.dumps(codes, 4)
     blob = encrypt_bytes(raw)

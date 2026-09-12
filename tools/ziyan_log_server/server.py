@@ -9,23 +9,35 @@ import argparse
 import base64
 import datetime
 import hashlib
+import hmac
 import io
 import json
 import mimetypes
 import os
 import re
+import shutil
+import tempfile
+import tarfile
 import threading
+from functools import cmp_to_key
 import urllib.parse
 import zipfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+try:
+    from .package_contract import cmp_version, split_version, deb_metadata
+except ImportError:
+    from package_contract import cmp_version, split_version, deb_metadata
 
 DEFAULT_ROOT = "/Users/mac/Desktop/ZiYan_副本/ziyan_web_data"
 DEFAULT_PORT = 18091
 
 ROOT = DEFAULT_ROOT
-INDEX_LOCK = threading.Lock()
+INDEX_LOCK = threading.RLock()
 MANIFEST_LOCK = threading.Lock()
 SERVER_DIR = os.path.dirname(os.path.abspath(__file__))
+ADMIN_TOKEN = ""
+LOG_TOKEN = ""
+IMPORT_ROOT = ""
 
 # ---------- 基础工具 ----------
 
@@ -40,6 +52,8 @@ def ensure_dirs():
               os.path.join(ROOT, "hotupdate", "packages"),
               os.path.join(ROOT, "apt")):
         os.makedirs(d, exist_ok=True)
+    with INDEX_LOCK:
+        recover_pending_event()
 
 def atomic_write_bytes(path, data: bytes):
     d = os.path.dirname(os.path.abspath(path))
@@ -51,11 +65,47 @@ def atomic_write_bytes(path, data: bytes):
     with open(tmp, "wb") as f:
         f.write(data)
         f.flush()
-        try:
-            os.fsync(f.fileno())
-        except Exception:
-            pass
+        os.fsync(f.fileno())
     os.replace(tmp, path)
+    sync_directory(d)
+
+
+def sync_directory(path):
+    # POSIX requires the directory entry to be synced after rename; Windows does
+    # not expose directory fsync. File fsync errors are never ignored.
+    if os.name != "nt":
+        fd = os.open(path, os.O_RDONLY)
+        try:
+            os.fsync(fd)
+        finally:
+            os.close(fd)
+
+
+def recover_pending_event():
+    pending = os.path.join(ROOT, "logs", ".pending.json")
+    if not os.path.exists(pending):
+        return
+    with open(pending, encoding="utf-8") as f:
+        transaction = json.load(f)
+    entry, data = transaction["entry"], transaction["body"].encode("utf-8")
+    dest = os.path.realpath(os.path.join(ROOT, entry["path"]))
+    logs = os.path.realpath(os.path.join(ROOT, "logs"))
+    if os.path.commonpath([dest, logs]) != logs or sha256_bytes(data) != entry["sha256"]:
+        raise ValueError("invalid_event_journal")
+    entries = load_index_entries()
+    existing = next((e for e in entries if e.get("event_id") == entry["event_id"]), None)
+    if existing and existing != entry:
+        raise ValueError("event_journal_conflict")
+    if os.path.exists(dest):
+        if sha256_file(dest) != entry["sha256"]:
+            raise ValueError("event_body_conflict")
+    else:
+        atomic_write_bytes(dest, data)
+    if not existing:
+        entries.append(entry)
+        atomic_write_text(index_path(), "".join(json.dumps(e, ensure_ascii=False) + "\n" for e in entries))
+    os.remove(pending)
+    sync_directory(os.path.dirname(pending))
 
 def atomic_write_text(path, text: str):
     atomic_write_bytes(path, text.encode("utf-8"))
@@ -93,10 +143,10 @@ def load_index_entries():
                 line = line.strip()
                 if not line:
                     continue
-                try:
-                    entries.append(json.loads(line))
-                except Exception:
-                    continue
+                entry = json.loads(line)
+                if not isinstance(entry, dict) or not entry.get("event_id"):
+                    raise ValueError("invalid_event_index")
+                entries.append(entry)
     except FileNotFoundError:
         return []
     return entries
@@ -198,7 +248,7 @@ def parse_version_tuple(s: str):
             continue
     return tuple(out)
 
-def cmp_version(a: str, b: str) -> int:
+def cmp_numeric_version(a: str, b: str) -> int:
     ta = parse_version_tuple(a)
     tb = parse_version_tuple(b)
     n = max(len(ta), len(tb))
@@ -343,13 +393,13 @@ def load_manifest():
     try:
         with open(p, "r", encoding="utf-8") as f:
             data = json.load(f)
-        if not isinstance(data, dict):
-            return {"versions": [], "channels": {}, "updated_at": ""}
+        if not isinstance(data, dict) or not isinstance(data.get("versions", []), list):
+            raise ValueError("invalid_manifest")
         data.setdefault("versions", [])
         data.setdefault("channels", {})
         data.setdefault("updated_at", "")
         return data
-    except Exception:
+    except FileNotFoundError:
         return {"versions": [], "channels": {}, "updated_at": ""}
 
 def save_manifest_atomic(data: dict):
@@ -408,12 +458,28 @@ class Handler(BaseHTTPRequestHandler):
             return b""
         return self.rfile.read(n)
 
+    def _authorized(self, admin=False):
+        expected = ADMIN_TOKEN if admin else LOG_TOKEN
+        if not expected and not admin:
+            return True  # Existing device upload contract remains public unless configured.
+        if not expected:
+            self._send_json({"ok": False, "error": "admin_not_configured"}, 503)
+            return False
+        supplied = self.headers.get("Authorization", "")
+        if not supplied:
+            self._send_json({"ok": False, "error": "authorization_required"}, 401)
+            return False
+        if not hmac.compare_digest(supplied.encode(), ("Bearer " + expected).encode()):
+            self._send_json({"ok": False, "error": "permission_denied"}, 403)
+            return False
+        return True
+
     # -- 路由 --
     def do_OPTIONS(self):
         self.send_response(204)
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
         self.send_header("Content-Length", "0")
         self.end_headers()
 
@@ -422,6 +488,13 @@ class Handler(BaseHTTPRequestHandler):
         path = urllib.parse.unquote(parsed.path)
         qs = urllib.parse.parse_qs(parsed.query, keep_blank_values=True)
         try:
+            if path == "/api/admin/session":
+                if not self._authorized(admin=True):
+                    return
+                return self._send_json({"ok": True, "role": "publisher"})
+            if path.startswith("/api/logs"):
+                with INDEX_LOCK:
+                    recover_pending_event()
             if path == "/":
                 return self.handle_root()
             if path == "/api/logs/download.zip":
@@ -461,7 +534,7 @@ class Handler(BaseHTTPRequestHandler):
             pass
         except Exception as e:
             try:
-                self._send_json({"ok": False, "error": "internal: %s" % e}, 500)
+                self._send_json({"ok": False, "error": "internal_error"}, 500)
             except Exception:
                 pass
 
@@ -478,7 +551,7 @@ class Handler(BaseHTTPRequestHandler):
             pass
         except Exception as e:
             try:
-                self._send_json({"ok": False, "error": "internal: %s" % e}, 500)
+                self._send_json({"ok": False, "error": "internal_error"}, 500)
             except Exception:
                 pass
 
@@ -495,7 +568,9 @@ class Handler(BaseHTTPRequestHandler):
 
     # -- 1. POST /api/logs --
     def handle_logs_post(self):
-        raw = self._read_body()
+        if not self._authorized():
+            return
+        raw = self._read_body(limit=2 * 1024 * 1024)
         if not raw:
             return self._send_json({"ok": False, "error": "empty_body"}, 400)
         try:
@@ -511,40 +586,38 @@ class Handler(BaseHTTPRequestHandler):
         # 安全：event_id 只允许常见字符，防止路径穿越
         if not re.match(r"^[A-Za-z0-9_\-\.]+$", event_id):
             return self._send_json({"ok": False, "error": "bad_event_id"}, 400)
-        # 幂等
-        exist = event_file_for(event_id)
-        if exist is not None:
-            old_entry = find_index_entry(event_id)
-            stored = old_entry.get("path") if old_entry and old_entry.get("path") else os.path.relpath(exist, ROOT)
-            return self._send_json({"ok": True, "dedup": True, "event_id": event_id, "stored": stored}, 200)
-        received_at = now_str()
-        date_dir = date_dir_for(report, received_at)
-        rel_path = "logs/%s/%s.json" % (date_dir, event_id)
-        abs_path = os.path.join(ROOT, rel_path)
-        # 原子写盘：规范化 JSON（与设备 report.json 同构）
-        canonical = json.dumps(report, ensure_ascii=False, indent=2, sort_keys=False)
-        data_bytes = (canonical + "\n").encode("utf-8")
-        atomic_write_bytes(abs_path, data_bytes)
-        digest = sha256_bytes(data_bytes)
-        entry = {
-            "event_id": event_id,
-            "device": extract_device_str(report),
-            "time": str(report.get("time", "")),
-            "type": str(report.get("type", "")),
-            "path": rel_path,
-            "sha256": digest,
-            "received_at": received_at,
-        }
-        # 二次幂等（并发）：若索引已存在则视为 dedup
-        with INDEX_LOCK:
-            cur = load_index_entries()
-            for e in cur:
-                if e.get("event_id") == event_id:
-                    return self._send_json({"ok": True, "dedup": True, "event_id": event_id, "stored": e.get("path", rel_path)}, 200)
-            cur.append(entry)
-            lines = "".join(json.dumps(e, ensure_ascii=False) + "\n" for e in cur)
-            atomic_write_text(index_path(), lines)
-        return self._send_json({"ok": True, "dedup": False, "event_id": event_id, "stored": rel_path}, 200)
+        if not INDEX_LOCK.acquire(timeout=10):
+            return self._send_json({"ok": False, "error": "storage_busy"}, 503)
+        try:
+            recover_pending_event()
+            existing = find_index_entry(event_id)
+            exist = event_file_for(event_id)
+            if exist:
+                if load_event_json(exist) != report:
+                    return self._send_json({"ok": False, "error": "event_conflict", "event_id": event_id}, 409)
+                # Repair pre-journal orphan files without changing their original bytes.
+                with open(exist, "rb") as f:
+                    data_bytes = f.read()
+                rel_path = os.path.relpath(exist, ROOT).replace(os.sep, "/")
+                if existing:
+                    if existing.get("sha256") != sha256_bytes(data_bytes):
+                        return self._send_json({"ok": False, "error": "stored_hash_mismatch"}, 500)
+                    return self._send_json({"ok": True, "dedup": True, "event_id": event_id, "stored": rel_path})
+            else:
+                if existing:
+                    return self._send_json({"ok": False, "error": "stored_body_missing"}, 500)
+                rel_path = "logs/%s/%s.json" % (date_dir_for(report, now_str()), event_id)
+                data_bytes = (json.dumps(report, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
+            entry = {"event_id": event_id, "device": extract_device_str(report),
+                     "time": str(report.get("time", "")), "type": str(report.get("type", "")),
+                     "path": rel_path, "sha256": sha256_bytes(data_bytes), "received_at": now_str()}
+            atomic_write_text(os.path.join(ROOT, "logs", ".pending.json"),
+                              json.dumps({"entry": entry, "body": data_bytes.decode("utf-8")}, ensure_ascii=False))
+            recover_pending_event()
+            result = {"ok": True, "dedup": bool(exist), "event_id": event_id, "stored": rel_path}
+        finally:
+            INDEX_LOCK.release()
+        return self._send_json(result)
 
     # -- 过滤公共逻辑 --
     def _filtered_records(self, qs, apply_limit=True, for_download=False):
@@ -758,116 +831,105 @@ class Handler(BaseHTTPRequestHandler):
 
     # -- 5. POST /api/hotupdate/publish --
     def handle_hotupdate_publish(self):
-        raw = self._read_body()
-        if not raw:
-            try:
-                refresh_apt_dist()
-            except Exception:
-                pass
-            return self._send_json({"ok": False, "error": "empty_body"}, 400)
+        if not self._authorized(admin=True):
+            return
+        raw = self._read_body(limit=64 * 1024)
         try:
             body = json.loads(raw.decode("utf-8"))
-        except Exception:
+            if not isinstance(body, dict):
+                raise ValueError("invalid_json")
+        except (ValueError, UnicodeDecodeError):
             return self._send_json({"ok": False, "error": "invalid_json"}, 400)
-        if not isinstance(body, dict):
-            return self._send_json({"ok": False, "error": "invalid_json"}, 400)
-        version = str(body.get("version", "")).strip()
-        channel = str(body.get("channel", "stable")).strip() or "stable"
-        package_path = str(body.get("package_path", "")).strip()
-        architecture = str(body.get("architecture", "")).strip()
-        min_os = str(body.get("min_os", "")).strip()
-        max_os = str(body.get("max_os", "")).strip()
-        ziyan_min = str(body.get("ziyan_min", "")).strip()
-        notes = str(body.get("notes", ""))
-        want_sha = str(body.get("sha256", "")).strip().lower()
-        if not version:
-            return self._send_json({"ok": False, "error": "missing_version"}, 400)
-        if not re.match(r"^[A-Za-z0-9_\-\.\+]+$", version):
-            return self._send_json({"ok": False, "error": "bad_version"}, 400)
-        if not package_path or not os.path.isabs(package_path):
+        if not IMPORT_ROOT:
+            return self._send_json({"ok": False, "error": "import_not_configured"}, 503)
+        source = str(body.get("package_path", ""))
+        import_root = os.path.realpath(IMPORT_ROOT)
+        source = os.path.realpath(source if os.path.isabs(source) else os.path.join(import_root, source))
+        try:
+            allowed = os.path.commonpath([source, import_root]) == import_root
+        except ValueError:
+            allowed = False
+        if not allowed or not source.lower().endswith(".deb") or not os.path.isfile(source):
             return self._send_json({"ok": False, "error": "bad_package_path"}, 400)
-        if not os.path.isfile(package_path):
-            return self._send_json({"ok": False, "error": "package_not_found"}, 400)
-        if architecture not in ("iphoneos-arm", "iphoneos-arm64"):
-            return self._send_json({"ok": False, "error": "bad_architecture"}, 400)
-        if not min_os or not max_os or not ziyan_min:
-            return self._send_json({"ok": False, "error": "missing_compat"}, 400)
-        # 计算 sha256 + size
+        channel = str(body.get("channel", "stable")).strip() or "stable"
+        if not re.fullmatch(r"[A-Za-z0-9_.]+", channel):
+            return self._send_json({"ok": False, "error": "bad_channel"}, 400)
+        # Read into a private snapshot once; metadata, digest and published bytes
+        # all refer to this snapshot even if the source is replaced concurrently.
+        staging = os.path.join(ROOT, "hotupdate", "imports")
+        os.makedirs(staging, exist_ok=True)
+        fd, tmp = tempfile.mkstemp(prefix="publish-", suffix=".deb", dir=staging)
         try:
-            digest = sha256_file(package_path)
-            size = file_size(package_path)
-        except Exception as e:
-            return self._send_json({"ok": False, "error": "read_package: %s" % e}, 500)
-        if want_sha and want_sha != digest.lower():
-            return self._send_json({"ok": False, "error": "sha256_mismatch", "expect": digest}, 400)
-        fname = os.path.basename(package_path)
-        dest_dir = os.path.join(packages_dir(), version)
-        os.makedirs(dest_dir, exist_ok=True)
-        dest = os.path.join(dest_dir, fname)
-        # 原子复制：先写临时文件再 replace（支持大文件分块）
-        import random
-        tmp = dest + ".tmp.%d.%d" % (os.getpid(), random.randint(0, 1 << 30))
-        try:
-            h = hashlib.sha256()
-            with open(package_path, "rb") as src, open(tmp, "wb") as dst:
+            with os.fdopen(fd, "wb") as dst, open(source, "rb") as src:
+                size = 0
                 for chunk in iter(lambda: src.read(1024 * 1024), b""):
-                    h.update(chunk)
+                    size += len(chunk)
+                    if size > 300 * 1024 * 1024:
+                        raise ValueError("package_too_large")
                     dst.write(chunk)
                 dst.flush()
-                try:
-                    os.fsync(dst.fileno())
-                except Exception:
-                    pass
-            # 二次确认
-            if h.hexdigest().lower() != digest.lower():
-                try:
-                    os.remove(tmp)
-                except Exception:
-                    pass
-                return self._send_json({"ok": False, "error": "copy_hash_mismatch"}, 500)
-            os.replace(tmp, dest)
-        except Exception as e:
-            try:
-                if os.path.exists(tmp):
-                    os.remove(tmp)
-            except Exception:
-                pass
-            return self._send_json({"ok": False, "error": "copy_failed: %s" % e}, 500)
-        url = "/hotupdate/packages/%s/%s" % (version, fname)
-        published_at = now_str()
-        with MANIFEST_LOCK:
-            man = load_manifest()
-            vers = man.get("versions", [])
-            entry = {
-                "version": version,
-                "channel": channel,
-                "file": fname,
-                "url": url,
-                "sha256": digest,
-                "size": size,
-                "architecture": architecture,
-                "min_os": min_os,
-                "max_os": max_os,
-                "ziyan_min": ziyan_min,
-                "notes": notes,
-                "published_at": published_at,
-            }
-            replaced = False
-            for i, v in enumerate(vers):
-                if v.get("version") == version:
-                    vers[i] = entry
-                    replaced = True
-                    break
-            if not replaced:
-                vers.append(entry)
-            man["versions"] = vers
-            ch = man.get("channels", {})
-            ch[channel] = version
-            man["channels"] = ch
-            man["updated_at"] = published_at
-            text = json.dumps(man, ensure_ascii=False, indent=2)
-            atomic_write_text(manifest_path(), text)
-        return self._send_json({"ok": True, "version": version, "sha256": digest, "url": url, "size": size, "channel": channel}, 200)
+                os.fsync(dst.fileno())
+            metadata = deb_metadata(tmp)
+            for key in ("package", "version", "architecture"):
+                if body.get(key) and str(body[key]).strip() != metadata[key]:
+                    raise ValueError("package_metadata_mismatch")
+            version, architecture = metadata["version"], metadata["architecture"]
+            # Existing control files declare a firmware minimum. Administrators
+            # may narrow the tested range, but cannot weaken package constraints.
+            min_os = str(body.get("min_os") or metadata["min_os"])
+            max_os = str(body.get("max_os") or metadata["max_os"])
+            ziyan_min = str(body.get("ziyan_min") or metadata["ziyan_min"])
+            if not max_os or not ziyan_min:
+                raise ValueError("missing_compat")
+            if cmp_version(min_os, metadata["min_os"]) < 0 or cmp_version(max_os, min_os) < 0:
+                raise ValueError("incompatible_declared_bounds")
+            if metadata["max_os"] and cmp_version(max_os, metadata["max_os"]) > 0:
+                raise ValueError("incompatible_declared_bounds")
+            split_version(ziyan_min)
+            if metadata["ziyan_min"] and cmp_version(ziyan_min, metadata["ziyan_min"]) < 0:
+                raise ValueError("incompatible_declared_bounds")
+            digest = sha256_file(tmp)
+            if body.get("sha256") and str(body["sha256"]).lower() != digest:
+                raise ValueError("sha256_mismatch")
+            # Content-addressed names prevent an existing download from changing.
+            # Epoch ':' is kept in metadata and URL-encoded for filesystem portability.
+            version_dir = version.replace(":", "_epoch_")
+            fname = architecture + "-" + digest + ".deb"
+            url = "/hotupdate/packages/%s/%s" % (version_dir, fname)
+            dest_dir = os.path.join(packages_dir(), version_dir)
+            os.makedirs(dest_dir, exist_ok=True)
+            with MANIFEST_LOCK:
+                man = load_manifest()
+                versions = man.get("versions", [])
+                existing = next((v for v in versions if v.get("version") == version and
+                                 v.get("architecture") == architecture and v.get("channel") == channel), None)
+                if existing and existing.get("sha256") != digest:
+                    return self._send_json({"ok": False, "error": "published_version_conflict"}, 409)
+                if existing:
+                    # A retry acknowledges exactly the metadata already committed.
+                    # It must not advertise uncommitted bounds or notes.
+                    return self._send_json({"ok": True, **existing})
+                os.replace(tmp, os.path.join(dest_dir, fname))
+                sync_directory(dest_dir)
+                entry = {"package": metadata["package"], "version": version, "channel": channel,
+                         "file": fname, "url": url, "sha256": digest, "size": size,
+                         "architecture": architecture, "min_os": min_os, "max_os": max_os,
+                         "ziyan_min": ziyan_min, "package_min_os": metadata["min_os"],
+                         "notes": str(body.get("notes", "")), "published_at": now_str()}
+                if not existing:
+                    versions.append(entry)
+                man["versions"] = versions
+                man.setdefault("channels", {})[channel] = version
+                man["updated_at"] = now_str()
+                atomic_write_text(manifest_path(), json.dumps(man, ensure_ascii=False, indent=2))
+            return self._send_json({"ok": True, **entry})
+        except (ValueError, UnicodeError, tarfile.TarError):
+            return self._send_json({"ok": False, "error": "invalid_package_or_metadata"}, 400)
+        except OSError:
+            return self._send_json({"ok": False, "error": "package_storage_failed"}, 500)
+        finally:
+            if os.path.exists(tmp):
+                os.remove(tmp)
 
     # -- 6. GET /api/hotupdate/check --
     def handle_hotupdate_check(self, qs):
@@ -890,8 +952,11 @@ class Handler(BaseHTTPRequestHandler):
             return self._send_json({"ok": True, "update": False, "reason": "no_update",
                                     "detail": "channel '%s' has no published version" % channel}, 200)
         head = next((v for v in candidates if v.get("version") == target_ver), None)
-        ordered = ([head] if head else []) + [v for v in candidates if v is not head]
-        ordered.sort(key=lambda v: (v is head, v.get("published_at", "")), reverse=True)
+        try:
+            split_version(ziyan)
+            ordered = sorted(candidates, key=cmp_to_key(lambda a, b: cmp_version(a["version"], b["version"])), reverse=True)
+        except (ValueError, KeyError):
+            return self._send_json({"ok": False, "update": False, "error": "bad_version"}, 400)
         def reasons_for(v):
             out = []
             if not arch_match(v.get("architecture", ""), arch):
@@ -920,9 +985,15 @@ class Handler(BaseHTTPRequestHandler):
         if entry is None:
             return self._send_json({"ok": True, "update": False, "reason": "device_incompatible",
                                     "detail": "; ".join(head_fails) or "no compatible version"}, 200)
+        if cmp_version(entry["version"], ziyan) <= 0:
+            return self._send_json({"ok": True, "update": False, "reason": "no_update"})
         return self._send_json({
             "ok": True,
             "update": True,
+            "architecture": entry.get("architecture", ""),
+            "min_os": entry.get("min_os", ""),
+            "max_os": entry.get("max_os", ""),
+            "ziyan_min": entry.get("ziyan_min", ""),
             "version": entry.get("version", ""),
             "sha256": entry.get("sha256", ""),
             "url": entry.get("url", ""),
@@ -1095,14 +1166,56 @@ class Handler(BaseHTTPRequestHandler):
         return self._send_bytes(data, "text/html; charset=utf-8", 200)
 
 
+def acquire_storage_lock():
+    """Keep one process per data root; threads share the event transaction lock."""
+    os.makedirs(ROOT, exist_ok=True)
+    handle = open(os.path.join(ROOT, ".server.lock"), "a+b")
+    try:
+        if os.name == "nt":
+            import msvcrt
+            handle.seek(0)
+            if not handle.read(1):
+                handle.write(b"0")
+                handle.flush()
+            handle.seek(0)
+            msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
+        else:
+            import fcntl
+            fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError:
+        handle.close()
+        raise RuntimeError("data root is already in use") from None
+    return handle
+
+
 def main():
-    global ROOT
+    global ROOT, ADMIN_TOKEN, LOG_TOKEN, IMPORT_ROOT
     ap = argparse.ArgumentParser(description="ZiYan log server v1")
     ap.add_argument("--root", default=DEFAULT_ROOT, help="data root")
     ap.add_argument("--port", type=int, default=DEFAULT_PORT, help="listen port")
-    ap.add_argument("--host", default="0.0.0.0", help="listen host")
+    ap.add_argument("--host", default="127.0.0.1", help="listen host; LAN requires --allow-lan")
+    ap.add_argument("--allow-lan", action="store_true", help="explicitly allow a non-loopback listener")
+    ap.add_argument("--import-root", default="", help="allowed package import directory")
+    ap.add_argument("--admin-token-file", help="publisher token file; publishing disabled if absent")
+    ap.add_argument("--log-token-file", help="optional separate device ingestion token file")
     args = ap.parse_args()
+    if args.host not in ("127.0.0.1", "::1", "localhost") and not args.allow_lan:
+        ap.error("non-loopback listening requires --allow-lan")
+    def token_file(path):
+        if not path:
+            return ""
+        with open(path, encoding="utf-8") as f:
+            value = f.read().strip()
+        if len(value) < 24 or "\n" in value or "\r" in value:
+            ap.error("tokens must contain at least 24 characters and no newline")
+        return value
+    ADMIN_TOKEN = token_file(args.admin_token_file)
+    LOG_TOKEN = token_file(args.log_token_file)
+    if ADMIN_TOKEN and LOG_TOKEN and hmac.compare_digest(ADMIN_TOKEN, LOG_TOKEN):
+        ap.error("publisher and device tokens must differ")
+    IMPORT_ROOT = os.path.realpath(args.import_root) if args.import_root else ""
     ROOT = os.path.abspath(args.root)
+    storage_lock = acquire_storage_lock()
     ensure_dirs()
     print("ZiYan log server v1 root=%s port=%d" % (ROOT, args.port), flush=True)
     httpd = ThreadingHTTPServer((args.host, args.port), Handler)
@@ -1111,6 +1224,9 @@ def main():
         httpd.serve_forever()
     except KeyboardInterrupt:
         pass
+    finally:
+        httpd.server_close()
+        storage_lock.close()
 
 if __name__ == "__main__":
     main()

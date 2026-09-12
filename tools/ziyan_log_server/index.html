@@ -76,9 +76,14 @@ InRelease 为说明文本（非 GPG clearsign）；签名验证走 Release + Rel
 <section>
 <h2>一键发布热更新（POST /api/hotupdate/publish）</h2>
 <div>
+<label>管理员凭证 <input type="password" id="adminToken" autocomplete="off" placeholder="输入发布管理员凭证"></label>
+<button id="btnAuthorize">验证授权</button><button id="btnForgetAuth" class="danger">清除凭证</button>
+<span id="authMsg" role="status">尚未授权。设备上报凭证不能用于发布。</span>
+</div>
+<div>
 <label>version <input type="text" id="pVersion" value="0.0.92-test1"></label>
 <label>channel <input type="text" id="pChannel" value="stable" style="width:110px"></label>
-<label>package_path(服务端本地绝对路径) <input type="text" id="pPkg" style="width:480px" value="/Users/mac/Desktop/ZiYan_副本/packages/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-15_iphoneos-arm.deb"></label>
+<label>导入目录中的安装包 <input type="text" id="pPkg" style="width:480px" placeholder="例如 com.ziyan.ziyan_版本_架构.deb"></label>
 </div>
 <div>
 <label>architecture <select id="pArch"><option value="iphoneos-arm">iphoneos-arm</option><option value="iphoneos-arm64">iphoneos-arm64</option></select></label>
@@ -115,6 +120,20 @@ InRelease 为说明文本（非 GPG clearsign）；签名验证走 Release + Rel
 function $(id){return document.getElementById(id);}
 function setMsg(id,t,isErr){var e=$(id);e.textContent=t;e.className=isErr?"err":"";}
 function esc(s){return String(s==null?"":s);}
+function authHeaders(){return {"Content-Type":"application/json","Authorization":"Bearer "+$("adminToken").value.trim()};}
+function authError(status,code){
+  if(status===401)return "缺少管理员凭证，请输入后验证授权。";
+  if(status===403)return "凭证无效、已失效或权限不足。请使用发布管理员凭证。";
+  if(code==="admin_not_configured")return "服务尚未配置发布管理员凭证。";
+  return "授权失败，HTTP "+status;
+}
+$("btnAuthorize").onclick=async function(){
+  if(!$("adminToken").value.trim()){setMsg("authMsg",authError(401),true);return;}
+  try{var r=await fetch("/api/admin/session",{headers:authHeaders()});var j=await r.json();
+    setMsg("authMsg",r.ok&&j.ok?"已获得发布权限。凭证仅保留在此页面。":authError(r.status,j.error),!r.ok||!j.ok);
+  }catch(e){setMsg("authMsg","授权请求失败: "+e,true);}
+};
+$("btnForgetAuth").onclick=function(){$("adminToken").value="";setMsg("authMsg","凭证已清除。",false);};
 function qstr(){
   var p=[];
   if($("fDevice").value) p.push("device="+encodeURIComponent($("fDevice").value.trim()));
@@ -225,6 +244,7 @@ $("btnAptKey").onclick=()=>{location.href="/apt/ziyan-apt-key.asc";};
 $("btnAptArm").onclick=async()=>{try{const r=await fetch("/apt/dists/stable/main/binary-iphoneos-arm/Packages");$("aptResult").textContent=await r.text();setMsg("aptMsg","HTTP "+r.status,false);}catch(e){setMsg("aptMsg","失败: "+e,false);}};
 $("btnAptArm64").onclick=async()=>{try{const r=await fetch("/apt/dists/stable/main/binary-iphoneos-arm64/Packages");$("aptResult").textContent=await r.text();setMsg("aptMsg","HTTP "+r.status,false);}catch(e){setMsg("aptMsg","失败: "+e,false);}};
 $("btnPublish").onclick=function(){
+  if(!$("adminToken").value.trim()){setMsg("pubMsg",authError(401),true);return;}
   setMsg("pubMsg","发布中...",false);
   $("pubResult").textContent="发布中...";
   var body={
@@ -237,9 +257,11 @@ $("btnPublish").onclick=function(){
     ziyan_min:$("pZMin").value.trim(),
     notes:$("pNotes").value
   };
-  fetch("/api/hotupdate/publish",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}).then(function(r){return r.text().then(function(t){return {st:r.status,t:t};});}).then(function(o){
+  fetch("/api/hotupdate/publish",{method:"POST",headers:authHeaders(),body:JSON.stringify(body)}).then(function(r){return r.text().then(function(t){return {st:r.status,t:t};});}).then(function(o){
     try{var j=JSON.parse(o.t);$("pubResult").textContent="HTTP "+o.st+"\n"+JSON.stringify(j,null,2);}catch(e){$("pubResult").textContent="HTTP "+o.st+"\n"+o.t;}
-    setMsg("pubMsg","完成 HTTP "+o.st,false);
+    var ok=o.st===200&&j&&j.ok;
+    var message=ok?"发布成功。":((o.st===401||o.st===403||(j&&j.error==="admin_not_configured"))?authError(o.st,j&&j.error):"发布失败: "+((j&&j.error)||("HTTP "+o.st)));
+    setMsg("pubMsg",message,!ok);
   }).catch(function(e){setMsg("pubMsg","请求失败: "+e,true);$("pubResult").textContent="请求失败: "+e;});
 };
 $("btnCheck").onclick=function(){

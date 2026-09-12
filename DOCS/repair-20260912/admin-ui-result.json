@@ -1,0 +1,33 @@
+{
+  "missing": "缺少管理员凭证，请输入后验证授权。",
+  "denied": "凭证无效、已失效或权限不足。请使用发布管理员凭证。",
+  "expired": "凭证无效、已失效或权限不足。请使用发布管理员凭证。",
+  "authorized": "已获得发布权限。凭证仅保留在此页面。",
+  "published": "发布成功。",
+  "exceptions": [],
+  "consoleErrors": [],
+  "loadingFailures": [],
+  "responses": [
+    {
+      "url": "http://127.0.0.1:37944/api/logs?limit=2000",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:37944/api/admin/session",
+      "status": 403
+    },
+    {
+      "url": "http://127.0.0.1:37944/api/hotupdate/publish",
+      "status": 403
+    },
+    {
+      "url": "http://127.0.0.1:37944/api/admin/session",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:37944/api/hotupdate/publish",
+      "status": 200
+    }
+  ],
+  "credentialStored": false
+}

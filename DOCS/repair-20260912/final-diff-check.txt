@@ -1,0 +1,17 @@
+exit_code=0
+warning: safe.directory ''*'' not absolute
+warning: in the working copy of 'Makefile', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'layout/DEBIAN/postinst', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'lua/modules/HotUpdate.lua', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tools/ziyan_apt/verify_repo.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tools/ziyan_colorpicker/USAGE.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tools/ziyan_colorpicker/ZiYanColorPicker.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tools/ziyan_colorpicker/build_exe.bat', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tools/ziyan_colorpicker/picker_boot.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tools/ziyan_colorpicker/protect_build.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tools/ziyan_framecap/ZiYanSnapshotHttp.h', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tools/ziyan_framecap/ZiYanSnapshotHttp.m', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tools/ziyan_log_server/README.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tools/ziyan_log_server/index.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tools/ziyan_log_server/server.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tools/zy_deploy_rootful_3phone.sh', LF will be replaced by CRLF the next time Git touches it

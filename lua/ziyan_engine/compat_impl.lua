@@ -1203,6 +1203,8 @@ end
 function thread.wait(...)
   if type(_G.Zy) == "table" and _G.Zy.Thread then return _G.Zy.Thread.wait(...) end
   local ms = tonumber((...)) or 0
+  local co, is_main = coroutine.running()
+  if co and not is_main then return coroutine.yield(ms) end
   if type(_G.mSleep) == "function" then mSleep(ms); return true end
   return nyi("thread.wait")
 end

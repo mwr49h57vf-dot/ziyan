@@ -1,0 +1,1 @@
+BASELINE valid LZMA-alone deb rejected: unsupported_or_invalid_deb

@@ -1,0 +1,29 @@
+test_device_change_clears_authorization (test_snapshot_access.AccessContract.test_device_change_clears_authorization) ... ok
+test_pair_probe_and_snapshot_send_same_credential (test_snapshot_access.AccessContract.test_pair_probe_and_snapshot_send_same_credential) ... ok
+test_pair_then_find_and_revoke (test_snapshot_access.AccessContract.test_pair_then_find_and_revoke) ... ok
+test_real_dialog_pairs_snapshots_and_revokes (test_snapshot_access.AccessContract.test_real_dialog_pairs_snapshots_and_revokes) ... D:\Khabarovsk\K.Develop\ziyan\tools\ziyan_colorpicker\ZiYanColorPicker.py:130: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\Khabarovsk\\K.Develop\\ziyan\\tools\\ziyan_colorpicker\\ziyan.ico'>
+  im = Image.open(src).convert("RGBA")
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_wrong_and_expired_pairing_are_explicit (test_snapshot_access.AccessContract.test_wrong_and_expired_pairing_are_explicit) ... ok
+test_source_free_launcher_contains_pairing_client (test_snapshot_packaging.ProtectedSnapshotClient.test_source_free_launcher_contains_pairing_client) ... ok
+test_fragmented_and_complete_post_have_identical_body (test_snapshot_transport_sockets.SocketContract.test_fragmented_and_complete_post_have_identical_body) ... ok
+test_normal_large_response_arrives_complete (test_snapshot_transport_sockets.SocketContract.test_normal_large_response_arrives_complete) ... ok
+test_rejected_requests_do_not_reach_business_handler (test_snapshot_transport_sockets.SocketContract.test_rejected_requests_do_not_reach_business_handler) ... ok
+test_slow_receiver_releases_worker_for_health (test_snapshot_transport_sockets.SocketContract.test_slow_receiver_releases_worker_for_health) ... ok
+test_closed_target_drops_result (test_snapshot_windows.SnapshotWindows.test_closed_target_drops_result) ... ok
+test_continuous_live_refresh_keeps_original_target (test_snapshot_windows.SnapshotWindows.test_continuous_live_refresh_keeps_original_target) ... ok
+test_device_change_drops_result (test_snapshot_windows.SnapshotWindows.test_device_change_drops_result) ... ok
+test_live_target_does_not_follow_active_tab (test_snapshot_windows.SnapshotWindows.test_live_target_does_not_follow_active_tab) ... ok
+test_old_completion_cannot_clear_new_request (test_snapshot_windows.SnapshotWindows.test_old_completion_cannot_clear_new_request) ... ok
+test_orientation_change_drops_result (test_snapshot_windows.SnapshotWindows.test_orientation_change_drops_result) ... ok
+test_stopping_live_discards_pending_response (test_snapshot_windows.SnapshotWindows.test_stopping_live_discards_pending_response) ... ok
+test_switching_tabs_does_not_redirect_delayed_snapshot (test_snapshot_windows.SnapshotWindows.test_switching_tabs_does_not_redirect_delayed_snapshot) ... ok
+
+----------------------------------------------------------------------
+Ran 18 tests in 16.903s
+
+OK
+slow_complete=1 elapsed=0.015
+slow_complete=0 elapsed=0.219
+slow_complete=0 elapsed=0.219

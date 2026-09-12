@@ -17,6 +17,7 @@ import http.client
 import io
 import json
 import os
+import queue
 import sys
 import threading
 import time
@@ -254,159 +255,65 @@ def set_system_mouse(sx: int, sy: int) -> bool:
     return False
 
 
-class DeviceClient:
-    """缓存 IP/端口 + HTTP 复用，加速反复截屏。"""
+from paired_http import PairedHTTP, PairingRequired
 
-    def __init__(self) -> None:
-        self.ip: Optional[str] = None
-        self.port: Optional[int] = None
-        self._lock = threading.Lock()
-        self.last_ms = 0
 
-    def invalidate(self) -> None:
-        with self._lock:
-            self.port = None
+class DeviceClient(PairedHTTP):
+    """Device selection and short-lived authorization stay in memory."""
 
-    def set_ip(self, ip: str) -> None:
-        ip = ip.strip()
-        with self._lock:
-            if ip != self.ip:
-                self.ip = ip
-                self.port = None
+    def pair(self, ip: str, code: str) -> str:
+        return self.pair_with_ports(ip, code, SNAP_PORTS)
 
-    def _probe_one(self, ip: str, port: int, timeout: float) -> Optional[int]:
-        try:
-            conn = http.client.HTTPConnection(ip, port, timeout=timeout)
-            conn.request("GET", "/status", headers={"Connection": "close"})
-            resp = conn.getresponse()
-            body = resp.read(256)
-            conn.close()
-            if resp.status == 200 and body:
-                return port
-        except Exception:
-            return None
-        return None
+    def revoke(self, ip: str) -> None:
+        self.revoke_with_ports(ip, SNAP_PORTS)
 
     def probe(self, ip: str) -> Tuple[Optional[int], str]:
-        self.set_ip(ip)
-        # 双端口并行探测，单路超时短
-        found: Optional[int] = None
-        with ThreadPoolExecutor(max_workers=2) as ex:
-            futs = {ex.submit(self._probe_one, ip, p, 0.8): p for p in SNAP_PORTS}
-            for fut in as_completed(futs):
-                port = fut.result()
-                if port:
-                    found = port
-                    break
-        if found:
-            with self._lock:
-                self.port = found
-            return found, "已连接 http://%s:%d/" % (ip, found)
-        return None, "未检测到 :50005/:50015"
+        epoch, token, ports = self.context(ip, SNAP_PORTS)
+        last = "未检测到 :50005/:50015"
+        for port in ports:
+            try:
+                self.request(ip, port, "GET", "/status", token=token, timeout=1)
+                self.remember_port(ip, epoch, port)
+                return port, "已连接 %s:%d" % (ip, port)
+            except PairingRequired as exc:
+                return None, str(exc)
+            except Exception as exc:
+                last = str(exc)
+        return None, last
 
     def snapshot(self, ip: str, orient: int, port: Optional[int] = None) -> Image.Image:
-        """已知端口直拉；失败才重探。"""
-        self.set_ip(ip)
-        ports: List[int] = []
-        with self._lock:
-            if port:
-                ports.append(int(port))
-            elif self.port:
-                ports.append(int(self.port))
-        for p in SNAP_PORTS:
-            if p not in ports:
-                ports.append(p)
-
+        epoch, token, ports = self.context(ip, SNAP_PORTS)
         last = "无响应"
-        t0 = time.time()
+        started = time.monotonic()
         for p in ports:
             try:
-                conn = http.client.HTTPConnection(ip, p, timeout=3.5)
-                conn.request(
-                    "GET",
-                    "/snapshot?orient=%d" % int(orient),
-                    headers={"Connection": "close", "User-Agent": "ZiYanCP/" + APP_VER},
-                )
-                resp = conn.getresponse()
-                body = resp.read()
-                conn.close()
-                if resp.status == 200 and len(body) > 500:
-                    with self._lock:
-                        self.port = p
-                    self.last_ms = int((time.time() - t0) * 1000)
-                    im = Image.open(io.BytesIO(body)).convert("RGB")
-                    return apply_snapshot_orient(im, int(orient))
-                last = "HTTP %s len=%d" % (resp.status, len(body))
-            except Exception as e:
-                last = str(e)
-                continue
-        # 全失败清缓存
-        with self._lock:
-            self.port = None
+                body = self.request(ip, p, "GET", "/snapshot?orient=%d" % int(orient), token=token)
+                im = Image.open(io.BytesIO(body)).convert("RGB")
+                self.remember_port(ip, epoch, p)
+                self.last_ms = int((time.monotonic() - started) * 1000)
+                return apply_snapshot_orient(im, int(orient))
+            except PairingRequired:
+                raise
+            except Exception as exc:
+                last = str(exc)
         raise RuntimeError(last)
 
-    def findtest(
-        self,
-        ip: str,
-        orient: int,
-        main: int,
-        offs: str,
-        degree: int,
-        x1: int,
-        y1: int,
-        x2: int,
-        y2: int,
-    ) -> dict:
-        """POST /findtest → 手机 toast(x:,y:) 并返回 JSON。"""
-        self.set_ip(ip)
-        ports: List[int] = []
-        with self._lock:
-            if self.port:
-                ports.append(int(self.port))
-        for p in SNAP_PORTS:
-            if p not in ports:
-                ports.append(p)
-        body = urllib.parse.urlencode(
-            {
-                "main": "0x%06x" % (main & 0xFFFFFF),
-                "offs": offs,
-                "degree": int(degree),
-                "x1": int(x1),
-                "y1": int(y1),
-                "x2": int(x2),
-                "y2": int(y2),
-                "orient": int(orient),
-                "toast": 1,
-            }
-        )
-        last = "no port"
-        for p in ports:
+    def findtest(self, ip: str, orient: int, main: int, offs: str, degree: int,
+                 x1: int, y1: int, x2: int, y2: int) -> dict:
+        epoch, token, ports = self.context(ip, SNAP_PORTS)
+        body = {"main": "0x%06x" % (main & 0xFFFFFF), "offs": offs,
+                "degree": int(degree), "x1": int(x1), "y1": int(y1),
+                "x2": int(x2), "y2": int(y2), "orient": int(orient), "toast": 1}
+        last = "设备未连接"
+        for port in ports:
             try:
-                conn = http.client.HTTPConnection(ip, p, timeout=6.0)
-                conn.request(
-                    "POST",
-                    "/findtest",
-                    body=body.encode("utf-8"),
-                    headers={
-                        "Content-Type": "application/x-www-form-urlencoded",
-                        "Connection": "close",
-                        "User-Agent": "ZiYanCP/" + APP_VER,
-                    },
-                )
-                resp = conn.getresponse()
-                raw = resp.read()
-                conn.close()
-                if resp.status == 200 and raw:
-                    with self._lock:
-                        self.port = p
-                    try:
-                        return json.loads(raw.decode("utf-8", "replace"))
-                    except Exception:
-                        return {"ok": False, "x": -1, "y": -1, "err": raw[:200]}
-                last = "HTTP %s" % resp.status
-            except Exception as e:
-                last = str(e)
-                continue
+                raw = self.request(ip, port, "POST", "/findtest", body, token)
+                self.remember_port(ip, epoch, port)
+                return json.loads(raw)
+            except PairingRequired:
+                raise
+            except Exception as exc:
+                last = str(exc)
         raise RuntimeError(last)
 
 
@@ -1177,6 +1084,12 @@ class App(tk.Tk):
         self.snap_seq = 0
         self._live_job = None
         self._snap_busy = False
+        self._snapshot_request = 0
+        self._snapshot_target = None
+        self._snapshot_live_request = False
+        self._snapshot_results = queue.Queue()
+        self._snapshot_closed = False
+        self._snapshot_result_job = self.after(25, self._drain_snapshot_results)
         self.tool_mode = "pick"
         self._icons: List[ImageTk.PhotoImage] = []
         self._last_dir = os.path.expanduser("~")
@@ -1187,10 +1100,42 @@ class App(tk.Tk):
         self._build()
         self._bind_keys()
         self.device_ip.trace_add("write", self._on_ip_changed)
+        self.device_orient.trace_add("write", self._on_orient_changed)
         self.status_set("v%s | 主窗抄触动取点抓色器；取色面板为浮窗；截屏在「文件/工具栏」" % APP_VER)
 
     def _on_ip_changed(self, *_args) -> None:
+        self._invalidate_snapshot()
         self.dev.set_ip(self.device_ip.get())
+
+    def _on_orient_changed(self, *_args) -> None:
+        self._invalidate_snapshot()
+
+    def _invalidate_snapshot(self) -> None:
+        self._snapshot_request += 1
+        self._snap_busy = False
+        self._snapshot_target = None
+        self._snapshot_live_request = False
+
+    def _drain_snapshot_results(self) -> None:
+        self._snapshot_result_job = None
+        if self._snapshot_closed:
+            return
+        while True:
+            try:
+                callback = self._snapshot_results.get_nowait()
+            except queue.Empty:
+                break
+            callback()
+        self._snapshot_result_job = self.after(25, self._drain_snapshot_results)
+
+    def destroy(self) -> None:
+        self._snapshot_closed = True
+        self._invalidate_snapshot()
+        self._stop_live()
+        if self._snapshot_result_job:
+            self.after_cancel(self._snapshot_result_job)
+            self._snapshot_result_job = None
+        super().destroy()
 
     def _icon16(self, kind: str) -> ImageTk.PhotoImage:
         """主窗图标工具栏（抄触动分组，不用中文大钮当面板主铬）。"""
@@ -1401,7 +1346,7 @@ class App(tk.Tk):
         win = tk.Toplevel(self)
         win.title("连接设备")
         win.configure(bg="#d4d0c8")
-        win.geometry("380x200+80+80")
+        win.geometry("520x310+80+80")
         try:
             win.attributes("-toolwindow", True)
         except tk.TclError:
@@ -1412,6 +1357,14 @@ class App(tk.Tk):
         tk.Entry(row, textvariable=self.device_ip, width=18).pack(side=tk.LEFT, padx=6)
         tk.Label(row, text="方向", bg="#d4d0c8").pack(side=tk.LEFT)
         tk.Spinbox(row, from_=0, to=2, width=3, textvariable=self.device_orient).pack(side=tk.LEFT)
+        tk.Label(win, text="先在设备本机开启局域网配对。配对码 2 分钟内有效。", bg="#d4d0c8").pack(anchor="w", padx=10)
+        pair_row = tk.Frame(win, bg="#d4d0c8")
+        pair_row.pack(fill=tk.X, padx=10, pady=6)
+        code = tk.StringVar()
+        tk.Label(pair_row, text="配对码", bg="#d4d0c8").pack(side=tk.LEFT)
+        tk.Entry(pair_row, textvariable=code, width=35, show="*").pack(side=tk.LEFT, padx=5)
+        tk.Button(pair_row, text="配对", command=lambda: self.pair_device(code.get(), code)).pack(side=tk.LEFT)
+        tk.Button(win, text="撤销配对并关闭设备远程入口", command=self.revoke_device).pack(anchor="w", padx=10)
         row2 = tk.Frame(win, bg="#d4d0c8")
         row2.pack(fill=tk.X, padx=10, pady=4)
         tk.Label(row2, text="相似度", bg="#d4d0c8").pack(side=tk.LEFT)
@@ -1617,6 +1570,8 @@ class App(tk.Tk):
             self.status_set("复制失败: %s" % e)
 
     def unregister_window(self, win: ImageWindow) -> None:
+        if self._snapshot_target is win:
+            self._invalidate_snapshot()
         if win in self.image_windows:
             self.image_windows.remove(win)
         if self.live_win is win:
@@ -1662,9 +1617,14 @@ class App(tk.Tk):
         self.status_set("并行探测 %s …" % ip)
 
         def work() -> None:
-            port, msg = self.dev.probe(ip)
+            try:
+                port, msg = self.dev.probe(ip)
+            except Exception as exc:
+                port, msg = None, str(exc)
 
             def done() -> None:
+                if ip != self.device_ip.get().strip():
+                    return
                 if port:
                     self.lbl_dev.configure(text="设备: :%d 已缓存" % port, fg="#9f9")
                     self.status_set(msg + " | 截屏将直连此端口")
@@ -1672,88 +1632,151 @@ class App(tk.Tk):
                     self.lbl_dev.configure(text="设备: 未连接", fg="#fcc")
                     messagebox.showerror("连接失败", msg)
 
-            self.after(0, done)
+            self._snapshot_results.put(done)
+
+        threading.Thread(target=work, daemon=True).start()
+
+    def pair_device(self, code: str, code_field=None) -> None:
+        ip = self.device_ip.get().strip()
+        if not ip or not code.strip():
+            self.status_set("请输入设备 IP 和设备本机显示的配对码")
+            return
+        self._invalidate_snapshot()
+        self.status_set("正在配对…")
+
+        def work() -> None:
+            try:
+                message = self.dev.pair(ip, code)
+                ok = True
+            except Exception as exc:
+                message, ok = str(exc), False
+
+            def done() -> None:
+                if ip != self.device_ip.get().strip():
+                    return
+                if ok and code_field is not None:
+                    code_field.set("")
+                self.status_set(message)
+                self.lbl_dev.configure(text="设备: 已配对" if ok else "设备: 未配对", fg="#9f9" if ok else "#fcc")
+            self._snapshot_results.put(done)
+
+        threading.Thread(target=work, daemon=True).start()
+
+    def revoke_device(self) -> None:
+        ip = self.device_ip.get().strip()
+        self.live_var.set(False)
+        self._stop_live()
+        self._invalidate_snapshot()
+
+        def work() -> None:
+            try:
+                self.dev.revoke(ip)
+                message = "配对已撤销，设备远程入口已关闭"
+            except Exception as exc:
+                message = "本机凭证已清除，设备撤销未确认，请在设备本机关闭配对：" + str(exc)
+            def done() -> None:
+                if ip == self.device_ip.get().strip():
+                    self.lbl_dev.configure(text="设备: 未配对", fg="#fcc")
+                    self.status_set(message)
+            self._snapshot_results.put(done)
 
         threading.Thread(target=work, daemon=True).start()
 
     def snap_device(self, new_window: bool = True) -> None:
-        if self._snap_busy:
+        if self._snap_busy or self._snapshot_closed:
             return
         ip = self.device_ip.get().strip()
         if not ip:
             self.open_device_dialog()
             return
         orient = int(self.device_orient.get())
+        live = bool(self.live_var.get())
+        target = None if new_window else (self.live_win if live else self.active_win)
+        if target is not None and (target not in self.image_windows or not target.winfo_exists()):
+            return
+        self._snapshot_request += 1
+        request_id = self._snapshot_request
+        self._snapshot_target = target
+        self._snapshot_live_request = live
         self._snap_busy = True
         self.status_set("截屏中…")
+
+        def valid() -> bool:
+            return (not self._snapshot_closed and request_id == self._snapshot_request
+                    and ip == self.device_ip.get().strip()
+                    and orient == int(self.device_orient.get())
+                    and (not live or bool(self.live_var.get()))
+                    and (target is None or (target in self.image_windows and target.winfo_exists())))
+
+        def finish(im, ms, err) -> None:
+            if not valid():
+                return
+            self._snap_busy = False
+            self._snapshot_target = None
+            self._snapshot_live_request = False
+            if err is not None:
+                self.lbl_dev.configure(text="设备: 断开", fg="#fcc")
+                if isinstance(err, PairingRequired):
+                    self.live_var.set(False)
+                    self._stop_live()
+                if not live:
+                    messagebox.showerror("截屏失败", str(err))
+                self.status_set("截屏失败: " + str(err))
+                return
+            self.lbl_dev.configure(text="设备: :%s %dms" % (self.dev.port or "?", ms), fg="#9f9")
+            if target is None:
+                self.snap_seq += 1
+                win = self.open_image_window(im, "截图%d_%s" % (self.snap_seq, time.strftime("%H%M%S")))
+                if live:
+                    self.live_win = win
+            else:
+                target.replace_image(im, "刷新_%s" % time.strftime("%H%M%S"))
+                self.status_set("已刷新请求对应的图像窗口 %dms" % ms)
 
         def work() -> None:
             try:
                 im = self.dev.snapshot(ip, orient, self.dev.port)
                 ms = self.dev.last_ms
-
-                def done() -> None:
-                    self._snap_busy = False
-                    self.lbl_dev.configure(
-                        text="设备: :%s %dms" % (self.dev.port or "?", ms), fg="#9f9"
-                    )
-                    if new_window or not self.active_win or not self.active_win.winfo_exists():
-                        self.snap_seq += 1
-                        title = "截图%d_%s" % (self.snap_seq, time.strftime("%H%M%S"))
-                        win = self.open_image_window(im, title)
-                        if self.live_var.get():
-                            self.live_win = win
-                    else:
-                        self.active_win.replace_image(
-                            im, "刷新_%s" % time.strftime("%H%M%S")
-                        )
-                        self.status_set("已刷新当前窗 %dms" % ms)
-
-                self.after(0, done)
-            except Exception as e:
-                err = str(e)
-
-                def fail() -> None:
-                    self._snap_busy = False
-                    self.lbl_dev.configure(text="设备: 断开", fg="#fcc")
-                    if not self.live_var.get():
-                        messagebox.showerror("截屏失败", err)
-                    self.status_set("截屏失败: " + err)
-
-                self.after(0, fail)
+                self._snapshot_results.put(lambda: finish(im, ms, None))
+            except Exception as exc:
+                self._snapshot_results.put(lambda error=exc: finish(None, 0, error))
 
         threading.Thread(target=work, daemon=True).start()
 
     def _toggle_live(self) -> None:
         if self.live_var.get():
-            self.status_set("实时画面已开（约 %dms/帧，刷新当前窗）" % LIVE_MS)
-            if not self.active_win:
+            self._invalidate_snapshot()
+            self.live_win = self.active_win
+            self.status_set("实时画面已开（约 %dms/帧，固定刷新启动时的窗口）" % LIVE_MS)
+            if self.live_win is None:
                 self.snap_device(new_window=True)
             self._schedule_live()
         else:
             self._stop_live()
             self.status_set("实时画面已关")
 
-    def _stop_live(self) -> None:
+    def _stop_live(self, cancel_request: bool = True) -> None:
+        if cancel_request and self._snapshot_live_request:
+            self._invalidate_snapshot()
         if self._live_job:
             try:
                 self.after_cancel(self._live_job)
-            except Exception:
+            except tk.TclError:
                 pass
             self._live_job = None
 
     def _schedule_live(self) -> None:
-        self._stop_live()
+        self._stop_live(cancel_request=False)
         if not self.live_var.get():
             return
         self._live_job = self.after(LIVE_MS, self._live_tick)
 
     def _live_tick(self) -> None:
+        self._live_job = None
         if not self.live_var.get():
             return
-        # 复用刷新当前窗，避免狂开窗口；忙则跳过本帧
         if not self._snap_busy:
-            self.snap_device(new_window=False)
+            self.snap_device(new_window=self.live_win is None)
         self._schedule_live()
 
     def sample_active_pixel(self) -> None:

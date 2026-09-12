@@ -1,0 +1,45 @@
+EXIT=0
+[ZiYan] staged (pre-remap): D:\Khabarovsk\K.Develop\ziyan\tests\tmpkqjof3y0\build\stage prefix=/
+[ZiYan] staged (pre-remap): D:\Khabarovsk\K.Develop\ziyan\tests\tmpkqjof3y0\build\stage prefix=/var/jb
+test_actual_gpg_signatures_and_corruption (__main__.AptVerification.test_actual_gpg_signatures_and_corruption) ... ok
+test_empty_indexes_and_fake_signatures_must_fail (__main__.AptVerification.test_empty_indexes_and_fake_signatures_must_fail) ... ok
+test_metadata_failures_remain_failures_with_valid_signature (__main__.AptVerification.test_metadata_failures_remain_failures_with_valid_signature) ... ok
+test_all_failed_and_connection_failed_collect_results (__main__.DeployExit.test_all_failed_and_connection_failed_collect_results) ... ok
+test_all_pass_reports_done (__main__.DeployExit.test_all_pass_reports_done) ... ok
+test_failed_postcheck_cannot_report_deploy_done (__main__.DeployExit.test_failed_postcheck_cannot_report_deploy_done) ... ok
+test_one_preflight_failure_preserves_other_results (__main__.DeployExit.test_one_preflight_failure_preserves_other_results) ... ok
+test_password_auth_probe_preserves_script_and_failure (__main__.DeployExit.test_password_auth_probe_preserves_script_and_failure) ... ok
+test_remote_failure_is_not_retried_as_empty_password_session (__main__.DeployExit.test_remote_failure_is_not_retried_as_empty_password_session) ... ok
+test_upload_failure_skips_install_and_keeps_other_results (__main__.DeployExit.test_upload_failure_skips_install_and_keeps_other_results) ... ok
+test_concurrent_destination_creation_is_not_overwritten (__main__.InstallMigration.test_concurrent_destination_creation_is_not_overwritten) ... ok
+test_copy_failure_retains_old_data_and_fails_install (__main__.InstallMigration.test_copy_failure_retains_old_data_and_fails_install) ... ok
+test_different_same_name_retains_both_and_reports_conflict (__main__.InstallMigration.test_different_same_name_retains_both_and_reports_conflict) ... ok
+test_interruption_after_archive_retains_backup_and_can_repeat (__main__.InstallMigration.test_interruption_after_archive_retains_backup_and_can_repeat) ... ok
+test_interruption_during_copy_preserves_source (__main__.InstallMigration.test_interruption_during_copy_preserves_source) ... ok
+test_normal_migration_keeps_verified_rollback_and_is_repeatable (__main__.InstallMigration.test_normal_migration_keeps_verified_rollback_and_is_repeatable) ... ok
+test_permissions_failure_retains_source (__main__.InstallMigration.test_permissions_failure_retains_source) ... ok
+test_script_conflict_uses_same_preservation_rule (__main__.InstallMigration.test_script_conflict_uses_same_preservation_rule) ... ok
+test_tail_resource_migration_preserves_same_name_conflict (__main__.InstallMigration.test_tail_resource_migration_preserves_same_name_conflict) ... ok
+test_each_mutating_tool_failure_stops_stage (__main__.StageBoundary.test_each_mutating_tool_failure_stops_stage) ... STAGE_FAILED: Command '['mkdir', '-p', 'D:\\Khabarovsk\\K.Develop\\ziyan\\tests\\tmpd7pvp778\\build\\stage\\usr\\lib\\ziyan\\bin', 'D:\\Khabarovsk\\K.Develop\\ziyan\\tests\\tmpd7pvp778\\build\\stage\\usr\\lib\\ziyan\\lib\\lua', 'D:\\Khabarovsk\\K.Develop\\ziyan\\tests\\tmpd7pvp778\\build\\stage\\usr\\lib\\ziyan\\engine', 'D:\\Khabarovsk\\K.Develop\\ziyan\\tests\\tmpd7pvp778\\build\\stage\\usr\\lib\\ziyan\\runtime', 'D:\\Khabarovsk\\K.Develop\\ziyan\\tests\\tmpd7pvp778\\build\\stage\\usr\\lib\\ziyan\\hook', 'D:\\Khabarovsk\\K.Develop\\ziyan\\tests\\tmpd7pvp778\\build\\stage\\usr\\lib\\ziyan\\var', 'D:\\Khabarovsk\\K.Develop\\ziyan\\tests\\tmpd7pvp778\\build\\stage\\usr\\lib\\ziyan\\modules', 'D:\\Khabarovsk\\K.Develop\\ziyan\\tests\\tmpd7pvp778\\build\\stage\\usr\\lib\\ziyan\\models', 'D:\\Khabarovsk\\K.Develop\\ziyan\\tests\\tmpd7pvp778\\build\\stage\\usr\\lib\\ziyan\\share\\media_seed', 'D:\\Khabarovsk\\K.Develop\\ziyan\\tests\\tmpd7pvp778\\build\\stage\\Library\\LaunchDaemons']' returned non-zero exit status 42.
+STAGE_FAILED: Command '['rsync', '-a', 'vendor/bin/', 'D:\\Khabarovsk\\K.Develop\\ziyan\\tests\\tmpd7pvp778\\build\\stage\\usr\\lib\\ziyan\\bin']' returned non-zero exit status 42.
+STAGE_FAILED: Command '['cp', '-f', 'vendor/runtime/engine/wnriakwyww', 'D:\\Khabarovsk\\K.Develop\\ziyan\\tests\\tmpd7pvp778\\build\\stage\\usr\\lib\\ziyan\\engine\\wnriakwyww']' returned non-zero exit status 42.
+STAGE_FAILED: Command '['chmod', '755', 'D:\\Khabarovsk\\K.Develop\\ziyan\\tests\\tmpd7pvp778\\build\\stage\\usr\\lib\\ziyan\\bin\\lua5.3', 'D:\\Khabarovsk\\K.Develop\\ziyan\\tests\\tmpd7pvp778\\build\\stage\\usr\\lib\\ziyan\\bin\\python3.7']' returned non-zero exit status 42.
+STAGE_FAILED: Command '['ln', '-sfn', 'lua5.3', 'D:\\Khabarovsk\\K.Develop\\ziyan\\tests\\tmpd7pvp778\\build\\stage\\usr\\lib\\ziyan\\bin\\lua']' returned non-zero exit status 42.
+STAGE_FAILED: Command '['install_name_tool', '-change', '/usr/lib/ziyan/lib/liblua5.3.dylib', '/var/jb/usr/lib/ziyan/lib/liblua5.3.dylib', 'D:\\Khabarovsk\\K.Develop\\ziyan\\tests\\tmpd7pvp778\\build\\stage\\usr\\lib\\ziyan\\bin\\lua5.3']' returned non-zero exit status 42.
+STAGE_FAILED: Command '['ldid', '-S', 'D:\\Khabarovsk\\K.Develop\\ziyan\\tests\\tmpd7pvp778\\build\\stage\\usr\\lib\\ziyan\\bin\\lua5.3', 'D:\\Khabarovsk\\K.Develop\\ziyan\\tests\\tmpd7pvp778\\build\\stage\\usr\\lib\\ziyan\\lib\\liblua5.3.dylib', 'D:\\Khabarovsk\\K.Develop\\ziyan\\tests\\tmpd7pvp778\\build\\stage\\usr\\lib\\ziyan\\lib\\libreadline.8.0.dylib']' returned non-zero exit status 42.
+STAGE_FAILED: Command '['rm', '-f', 'D:\\Khabarovsk\\K.Develop\\ziyan\\tests\\tmpd7pvp778\\build\\stage\\private\\var\\mobile\\Media\\ZiYan\\login_xztl.lua', 'D:\\Khabarovsk\\K.Develop\\ziyan\\tests\\tmpd7pvp778\\build\\stage\\private\\var\\mobile\\Media\\ZiYan\\login_lan.lua', 'D:\\Khabarovsk\\K.Develop\\ziyan\\tests\\tmpd7pvp778\\build\\stage\\private\\var\\mobile\\Media\\ZiYan\\login_usb.lua']' returned non-zero exit status 42.
+ok
+test_invalid_stage_rejected_before_write (__main__.StageBoundary.test_invalid_stage_rejected_before_write) ... STAGE_FAILED: staging and build root must be non-empty
+STAGE_FAILED: staging must be a directory strictly inside the build root
+STAGE_FAILED: staging must be a directory strictly inside the build root
+STAGE_FAILED: staging must be a directory strictly inside the build root
+STAGE_FAILED: [WinError 2] 系统找不到指定的文件。: 'D:\\Khabarovsk\\K.Develop\\ziyan\\tests\\tmpcvl6sj31\\build\\missing'
+ok
+test_make_recipe_propagates_stage_failure (__main__.StageBoundary.test_make_recipe_propagates_stage_failure) ... ok
+test_make_stage_never_loses_destination (__main__.StageBoundary.test_make_stage_never_loses_destination)
+Run old logical recipe lines with inert shell command substitutes. ... ok
+
+----------------------------------------------------------------------
+Ran 23 tests in 34.471s
+
+OK

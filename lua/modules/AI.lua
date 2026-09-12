@@ -708,20 +708,22 @@ function M.test(path_or_src, opts)
       real_device = false, functional_pass = false,
     }
   end
+  -- A runner from an earlier script cannot validate this script.
+  local previous_main = _G.main
+  _G.main = nil
   local ok_load, mod = pcall(dofile, path)
+  local script_main = _G.main
+  _G.main = previous_main
   if not ok_load then
     M.record({ goal = opts.goal, bid = opts.bid, path = path, ok = false, reason = tostring(mod), event = "test_load" })
-    return false, { reason = tostring(mod), path = path }
+    return false, { reason = tostring(mod), path = path, status = "failed",
+      execution_success = false, business_success = false, functional_pass = false, real_device = true }
   end
-  local runner = mod
-  if type(mod) == "function" then runner = mod end
-  if type(_G.main) == "function" and type(runner) ~= "function" then runner = _G.main end
-  local ok_run, err = true, nil
-  if type(runner) == "function" then
-    ok_run, err = pcall(runner)
-  elseif type(main) == "function" then
-    ok_run, err = pcall(main)
-  end
+  local runner = type(mod) == "function" and mod or script_main
+  local runner_present = type(runner) == "function"
+  local ok_run, result = false, nil
+  if runner_present then ok_run, result = pcall(runner) end
+  local err = (runner_present and not ok_run) and tostring(result) or nil
   local phase = Zy.Script and Zy.Script.get("last_phase") or "?"
   if phase == "?" or phase == nil then
     local okp, ph = pcall(function() return Zy.Game and Zy.Game.phase and Zy.Game.phase(opts.bid or C.bid) end)
@@ -740,18 +742,29 @@ function M.test(path_or_src, opts)
       and evidence.nonce ~= nil and evidence.nonce ~= ""
       and evidence.front ~= nil and evidence.front ~= ""
   )
-  local gen_ok = ok_run == true
-  local reason = gen_ok and ("ran phase=" .. tostring(phase)) or tostring(err)
+  local business_success = ok_run and result == true
+  -- Legacy nil returns remain unverified; runners must explicitly return true.
+  local gen_ok = runner_present and business_success == true
+  local status = gen_ok and "passed" or "unverified"
+  local reason = gen_ok and ("ran phase=" .. tostring(phase)) or "BUSINESS_RESULT_UNVERIFIED"
+  if not runner_present then reason = "RUNNER_MISSING"
+  elseif not ok_run then status = "failed"; reason = err
+  elseif result == false then status = "failed"; reason = "BUSINESS_RETURNED_FALSE" end
   if opts.require_capability_evidence and not capability_evidence then
     gen_ok = false
-    reason = "CAPABILITY_EVIDENCE_INCOMPLETE"
+    if status ~= "failed" then
+      status = "unverified"
+      reason = "CAPABILITY_EVIDENCE_INCOMPLETE"
+    end
   end
   pcall(M.record, {
     goal = opts.goal, bid = opts.bid, path = path, ok = gen_ok,
     reason = reason, phase = phase, event = "test", iter = opts.iter,
   })
   return gen_ok, {
-    path = path, phase = phase, err = err,
+    path = path, phase = phase, err = err, reason = reason, status = status,
+    runner_present = runner_present, execution_success = ok_run,
+    business_success = business_success == true, business_result = result,
     business_done = not not Zy.Script.get("done"),
     real_device = true, functional_pass = gen_ok,
     RESULT_READY = evidence_ready,

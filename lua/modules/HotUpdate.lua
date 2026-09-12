@@ -1,11 +1,11 @@
 --[[ HotUpdate — 热更新客户端（功能三/四/五）
   链路：check（服务端清单+兼容性） → download → verify(sha256) → install(原子切换)
-        → health_check → 失败自动 rollback，旧版本始终可用
+        → health_check → 失败尝试 rollback，并核对恢复结果
 
   设计约束（对齐需求）：
     · 兼容性不通过：绝不下载、绝不安装，返回 device_incompatible
     · 下载中断/文件损坏/校验失败：丢弃下载物，旧版本不受影响
-    · 安装采用版本目录 + current 指针的原子切换，previous 指针保留可回滚
+    · 安装包保存在版本目录，state 原子提交 current / previous / health
     · 任何失败返回 false, reason（不抛异常，不阻塞业务）
 
   服务端契约见 DOCS/接口契约_日志服务_v1.md:
@@ -31,22 +31,44 @@ local function read_text(path)
   local body = f:read("*a"); f:close(); return body
 end
 
+local sequence = 0
+local function quote(value) return "'" .. tostring(value):gsub("'", "'\\''") .. "'" end
+local function exit_code(ok, kind, code)
+  if type(ok) == "number" then return ok == 0 and 0 or ok end
+  if ok == true then return 0 end
+  return tonumber(code) or 1
+end
+local function unique(path)
+  sequence = sequence + 1
+  return path .. ".tmp." .. tostring(os.time()) .. "." .. tostring(sequence)
+end
 local function write_text(path, body)
-  local ok = pcall(function()
-    local d = path:match("^(.*)/[^/]+$")
-    if d then os.execute(string.format("mkdir -p '%s' 2>/dev/null", d)) end
-    local f = io.open(path, "w")
-    if not f then return end
-    f:write(body); f:close()
-  end)
-  return ok
+  local dir = path:match("^(.*)/[^/]+$")
+  if dir then
+    local a,b,c = os.execute("mkdir -p " .. quote(dir) .. " 2>/dev/null")
+    if exit_code(a,b,c) ~= 0 then return false, "mkdir_failed" end
+  end
+  local tmp = unique(path)
+  local f, why = io.open(tmp, "wb")
+  if not f then return false, "open_failed:" .. tostring(why) end
+  local ok, err = f:write(body)
+  local flushed = ok and f:flush()
+  local closed = f:close()
+  if not ok or not flushed or not closed then
+    os.remove(tmp)
+    return false, "write_failed:" .. tostring(err)
+  end
+  local renamed, rename_error = os.rename(tmp, path)
+  if not renamed then os.remove(tmp); return false, "commit_failed:" .. tostring(rename_error) end
+  return true
 end
 
 --- 统一命令执行正本：lua/modules/zy_shell.lua（2026-09-12 去重；原本地拷贝已删）
 --- require 优先；embed/无 package.path 场景按安装路径 dofile 兜底。
+--- 本模块用 *_status 入口取回退出码：shasum 的三路兜底靠退出码判断是否成功。
 local ZS = (function()
   local ok, mod = pcall(require, "zy_shell")
-  if ok and type(mod) == "table" and type(mod.run_capture) == "function" then return mod end
+  if ok and type(mod) == "table" and type(mod.run_capture_status) == "function" then return mod end
   local base = _G.ZIYAN_LUA or "/usr/lib/ziyan/lib/lua"
   for _, p in ipairs({ base .. "/modules/zy_shell.lua",
       "/var/jb/usr/lib/ziyan/lib/lua/modules/zy_shell.lua",
@@ -55,24 +77,26 @@ local ZS = (function()
     if f then
       f:close()
       local ok2, m2 = pcall(dofile, p)
-      if ok2 and type(m2) == "table" and type(m2.run_capture) == "function" then return m2 end
+      if ok2 and type(m2) == "table" and type(m2.run_capture_status) == "function" then return m2 end
     end
   end
   return nil
 end)()
-assert(ZS, "zy_shell 加载失败（lua/modules/zy_shell.lua 缺失）")
+assert(ZS, "zy_shell 加载失败（lua/modules/zy_shell.lua 缺失 run_capture_status）")
 
--- 去重后本模块语义保持：不可用时 run_capture/shell_timeout 返回 ""（正本返回 nil）
+-- 去重后本模块语义保持：不可用时返回 "" 与退出码 1（与去重前的两个返回值一致）
 local function run_capture(cmd)
-  return ZS.run_capture(cmd) or ""
+  local body, code = ZS.run_capture_status(cmd)
+  if body == nil then return "", 1 end
+  return body, code
 end
-
-local function shell(cmd)
-  return run_capture(cmd)
-end
+M.execute = run_capture
+local function shell(cmd) return M.execute(cmd) end
 
 local function shell_timeout(cmd, seconds)
-  return ZS.shell_timeout(cmd, seconds) or ""
+  local body, code = ZS.shell_timeout_status(cmd, seconds)
+  if body == nil then return "", 1 end
+  return body, code
 end
 
 local function py_exe()
@@ -123,7 +147,9 @@ local function dpkg_env_prefix()
   -- 该目录里的旧 libreadline 缺少 _rl_set_timeout → dpkg 调起的 bash（postinst 解释器）
   -- 直接 dyld 崩溃 → 包变 half-configured。调 dpkg 前必须把该目录从 DYLD 路径剥掉，
   -- 同时保留 rootless 的 libroot（/cores/binpack/usr/lib/libroot）以维持路径重映射。
-  local has_libroot = io.open("/cores/binpack/usr/lib/libroot", "r") ~= nil
+  local libroot = io.open("/cores/binpack/usr/lib/libroot", "r")
+  local has_libroot = libroot ~= nil
+  if libroot then libroot:close() end
   if has_libroot then
     return "DYLD_LIBRARY_PATH=/cores/binpack/usr/lib/libroot "
   end
@@ -131,21 +157,12 @@ local function dpkg_env_prefix()
 end
 
 local function shasum(path)
-  local out = shell_timeout(string.format(
-    "sha256sum '%s' 2>/dev/null || shasum -a 256 '%s' 2>/dev/null "
-      .. "|| openssl dgst -sha256 '%s' 2>/dev/null; echo __ZY_DONE__",
-    path, path, path), 90)
-  if not out:find("__ZY_DONE__", 1, true) then return nil end
-  local hash = out:match("(%x%x%x%x%x%x%x%x%x%x%x%x%x%x%x%x+)")
-  if hash then return hash end
-  local py, hp = py_exe(), helper_py()
-  if py and hp then
-    out = shell_timeout(string.format("'%s' '%s' sha256 '%s'; echo __ZY_DONE__", py, hp, path), 120)
-    if out:find("__ZY_DONE__", 1, true) then
-      hash = out:match("(%x%x%x%x%x%x%x%x%x%x%x%x%x%x%x%x+)")
-    end
-  end
-  return hash
+  local out, code = shell_timeout("sha256sum " .. quote(path) .. " 2>/dev/null || shasum -a 256 "
+    .. quote(path) .. " 2>/dev/null || openssl dgst -sha256 " .. quote(path) .. " 2>/dev/null", 90)
+  if code ~= 0 then return nil end
+  local hash = out:match("(%x+)")
+  if not hash or #hash ~= 64 then hash = out:match("=%s*(%x+)") end
+  return hash and #hash == 64 and hash:lower() or nil
 end
 
 -- 极简 JSON 取值（服务端契约为扁平结构，够用且不引依赖）
@@ -264,10 +281,9 @@ function M.compatible(pkg, env)
     return false, "os_too_new:" .. osv .. ">" .. pkg.max_os
   end
   if pkg.ziyan_min and #tostring(pkg.ziyan_min) > 0 and zv ~= "unknown" then
-    local cur = tostring(zv):match("^(%d+%.%d+%.%d+)")
-    if cur and cur < tostring(pkg.ziyan_min) then
-      return false, "ziyan_too_old:" .. cur .. "<" .. pkg.ziyan_min
-    end
+    local newer, reason = M.is_newer(tostring(pkg.ziyan_min), tostring(zv))
+    if newer then return false, "ziyan_too_old:" .. zv .. "<" .. pkg.ziyan_min end
+    if reason ~= "no_update" then return false, reason end
   end
   return true
 end
@@ -284,11 +300,14 @@ function M.check(base_url, opts)
   if type(base_url) ~= "string" or #base_url == 0 then
     return nil, "no_server"
   end
+  local function urlencode(value)
+    return tostring(value):gsub("([^%w%-_%.~])", function(c) return string.format("%%%02X", string.byte(c)) end)
+  end
   local query = string.format(
     "%s/api/hotupdate/check?device_id=%s&os=%s&arch=%s&ziyan=%s&channel=%s",
     base_url,
-    _G.ZHotUpdate_urlencode and _G.ZHotUpdate_urlencode(M.device_id()) or M.device_id(),
-    M.os_version(), M.arch(), M.ziyan_version(), opts.channel or "stable")
+    urlencode(M.device_id()),
+    urlencode(M.os_version()), urlencode(M.arch()), urlencode(M.ziyan_version()), urlencode(opts.channel or "stable"))
   local out = ""
   -- 0) 引擎原生 HTTP（App 内运行时最可靠，不依赖系统命令）
   pcall(function()
@@ -341,6 +360,10 @@ function M.check(base_url, opts)
     size = json_get(out, "size"),
     reason = json_get(out, "reason"),
     detail = json_get(out, "detail"),
+    architecture = json_get(out, "architecture"),
+    min_os = json_get(out, "min_os"),
+    max_os = json_get(out, "max_os"),
+    ziyan_min = json_get(out, "ziyan_min"),
   }
   if info.reason == "device_incompatible" then
     return info, "device_incompatible"
@@ -350,14 +373,19 @@ function M.check(base_url, opts)
   end
   -- 本地二次兼容性闸（服务端之外）
   local ok, why = M.compatible({
-    architecture = opts.architecture,
-    min_os = opts.min_os,
-    max_os = opts.max_os,
-    ziyan_min = opts.ziyan_min,
+    architecture = info.architecture or opts.architecture,
+    min_os = info.min_os or opts.min_os,
+    max_os = info.max_os or opts.max_os,
+    ziyan_min = info.ziyan_min or opts.ziyan_min,
   }, opts)
-  if not ok and (opts.architecture or opts.min_os or opts.max_os or opts.ziyan_min) then
+  if not ok then
+    info.update = false
     return info, "device_incompatible:" .. tostring(why)
   end
+  local installed, installed_error = M.installed_state()
+  if not installed then return nil, installed_error end
+  local newer, comparison = M.is_newer(info.version, installed.version)
+  if not newer then info.update = false; return info, comparison end
   return info, nil
 end
 
@@ -464,69 +492,186 @@ end
 -- 5) 安装（版本目录 + 指针原子切换；失败回滚）
 ---------------------------------------------------------------------------
 
+local function valid_version(version)
+  return type(version) == "string" and version:match("^%d[%w%.%+%-%:~]*$") ~= nil
+end
+
+local function read_state()
+  local state = read_text(M.state_root() .. "/state")
+  if not state then return nil end
+  local current, previous, health = state:match("^([^\n]*)\n([^\n]*)\n([^\n]*)\n$")
+  if not current or not valid_version(current) then return nil, "corrupt_state" end
+  return {current=current, previous=previous ~= "" and previous or nil, health=health}
+end
 function M.current_version()
+  local state, err = read_state()
+  if err then return nil end
+  if state then return state.current end
   local v = read_text(M.state_root() .. "/current")
   return v and trim(v) or nil
 end
-
 function M.previous_version()
+  local state, err = read_state()
+  if err then return nil end
+  if state then return state.previous end
   local v = read_text(M.state_root() .. "/previous")
   return v and trim(v) or nil
 end
-
-function M.install(deb_path, version)
+local function commit_state(version, previous)
+  return write_text(M.state_root() .. "/state", version .. "\n" .. (previous or "") .. "\nok\n")
+end
+function M.installed_state()
+  local out, code = shell(dpkg_env_prefix() .. "dpkg-query -W -f='${Status}\t${Version}\t${Architecture}' com.ziyan.ziyan 2>/dev/null")
+  if code ~= 0 or trim(out) == "" then return nil, "package_query_failed" end
+  local status, version, arch = trim(out):match("^([^\t]+)\t([^\t]+)\t([^\t]+)$")
+  if status ~= "install ok installed" then return nil, "package_not_configured:" .. tostring(status) end
+  if not valid_version(version) then return nil, "invalid_installed_version" end
+  return {version=version, architecture=arch, status=status}
+end
+function M.is_newer(target, current)
+  if not valid_version(target) or not valid_version(current) then return false, "bad_version" end
+  local _, code = shell(dpkg_env_prefix() .. "dpkg --compare-versions " .. quote(target) .. " gt " .. quote(current))
+  if code == 0 then return true end
+  if code == 1 then return false, "no_update" end
+  return false, "version_compare_failed"
+end
+local function archive_info(path, version)
+  local f = io.open(path, "rb")
+  if not f then return nil, "package_missing" end
+  local magic = f:read(8); f:close()
+  if magic ~= "!<arch>\n" then return nil, "not_a_deb" end
+  local out, code = shell(dpkg_env_prefix() .. "dpkg-deb -f " .. quote(path) .. " Package && dpkg-deb -f "
+    .. quote(path) .. " Version && dpkg-deb -f " .. quote(path) .. " Architecture")
+  if code ~= 0 then return nil, "invalid_deb_control" end
+  local package, actual, arch = out:match("^([^\n]+)\n([^\n]+)\n([^\n]+)")
+  if package ~= "com.ziyan.ziyan" or actual ~= version or arch ~= M.arch() then
+    return nil, "deb_metadata_mismatch"
+  end
+  local _, payload_code = shell(dpkg_env_prefix() .. "dpkg-deb --fsys-tarfile " .. quote(path) .. " > /dev/null")
+  if payload_code ~= 0 then return nil, "invalid_deb_payload" end
+  local sha = shasum(path)
+  if not sha then return nil, "package_hash_unavailable" end
+  local recorded_sha = read_text(path .. ".sha256")
+  if recorded_sha and trim(recorded_sha) ~= sha then return nil, "archive_hash_mismatch" end
+  return {sha256=sha, version=actual, architecture=arch}
+end
+local function save_archive(source, version)
+  local meta, why = archive_info(source, version)
+  if not meta then return nil, why end
+  local dest = M.state_root() .. "/versions/" .. version .. "/package.deb"
+  if source ~= dest then
+    local f = io.open(source, "rb")
+    if not f then return nil, "package_missing" end
+    local dir = dest:match("^(.*)/[^/]+$")
+    local a,b,c = os.execute("mkdir -p " .. quote(dir) .. " 2>/dev/null")
+    if exit_code(a,b,c) ~= 0 then f:close(); return nil, "archive_mkdir_failed" end
+    local tmp = unique(dest)
+    local out = io.open(tmp, "wb")
+    if not out then f:close(); return nil, "archive_open_failed" end
+    local copied_ok = true
+    while true do
+      local chunk, read_error = f:read(64 * 1024)
+      if not chunk then if read_error then copied_ok = false end; break end
+      if not out:write(chunk) then copied_ok = false; break end
+    end
+    local flushed, closed, source_closed = out:flush(), out:close(), f:close()
+    if not copied_ok or not flushed or not closed or not source_closed then
+      os.remove(tmp); return nil, "archive_write_failed"
+    end
+    if not os.rename(tmp, dest) then os.remove(tmp); return nil, "archive_commit_failed" end
+    local copied = shasum(dest)
+    if copied ~= meta.sha256 then return nil, "archive_copy_mismatch" end
+  end
+  local hash_saved, hash_error = write_text(dest .. ".sha256", meta.sha256 .. "\n")
+  if not hash_saved then return nil, "archive_hash_write_failed:" .. tostring(hash_error) end
+  return dest
+end
+function M.health_check(expected)
+  local want = expected or M.current_version()
+  if not want then return false, "no_current_version" end
+  local installed, why = M.installed_state()
+  if not installed then return false, why end
+  if installed.version ~= want then return false, "version_mismatch:" .. installed.version end
+  if installed.architecture ~= M.arch() then return false, "installed_arch_mismatch" end
+  return true
+end
+local function apply_archive(path, version)
+  local out, code = shell(dpkg_env_prefix() .. "dpkg -i " .. quote(path) .. " 2>&1")
+  if code ~= 0 then return false, "dpkg_exit_" .. tostring(code) .. ":" .. out:sub(1,200) end
+  return M.health_check(version)
+end
+local function fault(reason)
+  local ok, why = write_text(M.state_root() .. "/failure", reason .. "\n")
+  return reason .. (ok and "" or ";fault_record_failed:" .. tostring(why))
+end
+function M.install(deb_path, version, opts)
+  opts = type(opts) == "table" and opts or {}
   if type(deb_path) ~= "string" then return false, "no_deb" end
-  if not version or #tostring(version) == 0 then return false, "no_version" end
-  local root = M.state_root()
-  local dest_dir = root .. "/versions/" .. tostring(version)
-  os.execute(string.format("mkdir -p '%s' 2>/dev/null", dest_dir))
-  -- dpkg 安装（真实生效路径）；失败则回滚指针
-  local cur = M.current_version()
-  local out = shell(string.format("%sdpkg -i '%s' 2>&1", dpkg_env_prefix(), deb_path))
-  local ok = out:find("Setting up com.ziyan.ziyan", 1, true) ~= nil
-      or out:find("already installed", 1, true) ~= nil
-      or out:find("Unpacking com.ziyan.ziyan", 1, true) ~= nil
-  if not ok then
-    -- 还原上一条安装记录（dpkg 自身失败时旧包仍在，指针不动）
-    return false, "install_failed:" .. tostring(out:sub(1, 200))
+  if not valid_version(version) then return false, "bad_version" end
+  -- The caller owns the runtime probe appropriate to this device and candidate.
+  -- Package metadata alone cannot establish that the new runtime is healthy.
+  if type(opts.health_check) ~= "function" then return false, "runtime_health_required" end
+  if read_text(M.state_root() .. "/transaction") then return false, "recovery_required" end
+  local before, why = M.installed_state()
+  if not before then return false, why end
+  local newer, comparison = M.is_newer(version, before.version)
+  if not newer then return false, comparison end
+  local previous = before.version
+  local rollback_source = opts.rollback_path or (M.state_root() .. "/versions/" .. previous .. "/package.deb")
+  local rollback_path, backup_error = save_archive(rollback_source, previous)
+  if not rollback_path then return false, "rollback_package_unavailable:" .. tostring(backup_error) end
+  local candidate, candidate_error = save_archive(deb_path, version)
+  if not candidate then return false, candidate_error end
+  -- Download/check responses may be stale by the time package preparation ends.
+  local latest, latest_error = M.installed_state()
+  if not latest then return false, latest_error end
+  if latest.version ~= before.version then return false, "installed_version_changed" end
+  local state, state_error = read_state()
+  if state_error then return false, state_error end
+  local committed, journal_error = write_text(M.state_root() .. "/transaction", previous .. "\n" .. version .. "\n")
+  if not committed then return false, "transaction_write_failed:" .. tostring(journal_error) end
+  local ok, reason = apply_archive(candidate, version)
+  if ok then
+    local called, healthy, detail = pcall(opts.health_check, version)
+    ok = called and healthy == true
+    if not ok then reason = "runtime_health_failed:" .. tostring(called and detail or healthy) end
   end
-  os.execute(string.format("cp -f '%s' '%s/package.deb' 2>/dev/null", deb_path, dest_dir))
-  if cur and cur ~= version then
-    write_text(root .. "/previous", cur .. "\n")
+  if ok then ok, reason = commit_state(version, previous) end
+  if ok then
+    local cleared, clear_error = os.remove(M.state_root() .. "/transaction")
+    if not cleared then return false, fault("transaction_cleanup_failed:" .. tostring(clear_error)) end
+    os.remove(M.state_root() .. "/failure")
+    return true
   end
-  write_text(root .. "/current", tostring(version) .. "\n")
-  write_text(root .. "/health", "pending\n")
-  return true
+  local recovered, recovery_error = apply_archive(rollback_path, previous)
+  if recovered then
+    os.remove(M.state_root() .. "/transaction")
+    return false, fault(tostring(reason) .. ";rolled_back")
+  end
+  return false, fault(tostring(reason) .. ";rollback_failed:" .. tostring(recovery_error))
 end
-
-function M.health_check()
-  local v = M.current_version()
-  if not v then return false, "no_current_version" end
-  local out = shell("dpkg-query -W -f='${Version}' com.ziyan.ziyan 2>/dev/null")
-  local want = tostring(v):match("^(%S+)")
-  if want and #trim(out) > 0 and not tostring(out):find(want:sub(-20), 1, true) then
-    return false, "version_mismatch:" .. trim(out)
-  end
-  write_text(M.state_root() .. "/health", "ok " .. os.date("%Y-%m-%d %H:%M:%S") .. "\n")
-  return true
-end
-
 function M.rollback()
-  local prev = M.previous_version()
-  if not prev then return false, "no_previous_version" end
-  local deb = M.state_root() .. "/versions/" .. prev .. "/package.deb"
-  local f = io.open(deb, "r")
-  if not f then return false, "previous_deb_missing:" .. deb end
-  f:close()
-  local ok, why = M.install(deb, prev)
-  if not ok then return false, "rollback_failed:" .. tostring(why) end
-  write_text(M.state_root() .. "/current", prev .. "\n")
+  local transaction = read_text(M.state_root() .. "/transaction")
+  local previous = transaction and transaction:match("^([^\n]+)") or M.previous_version()
+  if not valid_version(previous) then return false, "no_previous_version" end
+  local path, why = save_archive(M.state_root() .. "/versions/" .. previous .. "/package.deb", previous)
+  if not path then return false, "rollback_package_unavailable:" .. tostring(why) end
+  local ok, reason = apply_archive(path, previous)
+  if not ok then return false, fault("rollback_failed:" .. tostring(reason)) end
+  local committed, commit_error = commit_state(previous, nil)
+  if not committed then return false, fault("rollback_state_failed:" .. tostring(commit_error)) end
+  if transaction then
+    local cleared, clear_error = os.remove(M.state_root() .. "/transaction")
+    if not cleared then return false, fault("rollback_cleanup_failed:" .. tostring(clear_error)) end
+  end
+  os.remove(M.state_root() .. "/failure")
   return true
 end
 
 --- 高层入口：检查 → 下载 → 校验 → 兼容闸 → 安装 → 健康检查（失败回滚）
 function M.run_once(base_url, opts)
   opts = type(opts) == "table" and opts or {}
+  base_url = base_url or M.server()
   local info, reason = M.check(base_url, opts)
   if reason == "device_incompatible" or (info and info.reason == "device_incompatible") then
     return false, "device_incompatible", info
@@ -537,6 +682,9 @@ function M.run_once(base_url, opts)
   if opts.dry_run then
     return true, "dry_run", info
   end
+  if not opts.verify_only and type(opts.health_check) ~= "function" then
+    return false, "runtime_health_required", info
+  end
   local url = info.url
   if url and url:sub(1, 1) == "/" and base_url then
     url = base_url .. url
@@ -546,12 +694,12 @@ function M.run_once(base_url, opts)
   local vok, vwhy = M.verify(path_or_reason, info.sha256)
   if not vok then return false, vwhy, info end
   if opts.verify_only then return true, "verified", info end
-  local iok, iwhy = M.install(path_or_reason, info.version)
+  local iok, iwhy = M.install(path_or_reason, info.version, opts)
   if not iok then return false, iwhy, info end
   local hok, hwhy = M.health_check()
   if not hok then
-    local rok = M.rollback()
-    return false, "health_failed:" .. tostring(hwhy) .. (rok and " (rolled_back)" or " (rollback_failed)"), info
+    local rok, rwhy = M.rollback()
+    return false, "health_failed:" .. tostring(hwhy) .. (rok and ";rolled_back" or ";rollback_failed:" .. tostring(rwhy)), info
   end
   return true, "updated", info
 end

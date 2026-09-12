@@ -9,6 +9,7 @@
 #import "ZiYanEngine.h"
 #import "ZiYanAppSelector.h"
 #import "ZiYanScriptGenerator.h"
+#import "ZiYanScriptImport.h"
 #import "ZiYanDumpManager.h"
 #import <objc/message.h>
 #import <UIKit/UIKit.h>
@@ -1587,22 +1588,36 @@ static BOOL ZiYanPageEntryMinimizeOnce(NSString *entry) {
 }
 
 - (void)importFilesFromURLs:(NSArray<NSURL *> *)urls {
-	[self ensureScriptsDirectory];
-	NSFileManager *fm = [NSFileManager defaultManager];
-	NSString *dir = ZiYanScriptsDirectory();
-	for (NSURL *url in urls) {
-		BOOL access = [url startAccessingSecurityScopedResource];
-		NSString *name = url.lastPathComponent ?: @"imported.bin";
-		NSString *dest = [dir stringByAppendingPathComponent:name];
-		if ([fm fileExistsAtPath:dest]) {
-			[fm removeItemAtPath:dest error:nil];
-		}
-		[fm copyItemAtURL:url toURL:[NSURL fileURLWithPath:dest] error:nil];
-		if (access) {
-			[url stopAccessingSecurityScopedResource];
-		}
-	}
-	[self reloadScriptsFromDisk];
+    [self ensureScriptsDirectory];
+    NSFileManager *fm = [NSFileManager defaultManager];
+    NSString *dir = ZiYanScriptsDirectory();
+    NSMutableArray<NSString *> *results = [NSMutableArray array];
+    NSUInteger failures = 0;
+    for (NSURL *url in urls) {
+        BOOL access = [url startAccessingSecurityScopedResource];
+        NSString *name = url.lastPathComponent ?: @"未命名文件";
+        BOOL replacing = [fm fileExistsAtPath:[dir stringByAppendingPathComponent:name]];
+        NSError *error = nil;
+        BOOL imported = ZiYanImportScript(url, dir, fm, &error);
+        if (access) [url stopAccessingSecurityScopedResource];
+        if (imported) {
+            [results addObject:[NSString stringWithFormat:@"%@：%@", name, replacing ? @"已替换同名脚本" : @"已导入"]];
+        } else {
+            failures++;
+            [results addObject:[NSString stringWithFormat:@"%@：导入失败，原文件已保留。%@", name, error.localizedDescription ?: @"请重试"]];
+        }
+    }
+    [self reloadScriptsFromDisk];
+    if (results.count) {
+        UIAlertController *alert = [UIAlertController alertControllerWithTitle:failures ? @"部分文件未导入" : @"导入完成"
+            message:[results componentsJoinedByString:@"\n"] preferredStyle:UIAlertControllerStyleAlert];
+        [alert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:nil]];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            UIViewController *presenter = self;
+            while (presenter.presentedViewController) presenter = presenter.presentedViewController;
+            [presenter presentViewController:alert animated:YES completion:nil];
+        });
+    }
 }
 
 - (void)documentPicker:(UIDocumentPickerViewController *)controller didPickDocumentsAtURLs:(NSArray<NSURL *> *)urls {

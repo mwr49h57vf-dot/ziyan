@@ -1639,43 +1639,45 @@ ftp.quit()
   end
 
   local function mem_cache_read(bid)
-    local jpath = mem_json_path(bid)
-    local jf = io.open(jpath, "r")
+    local jf, _, jcode = io.open(mem_json_path(bid), "r")
     if jf then
-      local body = jf:read("*a") or ""
-      jf:close()
+      local body = jf:read("*a")
+      local closed = jf:close()
+      if not body or not closed then return nil, "memory_json_unreadable" end
       local ok, obj = pcall(json_decode, body)
       if ok and type(obj) == "table" then return obj end
+      return nil, "memory_json_invalid"
     end
-    -- 兼容已存在的 plist；新写入不再依赖此路径。
+    if jcode ~= 2 then return nil, "memory_json_unreadable" end
     local path = mem_plist_path(bid)
-    local f = io.open(path, "rb")
-    if not f then return {} end
+    local f, _, code = io.open(path, "rb")
+    if not f then
+      if code == 2 then return {} end
+      return nil, "memory_plist_unreadable"
+    end
     f:close()
-    local outf = ZIYAN_VAR .. "/.ziyan_mem_cache.json"
-    os.execute(string.format(
-      '/usr/lib/ziyan/bin/python3 -c "import plistlib,json,sys; d=plistlib.load(open(sys.argv[1],\'rb\')); json.dump(d if isinstance(d,dict) else {}, open(sys.argv[2],\'w\'))" "%s" "%s" 2>/dev/null',
-      path, outf))
-    local jf = io.open(outf, "r")
-    if not jf then return {} end
-    local body = jf:read("*a") or ""
-    jf:close()
-    local ok, obj = pcall(json_decode, body)
+    -- PlistRead owns a unique output and checks the native helper exit status.
+    local ok, obj = pcall(PlistRead, path)
     if ok and type(obj) == "table" then return obj end
-    return {}
+    return nil, "memory_plist_invalid"
   end
 
   local function mem_cache_write(bid, tbl)
     os.execute(string.format('mkdir -p "%s/memory"', ZIYAN_VAR))
     local path = mem_json_path(bid)
-    local tmpj = path .. ".tmp"
-    local f = io.open(tmpj, "w")
-    if not f then return false end
-    f:write(json_encode(tbl or {}))
-    f:close()
-    if os.rename(tmpj, path) then return true end
-    -- 同目录 rename 正常应为原子；异常时仍保留原缓存，清临时文件后返回失败。
-    pcall(os.remove, tmpj)
+    local encoded, body = pcall(json_encode, tbl)
+    if not encoded then return false end
+    local made, reservation = pcall(os.tmpname)
+    if not made then return false end
+    local tmpj = path .. "." .. reservation:match("[^/\\]+$") .. ".tmp"
+    local f = io.open(tmpj, "wb")
+    if not f then os.remove(reservation); return false end
+    local wrote = f:write(body)
+    local closed = f:close()
+    local committed = wrote and closed and os.rename(tmpj, path)
+    os.remove(reservation)
+    if committed then return true end
+    os.remove(tmpj)
     return false
   end
 
@@ -1727,7 +1729,8 @@ ftp.quit()
   function MemoryAccess(Bunid_str, str)
     local bid = tostring(Bunid_str or "")
     local key = tostring(str or "")
-    local cache = mem_cache_read(bid)
+    local cache, err = mem_cache_read(bid)
+    if not cache then return nil, err end
     if cache[key] ~= nil then
       return tostring(cache[key])
     end
@@ -1752,7 +1755,8 @@ ftp.quit()
     local bid = tostring(Bunid_str or "")
     local key = tostring(str or "")
     if bid == "" or key == "" then return false end
-    local cache = mem_cache_read(bid)
+    local cache, err = mem_cache_read(bid)
+    if not cache then return false, err end
     cache[key] = tostring(value)
     return mem_cache_write(bid, cache)
   end
@@ -1763,7 +1767,8 @@ ftp.quit()
 
   function MemoryKeys(Bunid_str)
     local bid = tostring(Bunid_str or "")
-    local cache = mem_cache_read(bid)
+    local cache, err = mem_cache_read(bid)
+    if not cache then return { ok = false, error = err, keys = {} } end
     local keys = {}
     for k, _ in pairs(cache) do
       keys[#keys + 1] = tostring(k)
@@ -1778,7 +1783,8 @@ ftp.quit()
 
   function MemoryDump(Bunid_str, max_items)
     local bid = tostring(Bunid_str or "")
-    local cache = mem_cache_read(bid)
+    local cache, err = mem_cache_read(bid)
+    if not cache then return { ok = false, error = err, items = {}, count = 0 } end
     local items = {}
     max_items = tonumber(max_items) or 200
     for k, v in pairs(cache) do
@@ -1886,10 +1892,13 @@ ftp.quit()
 
   function MemoryScanNames(Bunid_str)
     local r = MemoryKeys(Bunid_str)
+    if not r.ok then return {ok=false, error=r.error, names={}, items={}} end
     local names = (r and r.keys) or {}
     local items = {}
     for _, k in ipairs(names) do
-      items[#items + 1] = { name = k, value = MemoryAccess(Bunid_str, k) }
+      local value, err = MemoryAccess(Bunid_str, k)
+      if value == nil then return {ok=false, error=err, names={}, items={}} end
+      items[#items + 1] = { name = k, value = value }
     end
     return { ok = true, names = names, items = items }
   end

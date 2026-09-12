@@ -36,7 +36,7 @@ if errorlevel 1 (
   --add-data "ziyan_picker_icon.png;." ^
   --add-data "_zy_payload.bin;." ^
   --hidden-import PIL._tkinter_finder ^
-  --hidden-import _collect_imports ^
+  --hidden-import picker_imports ^
   --hidden-import protect_build ^
   picker_boot.py
 

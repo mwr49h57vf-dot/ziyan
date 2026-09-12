@@ -7,7 +7,7 @@ import os
 import sys
 import types
 
-import _collect_imports  # noqa: F401
+import picker_imports  # noqa: F401
 from protect_build import decrypt_bytes
 
 if getattr(sys, "frozen", False):
@@ -18,12 +18,14 @@ else:
 
 def _load():
     path = os.path.join(_BASE, "_zy_payload.bin")
-    raw = decrypt_bytes(open(path, "rb").read())
+    with open(path, "rb") as payload:
+        raw = decrypt_bytes(payload.read())
     codes = marshal.loads(raw)
-    fmt = types.ModuleType("formats")
-    fmt.__file__ = os.path.join(_BASE, "formats.py")
-    sys.modules["formats"] = fmt
-    exec(codes["formats.py"], fmt.__dict__)
+    for name in ("formats", "paired_http"):
+        module = types.ModuleType(name)
+        module.__file__ = os.path.join(_BASE, name + ".py")
+        sys.modules[name] = module
+        exec(codes[name + ".py"], module.__dict__)
     g = {
         "__name__": "__main__",
         "__file__": os.path.join(_BASE, "ZiYanColorPicker.py"),

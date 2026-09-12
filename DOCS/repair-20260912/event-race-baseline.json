@@ -1,0 +1,29 @@
+{
+  "baseline": "HEAD",
+  "http_results": [
+    [
+      200,
+      {
+        "ok": true,
+        "dedup": false,
+        "event_id": "collision",
+        "stored": "logs/2026-09-12/collision.json"
+      }
+    ],
+    [
+      200,
+      {
+        "ok": true,
+        "dedup": true,
+        "event_id": "collision",
+        "stored": "logs/2026-09-12/collision.json"
+      }
+    ]
+  ],
+  "body": {
+    "event_id": "collision",
+    "message": "second"
+  },
+  "index_sha256": "a3338e3beffe8c316ce7116c405f07ba97b61840ef28512d2f0ada8be72e4d5f",
+  "actual_sha256": "565141d7e3f94f7b65e67ad9948ef8e966dae185637a9234eedbaf4539ec25ad"
+}

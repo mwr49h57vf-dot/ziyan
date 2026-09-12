@@ -76,7 +76,8 @@ end
 --- 当前协作上下文等待；主线程则 mSleep
 function M.wait(ms)
   ms = tonumber(ms) or 0
-  if coroutine.running() then
+  local co, is_main = coroutine.running()
+  if co and not is_main then
     return coroutine.yield(ms)
   end
   sleep_ms(ms)

@@ -1,0 +1,16 @@
+{
+  "scope": "disposable synthetic package files, not installable ZiYan packages",
+  "fingerprint": "037A351DFFC74D01972826BFF94B64F88ABBF6DE",
+  "files": {
+    "iphoneos-arm.deb": "c92d01692112903e0d74dbc67225787b264be63f96f23fe2c2fd0d1c107f1419",
+    "iphoneos-arm64.deb": "0c40bdd2d0bd245a5066c572f52689b108506b6ee58da495124400d16775e690",
+    "operator-selected.gpg": "5e452e26c458c4b552989314d87fdd9a30307ccf4abe7d8a9e1b7cad73593226",
+    "dists/stable/InRelease": "8889dede5897bf9e34f71683354f164b9bc0874240897e03d93112c3807f1cff",
+    "dists/stable/Release": "84aa3fa505845ddc56b79ca2c5a55e1c1bf7f3fd99bcfb7f4a9f1033ccc04005",
+    "dists/stable/Release.gpg": "2c6146b869aa6fa51824356026c33768cbaaf8910d7d31bbdfd0efc4f4e7cee4",
+    "dists/stable/main/binary-iphoneos-arm/Packages": "9e580bdbdd9d42f3a42f52a543a06374816003675ab12e3b330ff8fb0dd79673",
+    "dists/stable/main/binary-iphoneos-arm/Packages.gz": "cc786ec4ee9a64b82a48d3ddba096fd163003cf2723e36c918a3dfbebecfdd5e",
+    "dists/stable/main/binary-iphoneos-arm64/Packages": "192300f4cd5c92cdcca08149a4b21d7d63e127b667ce788afe9d379bfd468cb6",
+    "dists/stable/main/binary-iphoneos-arm64/Packages.gz": "9c1208dab8899e1a6bb66d281acb6d699f999e12b3d934f671d5eea5b22d2ec8"
+  }
+}

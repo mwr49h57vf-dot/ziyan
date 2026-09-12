@@ -1,0 +1,105 @@
+BASELINE=cfb4695bd83c8a11dbaf428b1bc0c9f58d39b090
+EXIT=1
+test_make_stage_never_loses_destination (__main__.StageBoundary.test_make_stage_never_loses_destination)
+Run old logical recipe lines with inert shell command substitutes. ... FAIL
+test_copy_failure_retains_old_data_and_fails_install (__main__.InstallMigration.test_copy_failure_retains_old_data_and_fails_install) ... FAIL
+test_different_same_name_retains_both_and_reports_conflict (__main__.InstallMigration.test_different_same_name_retains_both_and_reports_conflict) ... FAIL
+test_empty_indexes_and_fake_signatures_must_fail (__main__.AptVerification.test_empty_indexes_and_fake_signatures_must_fail) ... D:\Khabarovsk\K.Develop\ziyan\tests\baseline-build-6yk2a4ig\tools\ziyan_apt\verify_repo.py:29: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\Khabarovsk\\K.Develop\\ziyan\\tests\\baseline-build-6yk2a4ig\\tests\\tmpbq_u9spx\\dists/stable/main\\binary-iphoneos-arm\\Packages' mode='r' encoding='utf-8'>
+  txt = open(pk, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\Khabarovsk\K.Develop\ziyan\tests\baseline-build-6yk2a4ig\tools\ziyan_apt\verify_repo.py:29: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\Khabarovsk\\K.Develop\\ziyan\\tests\\baseline-build-6yk2a4ig\\tests\\tmpbq_u9spx\\dists/stable/main\\binary-iphoneos-arm64\\Packages' mode='r' encoding='utf-8'>
+  txt = open(pk, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\Khabarovsk\K.Develop\ziyan\tests\baseline-build-6yk2a4ig\tools\ziyan_apt\verify_repo.py:62: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\Khabarovsk\\K.Develop\\ziyan\\tests\\baseline-build-6yk2a4ig\\tests\\tmpbq_u9spx\\dists/stable/Release' mode='r' encoding='utf-8'>
+  rel = open(rel_path, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+FAIL
+test_failed_postcheck_cannot_report_deploy_done (__main__.DeployExit.test_failed_postcheck_cannot_report_deploy_done) ... FAIL
+test_remote_failure_is_not_retried_as_empty_password_session (__main__.DeployExit.test_remote_failure_is_not_retried_as_empty_password_session) ... FAIL
+
+======================================================================
+FAIL: test_make_stage_never_loses_destination (__main__.StageBoundary.test_make_stage_never_loses_destination)
+Run old logical recipe lines with inert shell command substitutes.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Khabarovsk\K.Develop\ziyan\tests\baseline-build-6yk2a4ig\tools\test_build_install_repairs.py", line 102, in test_make_stage_never_loses_destination
+    self.assertNotRegex(output, r"WRITE (?:-a --delete |\-f )?[^\n]* (?<!stage)/usr/lib/ziyan/runtime/")
+AssertionError: Regex matched: 'WRITE -a --delete vendor/runtime/data/ /usr/lib/ziyan/runtime/' matches 'WRITE (?:-a --delete |\\-f )?[^\\n]* (?<!stage)/usr/lib/ziyan/runtime/' in 'WRITE -p /d/Khabarovsk/K.Develop/ziyan/tests/baseline-build-6yk2a4ig/tests/tmpnlit8obb/stage/usr/lib/ziyan/bin /d/Khabarovsk/K.Develop/ziyan/tests/baseline-build-6yk2a4ig/tests/tmpnlit8obb/stage/usr/lib/ziyan/lib/lua /d/Khabarovsk/K.Develop/ziyan/tests/baseline-build-6yk2a4ig/tests/tmpnlit8obb/stage/usr/lib/ziyan/engine /d/Khabarovsk/K.Develop/ziyan/tests/baseline-build-6yk2a4ig/tests/tmpnlit8obb/stage/usr/lib/ziyan/runtime /d/Khabarovsk/K.Develop/ziyan/tests/baseline-build-6yk2a4ig/tests/tmpnlit8obb/stage/usr/lib/ziyan/hook /d/Khabarovsk/K.Develop/ziyan/tests/baseline-build-6yk2a4ig/tests/tmpnlit8obb/stage/usr/lib/ziyan/var /d/Khabarovsk/K.Develop/ziyan/tests/baseline-build-6yk2a4ig/tests/tmpnlit8obb/stage/usr/lib/ziyan/modules /d/Khabarovsk/K.Develop/ziyan/tests/baseline-build-6yk2a4ig/tests/tmpnlit8obb/stage/usr/lib/ziyan/models /d/Khabarovsk/K.Develop/ziyan/tests/baseline-build-6yk2a4ig/tests/tmpnlit8obb/stage/Library/LaunchDaemons /d/Khabarovsk/K.Develop/ziyan/tests/baseline-build-6yk2a4ig/tests/tmpnlit8obb/stage/usr/lib/ziyan/share/media_seed\nWRITE -a vendor/bin/ /d/Khabarovsk/K.Develop/ziyan/tests/baseline-build-6yk2a4ig/tests/tmpnlit8obb/stage/usr/lib/ziyan/bin/\nWRITE -a --exclude=lua vendor/lib/ /d/Khabarovsk/K.Develop/ziyan/tests/baseline-build-6yk2a4ig/tests/tmpnlit8obb/stage/usr/lib/ziyan/lib/\nWRITE -a --delete lua/ /d/Khabarovsk/K.Develop/ziyan/tests/baseline-build-6yk2a4ig/tests/tmpnlit8obb/stage/usr/lib/ziyan/lib/lua/\nWRITE -p /d/Khabarovsk/K.Develop/ziyan/tests/baseline-build-6yk2a4ig/tests/tmpnlit8obb/stage/usr/lib/ziyan/lib/lua/agent\nWRITE -a Agent/ /d/Khabarovsk/K.Develop/ziyan/tests/baseline-build-6yk2a4ig/tests/tmpnlit8obb/stage/usr/lib/ziyan/lib/lua/agent/\nWRITE 755 /d/Khabarovsk/K.Develop/ziyan/tests/baseline-build-6yk2a4ig/tests/tmpnlit8obb/stage/usr/lib/ziyan/bin/lua5.3 /d/Khabarovsk/K.Develop/ziyan/tests/baseline-build-6yk2a4ig/tests/tmpnlit8obb/stage/usr/lib/ziyan/bin/python3.7\nWRITE -sfn lua5.3 /d/Khabarovsk/K.Develop/ziyan/tests/baseline-build-6yk2a4ig/tests/tmpnlit8obb/stage/usr/lib/ziyan/bin/lua\nWRITE -sfn python3.7 /d/Khabarovsk/K.Develop/ziyan/tests/baseline-build-6yk2a4ig/tests/tmpnlit8obb/stage/usr/lib/ziyan/bin/python3\nWRITE -sfn libreadline.8.0.dylib /d/Khabarovsk/K.Develop/ziyan/tests/baseline-build-6yk2a4ig/tests/tmpnlit8obb/stage/usr/lib/ziyan/lib/libreadline.8.dylib\nWRITE -change /usr/lib/ziyan/lib/liblua5.3.dylib /var/jb/usr/lib/ziyan/lib/liblua5.3.dylib /d/Khabarovsk/K.Develop/ziyan/tests/baseline-build-6yk2a4ig/tests/tmpnlit8obb/stage/usr/lib/ziyan/bin/lua5.3\nWRITE -change /usr/lib/ziyan/lib/libreadline.8.dylib /var/jb/usr/lib/ziyan/lib/libreadline.8.dylib /d/Khabarovsk/K.Develop/ziyan/tests/baseline-build-6yk2a4ig/tests/tmpnlit8obb/stage/usr/lib/ziyan/bin/lua5.3\nWRITE -id /var/jb/usr/lib/ziyan/lib/liblua5.3.dylib /d/Khabarovsk/K.Develop/ziyan/tests/baseline-build-6yk2a4ig/tests/tmpnlit8obb/stage/usr/lib/ziyan/lib/liblua5.3.dylib\nWRITE -id /var/jb/usr/lib/ziyan/lib/libreadline.8.0.dylib /d/Khabarovsk/K.Develop/ziyan/tests/baseline-build-6yk2a4ig/tests/tmpnlit8obb/stage/usr/lib/ziyan/lib/libreadline.8.0.dylib\nWRITE -change /usr/lib/libncurses.6.dylib /var/jb/usr/lib/libncurses.6.dylib /d/Khabarovsk/K.Develop/ziyan/tests/baseline-build-6yk2a4ig/tests/tmpnlit8obb/stage/usr/lib/ziyan/lib/libreadline.8.0.dylib\nWRITE -S /d/Khabarovsk/K.Develop/ziyan/tests/baseline-build-6yk2a4ig/tests/tmpnlit8obb/stage/usr/lib/ziyan/bin/lua5.3 /d/Khabarovsk/K.Develop/ziyan/tests/baseline-build-6yk2a4ig/tests/tmpnlit8obb/stage/usr/lib/ziyan/lib/liblua5.3.dylib /d/Khabarovsk/K.Develop/ziyan/tests/baseline-build-6yk2a4ig/tests/tmpnlit8obb/stage/usr/lib/ziyan/lib/libreadline.8.0.dylib\nWRITE -f vendor/runtime/engine/wnriakwyww /d/Khabarovsk/K.Develop/ziyan/tests/baseline-build-6yk2a4ig/tests/tmpnlit8obb/stage/usr/lib/ziyan/engine/wnriakwyww\nWRITE -f vendor/runtime/engine/wnriakwyww.dylib /d/Khabarovsk/K.Develop/ziyan/tests/baseline-build-6yk2a4ig/tests/tmpnlit8obb/stage/usr/lib/ziyan/engine/wnriakwyww.dylib\nWRITE 755 /d/Khabarovsk/K.Develop/ziyan/tests/baseline-build-6yk2a4ig/tests/tmpnlit8obb/stage/usr/lib/ziyan/engine/wnriakwyww /d/Khabarovsk/K.Develop/ziyan/tests/baseline-build-6yk2a4ig/tests/tmpnlit8obb/stage/usr/lib/ziyan/engine/wnriakwyww.dylib\nWRITE -change /bin/wnriakwyww.dylib /var/jb/bin/wnriakwyww.dylib /usr/lib/ziyan/engine/wnriakwyww\nWRITE -id /var/jb/bin/wnriakwyww.dylib /usr/lib/ziyan/engine/wnriakwyww.dylib\nWRITE -S /usr/lib/ziyan/engine/wnriakwyww\nWRITE -S /usr/lib/ziyan/engine/wnriakwyww.dylib\nWRITE -a --delete vendor/runtime/data/ /usr/lib/ziyan/runtime/\nWRITE -p /usr/lib/ziyan/runtime/scripts /usr/lib/ziyan/runtime/var/log /usr/lib/ziyan/runtime/var/tmp\nWRITE -f vendor/runtime/hook/ZiYanTEHook.dylib /usr/lib/ziyan/hook/\nWRITE -f vendor/runtime/hook/ZiYanTEHook.plist /usr/lib/ziyan/hook/\nWRITE -a --delete vendor/modules/ /usr/lib/ziyan/modules/\nWRITE -a layout/usr/lib/ziyan/models/ /usr/lib/ziyan/models/\nWRITE -p /usr/lib/ziyan/tessdata/lstm/tessdata\nWRITE -a layout/usr/lib/ziyan/tessdata/ /usr/lib/ziyan/tessdata/\nWRITE -f layout/usr/lib/ziyan/tessdata/_fast/chi_sim.traineddata /usr/lib/ziyan/tessdata/lstm/tessdata/chi_sim.traineddata\nWRITE -f layout/usr/lib/ziyan/tessdata/_fast/eng.traineddata /usr/lib/ziyan/tessdata/lstm/tessdata/eng.traineddata\nWRITE -f vendor/runtime/launch/com.ziyan.engine.plist /Library/LaunchDaemons/com.ziyan.engine.plist\nWRITE -f vendor/runtime/launch/com.ziyan.fscloak.plist /Library/LaunchDaemons/com.ziyan.fscloak.plist\nWRITE -f vendor/runtime/bin/ziyan_fscloakd.sh /usr/lib/ziyan/bin/ziyan_fscloakd.sh\nWRITE 755 /usr/lib/ziyan/bin/ziyan_fscloakd.sh\nWRITE 755 /usr/lib/ziyan/bin/ziyan_zero_sb_unload.sh\nWRITE 755 /usr/lib/ziyan/bin/ziyan_framerelay_toggle.sh\nWRITE -f vendor/runtime/launch/com.ziyan.scripthub.plist /Library/LaunchDaemons/com.ziyan.scripthub.plist\nWRITE -f vendor/runtime/bin/ziyan_scripthubd.sh /usr/lib/ziyan/bin/ziyan_scripthubd.sh\nWRITE 755 /usr/lib/ziyan/bin/ziyan_scripthubd.sh\nWRITE -f vendor/runtime/launch/com.ziyan.zydaemon.plist /Library/LaunchDaemons/com.ziyan.zydaemon.plist\nWRITE -f layout/usr/lib/ziyan/bin/ziyan_zydaemond.sh /usr/lib/ziyan/bin/ziyan_zydaemond.sh\nWRITE 755 /usr/lib/ziyan/bin/ziyan_zydaemond.sh\nWRITE -f layout/usr/lib/ziyan/bin/ziyan_framecap_wrap.sh /usr/lib/ziyan/bin/ziyan_framecap_wrap.sh\nWRITE 755 /usr/lib/ziyan/bin/ziyan_framecap_wrap.sh\nWRITE -f layout/usr/lib/ziyan/bin/ziyan_runtime_root.sh /usr/lib/ziyan/bin/ziyan_runtime_root.sh\nWRITE 755 /usr/lib/ziyan/bin/ziyan_runtime_root.sh\nWRITE -f vendor/runtime/launch/com.ziyan.framecap.plist /Library/LaunchDaemons/com.ziyan.framecap.plist\nWRITE -a layout/private/var/mobile/Media/ZiYan/ /usr/lib/ziyan/share/media_seed/\nWRITE -a media_seed/ /usr/lib/ziyan/share/media_seed/\nWRITE -f /private/var/mobile/Media/ZiYan/login_xztl.lua /private/var/mobile/Media/ZiYan/login_lan.lua /private/var/mobile/Media/ZiYan/login_usb.lua\n[ZiYan] staged (pre-remap) → /usr/lib/ziyan scheme=rootless\n'
+
+======================================================================
+FAIL: test_copy_failure_retains_old_data_and_fails_install (__main__.InstallMigration.test_copy_failure_retains_old_data_and_fails_install)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Khabarovsk\K.Develop\ziyan\tests\baseline-build-6yk2a4ig\tools\test_build_install_repairs.py", line 155, in test_copy_failure_retains_old_data_and_fails_install
+    self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
+AssertionError: 0 == 0 :
+
+======================================================================
+FAIL: test_different_same_name_retains_both_and_reports_conflict (__main__.InstallMigration.test_different_same_name_retains_both_and_reports_conflict)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Khabarovsk\K.Develop\ziyan\tests\baseline-build-6yk2a4ig\tools\test_build_install_repairs.py", line 166, in test_different_same_name_retains_both_and_reports_conflict
+    self.assertNotEqual(result.returncode, 0)
+AssertionError: 0 == 0
+
+======================================================================
+FAIL: test_empty_indexes_and_fake_signatures_must_fail (__main__.AptVerification.test_empty_indexes_and_fake_signatures_must_fail)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Khabarovsk\K.Develop\ziyan\tests\baseline-build-6yk2a4ig\tools\test_build_install_repairs.py", line 273, in test_empty_indexes_and_fake_signatures_must_fail
+    self.assertNotEqual(module.main(str(repo)), 0)
+AssertionError: 0 == 0
+
+======================================================================
+FAIL: test_failed_postcheck_cannot_report_deploy_done (__main__.DeployExit.test_failed_postcheck_cannot_report_deploy_done)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Khabarovsk\K.Develop\ziyan\tests\baseline-build-6yk2a4ig\tools\test_build_install_repairs.py", line 482, in test_failed_postcheck_cannot_report_deploy_done
+    self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
+AssertionError: 0 == 0 : SB_RESTART_AUTHORIZED cleanup_required=1 unlock_required=1
+DEB=/d/Khabarovsk/K.Develop/ziyan/tests/baseline-build-6yk2a4ig/tests/tmp3kclgb88/fixture_iphoneos-arm.deb
+SHA256=f16d05ec6b29248d2c61adb1e9263f78e4f7bace1b955014a2d17872cfe4064d
+EXPECTED_VERSION=not_enforced
+== .101: preflight + rollback snapshot ==
+MOCK_VISIT host=101 stage=preflight
+== .101: upload + install ==
+MOCK_VISIT host=101 stage=upload_package
+MOCK_VISIT host=101 stage=upload_entitlements
+MOCK_VISIT host=101 stage=install
+== .112: preflight + rollback snapshot ==
+MOCK_VISIT host=112 stage=preflight
+== .112: upload + install ==
+MOCK_VISIT host=112 stage=upload_package
+MOCK_VISIT host=112 stage=upload_entitlements
+MOCK_VISIT host=112 stage=install
+== .166: preflight + rollback snapshot ==
+MOCK_VISIT host=166 stage=preflight
+== .166: upload + install ==
+MOCK_VISIT host=166 stage=upload_package
+MOCK_VISIT host=166 stage=upload_entitlements
+MOCK_VISIT host=166 stage=install
+== wait for SpringBoard reload ==
+== .101: post-install readback ==
+MOCK_VISIT host=101 stage=postcheck
+== .112: post-install readback ==
+MOCK_VISIT host=112 stage=postcheck
+== .166: post-install readback ==
+MOCK_VISIT host=166 stage=postcheck
+DEPLOY_DONE stamp=20260912_144331 hosts=101 112 166
+WARN: .112 post-install/unlock failed
+
+
+======================================================================
+FAIL: test_remote_failure_is_not_retried_as_empty_password_session (__main__.DeployExit.test_remote_failure_is_not_retried_as_empty_password_session)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Khabarovsk\K.Develop\ziyan\tests\baseline-build-6yk2a4ig\tools\test_build_install_repairs.py", line 437, in test_remote_failure_is_not_retried_as_empty_password_session
+    self.assertEqual(result.returncode, 12, result.stdout + result.stderr)
+AssertionError: 0 != 12 : REMOTE_EXECUTED:exit 12
+UNEXPECTED_PASSWORD_RETRY
+
+
+----------------------------------------------------------------------
+Ran 6 tests in 3.477s
+
+FAILED (failures=6)

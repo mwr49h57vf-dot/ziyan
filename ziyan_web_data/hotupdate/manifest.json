@@ -1,20 +1,6 @@
 {
   "versions": [
     {
-      "version": "0.0.92-test18091",
-      "channel": "stable",
-      "file": "com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-15_iphoneos-arm64.deb",
-      "url": "/hotupdate/packages/0.0.92-test18091/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-15_iphoneos-arm64.deb",
-      "sha256": "2fd16074734c0746116b05228858c07fba525ba9cf17602d80de926d015268c1",
-      "size": 46453120,
-      "architecture": "iphoneos-arm64",
-      "min_os": "13.0",
-      "max_os": "16.7",
-      "ziyan_min": "0.0.92",
-      "notes": "verify",
-      "published_at": "2026-09-11 23:10:13"
-    },
-    {
       "version": "0.0.92-8-161-205-C-65.11-98+debug-10-38-17-158-2+debug",
       "channel": "stable",
       "file": "com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-158-2+debug_iphoneos-arm64.deb",

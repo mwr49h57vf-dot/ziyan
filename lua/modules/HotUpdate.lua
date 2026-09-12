@@ -14,8 +14,6 @@
 ]]
 local M = { name = "HotUpdate", version = "1.0.0" }
 
-local SH_PATH = "PATH=/var/jb/usr/bin:/var/jb/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH "
-
 -- 状态根目录：优先 ZIYAN_VAR 下的 versions/（可写、跟随 rootful/rootless）
 local function var_dir()
   return _G.ZIYAN_VAR or "/usr/lib/ziyan/var"
@@ -44,69 +42,37 @@ local function write_text(path, body)
   return ok
 end
 
-local function run_capture(cmd)
-  -- rootless 的 io.popen 走 libc → /bin/sh 缺失必死；os.execute 在 embed 宿主被
-  -- ziyan_ios_system 覆盖（/var/jb/bin/sh 优先）→ 必须用 os.execute + 重定向读回
-  local out = nil
-  for _, d in ipairs({ var_dir(), "/tmp",
-      (_G.ZIYAN_ZYCV and (_G.ZIYAN_ZYCV .. "/tmp")) or nil, _G.ZIYAN_ZYCV }) do
-    if d and not out then
-      local f = io.open(d .. "/.zy_hot_probe", "w")
-      if f then
-        f:close()
-        os.remove(d .. "/.zy_hot_probe")
-        out = d .. "/.zy_hot_out.txt"
-      end
+--- 统一命令执行正本：lua/modules/zy_shell.lua（2026-09-12 去重；原本地拷贝已删）
+--- require 优先；embed/无 package.path 场景按安装路径 dofile 兜底。
+local ZS = (function()
+  local ok, mod = pcall(require, "zy_shell")
+  if ok and type(mod) == "table" and type(mod.run_capture) == "function" then return mod end
+  local base = _G.ZIYAN_LUA or "/usr/lib/ziyan/lib/lua"
+  for _, p in ipairs({ base .. "/modules/zy_shell.lua",
+      "/var/jb/usr/lib/ziyan/lib/lua/modules/zy_shell.lua",
+      "/usr/lib/ziyan/lib/lua/modules/zy_shell.lua" }) do
+    local f = io.open(p, "r")
+    if f then
+      f:close()
+      local ok2, m2 = pcall(dofile, p)
+      if ok2 and type(m2) == "table" and type(m2.run_capture) == "function" then return m2 end
     end
   end
-  if not out then return "" end
-  pcall(function()
-    -- 注意：Mac 的 sh 是 bash（接受 "( cmd ) > file" 复合命令），但为与 shell_timeout
-    -- 保持一致，统一走 sh -c 单命令调用，避免跨平台 shell 语法差异。
-    os.execute(SH_PATH .. "sh -c " .. "'" .. cmd:gsub("'", "'\\''") .. "' > '" .. out .. "' 2>&1")
-  end)
-  local f = io.open(out, "r")
-  if not f then return "" end
-  local body = f:read("*a")
-  f:close()
-  os.remove(out)
-  return body
+  return nil
+end)()
+assert(ZS, "zy_shell 加载失败（lua/modules/zy_shell.lua 缺失）")
+
+-- 去重后本模块语义保持：不可用时 run_capture/shell_timeout 返回 ""（正本返回 nil）
+local function run_capture(cmd)
+  return ZS.run_capture(cmd) or ""
 end
 
 local function shell(cmd)
   return run_capture(cmd)
 end
 
---- 子命令带硬超时的执行（VM 内不处理信号；内部用 sh 守护进程杀子孙）
 local function shell_timeout(cmd, seconds)
-  local out = nil
-  for _, d in ipairs({ var_dir(), "/tmp",
-      (_G.ZIYAN_ZYCV and (_G.ZIYAN_ZYCV .. "/tmp")) or nil, _G.ZIYAN_ZYCV }) do
-    if d and not out then
-      local f = io.open(d .. "/.zy_hot_probe", "w")
-      if f then
-        f:close()
-        os.remove(d .. "/.zy_hot_probe")
-        out = d .. "/.zy_hot_to.txt"
-      end
-    end
-  end
-  if not out then return "" end
-  local tmo = math.max(2, tonumber(seconds) or 25)
-  -- 关键：杀手 sleep 必须后台化（&），否则 shell 等它跑完，超时反而变慢
-  local wrapped = string.format(
-    "( ( sleep %d; pkill -P $$ 2>/dev/null; kill -9 $$ 2>/dev/null ) & WPID=$!; "
-      .. "%s; EC=$?; kill -9 $WPID 2>/dev/null; wait 2>/dev/null; exit $EC )",
-    tmo, cmd)
-  pcall(function()
-    os.execute(SH_PATH .. "sh -c " .. "'" .. wrapped:gsub("'", "'\\''") .. "' > '" .. out .. "' 2>&1")
-  end)
-  local f = io.open(out, "r")
-  if not f then return "" end
-  local body = f:read("*a")
-  f:close()
-  os.remove(out)
-  return body
+  return ZS.shell_timeout(cmd, seconds) or ""
 end
 
 local function py_exe()

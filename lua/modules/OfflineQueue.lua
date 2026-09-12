@@ -39,35 +39,28 @@ M.DEFAULT_SERVER = "http://192.168.31.2:18091"
 ---------------------------------------------------------------------------
 -- 小工具
 ---------------------------------------------------------------------------
---- 统一命令执行（rootless 的 io.popen 因 /bin/sh 缺失必死；os.execute 在 embed 被
---- ziyan_ios_system 覆盖，/var/jb/bin/sh 优先 → rootless 可用）。命令一律重定向读回。
-local var_dir  -- 前向声明：run_capture 依赖它（定义见路径解析区）
+--- 统一命令执行正本：lua/modules/zy_shell.lua（2026-09-12 去重；原本地拷贝已删）
+--- require 优先；embed/无 package.path 场景按安装路径 dofile 兜底。
+local var_dir  -- 前向声明：var_dir 于路径解析区赋值，本文件多处使用
 
-local function run_capture(cmd)
-  local out = nil
-  for _, d in ipairs({ var_dir(), "/tmp",
-      (_G.ZIYAN_ZYCV and (_G.ZIYAN_ZYCV .. "/tmp")) or nil,
-      _G.ZIYAN_ZYCV }) do
-    if d and not out then
-      local f = io.open(d .. "/.zy_exec_probe", "w")
-      if f then
-        f:close()
-        os.remove(d .. "/.zy_exec_probe")
-        out = d .. "/.zy_exec_out.txt"
-      end
+local ZS = (function()
+  local ok, mod = pcall(require, "zy_shell")
+  if ok and type(mod) == "table" and type(mod.run_capture) == "function" then return mod end
+  local base = _G.ZIYAN_LUA or "/usr/lib/ziyan/lib/lua"
+  for _, p in ipairs({ base .. "/modules/zy_shell.lua",
+      "/var/jb/usr/lib/ziyan/lib/lua/modules/zy_shell.lua",
+      "/usr/lib/ziyan/lib/lua/modules/zy_shell.lua" }) do
+    local f = io.open(p, "r")
+    if f then
+      f:close()
+      local ok2, m2 = pcall(dofile, p)
+      if ok2 and type(m2) == "table" and type(m2.run_capture) == "function" then return m2 end
     end
   end
-  if not out then return nil end
-  pcall(function()
-    os.execute("( " .. SH_PATH .. cmd .. " ) > '" .. out .. "' 2>&1")
-  end)
-  local f = io.open(out, "r")
-  if not f then return nil end
-  local body = f:read("*a")
-  f:close()
-  os.remove(out)
-  return body
-end
+  return nil
+end)()
+assert(ZS, "zy_shell 加载失败（lua/modules/zy_shell.lua 缺失）")
+local run_capture = ZS.run_capture
 
 local function root()
   if type(_G.ZIYAN_ZYCV) == "string" and #_G.ZIYAN_ZYCV > 0 then

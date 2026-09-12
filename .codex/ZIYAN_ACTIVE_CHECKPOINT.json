@@ -1,8 +1,8 @@
 {
   "schemaVersion": 2,
-  "updatedAt": 1789184663,
+  "updatedAt": 1789184696,
   "stage": "AUTHORIZED-4ITEMS-COMPLETE-FIVE-DEVICE-164-3FAMILY-FULLSEQ",
-  "head": "eb67fff3e74553ce0e5af0d9e8648bde29dc2fc8",
+  "head": "a170f0433b7f85c99e2c73e7f2aa440e2a30bcee",
   "changedFiles": [
     "M api_spec/device_function_matrix.json",
     " M monitor_devices.py",

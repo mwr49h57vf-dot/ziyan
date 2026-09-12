@@ -393,10 +393,17 @@ rm -f "$D/scenarios.lua" "$D/entry.lua" "$D/cases.json" "$D/a.txt" "$D/b.txt" "$
             if record.get("terminal") and record.get("runtime_payload_verified") and record["cleanup"] == "PASS":
                 for dimension in ("normal", "error"):
                     selected = [row for row in checks if row["dimension"] == dimension]
-                    if selected:
-                        result["coverage"][dimension] = (
-                            "DEVICE_SCENARIO_PASS" if all(row["status"] == "SCENARIO_PASS" for row in selected)
-                            else "DEVICE_SCENARIO_FAIL")
+                    if not selected:
+                        continue
+                    if any(row["status"] == "SCENARIO_SKIPPED" for row in selected):
+                        # 设备停止态等跳过：不加戏也不判 PASS/FAIL，保持未测并留原因
+                        result.setdefault("skipped", {})[dimension] = sorted(
+                            {row.get("detail", "") for row in selected
+                             if row["status"] == "SCENARIO_SKIPPED"})
+                        continue
+                    result["coverage"][dimension] = (
+                        "DEVICE_SCENARIO_PASS" if all(row["status"] == "SCENARIO_PASS" for row in selected)
+                        else "DEVICE_SCENARIO_FAIL")
                 if len([row for row in checks if row["dimension"] == "normal"]) == 3:
                     result["coverage"]["repeated"] = result["coverage"]["normal"]
                 if case["case_id"] == "file.PlistWrite" and not record.get("plist_content_verified"):

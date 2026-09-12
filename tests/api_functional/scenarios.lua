@@ -159,15 +159,111 @@ elseif family == "memory" then
       and value.items[1].value == run_id, "MemoryDump content mismatch")
     write(out .. "/memory_dump.json", json.encode(value))
   end)
+elseif family == "orient" then
+  -- 幂等策略：init 一律以「当前朝向」重入（不改设备朝向状态）；只验证语义与返回。
+  local Ori = _G.ZiYanOrient
+  local function current_orient()
+    if type(Ori) == "table" and type(Ori.get_orient) == "function" then
+      local ok, value = pcall(Ori.get_orient)
+      if ok and type(value) == "number" then return value end
+    end
+    return tonumber(_G.__ZIYAN_ORIENT) or 0
+  end
+  -- 停止态判定（与引擎 control.lua/shm.lua 同源）：文件标志 或 shm flags STOP 位
+  local function device_stopped()
+    local var = root .. "/var"
+    local f = io.open(var .. "/.ziyan_stop", "r")
+    if f then f:close(); return true end
+    local sf = io.open(var .. "/.ziyan_control_shm", "rb")
+    if sf then
+      sf:seek("set", 16)
+      local b = sf:read(4)
+      sf:close()
+      if type(b) == "string" and #b == 4 then
+        local v = b:byte(1) + b:byte(2) * 256 + b:byte(3) * 65536 + b:byte(4) * 16777216
+        return (math.floor(v / 2) % 2) == 1
+      end
+    end
+    return false
+  end
+  case("ZiYanOrient.logical_size", "normal", function()
+    assert(type(Ori) == "table" and type(Ori.logical_size) == "function", "ZiYanOrient missing")
+    local w, h = Ori.logical_size()
+    assert(type(w) == "number" and type(h) == "number" and w > 0 and h > 0,
+      "logical_size invalid: " .. tostring(w) .. "x" .. tostring(h))
+    write(out .. "/orient_size.txt", tostring(w) .. "x" .. tostring(h) .. " orient=" .. tostring(current_orient()) .. "\n")
+  end)
+  case("ZiYanOrient.logical_size", "error", function()
+    local w, h = Ori.logical_size()
+    local w2, h2 = Ori.logical_size("junk", {})  -- 多余参数必须被忽略（不抛错、不改变结果）
+    assert(w == w2 and h == h2, "logical_size changed with extra args")
+  end)
+  case("ZiYanOrient.to_phys", "normal", function()
+    local lw, lh = Ori.logical_size()
+    local x, y = math.floor(lw / 3), math.floor(lh / 2)
+    local px, py = Ori.to_phys(x, y)
+    assert(type(px) == "number" and type(py) == "number", "to_phys non-number")
+    local bx, by = Ori.to_logic(px, py)
+    assert(bx == x and by == y,
+      ("to_phys round-trip %d,%d -> %s,%s -> %s,%s"):format(x, y, px, py, bx, by))
+  end)
+  case("ZiYanOrient.to_phys", "error", function()
+    local ax, ay = Ori.to_phys("bad", nil)   -- 非数字 → 按 0 处理（不得抛错）
+    local zx, zy = Ori.to_phys(0, 0)
+    assert(ax == zx and ay == zy, "to_phys invalid input should coerce to 0")
+  end)
+  case("ZiYanOrient.to_logic", "normal", function()
+    local lw, lh = Ori.logical_size()
+    local px, py = math.floor(lw / 4), math.floor(lh / 5)
+    local x, y = Ori.to_logic(px, py)
+    assert(type(x) == "number" and type(y) == "number", "to_logic non-number")
+    local bx, by = Ori.to_phys(x, y)
+    assert(bx == px and by == py,
+      ("to_logic round-trip %d,%d -> %s,%s -> %s,%s"):format(px, py, x, y, bx, by))
+  end)
+  case("ZiYanOrient.to_logic", "error", function()
+    local ax, ay = Ori.to_logic({}, "bad")
+    local zx, zy = Ori.to_logic(0, 0)
+    assert(ax == zx and ay == zy, "to_logic invalid input should coerce to 0")
+  end)
+  case("init", "normal", function()
+    -- 停止态下 init 会命中产品的「停止→干净退出」路径（会终止本进程）：
+    -- 不加戏、不改设备状态，如实标记为未测（runner 侧 SKIPPED ≠ PASS）。
+    if device_stopped() then return "SKIPPED:device_stopped" end
+    local cur = current_orient()
+    local r = init(cur)                      -- 幂等：与当前朝向一致
+    assert(r == cur, ("init(%d) returned %s"):format(cur, tostring(r)))
+    assert(tonumber(_G.__ZIYAN_ORIENT) == cur, "global orient changed")
+    local w, h = Ori.logical_size()
+    assert(type(w) == "number" and type(h) == "number" and w > 0 and h > 0, "size after init invalid")
+    if type(getScreenSize) == "function" then
+      local gw, gh = getScreenSize()
+      assert(gw == w and gh == h, "getScreenSize != logical_size after init")
+    end
+    write(out .. "/orient_init.txt", ("init(%d) ok size=%dx%d\n"):format(cur, w, h))
+  end)
+  case("init", "error", function()
+    if device_stopped() then return "SKIPPED:device_stopped" end
+    local cur = current_orient()
+    local r = init("junk")                   -- 非数字单参：回落当前朝向（不抛错、不改变状态）
+    assert(r == cur, ("init(junk) returned %s, expected %d"):format(tostring(r), cur))
+    assert(tonumber(_G.__ZIYAN_ORIENT) == cur, "global orient changed by invalid init")
+  end)
 end
 for _, check in ipairs(checks) do
   for attempt = 1, (check.dimension == "normal" and 3 or 1) do
     emit({event = "start", case_id = family .. "." .. check.id,
       dimension = check.dimension, attempt = attempt})
     local ok, err = pcall(check.fn)
+    local status, detail = "SCENARIO_PASS", ""
+    if not ok then
+      status, detail = "SCENARIO_FAIL", tostring(err)
+    elseif type(err) == "string" and err:match("^SKIPPED:") then
+      status, detail = "SCENARIO_SKIPPED", err
+    end
     emit({event = "result", case_id = family .. "." .. check.id,
       dimension = check.dimension, attempt = attempt,
-      status = ok and "SCENARIO_PASS" or "SCENARIO_FAIL", detail = ok and "" or tostring(err)})
+      status = status, detail = detail})
   end
 end
 emit({event = "final", family = family, terminal = true})

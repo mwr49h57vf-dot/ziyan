@@ -1,0 +1,250 @@
+init("0", 1);
+require("TSLib")
+local ts = require("ts")
+DXMC = "CSLC"
+FuWuMing = "/CSLC/"
+BiaoShiFu = "com.ychj.hlhjlygr"
+--function WriteConfig(mb,lx)
+--	ts.config.open("/User/Media/TouchSprite/res/System.plist")
+--	ts.config.delete(mb)
+--	ts.config.save(mb,lx)
+--	ts.config.close(true)
+--	mb,lx = nil,nil
+--end
+--function ReadConfig(sj)
+--	ts.config.open("/User/Media/TouchSprite/res/System.plist")
+--	local coin = ts.config.get(sj)
+--	ts.config.close(true)
+--	sj = nil
+--	return coin
+--end
+--function CheckFile(file_path)
+--	function FileHandle(file_name)
+--		local f = io.open(file_name, "r")
+--		file_name,file_path = nil,nil
+--		return f ~= nil and f:close()
+--	end
+--	local bool = FileHandle(file_path)
+--	file_path=nil
+--	if bool then
+--		return true
+--	else
+--		return false
+--	end
+--end
+--function DownFolder()
+--	local status
+--	while (true) do
+--		status=ts.ftp.connect("en530255688.gotoftp11.com","en530255688","3186969aa")
+--		if status then 
+--			--连接服务器
+--			break
+--		else 
+--			mSleep(3000) --尝试与服务器连接
+--		end
+--	end
+--	status=nil 
+--	mSleep(200)
+--	local WsnJian1="/User/Media/TouchSprite/lua/"..DXMC.."HS.luac"
+--	local WsnJian2="/User/Media/TouchSprite/lua/"..DXMC.."QS.luac"
+--	local WsnJian3="/User/Media/TouchSprite/lua/"..DXMC.."UI.luac"
+--	local JieTi = 1
+--	while (true) do
+--		if JieTi == 1 then
+--			local xh
+--			for xh= 1, 4 do
+--				if xh==1 then
+--					ts.ftp.download(WsnJian1,FuWuMing..DXMC.."HS.luac")
+--				elseif xh==2 then
+--					ts.ftp.download(WsnJian2,FuWuMing..DXMC.."QS.luac")
+--				elseif xh==3 then
+--					ts.ftp.download(WsnJian3,FuWuMing..DXMC.."UI.luac")
+--				end
+--				mSleep(100) --开始下载更新
+--			end
+--			JieTi = 2
+--		elseif JieTi == 2 then
+--			local ShuJu1 = readFileString(WsnJian1)
+--			local ShuJu2 = readFileString(WsnJian2)
+--			local ShuJu3 = readFileString(WsnJian3)
+--			if ShuJu1 ~= " " and ShuJu2 ~= " " and ShuJu3 ~= " " then 
+--				JieTi = nil 
+--				break
+--			else
+--				local xh
+--				for xh= 1, 10 do
+--					mSleep(3000) --更新失败,等待重新更新
+--				end
+--				JieTi = 1
+--			end
+--		end
+--	end
+--	mSleep(200)
+--	ts.ftp.close()
+--end
+--function VersionCompare()
+--	setWifiEnable(true)
+--	mSleep(2000) 
+--	while (true) do
+--		local WwIp=getNetIP()
+--		if WwIp and WwIp ~= ""  then
+--			mSleep(100) WwIp=nil
+--			break
+--		else
+--			setWifiEnable(false)
+--			mSleep(3000) 
+--			setWifiEnable(true)
+--			mSleep(10000)  
+--		end
+--		WwIp=nil
+--	end
+--	local status=ts.ftp.connect("en530255688.gotoftp11.com","en530255688","3186969aa")
+--	local xh,WsnJian
+--	for xh= 1, 15 do
+--		if status then
+--			WsnJian = "/private/var/mobile/Media/TouchSprite/res/BBH.lua"
+--			delFile(WsnJian)
+--			ts.ftp.download(WsnJian, FuWuMing.."BBH.lua")
+--			mSleep(100) 
+--			ts.ftp.close()
+--			local LsBbHnR = ReadConfig("VersionHistory")
+--			local XzBbHnR = readFileString(WsnJian)
+--			if LsBbHnR ~= XzBbHnR then
+--				mSleep(200)
+--				DownFolder()
+--				mSleep(200)
+--				break
+--			else
+--				--判断文件是否存在
+--				if CheckFile(userPath().."/lua/"..DXMC.."HS.luac") == false or
+--					CheckFile(userPath().."/lua/"..DXMC.."QS.luac") == false or
+--					CheckFile(userPath().."/lua/"..DXMC.."UI.luac") == false 
+--				then 
+--					DownFolder()
+--					mSleep(200)
+--				end
+--				break
+--			end
+--		else
+--			status=ts.ftp.connect("en530255688.gotoftp11.com","en530255688","3186969aa")
+--			mSleep(1000) 
+--		end
+--	end
+--	xh, status, WsnJian, LsBbHnR, XzBbHnR = nil, nil, nil, nil, nil
+--end
+--function safeDeleteFile(path,newpath)
+--	if os.execute("cp -rf "..path.." "..newpath)then
+--		if os.remove(path) then return end
+--	end
+--	mSleep(100) safeDeleteFile(path,newpath)
+--end
+--mSleep(100) 
+--setWifiEnable(false) 
+--closeApp(BiaoShiFu,1)
+--VersionCompare()
+--local WsnJian = "/private/var/mobile/Media/TouchSprite/res/BBH.lua"
+--local LsBbHnR = ReadConfig("VersionHistory")
+--local XzBbHnR = readFileString(WsnJian)
+--if LsBbHnR ~= XzBbHnR then
+--	WriteConfig("VersionHistory",XzBbHnR)
+--end
+--WsnJian,LsBbHnR,XzBbHnR = nil,nil,nil
+--safeDeleteFile(userPath().."/lua/"..DXMC.."HS.luac",userPath().."/lua/"..DXMC.."HS.lua")
+--safeDeleteFile(userPath().."/lua/"..DXMC.."QS.luac",userPath().."/lua/"..DXMC.."QS.lua")
+--safeDeleteFile(userPath().."/lua/"..DXMC.."UI.luac",userPath().."/lua/"..DXMC.."UI.lua")
+require(DXMC.."HS")
+require(DXMC.."UI")
+--safeDeleteFile(userPath().."/lua/"..DXMC.."HS.lua",userPath().."/lua/"..DXMC.."HS.luac")
+--safeDeleteFile(userPath().."/lua/"..DXMC.."QS.lua",userPath().."/lua/"..DXMC.."QS.luac")
+--safeDeleteFile(userPath().."/lua/"..DXMC.."UI.lua",userPath().."/lua/"..DXMC.."UI.luac")
+--collectgarbage("collect") 
+--mSleep(200) 
+--runApp("com.xxltdzyios.youxin") --小小屠龙
+--runApp("com.sjtlfqsc.iosmb") --神将屠龙
+
+--CustomScript["二大陆回盟重"]()
+--StartScript()
+--XiTong("滑动", 350, 469, 360, 80)  YC(2000) 
+--XiTong("滑动",349,  145,327,  493) YC(2000) 
+--XiTong("滑动",346,  274,345,  120) YC(2000) 
+--XiTong("滑动",349,  145,327,  493) YC(2000) 
+--toast(j_传奇币数量(),1)
+--DJ(209,   64, 219,   78) 
+--StartAFK()
+--CustomScript["英雄强身剑甲进化"]("白银",3) 
+--CustomScript["每日书页回收设置"]("白银",false)
+--GameScript("二大陆回盟重")
+CustomScript["购买商城物品"]("回城石")
+--GameScript("大地图",423,  445)
+--GameScript("统领挑战","白银")
+--CustomScript["购买商城物品"]("随机石")
+--XiTong("滑动",324,  232,317,  372) 
+--toast(d_多色不同参数("判断会员"),1)
+--d_多色书页存放()
+--while (true) do
+--	if d_多色匹配("临时测试") then
+--		toast("识别了....",1)
+--		mSleep(500)
+--	else
+--		toast(".........",1)
+--		mSleep(2000)
+--	end
+--end
+--while (true) do
+--	toast(d_多色不同参数("判断会员"),1) mSleep(2000)
+--end
+--while (true) do
+--	if d_单色匹配("安全区二大陆") then
+--		toast("识别了....",1)
+--		mSleep(2000)
+--	else
+--		toast(".........",1)
+--		mSleep(2000)
+--	end
+--end
+--while (true) do
+--	local x,y =d_单色设置选择("回收设置")	
+--	toast(x.."  "..y,1)
+--	mSleep(3000)	
+--end
+--mSleep(3000)
+--while (true) do
+--	local x,y = d_道具("随机石")
+--	toast(x.."  "..y,1)
+--	mSleep(3000)	
+--end
+--while (true) do
+--	local x,y = d_多色坐标参数("转身")
+--	toast(x.."  "..y,1)
+--	mSleep(3000)
+--end
+--while (true) do
+--	toast(d_多色不同参数("商城回城石位置"),1)
+--	mSleep(3000)	
+--end
+--mSleep(3000)
+--zuobiao = {
+--	{  622,  83+64*5, 0x7db937},
+--	{  622+63,  83+64*5, 0x7cb837},
+--	{  622+63*2,  83+64*5, 0x7bb736},
+--	{  622+63*3,  83+64*5, 0x7ab636},
+--}
+--zuobiao = {
+--	{ 1027,  490, 0x7a3f15},
+--	{ 1028,  490, 0x864b1d},
+--	{ 1029,  490, 0x84491c},
+--	{ 1030,  490, 0x7f4218},
+--}
+
+--Qsa=getColor(zuobiao[1][1],zuobiao[1][2])
+----toast(Qsa,20)
+--Qsb=getColor(zuobiao[2][1],zuobiao[2][2])
+----toast(Qsa.."  "..Qsb,30)
+--Qsc=getColor(zuobiao[3][1],zuobiao[3][2])
+--Qsd=getColor(zuobiao[4][1],zuobiao[4][2])
+--toast(Qsa.."  "..Qsb.."  "..Qsc.."  "..Qsd,40)
+
+
+--Qsa=getColor(1024,  130)
+--toast(Qsa,20)
+

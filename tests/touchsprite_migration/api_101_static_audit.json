@@ -1,0 +1,2012 @@
+{
+  "schemaVersion": 1,
+  "generatedAtUtc": "2026-09-11T09:45:05.134711+00:00",
+  "catalogCount": 12,
+  "caseCount": 101,
+  "staticOnly": true,
+  "localFunctionalPass": false,
+  "rows": [
+    {
+      "caseId": "sys.mSleep",
+      "module": "sys",
+      "function": "mSleep",
+      "codeLocations": [
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/sys_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"sys\").mSleep()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "sys.toast",
+      "module": "sys",
+      "function": "toast",
+      "codeLocations": [
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/sys_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"sys\").toast()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "sys.notifyMessage",
+      "module": "sys",
+      "function": "notifyMessage",
+      "codeLocations": [
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/sys_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"sys\").notifyMessage()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "sys.logDebug",
+      "module": "sys",
+      "function": "logDebug",
+      "codeLocations": [
+        "api_spec/modules/sys_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"sys\").logDebug()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "sys.scriptStop",
+      "module": "sys",
+      "function": "scriptStop",
+      "codeLocations": [
+        "api_spec/modules/sys_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"sys\").scriptStop()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "sys.notifyVibrate",
+      "module": "sys",
+      "function": "notifyVibrate",
+      "codeLocations": [
+        "api_spec/modules/sys_contract.lua"
+      ],
+      "catalogStatus": "planned",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"sys\").notifyVibrate()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "BLOCKED_UNIMPLEMENTED",
+        ".112": "BLOCKED_UNIMPLEMENTED",
+        ".166": "BLOCKED_UNIMPLEMENTED",
+        ".53": "BLOCKED_UNIMPLEMENTED",
+        ".61": "BLOCKED_UNIMPLEMENTED"
+      }
+    },
+    {
+      "caseId": "sys.notifyVoice",
+      "module": "sys",
+      "function": "notifyVoice",
+      "codeLocations": [
+        "api_spec/modules/sys_contract.lua"
+      ],
+      "catalogStatus": "planned",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"sys\").notifyVoice()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "BLOCKED_UNIMPLEMENTED",
+        ".112": "BLOCKED_UNIMPLEMENTED",
+        ".166": "BLOCKED_UNIMPLEMENTED",
+        ".53": "BLOCKED_UNIMPLEMENTED",
+        ".61": "BLOCKED_UNIMPLEMENTED"
+      }
+    },
+    {
+      "caseId": "sys.inputText",
+      "module": "sys",
+      "function": "inputText",
+      "codeLocations": [
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/sys_contract.lua"
+      ],
+      "catalogStatus": "partial",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"sys\").inputText()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "sys.openURL",
+      "module": "sys",
+      "function": "openURL",
+      "codeLocations": [
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/sys_contract.lua"
+      ],
+      "catalogStatus": "partial",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"sys\").openURL()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "sys.getDeviceID",
+      "module": "sys",
+      "function": "getDeviceID",
+      "codeLocations": [
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/sys_contract.lua"
+      ],
+      "catalogStatus": "planned",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"sys\").getDeviceID()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "sys.copyText",
+      "module": "sys",
+      "function": "copyText",
+      "codeLocations": [
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/sys_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"sys\").copyText()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "sys.clipText",
+      "module": "sys",
+      "function": "clipText",
+      "codeLocations": [
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/sys_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"sys\").clipText()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "sys.deviceIsLock",
+      "module": "sys",
+      "function": "deviceIsLock",
+      "codeLocations": [
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/sys_contract.lua"
+      ],
+      "catalogStatus": "partial",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"sys\").deviceIsLock()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "sys.deviceUnlock",
+      "module": "sys",
+      "function": "deviceUnlock",
+      "codeLocations": [
+        "api_spec/modules/sys_contract.lua"
+      ],
+      "catalogStatus": "partial",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"sys\").deviceUnlock()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "sys.userPath",
+      "module": "sys",
+      "function": "userPath",
+      "codeLocations": [
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/sys_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"sys\").userPath()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "sys.getVersion",
+      "module": "sys",
+      "function": "getVersion",
+      "codeLocations": [
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/sys_contract.lua"
+      ],
+      "catalogStatus": "partial",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"sys\").getVersion()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "sys.pyCall",
+      "module": "sys",
+      "function": "pyCall",
+      "codeLocations": [],
+      "catalogStatus": "done",
+      "implementationStatus": "missing_source_candidate",
+      "minimalRepro": "lua -e 'require(\"sys\").pyCall()' (args per api_spec catalog)",
+      "fixOrGap": "Add implementation or mark unsupported with a contract-level gap.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "sys.pyEval",
+      "module": "sys",
+      "function": "pyEval",
+      "codeLocations": [],
+      "catalogStatus": "done",
+      "implementationStatus": "missing_source_candidate",
+      "minimalRepro": "lua -e 'require(\"sys\").pyEval()' (args per api_spec catalog)",
+      "fixOrGap": "Add implementation or mark unsupported with a contract-level gap.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "touch.touchDown",
+      "module": "touch",
+      "function": "touchDown",
+      "codeLocations": [
+        "lua/modules/Touch.lua",
+        "lua/ziyan_engine/touch.lua",
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/touch_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"touch\").touchDown()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "touch.touchMove",
+      "module": "touch",
+      "function": "touchMove",
+      "codeLocations": [
+        "lua/modules/Touch.lua",
+        "lua/ziyan_engine/touch.lua",
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/touch_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"touch\").touchMove()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "touch.touchUp",
+      "module": "touch",
+      "function": "touchUp",
+      "codeLocations": [
+        "lua/modules/Touch.lua",
+        "lua/ziyan_engine/touch.lua",
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/touch_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"touch\").touchUp()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "touch.tap",
+      "module": "touch",
+      "function": "tap",
+      "codeLocations": [
+        "lua/modules/Touch.lua",
+        "lua/ziyan_engine/touch.lua",
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/touch_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"touch\").tap()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "touch.swipe",
+      "module": "touch",
+      "function": "swipe",
+      "codeLocations": [
+        "lua/modules/Touch.lua",
+        "lua/ziyan_engine/touch.lua",
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/touch_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"touch\").swipe()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "touch.keyDown",
+      "module": "touch",
+      "function": "keyDown",
+      "codeLocations": [
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/touch_contract.lua"
+      ],
+      "catalogStatus": "planned",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"touch\").keyDown()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "touch.keyUp",
+      "module": "touch",
+      "function": "keyUp",
+      "codeLocations": [
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/touch_contract.lua"
+      ],
+      "catalogStatus": "planned",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"touch\").keyUp()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "touch.pressHomeKey",
+      "module": "touch",
+      "function": "pressHomeKey",
+      "codeLocations": [
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/touch_contract.lua"
+      ],
+      "catalogStatus": "partial",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"touch\").pressHomeKey()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "screen.init",
+      "module": "screen",
+      "function": "init",
+      "codeLocations": [
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/screen_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"screen\").init()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "screen.getColor",
+      "module": "screen",
+      "function": "getColor",
+      "codeLocations": [
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/screen_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"screen\").getColor()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "screen.getColorRGB",
+      "module": "screen",
+      "function": "getColorRGB",
+      "codeLocations": [
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/screen_contract.lua"
+      ],
+      "catalogStatus": "partial",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"screen\").getColorRGB()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "screen.findColor",
+      "module": "screen",
+      "function": "findColor",
+      "codeLocations": [
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/screen_contract.lua"
+      ],
+      "catalogStatus": "partial",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"screen\").findColor()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "screen.findColorFuzzy",
+      "module": "screen",
+      "function": "findColorFuzzy",
+      "codeLocations": [
+        "api_spec/modules/screen_contract.lua"
+      ],
+      "catalogStatus": "partial",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"screen\").findColorFuzzy()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "screen.findColorInRegion",
+      "module": "screen",
+      "function": "findColorInRegion",
+      "codeLocations": [
+        "api_spec/modules/screen_contract.lua"
+      ],
+      "catalogStatus": "partial",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"screen\").findColorInRegion()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "screen.findColorInRegionFuzzy",
+      "module": "screen",
+      "function": "findColorInRegionFuzzy",
+      "codeLocations": [
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/screen_contract.lua"
+      ],
+      "catalogStatus": "partial",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"screen\").findColorInRegionFuzzy()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "screen.findMultiColorInRegionFuzzy",
+      "module": "screen",
+      "function": "findMultiColorInRegionFuzzy",
+      "codeLocations": [
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/screen_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"screen\").findMultiColorInRegionFuzzy()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "screen.findMultiColorInRegionFuzzyEx",
+      "module": "screen",
+      "function": "findMultiColorInRegionFuzzyEx",
+      "codeLocations": [
+        "api_spec/modules/screen_contract.lua"
+      ],
+      "catalogStatus": "planned",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"screen\").findMultiColorInRegionFuzzyEx()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "BLOCKED_UNIMPLEMENTED",
+        ".112": "BLOCKED_UNIMPLEMENTED",
+        ".166": "BLOCKED_UNIMPLEMENTED",
+        ".53": "BLOCKED_UNIMPLEMENTED",
+        ".61": "BLOCKED_UNIMPLEMENTED"
+      }
+    },
+    {
+      "caseId": "screen.keepScreen",
+      "module": "screen",
+      "function": "keepScreen",
+      "codeLocations": [
+        "lua/modules/Screen.lua",
+        "lua/ziyan_engine/screen.lua",
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/screen_contract.lua"
+      ],
+      "catalogStatus": "partial",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"screen\").keepScreen()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "screen.rotateScreen",
+      "module": "screen",
+      "function": "rotateScreen",
+      "codeLocations": [
+        "lua/ziyan_engine/screen.lua",
+        "api_spec/modules/screen_contract.lua"
+      ],
+      "catalogStatus": "partial",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"screen\").rotateScreen()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "screen.getScreenResolution",
+      "module": "screen",
+      "function": "getScreenResolution",
+      "codeLocations": [
+        "api_spec/modules/screen_contract.lua"
+      ],
+      "catalogStatus": "partial",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"screen\").getScreenResolution()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "screen.dumpScreen",
+      "module": "screen",
+      "function": "dumpScreen",
+      "codeLocations": [
+        "lua/modules/Screen.lua",
+        "lua/ziyan_engine/screen.lua",
+        "api_spec/modules/screen_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"screen\").dumpScreen()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "screen.snapshot",
+      "module": "screen",
+      "function": "snapshot",
+      "codeLocations": [
+        "lua/modules/Screen.lua",
+        "lua/ziyan_engine/screen.lua",
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/screen_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"screen\").snapshot()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "screen.snapshotRegion",
+      "module": "screen",
+      "function": "snapshotRegion",
+      "codeLocations": [
+        "lua/ziyan_engine/screen.lua",
+        "api_spec/modules/screen_contract.lua"
+      ],
+      "catalogStatus": "partial",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"screen\").snapshotRegion()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "BLOCKED_UNIMPLEMENTED",
+        ".112": "BLOCKED_UNIMPLEMENTED",
+        ".166": "BLOCKED_UNIMPLEMENTED",
+        ".53": "BLOCKED_UNIMPLEMENTED",
+        ".61": "BLOCKED_UNIMPLEMENTED"
+      }
+    },
+    {
+      "caseId": "image.findImage",
+      "module": "image",
+      "function": "findImage",
+      "codeLocations": [
+        "lua/modules/Image.lua",
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/image_contract.lua"
+      ],
+      "catalogStatus": "partial",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"image\").findImage()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "image.findImageFuzzy",
+      "module": "image",
+      "function": "findImageFuzzy",
+      "codeLocations": [
+        "api_spec/modules/image_contract.lua"
+      ],
+      "catalogStatus": "partial",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"image\").findImageFuzzy()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "image.findImageInRegion",
+      "module": "image",
+      "function": "findImageInRegion",
+      "codeLocations": [
+        "api_spec/modules/image_contract.lua"
+      ],
+      "catalogStatus": "partial",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"image\").findImageInRegion()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "image.findImageInRegionFuzzy",
+      "module": "image",
+      "function": "findImageInRegionFuzzy",
+      "codeLocations": [
+        "lua/modules/Image.lua",
+        "api_spec/modules/image_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"image\").findImageInRegionFuzzy()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "image.imageWidth",
+      "module": "image",
+      "function": "imageWidth",
+      "codeLocations": [
+        "api_spec/modules/image_contract.lua"
+      ],
+      "catalogStatus": "planned",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"image\").imageWidth()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "BLOCKED_UNIMPLEMENTED",
+        ".112": "BLOCKED_UNIMPLEMENTED",
+        ".166": "BLOCKED_UNIMPLEMENTED",
+        ".53": "BLOCKED_UNIMPLEMENTED",
+        ".61": "BLOCKED_UNIMPLEMENTED"
+      }
+    },
+    {
+      "caseId": "image.imageHeight",
+      "module": "image",
+      "function": "imageHeight",
+      "codeLocations": [
+        "api_spec/modules/image_contract.lua"
+      ],
+      "catalogStatus": "planned",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"image\").imageHeight()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "BLOCKED_UNIMPLEMENTED",
+        ".112": "BLOCKED_UNIMPLEMENTED",
+        ".166": "BLOCKED_UNIMPLEMENTED",
+        ".53": "BLOCKED_UNIMPLEMENTED",
+        ".61": "BLOCKED_UNIMPLEMENTED"
+      }
+    },
+    {
+      "caseId": "image.imageFilter",
+      "module": "image",
+      "function": "imageFilter",
+      "codeLocations": [
+        "api_spec/modules/image_contract.lua"
+      ],
+      "catalogStatus": "planned",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"image\").imageFilter()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "BLOCKED_UNIMPLEMENTED",
+        ".112": "BLOCKED_UNIMPLEMENTED",
+        ".166": "BLOCKED_UNIMPLEMENTED",
+        ".53": "BLOCKED_UNIMPLEMENTED",
+        ".61": "BLOCKED_UNIMPLEMENTED"
+      }
+    },
+    {
+      "caseId": "image.imageBinarization",
+      "module": "image",
+      "function": "imageBinarization",
+      "codeLocations": [
+        "api_spec/modules/image_contract.lua"
+      ],
+      "catalogStatus": "planned",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"image\").imageBinarization()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "BLOCKED_UNIMPLEMENTED",
+        ".112": "BLOCKED_UNIMPLEMENTED",
+        ".166": "BLOCKED_UNIMPLEMENTED",
+        ".53": "BLOCKED_UNIMPLEMENTED",
+        ".61": "BLOCKED_UNIMPLEMENTED"
+      }
+    },
+    {
+      "caseId": "image.imageResize",
+      "module": "image",
+      "function": "imageResize",
+      "codeLocations": [
+        "api_spec/modules/image_contract.lua"
+      ],
+      "catalogStatus": "planned",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"image\").imageResize()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "BLOCKED_UNIMPLEMENTED",
+        ".112": "BLOCKED_UNIMPLEMENTED",
+        ".166": "BLOCKED_UNIMPLEMENTED",
+        ".53": "BLOCKED_UNIMPLEMENTED",
+        ".61": "BLOCKED_UNIMPLEMENTED"
+      }
+    },
+    {
+      "caseId": "ocr.getText",
+      "module": "ocr",
+      "function": "getText",
+      "codeLocations": [
+        "lua/modules/Ocr.lua",
+        "api_spec/modules/ocr_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"ocr\").getText()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "ocr.strFind",
+      "module": "ocr",
+      "function": "strFind",
+      "codeLocations": [
+        "api_spec/modules/ocr_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"ocr\").strFind()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "ocr.findStr",
+      "module": "ocr",
+      "function": "findStr",
+      "codeLocations": [
+        "lua/modules/Ocr.lua",
+        "api_spec/modules/ocr_contract.lua"
+      ],
+      "catalogStatus": "partial",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"ocr\").findStr()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "ocr.findNumber",
+      "module": "ocr",
+      "function": "findNumber",
+      "codeLocations": [
+        "api_spec/modules/ocr_contract.lua"
+      ],
+      "catalogStatus": "partial",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"ocr\").findNumber()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "ocr.localOcrText",
+      "module": "ocr",
+      "function": "localOcrText",
+      "codeLocations": [
+        "api_spec/modules/ocr_contract.lua"
+      ],
+      "catalogStatus": "partial",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"ocr\").localOcrText()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "BLOCKED_UNIMPLEMENTED",
+        ".112": "BLOCKED_UNIMPLEMENTED",
+        ".166": "BLOCKED_UNIMPLEMENTED",
+        ".53": "BLOCKED_UNIMPLEMENTED",
+        ".61": "BLOCKED_UNIMPLEMENTED"
+      }
+    },
+    {
+      "caseId": "ocr.cloudOcrText",
+      "module": "ocr",
+      "function": "cloudOcrText",
+      "codeLocations": [
+        "api_spec/modules/ocr_contract.lua"
+      ],
+      "catalogStatus": "partial",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"ocr\").cloudOcrText()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "BLOCKED_UNIMPLEMENTED",
+        ".112": "BLOCKED_UNIMPLEMENTED",
+        ".166": "BLOCKED_UNIMPLEMENTED",
+        ".53": "BLOCKED_UNIMPLEMENTED",
+        ".61": "BLOCKED_UNIMPLEMENTED"
+      }
+    },
+    {
+      "caseId": "ocr.ZiYanCV.ocr_backends",
+      "module": "ocr",
+      "function": "ZiYanCV.ocr_backends",
+      "codeLocations": [
+        "api_spec/modules/ocr_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"ocr\").ZiYanCV.ocr_backends()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "ocr.ZiYanCV.capture_region",
+      "module": "ocr",
+      "function": "ZiYanCV.capture_region",
+      "codeLocations": [
+        "api_spec/modules/ocr_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"ocr\").ZiYanCV.capture_region()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "app.appRun",
+      "module": "app",
+      "function": "appRun",
+      "codeLocations": [
+        "lua/modules/App.lua",
+        "lua/ziyan_engine/app.lua",
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/app_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"app\").appRun()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "app.appKill",
+      "module": "app",
+      "function": "appKill",
+      "codeLocations": [
+        "lua/modules/App.lua",
+        "lua/ziyan_engine/app.lua",
+        "api_spec/modules/app_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"app\").appKill()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "app.appRunning",
+      "module": "app",
+      "function": "appRunning",
+      "codeLocations": [
+        "lua/modules/App.lua",
+        "lua/ziyan_engine/app.lua",
+        "api_spec/modules/app_contract.lua"
+      ],
+      "catalogStatus": "partial",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"app\").appRunning()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "app.frontAppBid",
+      "module": "app",
+      "function": "frontAppBid",
+      "codeLocations": [
+        "lua/modules/App.lua",
+        "lua/ziyan_engine/app.lua",
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/app_contract.lua"
+      ],
+      "catalogStatus": "planned",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"app\").frontAppBid()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "app.appBundlePath",
+      "module": "app",
+      "function": "appBundlePath",
+      "codeLocations": [
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/app_contract.lua"
+      ],
+      "catalogStatus": "planned",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"app\").appBundlePath()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "app.appDataPath",
+      "module": "app",
+      "function": "appDataPath",
+      "codeLocations": [
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/app_contract.lua"
+      ],
+      "catalogStatus": "planned",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"app\").appDataPath()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "file.FileExists",
+      "module": "file",
+      "function": "FileExists",
+      "codeLocations": [
+        "lua/modules/File.lua",
+        "api_spec/modules/file_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"file\").FileExists()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "file.FileCreate",
+      "module": "file",
+      "function": "FileCreate",
+      "codeLocations": [
+        "lua/modules/File.lua",
+        "api_spec/modules/file_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"file\").FileCreate()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "file.FileCopy",
+      "module": "file",
+      "function": "FileCopy",
+      "codeLocations": [
+        "lua/modules/File.lua",
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/file_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"file\").FileCopy()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "file.FileDelete",
+      "module": "file",
+      "function": "FileDelete",
+      "codeLocations": [
+        "api_spec/modules/file_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"file\").FileDelete()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "file.FileMove",
+      "module": "file",
+      "function": "FileMove",
+      "codeLocations": [
+        "lua/modules/File.lua",
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/file_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"file\").FileMove()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "file.FileList",
+      "module": "file",
+      "function": "FileList",
+      "codeLocations": [
+        "lua/modules/File.lua",
+        "api_spec/modules/file_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"file\").FileList()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "file.readFileString",
+      "module": "file",
+      "function": "readFileString",
+      "codeLocations": [
+        "lua/modules/File.lua",
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/file_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"file\").readFileString()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "file.writeFileString",
+      "module": "file",
+      "function": "writeFileString",
+      "codeLocations": [
+        "lua/modules/File.lua",
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/file_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"file\").writeFileString()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "file.PlistRead",
+      "module": "file",
+      "function": "PlistRead",
+      "codeLocations": [
+        "api_spec/modules/file_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"file\").PlistRead()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "file.PlistWrite",
+      "module": "file",
+      "function": "PlistWrite",
+      "codeLocations": [
+        "api_spec/modules/file_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"file\").PlistWrite()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "net.NetTime",
+      "module": "net",
+      "function": "NetTime",
+      "codeLocations": [
+        "api_spec/modules/net_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"net\").NetTime()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "net.NetIp",
+      "module": "net",
+      "function": "NetIp",
+      "codeLocations": [
+        "api_spec/modules/net_contract.lua"
+      ],
+      "catalogStatus": "partial",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"net\").NetIp()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "net.httpGet",
+      "module": "net",
+      "function": "httpGet",
+      "codeLocations": [
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/net_contract.lua"
+      ],
+      "catalogStatus": "planned",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"net\").httpGet()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "net.FtpUpload",
+      "module": "net",
+      "function": "FtpUpload",
+      "codeLocations": [
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/net_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"net\").FtpUpload()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "net.FtpDownload",
+      "module": "net",
+      "function": "FtpDownload",
+      "codeLocations": [
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/net_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"net\").FtpDownload()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "net.FtpDelete",
+      "module": "net",
+      "function": "FtpDelete",
+      "codeLocations": [
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/net_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"net\").FtpDelete()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "net.FtpRead",
+      "module": "net",
+      "function": "FtpRead",
+      "codeLocations": [
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/net_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"net\").FtpRead()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "net.FtpIsUpdate",
+      "module": "net",
+      "function": "FtpIsUpdate",
+      "codeLocations": [
+        "api_spec/modules/net_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"net\").FtpIsUpdate()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "codec.jsonEncode",
+      "module": "codec",
+      "function": "jsonEncode",
+      "codeLocations": [
+        "lua/ziyan_engine/codec.lua",
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/codec_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"codec\").jsonEncode()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "codec.jsonDecode",
+      "module": "codec",
+      "function": "jsonDecode",
+      "codeLocations": [
+        "lua/ziyan_engine/codec.lua",
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/codec_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"codec\").jsonDecode()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "codec.aesEncrypt",
+      "module": "codec",
+      "function": "aesEncrypt",
+      "codeLocations": [
+        "api_spec/modules/codec_contract.lua"
+      ],
+      "catalogStatus": "planned",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"codec\").aesEncrypt()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "BLOCKED_UNIMPLEMENTED",
+        ".112": "BLOCKED_UNIMPLEMENTED",
+        ".166": "BLOCKED_UNIMPLEMENTED",
+        ".53": "BLOCKED_UNIMPLEMENTED",
+        ".61": "BLOCKED_UNIMPLEMENTED"
+      }
+    },
+    {
+      "caseId": "codec.aesDecrypt",
+      "module": "codec",
+      "function": "aesDecrypt",
+      "codeLocations": [
+        "api_spec/modules/codec_contract.lua"
+      ],
+      "catalogStatus": "planned",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"codec\").aesDecrypt()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "BLOCKED_UNIMPLEMENTED",
+        ".112": "BLOCKED_UNIMPLEMENTED",
+        ".166": "BLOCKED_UNIMPLEMENTED",
+        ".53": "BLOCKED_UNIMPLEMENTED",
+        ".61": "BLOCKED_UNIMPLEMENTED"
+      }
+    },
+    {
+      "caseId": "codec.md5String",
+      "module": "codec",
+      "function": "md5String",
+      "codeLocations": [
+        "api_spec/modules/codec_contract.lua"
+      ],
+      "catalogStatus": "planned",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"codec\").md5String()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "BLOCKED_UNIMPLEMENTED",
+        ".112": "BLOCKED_UNIMPLEMENTED",
+        ".166": "BLOCKED_UNIMPLEMENTED",
+        ".53": "BLOCKED_UNIMPLEMENTED",
+        ".61": "BLOCKED_UNIMPLEMENTED"
+      }
+    },
+    {
+      "caseId": "codec.md5File",
+      "module": "codec",
+      "function": "md5File",
+      "codeLocations": [
+        "api_spec/modules/codec_contract.lua"
+      ],
+      "catalogStatus": "planned",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"codec\").md5File()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "BLOCKED_UNIMPLEMENTED",
+        ".112": "BLOCKED_UNIMPLEMENTED",
+        ".166": "BLOCKED_UNIMPLEMENTED",
+        ".53": "BLOCKED_UNIMPLEMENTED",
+        ".61": "BLOCKED_UNIMPLEMENTED"
+      }
+    },
+    {
+      "caseId": "memory.MemoryAccess",
+      "module": "memory",
+      "function": "MemoryAccess",
+      "codeLocations": [
+        "api_spec/modules/memory_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"memory\").MemoryAccess()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "memory.MemoryWrite",
+      "module": "memory",
+      "function": "MemoryWrite",
+      "codeLocations": [
+        "api_spec/modules/memory_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"memory\").MemoryWrite()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "memory.MemoryKeys",
+      "module": "memory",
+      "function": "MemoryKeys",
+      "codeLocations": [
+        "api_spec/modules/memory_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"memory\").MemoryKeys()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "memory.MemoryDump",
+      "module": "memory",
+      "function": "MemoryDump",
+      "codeLocations": [
+        "api_spec/modules/memory_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"memory\").MemoryDump()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "memory.MemoryFind",
+      "module": "memory",
+      "function": "MemoryFind",
+      "codeLocations": [
+        "api_spec/modules/memory_contract.lua"
+      ],
+      "catalogStatus": "partial",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"memory\").MemoryFind()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "memory.MemoryRoleName",
+      "module": "memory",
+      "function": "MemoryRoleName",
+      "codeLocations": [
+        "api_spec/modules/memory_contract.lua"
+      ],
+      "catalogStatus": "partial",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"memory\").MemoryRoleName()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "memory.MemoryScanNames",
+      "module": "memory",
+      "function": "MemoryScanNames",
+      "codeLocations": [
+        "api_spec/modules/memory_contract.lua"
+      ],
+      "catalogStatus": "partial",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"memory\").MemoryScanNames()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "control.ziyan_pause_point",
+      "module": "control",
+      "function": "ziyan_pause_point",
+      "codeLocations": [
+        "lua/ziyan_engine/control.lua",
+        "api_spec/modules/control_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"control\").ziyan_pause_point()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "control.__ZIYAN_wait_while_paused",
+      "module": "control",
+      "function": "__ZIYAN_wait_while_paused",
+      "codeLocations": [
+        "lua/ziyan_engine/control.lua",
+        "api_spec/modules/control_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"control\").__ZIYAN_wait_while_paused()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "orient.init",
+      "module": "orient",
+      "function": "init",
+      "codeLocations": [
+        "lua/ziyan_engine/orient.lua",
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/orient_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"orient\").init()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "orient.ZiYanOrient.to_phys",
+      "module": "orient",
+      "function": "ZiYanOrient.to_phys",
+      "codeLocations": [
+        "api_spec/modules/orient_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"orient\").ZiYanOrient.to_phys()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "orient.ZiYanOrient.to_logic",
+      "module": "orient",
+      "function": "ZiYanOrient.to_logic",
+      "codeLocations": [
+        "api_spec/modules/orient_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"orient\").ZiYanOrient.to_logic()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    },
+    {
+      "caseId": "orient.ZiYanOrient.logical_size",
+      "module": "orient",
+      "function": "ZiYanOrient.logical_size",
+      "codeLocations": [
+        "lua/ziyan_engine/compat_impl.lua",
+        "api_spec/modules/orient_contract.lua"
+      ],
+      "catalogStatus": "done",
+      "implementationStatus": "source_present_device_unverified",
+      "minimalRepro": "lua -e 'require(\"orient\").ZiYanOrient.logical_size()' (args per api_spec catalog)",
+      "fixOrGap": "Run ordered four-device final verdict; local/static evidence is not PASS.",
+      "deviceVerdicts": {
+        ".101": "PARTIAL_RUNTIME_PRESENT",
+        ".112": "PARTIAL_RUNTIME_PRESENT",
+        ".166": "PARTIAL_RUNTIME_PRESENT",
+        ".53": "PARTIAL_RUNTIME_PRESENT",
+        ".61": "PARTIAL_RUNTIME_PRESENT"
+      }
+    }
+  ]
+}

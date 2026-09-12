@@ -1,0 +1,7 @@
+# Codex 粘贴口令
+
+压缩或 502 / call_id 红了：不要往旧对话续跑，不要用已开 worktree 的「ZiYan续接-...」。
+新开 Codex 任务，项目选 `ZiYan_副本`，cwd 必须是 `/Users/mac/Desktop/ZiYan_副本`，第一条消息用当前 `.codex/CONTINUATION_FIRST_MESSAGE.txt`（现在是业务风暴十一号 publish_ms，不是一号，不是九号 Chat）。
+
+===== 贴到新开的 ZiYan 续接对话 =====
+见 `.codex/CONTINUATION_FIRST_MESSAGE.txt` 全文。禁止 create_thread 开 worktree。

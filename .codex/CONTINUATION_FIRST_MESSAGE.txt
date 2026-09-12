@@ -1,0 +1,69 @@
+继续 ZiYan，标题：「API101-PLIST-CANDIDATE-HOST-VERIFIED-SUDO-BLOCKED-HANDOFF」。
+这是人工粘贴到新任务的首条消息，不是压缩摘要；先恢复断点再执行，不从头审计。
+cwd=/Users/mac/Desktop/ZiYan_副本
+禁止 worktree / create_thread / fork / resume。
+
+先读 AGENTS.md、.codex/ZIYAN_ACTIVE_CHECKPOINT.json、今日项目进度.txt 和 tmp_shots/API_FUNCTIONAL_20260911_1909/plist_candidate/VERDICT.md；不改计划文件、不重建 todo。
+候选 rootful 17-156、rootless 17-157 与回滚 rootful 17-152、rootless 17-153 已在主机按 manifest 完成 SHA256 核验，不重复构建、部署或归因。
+只有 .101 安装候选 17-156；.112/.166 仍为 17-152，.53/.61 仍为 17-153。以上是最后记录，不冒充新任务开始时的实时设备复核。
+.61 的专用 ZY61_SUDO_PASS 仍未配置；禁止把通用 ZY_SSH_PASS 当作 sudo 密码猜测。凭据恢复前保持 .112→.166→.53→.61 部署序列阻塞。
+压缩前已定位本地覆盖归属但尚未编辑。新任务须从当前 dirty 工作区和现有证据重新确认该边界，只在明确归属内修改，禁止凭摘要猜文件。
+
+执行下方当前磁盘断点的 nextAction。不重复 wrapper/E48 已闭合工作，不改 Chat.lua、金标或阈值；部分、静态、历史和缺失证据不得提升为最终 PASS。
+登录页安全暂停，禁止填写账号密码或点击前往；禁止 go_home。需要重载时按既有设备规则执行，重载后先按 Home 解锁再验证。
+保留失败、未覆盖、回滚和清场证据；缺少 .61 final verdict 不得宣布主计划真机 PASS。
+完成或阻塞后主动回报完成项、未完成项、阻塞原因、checkpoint 状态及剩余主计划任务。
+
+当前磁盘断点（禁止忽略）：
+- stage=API101-PLIST-CANDIDATE-HOST-VERIFIED-SUDO-BLOCKED-HANDOFF
+- unfinished=True
+- nextAction=在Codex项目ZiYan_副本的新任务中以cwd=/Users/mac/Desktop/ZiYan_副本恢复。先读本checkpoint、AGENTS.md、今日项目进度.txt及tmp_shots/API_FUNCTIONAL_20260911_1909/plist_candidate/VERDICT.md；候选17-156/17-157和回滚17-152/17-153的主机SHA已核验，不重复构建或归因。第一刀是从当前dirty工作区重新确认压缩前已定位但尚未编辑的本地覆盖归属，只在该明确边界内完成必要编辑和本地合同验证，禁止凭摘要猜文件。随后安全注入已授权的ZY61_SUDO_PASS或确认既有提权入口；禁止把通用ZY_SSH_PASS当作.61 sudo密码猜测。凭据恢复前保持.112→.166→.53→.61部署序列阻塞；恢复后从tmp_shots/API_FUNCTIONAL_20260911_1909/plist_candidate/packages.json读取候选并继续验证，rootless部署锚点更新为17-157。再补齐三族错误/超时/异常退出/强制停止覆盖、codec四个MISSING_RUNTIME和memory三个缺夹具项，推进其余九族、核心回归和正式发布门禁。不重做wrapper/E48已闭合修复，不改Chat.lua/金标/阈值，不将部分结果写成最终PASS。
+- latestVerdict=HOST_CANDIDATE_ROLLBACK_SHA_VERIFIED; API101_PARTIAL; DEVICE61_SUDO_UNCONFIGURED; DEVICE_SEQUENCE_BLOCKED; LOCAL_OVERRIDE_OWNER_LOCATED_UNEDITED; FUNCTIONAL_COVERAGE_INCOMPLETE; RELEASE_GATE_INCOMPLETE
+- packageSha256=candidate rootful:bd5a9fe8cb65ac1256aa8b55c7044f668fcd94b60dca805f7f9ea14731abcf07; candidate rootless:02f01699aae540ccf1af30888dfc6a2820c5e5a3b29413633f717452dd979268; rollback rootful:ceabeacb4ef23c9b9cbb218413a62c953c76d0169a05b65d1a14bcc360c6eff5; rollback rootless:68e853a15835c416da81e909f78cee0880dfc602395e1009763ae176fbaff26f
+用户明确要求：这是人工粘贴到 Codex 新任务的首条消息，禁止 create_thread / worktree。再次压缩就必须再 emit 并人工新开任务，循环直到 unfinished=false 且 nextAction 为等待人工最终审核。
+若正文出现「九号接棒任务」而 stage 不是九号/chat-112：丢掉九号，只执行上面 nextAction。
+
+当前磁盘断点（禁止忽略）：
+- stage=API101-PLIST-CANDIDATE-HOST-VERIFIED-SUDO-BLOCKED-HANDOFF
+- unfinished=True
+- nextAction=在Codex项目ZiYan_副本的新任务中以cwd=/Users/mac/Desktop/ZiYan_副本恢复。先读本checkpoint、AGENTS.md、今日项目进度.txt及tmp_shots/API_FUNCTIONAL_20260911_1909/plist_candidate/VERDICT.md；候选17-156/17-157和回滚17-152/17-153的主机SHA已核验，不重复构建或归因。第一刀是从当前dirty工作区重新确认压缩前已定位但尚未编辑的本地覆盖归属，只在该明确边界内完成必要编辑和本地合同验证，禁止凭摘要猜文件。随后安全注入已授权的ZY61_SUDO_PASS或确认既有提权入口；禁止把通用ZY_SSH_PASS当作.61 sudo密码猜测。凭据恢复前保持.112→.166→.53→.61部署序列阻塞；恢复后从tmp_shots/API_FUNCTIONAL_20260911_1909/plist_candidate/packages.json读取候选并继续验证，rootless部署锚点更新为17-157。再补齐三族错误/超时/异常退出/强制停止覆盖、codec四个MISSING_RUNTIME和memory三个缺夹具项，推进其余九族、核心回归和正式发布门禁。不重做wrapper/E48已闭合修复，不改Chat.lua/金标/阈值，不将部分结果写成最终PASS。
+- latestVerdict=HOST_CANDIDATE_ROLLBACK_SHA_VERIFIED; API101_PARTIAL; DEVICE61_SUDO_UNCONFIGURED; DEVICE_SEQUENCE_BLOCKED; LOCAL_OVERRIDE_OWNER_LOCATED_UNEDITED; FUNCTIONAL_COVERAGE_INCOMPLETE; RELEASE_GATE_INCOMPLETE
+- packageSha256=candidate rootful:bd5a9fe8cb65ac1256aa8b55c7044f668fcd94b60dca805f7f9ea14731abcf07; candidate rootless:02f01699aae540ccf1af30888dfc6a2820c5e5a3b29413633f717452dd979268; rollback rootful:ceabeacb4ef23c9b9cbb218413a62c953c76d0169a05b65d1a14bcc360c6eff5; rollback rootless:68e853a15835c416da81e909f78cee0880dfc602395e1009763ae176fbaff26f
+用户明确要求：这是人工粘贴到 Codex 新任务的首条消息，禁止 create_thread / worktree。再次压缩就必须再 emit 并人工新开任务，循环直到 unfinished=false 且 nextAction 为等待人工最终审核。
+若正文出现「九号接棒任务」而 stage 不是九号/chat-112：丢掉九号，只执行上面 nextAction。
+
+当前磁盘断点（禁止忽略）：
+- stage=API101-PLIST-CANDIDATE-HOST-VERIFIED-SUDO-BLOCKED-HANDOFF
+- unfinished=True
+- nextAction=在Codex项目ZiYan_副本的新任务中以cwd=/Users/mac/Desktop/ZiYan_副本恢复。先读本checkpoint、AGENTS.md、今日项目进度.txt及tmp_shots/API_FUNCTIONAL_20260911_1909/plist_candidate/VERDICT.md；候选17-156/17-157和回滚17-152/17-153的主机SHA已核验，不重复构建或归因。第一刀是从当前dirty工作区重新确认压缩前已定位但尚未编辑的本地覆盖归属，只在该明确边界内完成必要编辑和本地合同验证，禁止凭摘要猜文件。随后安全注入已授权的ZY61_SUDO_PASS或确认既有提权入口；禁止把通用ZY_SSH_PASS当作.61 sudo密码猜测。凭据恢复前保持.112→.166→.53→.61部署序列阻塞；恢复后从tmp_shots/API_FUNCTIONAL_20260911_1909/plist_candidate/packages.json读取候选并继续验证，rootless部署锚点更新为17-157。再补齐三族错误/超时/异常退出/强制停止覆盖、codec四个MISSING_RUNTIME和memory三个缺夹具项，推进其余九族、核心回归和正式发布门禁。不重做wrapper/E48已闭合修复，不改Chat.lua/金标/阈值，不将部分结果写成最终PASS。
+- latestVerdict=HOST_CANDIDATE_ROLLBACK_SHA_VERIFIED; API101_PARTIAL; DEVICE61_SUDO_UNCONFIGURED; DEVICE_SEQUENCE_BLOCKED; LOCAL_OVERRIDE_OWNER_LOCATED_UNEDITED; FUNCTIONAL_COVERAGE_INCOMPLETE; RELEASE_GATE_INCOMPLETE
+- packageSha256=candidate rootful:bd5a9fe8cb65ac1256aa8b55c7044f668fcd94b60dca805f7f9ea14731abcf07; candidate rootless:02f01699aae540ccf1af30888dfc6a2820c5e5a3b29413633f717452dd979268; rollback rootful:ceabeacb4ef23c9b9cbb218413a62c953c76d0169a05b65d1a14bcc360c6eff5; rollback rootless:68e853a15835c416da81e909f78cee0880dfc602395e1009763ae176fbaff26f
+用户明确要求：这是人工粘贴到 Codex 新任务的首条消息，禁止 create_thread / worktree。再次压缩就必须再 emit 并人工新开任务，循环直到 unfinished=false 且 nextAction 为等待人工最终审核。
+若正文出现「九号接棒任务」而 stage 不是九号/chat-112：丢掉九号，只执行上面 nextAction。
+
+当前磁盘断点（禁止忽略）：
+- stage=AUTHORIZED-4ITEMS-COMPLETE-FIVE-DEVICE-164-53-EMBED-PASS
+- unfinished=True
+- nextAction=主计划剩余: 其余九族API与核心回归、正式发布门禁; .53 embed证据已落盘(E2E doc授权4节); 公网发布需人工提供服务器/DNS权限; sbreload注入验证需人工窗口(Home解锁)
+- latestVerdict=AUTH1_SUDO_CLOSED; AUTH2_DRILL_101_PASS+61_OK; AUTH3_LOCALSIGN_APT_LAN_PASS+PUBLIC_BLOCKED; AUTH4_SEQ_112_PASS+166_PASS+53_EMBED_PASS; GIT_SYNCED_8015DFD; MAIN_PLAN_INCOMPLETE
+- packageSha256=164-1: 8446f9d1780fda93a8592123b28b10897fbeb02c896f20a8936963971540d447; 164-2: a0ff0f93730472213c4aad2de85425a0eccf83844e291208b2706ad957e5ef82
+用户明确要求：这是人工粘贴到 Codex 新任务的首条消息，禁止 create_thread / worktree。再次压缩就必须再 emit 并人工新开任务，循环直到 unfinished=false 且 nextAction 为等待人工最终审核。
+若正文出现「九号接棒任务」而 stage 不是九号/chat-112：丢掉九号，只执行上面 nextAction。
+
+当前磁盘断点（禁止忽略）：
+- stage=AUTHORIZED-4ITEMS-COMPLETE-FIVE-DEVICE-164-53-RUNONCE-PASS
+- unfinished=True
+- nextAction=主计划剩余: 其余九族API与核心回归、正式发布门禁; 公网发布需人工服务器/DNS权限; sbreload注入验证需人工窗口(Home解锁)
+- latestVerdict=AUTH1_SUDO_CLOSED; AUTH2_DRILL_101_PASS+61_OK; AUTH3_LOCALSIGN_APT_LAN_PASS+PUBLIC_BLOCKED; AUTH4_SEQ_112_PASS+166_PASS+53_EMBED_PASS+RUNONCE_PASS; GIT_SYNCED_FC90184; MAIN_PLAN_INCOMPLETE
+- packageSha256=164-1: 8446f9d1780fda93a8592123b28b10897fbeb02c896f20a8936963971540d447; 164-2: a0ff0f93730472213c4aad2de85425a0eccf83844e291208b2706ad957e5ef82
+用户明确要求：这是人工粘贴到 Codex 新任务的首条消息，禁止 create_thread / worktree。再次压缩就必须再 emit 并人工新开任务，循环直到 unfinished=false 且 nextAction 为等待人工最终审核。
+若正文出现「九号接棒任务」而 stage 不是九号/chat-112：丢掉九号，只执行上面 nextAction。
+
+当前磁盘断点（禁止忽略）：
+- stage=AUTHORIZED-4ITEMS-COMPLETE-FIVE-DEVICE-164-3FAMILY-FULLSEQ
+- unfinished=True
+- nextAction=主计划剩余: 其余九族API fixture(需确认seam后TDD推进)、核心回归长稳、正式发布门禁; 公网发布需人工服务器/DNS权限; sbreload注入验证需人工窗口(Home解锁)
+- latestVerdict=RUNNER_DUALFORMAT_FIXED; 3FAMILY_164_FULLSEQ_15xTERMINAL_CLEANUP_PASS_VERDICT_INCONCLUSIVE; MAIN_PLAN_INCOMPLETE
+- packageSha256=164-1: 8446f9d1780fda93a8592123b28b10897fbeb02c896f20a8936963971540d447; 164-2: a0ff0f93730472213c4aad2de85425a0eccf83844e291208b2706ad957e5ef82
+用户明确要求：这是人工粘贴到 Codex 新任务的首条消息，禁止 create_thread / worktree。再次压缩就必须再 emit 并人工新开任务，循环直到 unfinished=false 且 nextAction 为等待人工最终审核。
+若正文出现「九号接棒任务」而 stage 不是九号/chat-112：丢掉九号，只执行上面 nextAction。

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Skill Scanner"
+  short_description: "Audit a skill folder for malware"
+  default_prompt: "Use $skill-scanner to audit the skill folder path the user named."
+policy:
+  allow_implicit_invocation: true

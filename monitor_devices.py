@@ -23,6 +23,22 @@ DEVICES = [
     {"id": "53", "ip": "192.168.31.53", "model": "iPhone 8 Plus", "ios": "16.7.16", "script": "ios8p_副本.lua"},
 ]
 
+# Registered in the project plan, but excluded from the active four-device
+# acceptance loop until its rootless test contract is defined.
+ADDITIONAL_DEVICES = [
+    {
+        "id": "61",
+        "ip": "192.168.31.61",
+        "model": "iPhone 7",
+        "product_type": "iPhone9,1",
+        "ios": "15.8.8",
+        "env": "rootless",
+        "ssh_user": "mobile",
+        "script": "ios7_副本.lua",
+        "acceptance": "REGISTERED_SSH_ONLY",
+    },
+]
+
 def ssh_exec(ip: str, cmd: str, timeout: int = 30) -> str:
     r = subprocess.run(
         ["sshpass", "-p", PASS, "ssh", "-o", "StrictHostKeyChecking=no", "-o", "ConnectTimeout=10", f"root@{ip}", cmd],

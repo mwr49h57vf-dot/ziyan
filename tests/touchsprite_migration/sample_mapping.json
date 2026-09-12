@@ -1,0 +1,603 @@
+{
+  "schemaVersion": 1,
+  "sourceRoot": "E:\\传奇世界",
+  "accessMode": "read_only_copy",
+  "sourceManifestSha256": "02933013d04c64f2a44b37277719224baa9c4be5ebe40a145f604436f2eac726",
+  "sourceBoundary": {
+    "root": "E:\\传奇世界",
+    "accessMode": "read_only",
+    "manifest": "/Users/mac/Desktop/ZiYan_副本/e48_legend_manifest.json"
+  },
+  "exclusions": {
+    "count": 41,
+    "policy": "Sensitive paths and Lua files containing credential, account, payment, verification, cookie, or token markers are excluded without recording their path or hash."
+  },
+  "samples": [
+    {
+      "sourceRelativePath": "2015528121953696.jpg",
+      "sourceSha256": "faf66c042308edfefabd4824d3c994d1af8364af55add1b3e9fb99bf871ab5ab",
+      "sourceSize": 85135,
+      "sourceMtimeUtc": "2019-01-05T06:31:31.4365006Z",
+      "sourceExtension": ".jpg",
+      "sourceTextEncoding": "binary_or_not_applicable",
+      "sourceClassification": "migration_candidate",
+      "sourceEntryFile": false,
+      "sourceModules": [],
+      "sourceDependencies": [],
+      "sourceResources": [],
+      "sourceApiFacts": [],
+      "targetRelativePath": "tests/touchsprite_migration/source/2015528121953696.jpg",
+      "targetSha256": "faf66c042308edfefabd4824d3c994d1af8364af55add1b3e9fb99bf871ab5ab",
+      "targetSize": 85135,
+      "copiedAtUtc": "2026-09-09T04:13:16.989180+00:00",
+      "copyStatus": "verified"
+    },
+    {
+      "sourceRelativePath": "赤沙龙城/CSLCJH.lua",
+      "sourceSha256": "c042938d9caba91e5d53d9982013f4e6bdf8a12fc81e9d72bcebf8485c2270a3",
+      "sourceSize": 7024,
+      "sourceMtimeUtc": "2026-07-25T07:00:25.1633248Z",
+      "sourceExtension": ".lua",
+      "sourceTextEncoding": "utf-8",
+      "sourceClassification": "migration_candidate",
+      "sourceEntryFile": false,
+      "sourceModules": [
+        "ts",
+        "TSLib"
+      ],
+      "sourceDependencies": [],
+      "sourceResources": [],
+      "sourceApiFacts": [
+        {
+          "name": "closeApp",
+          "count": 1
+        },
+        {
+          "name": "getColor",
+          "count": 5
+        },
+        {
+          "name": "mSleep",
+          "count": 28
+        },
+        {
+          "name": "runApp",
+          "count": 2
+        }
+      ],
+      "targetRelativePath": "tests/touchsprite_migration/source/赤沙龙城/CSLCJH.lua",
+      "targetSha256": "c042938d9caba91e5d53d9982013f4e6bdf8a12fc81e9d72bcebf8485c2270a3",
+      "targetSize": 7024,
+      "copiedAtUtc": "2026-09-09T04:13:17.421670+00:00",
+      "copyStatus": "verified"
+    },
+    {
+      "sourceRelativePath": "赤沙龙城/TSLib.lua",
+      "sourceSha256": "ae28c9dab4679abd64ac76a23f99ecc970a6786c8cfda75905cddb5e0a165d16",
+      "sourceSize": 166211,
+      "sourceMtimeUtc": "2020-08-18T06:45:56.4972351Z",
+      "sourceExtension": ".lua",
+      "sourceTextEncoding": "legacy_or_unknown",
+      "sourceClassification": "migration_candidate",
+      "sourceEntryFile": false,
+      "sourceModules": [],
+      "sourceDependencies": [],
+      "sourceResources": [],
+      "sourceApiFacts": [],
+      "targetRelativePath": "tests/touchsprite_migration/source/赤沙龙城/TSLib.lua",
+      "targetSha256": "ae28c9dab4679abd64ac76a23f99ecc970a6786c8cfda75905cddb5e0a165d16",
+      "targetSize": 166211,
+      "copiedAtUtc": "2026-09-09T04:13:17.886309+00:00",
+      "copyStatus": "verified"
+    },
+    {
+      "sourceRelativePath": "赤沙龙城加密/BBH.lua",
+      "sourceSha256": "9d170e826af271cb30ebbf1e2b8fbc97d0c57b3fd7b81fbdebad3fb654e326d0",
+      "sourceSize": 7,
+      "sourceMtimeUtc": "2026-07-25T07:05:02.0701629Z",
+      "sourceExtension": ".lua",
+      "sourceTextEncoding": "utf-8",
+      "sourceClassification": "migration_candidate",
+      "sourceEntryFile": false,
+      "sourceModules": [],
+      "sourceDependencies": [],
+      "sourceResources": [],
+      "sourceApiFacts": [],
+      "targetRelativePath": "tests/touchsprite_migration/source/赤沙龙城加密/BBH.lua",
+      "targetSha256": "9d170e826af271cb30ebbf1e2b8fbc97d0c57b3fd7b81fbdebad3fb654e326d0",
+      "targetSize": 7,
+      "copiedAtUtc": "2026-09-09T04:13:18.315866+00:00",
+      "copyStatus": "verified"
+    },
+    {
+      "sourceRelativePath": "赤沙龙城加密/CSLCJH.lua",
+      "sourceSha256": "a393acba77825fb2e444ef345f83e0853fafa8990cf33e74c820ec4baaf42393",
+      "sourceSize": 17230,
+      "sourceMtimeUtc": "2026-04-04T06:46:58.7971821Z",
+      "sourceExtension": ".lua",
+      "sourceTextEncoding": "utf-8",
+      "sourceClassification": "migration_candidate",
+      "sourceEntryFile": false,
+      "sourceModules": [
+        "ts"
+      ],
+      "sourceDependencies": [],
+      "sourceResources": [],
+      "sourceApiFacts": [
+        {
+          "name": "closeApp",
+          "count": 1
+        },
+        {
+          "name": "mSleep",
+          "count": 17
+        }
+      ],
+      "targetRelativePath": "tests/touchsprite_migration/source/赤沙龙城加密/CSLCJH.lua",
+      "targetSha256": "a393acba77825fb2e444ef345f83e0853fafa8990cf33e74c820ec4baaf42393",
+      "targetSize": 17230,
+      "copiedAtUtc": "2026-09-09T04:13:18.756916+00:00",
+      "copyStatus": "verified"
+    },
+    {
+      "sourceRelativePath": "龙界争霸/LJZBQS.lua",
+      "sourceSha256": "679a6cd8442d37cb3482c4ff820694b97cad75ccb460023889dd91ee32d03f59",
+      "sourceSize": 14637,
+      "sourceMtimeUtc": "2026-07-13T09:21:18.3655266Z",
+      "sourceExtension": ".lua",
+      "sourceTextEncoding": "utf-8",
+      "sourceClassification": "migration_candidate",
+      "sourceEntryFile": false,
+      "sourceModules": [
+        "sz",
+        "ts",
+        "TSLib"
+      ],
+      "sourceDependencies": [],
+      "sourceResources": [],
+      "sourceApiFacts": [
+        {
+          "name": "getColor",
+          "count": 2
+        },
+        {
+          "name": "mSleep",
+          "count": 1
+        }
+      ],
+      "targetRelativePath": "tests/touchsprite_migration/source/龙界争霸/LJZBQS.lua",
+      "targetSha256": "679a6cd8442d37cb3482c4ff820694b97cad75ccb460023889dd91ee32d03f59",
+      "targetSize": 14637,
+      "copiedAtUtc": "2026-09-09T04:13:19.219931+00:00",
+      "copyStatus": "verified"
+    },
+    {
+      "sourceRelativePath": "怒剑传奇/NJCQJH.lua",
+      "sourceSha256": "c3b06e1ecc237b680878ba42d0eef8beee784225ac80f9c415c1f5566e850d93",
+      "sourceSize": 5666,
+      "sourceMtimeUtc": "2026-05-22T10:11:01.5593835Z",
+      "sourceExtension": ".lua",
+      "sourceTextEncoding": "utf-8",
+      "sourceClassification": "migration_candidate",
+      "sourceEntryFile": false,
+      "sourceModules": [
+        "ts",
+        "TSLib"
+      ],
+      "sourceDependencies": [],
+      "sourceResources": [],
+      "sourceApiFacts": [
+        {
+          "name": "closeApp",
+          "count": 1
+        },
+        {
+          "name": "getColor",
+          "count": 4
+        },
+        {
+          "name": "mSleep",
+          "count": 22
+        }
+      ],
+      "targetRelativePath": "tests/touchsprite_migration/source/怒剑传奇/NJCQJH.lua",
+      "targetSha256": "c3b06e1ecc237b680878ba42d0eef8beee784225ac80f9c415c1f5566e850d93",
+      "targetSize": 5666,
+      "copiedAtUtc": "2026-09-09T04:13:19.637395+00:00",
+      "copyStatus": "verified"
+    },
+    {
+      "sourceRelativePath": "圣戒信条/SJXTJH.lua",
+      "sourceSha256": "6bcaa8eb8801250981cb79c067cce7e2797c96c1b0fdb458d097ea086afd91a7",
+      "sourceSize": 5268,
+      "sourceMtimeUtc": "2026-03-28T16:51:31.9613319Z",
+      "sourceExtension": ".lua",
+      "sourceTextEncoding": "utf-8",
+      "sourceClassification": "migration_candidate",
+      "sourceEntryFile": false,
+      "sourceModules": [
+        "ts",
+        "TSLib"
+      ],
+      "sourceDependencies": [],
+      "sourceResources": [],
+      "sourceApiFacts": [
+        {
+          "name": "closeApp",
+          "count": 1
+        },
+        {
+          "name": "getColor",
+          "count": 1
+        },
+        {
+          "name": "mSleep",
+          "count": 20
+        }
+      ],
+      "targetRelativePath": "tests/touchsprite_migration/source/圣戒信条/SJXTJH.lua",
+      "targetSha256": "6bcaa8eb8801250981cb79c067cce7e2797c96c1b0fdb458d097ea086afd91a7",
+      "targetSize": 5268,
+      "copiedAtUtc": "2026-09-09T04:13:20.055705+00:00",
+      "copyStatus": "verified"
+    },
+    {
+      "sourceRelativePath": "圣戒信条/TSLib.lua",
+      "sourceSha256": "ae28c9dab4679abd64ac76a23f99ecc970a6786c8cfda75905cddb5e0a165d16",
+      "sourceSize": 166211,
+      "sourceMtimeUtc": "2020-08-18T06:45:56.4972351Z",
+      "sourceExtension": ".lua",
+      "sourceTextEncoding": "legacy_or_unknown",
+      "sourceClassification": "migration_candidate",
+      "sourceEntryFile": false,
+      "sourceModules": [],
+      "sourceDependencies": [],
+      "sourceResources": [],
+      "sourceApiFacts": [],
+      "targetRelativePath": "tests/touchsprite_migration/source/圣戒信条/TSLib.lua",
+      "targetSha256": "ae28c9dab4679abd64ac76a23f99ecc970a6786c8cfda75905cddb5e0a165d16",
+      "targetSize": 166211,
+      "copiedAtUtc": "2026-09-09T04:13:20.523201+00:00",
+      "copyStatus": "verified"
+    },
+    {
+      "sourceRelativePath": "圣戒信条加密/BBH.lua",
+      "sourceSha256": "3928de9805210b5cc2eb75d5f05f908f0b700459d9417eab65f449f87a9c97d3",
+      "sourceSize": 7,
+      "sourceMtimeUtc": "2026-03-28T17:04:26.6356408Z",
+      "sourceExtension": ".lua",
+      "sourceTextEncoding": "utf-8",
+      "sourceClassification": "migration_candidate",
+      "sourceEntryFile": false,
+      "sourceModules": [],
+      "sourceDependencies": [],
+      "sourceResources": [],
+      "sourceApiFacts": [],
+      "targetRelativePath": "tests/touchsprite_migration/source/圣戒信条加密/BBH.lua",
+      "targetSha256": "3928de9805210b5cc2eb75d5f05f908f0b700459d9417eab65f449f87a9c97d3",
+      "targetSize": 7,
+      "copiedAtUtc": "2026-09-09T04:13:21.005759+00:00",
+      "copyStatus": "verified"
+    },
+    {
+      "sourceRelativePath": "圣戒信条加密/SJXTJH.lua",
+      "sourceSha256": "567c850e32ce5fd67dfff64901bc8ef82730d7cbeaa53b61ba2c5dbb9ecb99e1",
+      "sourceSize": 17364,
+      "sourceMtimeUtc": "2026-01-17T07:09:58.3849965Z",
+      "sourceExtension": ".lua",
+      "sourceTextEncoding": "utf-8",
+      "sourceClassification": "migration_candidate",
+      "sourceEntryFile": false,
+      "sourceModules": [
+        "ts"
+      ],
+      "sourceDependencies": [],
+      "sourceResources": [],
+      "sourceApiFacts": [
+        {
+          "name": "closeApp",
+          "count": 1
+        },
+        {
+          "name": "mSleep",
+          "count": 17
+        }
+      ],
+      "targetRelativePath": "tests/touchsprite_migration/source/圣戒信条加密/SJXTJH.lua",
+      "targetSha256": "567c850e32ce5fd67dfff64901bc8ef82730d7cbeaa53b61ba2c5dbb9ecb99e1",
+      "targetSize": 17364,
+      "copiedAtUtc": "2026-09-09T04:13:21.470932+00:00",
+      "copyStatus": "verified"
+    },
+    {
+      "sourceRelativePath": "系统工具/main.lua",
+      "sourceSha256": "184ff3a890e2dcac587464507e1362199f086859f44ab065774beb3e56f6fc4e",
+      "sourceSize": 585,
+      "sourceMtimeUtc": "2026-08-22T14:11:47.9956992Z",
+      "sourceExtension": ".lua",
+      "sourceTextEncoding": "utf-8",
+      "sourceClassification": "migration_candidate",
+      "sourceEntryFile": true,
+      "sourceModules": [],
+      "sourceDependencies": [],
+      "sourceResources": [],
+      "sourceApiFacts": [
+        {
+          "name": "mSleep",
+          "count": 4
+        },
+        {
+          "name": "touchDown",
+          "count": 1
+        },
+        {
+          "name": "touchUp",
+          "count": 1
+        }
+      ],
+      "targetRelativePath": "tests/touchsprite_migration/source/系统工具/main.lua",
+      "targetSha256": "184ff3a890e2dcac587464507e1362199f086859f44ab065774beb3e56f6fc4e",
+      "targetSize": 585,
+      "copiedAtUtc": "2026-09-09T04:13:21.925945+00:00",
+      "copyStatus": "verified"
+    },
+    {
+      "sourceRelativePath": "系统工具/ZYXiTongGongJu.lua",
+      "sourceSha256": "f274546569e125ae785cdae2863068a6535875c41c90ed4d0abfb4d5933822e8",
+      "sourceSize": 3587,
+      "sourceMtimeUtc": "2026-04-28T12:39:19.4217486Z",
+      "sourceExtension": ".lua",
+      "sourceTextEncoding": "utf-8",
+      "sourceClassification": "migration_candidate",
+      "sourceEntryFile": false,
+      "sourceModules": [
+        "posix"
+      ],
+      "sourceDependencies": [],
+      "sourceResources": [],
+      "sourceApiFacts": [
+        {
+          "name": "mSleep",
+          "count": 1
+        }
+      ],
+      "targetRelativePath": "tests/touchsprite_migration/source/系统工具/ZYXiTongGongJu.lua",
+      "targetSha256": "f274546569e125ae785cdae2863068a6535875c41c90ed4d0abfb4d5933822e8",
+      "targetSize": 3587,
+      "copiedAtUtc": "2026-09-09T04:13:22.385696+00:00",
+      "copyStatus": "verified"
+    },
+    {
+      "sourceRelativePath": "新版血战加密/BBH.lua",
+      "sourceSha256": "a82f4b4e61507c50beb86252439f4f6f23c2ace9f72b128097ca03322f5aad2f",
+      "sourceSize": 7,
+      "sourceMtimeUtc": "2026-08-09T22:24:12.4132483Z",
+      "sourceExtension": ".lua",
+      "sourceTextEncoding": "utf-8",
+      "sourceClassification": "migration_candidate",
+      "sourceEntryFile": false,
+      "sourceModules": [],
+      "sourceDependencies": [],
+      "sourceResources": [],
+      "sourceApiFacts": [],
+      "targetRelativePath": "tests/touchsprite_migration/source/新版血战加密/BBH.lua",
+      "targetSha256": "a82f4b4e61507c50beb86252439f4f6f23c2ace9f72b128097ca03322f5aad2f",
+      "targetSize": 7,
+      "copiedAtUtc": "2026-09-09T04:13:22.935249+00:00",
+      "copyStatus": "verified"
+    },
+    {
+      "sourceRelativePath": "新版血战加密/XBXZJH.lua",
+      "sourceSha256": "e453ad0698cbe9d1a1a2b2fcc3955c853ce54010a5e6d11b0e211f6d1f761bdd",
+      "sourceSize": 17109,
+      "sourceMtimeUtc": "2026-05-19T00:19:22.4494546Z",
+      "sourceExtension": ".lua",
+      "sourceTextEncoding": "utf-8",
+      "sourceClassification": "migration_candidate",
+      "sourceEntryFile": false,
+      "sourceModules": [
+        "ts"
+      ],
+      "sourceDependencies": [],
+      "sourceResources": [],
+      "sourceApiFacts": [
+        {
+          "name": "closeApp",
+          "count": 1
+        },
+        {
+          "name": "mSleep",
+          "count": 17
+        }
+      ],
+      "targetRelativePath": "tests/touchsprite_migration/source/新版血战加密/XBXZJH.lua",
+      "targetSha256": "e453ad0698cbe9d1a1a2b2fcc3955c853ce54010a5e6d11b0e211f6d1f761bdd",
+      "targetSize": 17109,
+      "copiedAtUtc": "2026-09-09T04:13:23.402195+00:00",
+      "copyStatus": "verified"
+    },
+    {
+      "sourceRelativePath": "血战加密/BBH.lua",
+      "sourceSha256": "c646138cd87adccb736ed6b63feefec3530869669dca4c1122ba2ddbacbbcaf0",
+      "sourceSize": 6,
+      "sourceMtimeUtc": "2026-05-19T00:40:03.6084448Z",
+      "sourceExtension": ".lua",
+      "sourceTextEncoding": "utf-8",
+      "sourceClassification": "migration_candidate",
+      "sourceEntryFile": false,
+      "sourceModules": [],
+      "sourceDependencies": [],
+      "sourceResources": [],
+      "sourceApiFacts": [],
+      "targetRelativePath": "tests/touchsprite_migration/source/血战加密/BBH.lua",
+      "targetSha256": "c646138cd87adccb736ed6b63feefec3530869669dca4c1122ba2ddbacbbcaf0",
+      "targetSize": 6,
+      "copiedAtUtc": "2026-09-09T04:13:23.869381+00:00",
+      "copyStatus": "verified"
+    },
+    {
+      "sourceRelativePath": "血战加密/XZTLJH.lua",
+      "sourceSha256": "6b14e43a1d1f85b8d1c0f77350be074b6d12e49f11eec03b4d210e2e2af6b449",
+      "sourceSize": 17147,
+      "sourceMtimeUtc": "2026-03-18T11:29:52.9983463Z",
+      "sourceExtension": ".lua",
+      "sourceTextEncoding": "utf-8",
+      "sourceClassification": "migration_candidate",
+      "sourceEntryFile": false,
+      "sourceModules": [
+        "ts"
+      ],
+      "sourceDependencies": [],
+      "sourceResources": [],
+      "sourceApiFacts": [
+        {
+          "name": "closeApp",
+          "count": 1
+        },
+        {
+          "name": "mSleep",
+          "count": 17
+        }
+      ],
+      "targetRelativePath": "tests/touchsprite_migration/source/血战加密/XZTLJH.lua",
+      "targetSha256": "6b14e43a1d1f85b8d1c0f77350be074b6d12e49f11eec03b4d210e2e2af6b449",
+      "targetSize": 17147,
+      "copiedAtUtc": "2026-09-09T04:13:24.358914+00:00",
+      "copyStatus": "verified"
+    },
+    {
+      "sourceRelativePath": "血战屠龙/BBH.lua",
+      "sourceSha256": "d65043ff255a5f90cbcaa21ef5affc2ed03592d2cc5f63f92e2c1b0c8890d26e",
+      "sourceSize": 7,
+      "sourceMtimeUtc": "2026-03-20T19:28:31.4891063Z",
+      "sourceExtension": ".lua",
+      "sourceTextEncoding": "utf-8",
+      "sourceClassification": "migration_candidate",
+      "sourceEntryFile": false,
+      "sourceModules": [],
+      "sourceDependencies": [],
+      "sourceResources": [],
+      "sourceApiFacts": [],
+      "targetRelativePath": "tests/touchsprite_migration/source/血战屠龙/BBH.lua",
+      "targetSha256": "d65043ff255a5f90cbcaa21ef5affc2ed03592d2cc5f63f92e2c1b0c8890d26e",
+      "targetSize": 7,
+      "copiedAtUtc": "2026-09-09T04:13:24.813369+00:00",
+      "copyStatus": "verified"
+    },
+    {
+      "sourceRelativePath": "血战屠龙/ceshi.lua",
+      "sourceSha256": "1f8a12fcfbafc2c8ef6e1734267bdbdc06b7930d9cce7eb3e99d7b3ed94a8b21",
+      "sourceSize": 2409,
+      "sourceMtimeUtc": "2024-10-17T09:27:14.4878009Z",
+      "sourceExtension": ".lua",
+      "sourceTextEncoding": "utf-8",
+      "sourceClassification": "migration_candidate",
+      "sourceEntryFile": false,
+      "sourceModules": [
+        "socket",
+        "TSLib"
+      ],
+      "sourceDependencies": [],
+      "sourceResources": [],
+      "sourceApiFacts": [
+        {
+          "name": "mSleep",
+          "count": 2
+        }
+      ],
+      "targetRelativePath": "tests/touchsprite_migration/source/血战屠龙/ceshi.lua",
+      "targetSha256": "1f8a12fcfbafc2c8ef6e1734267bdbdc06b7930d9cce7eb3e99d7b3ed94a8b21",
+      "targetSize": 2409,
+      "copiedAtUtc": "2026-09-09T04:13:25.243271+00:00",
+      "copyStatus": "verified"
+    },
+    {
+      "sourceRelativePath": "血战屠龙/TSLib.lua",
+      "sourceSha256": "ae28c9dab4679abd64ac76a23f99ecc970a6786c8cfda75905cddb5e0a165d16",
+      "sourceSize": 166211,
+      "sourceMtimeUtc": "2020-08-18T06:45:56.4972351Z",
+      "sourceExtension": ".lua",
+      "sourceTextEncoding": "legacy_or_unknown",
+      "sourceClassification": "migration_candidate",
+      "sourceEntryFile": false,
+      "sourceModules": [],
+      "sourceDependencies": [],
+      "sourceResources": [],
+      "sourceApiFacts": [],
+      "targetRelativePath": "tests/touchsprite_migration/source/血战屠龙/TSLib.lua",
+      "targetSha256": "ae28c9dab4679abd64ac76a23f99ecc970a6786c8cfda75905cddb5e0a165d16",
+      "targetSize": 166211,
+      "copiedAtUtc": "2026-09-09T04:13:25.751972+00:00",
+      "copyStatus": "verified"
+    },
+    {
+      "sourceRelativePath": "血战屠龙/XZJH.lua",
+      "sourceSha256": "5a2d547aa43676bad079b560dce2b53a437cd4ecc8bd11689fdba74bb87294cf",
+      "sourceSize": 8048,
+      "sourceMtimeUtc": "2026-03-21T12:01:39.2807045Z",
+      "sourceExtension": ".lua",
+      "sourceTextEncoding": "utf-8",
+      "sourceClassification": "migration_candidate",
+      "sourceEntryFile": false,
+      "sourceModules": [
+        "ts",
+        "TSLib",
+        "XZHS",
+        "XZQS",
+        "XZUI"
+      ],
+      "sourceDependencies": [],
+      "sourceResources": [],
+      "sourceApiFacts": [
+        {
+          "name": "closeApp",
+          "count": 1
+        },
+        {
+          "name": "getColor",
+          "count": 7
+        },
+        {
+          "name": "mSleep",
+          "count": 34
+        }
+      ],
+      "targetRelativePath": "tests/touchsprite_migration/source/血战屠龙/XZJH.lua",
+      "targetSha256": "5a2d547aa43676bad079b560dce2b53a437cd4ecc8bd11689fdba74bb87294cf",
+      "targetSize": 8048,
+      "copiedAtUtc": "2026-09-09T04:13:26.250621+00:00",
+      "copyStatus": "verified"
+    },
+    {
+      "sourceRelativePath": "血战优化/XZTLJH.lua",
+      "sourceSha256": "e354e4cfe62260a6571f261131a83a2234cab20818c8421fb7cc10a5e1eceea8",
+      "sourceSize": 4989,
+      "sourceMtimeUtc": "2026-07-12T03:15:10.5707674Z",
+      "sourceExtension": ".lua",
+      "sourceTextEncoding": "utf-8",
+      "sourceClassification": "migration_candidate",
+      "sourceEntryFile": false,
+      "sourceModules": [
+        "ts",
+        "TSLib"
+      ],
+      "sourceDependencies": [],
+      "sourceResources": [],
+      "sourceApiFacts": [
+        {
+          "name": "closeApp",
+          "count": 1
+        },
+        {
+          "name": "mSleep",
+          "count": 19
+        }
+      ],
+      "targetRelativePath": "tests/touchsprite_migration/source/血战优化/XZTLJH.lua",
+      "targetSha256": "e354e4cfe62260a6571f261131a83a2234cab20818c8421fb7cc10a5e1eceea8",
+      "targetSize": 4989,
+      "copiedAtUtc": "2026-09-09T04:13:26.742299+00:00",
+      "copyStatus": "verified"
+    }
+  ]
+}

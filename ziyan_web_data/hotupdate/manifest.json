@@ -1,0 +1,106 @@
+{
+  "versions": [
+    {
+      "version": "0.0.92-test18091",
+      "channel": "stable",
+      "file": "com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-15_iphoneos-arm64.deb",
+      "url": "/hotupdate/packages/0.0.92-test18091/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-15_iphoneos-arm64.deb",
+      "sha256": "2fd16074734c0746116b05228858c07fba525ba9cf17602d80de926d015268c1",
+      "size": 46453120,
+      "architecture": "iphoneos-arm64",
+      "min_os": "13.0",
+      "max_os": "16.7",
+      "ziyan_min": "0.0.92",
+      "notes": "verify",
+      "published_at": "2026-09-11 23:10:13"
+    },
+    {
+      "version": "0.0.92-8-161-205-C-65.11-98+debug-10-38-17-158-2+debug",
+      "channel": "stable",
+      "file": "com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-158-2+debug_iphoneos-arm64.deb",
+      "url": "/hotupdate/packages/0.0.92-8-161-205-C-65.11-98+debug-10-38-17-158-2+debug/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-158-2+debug_iphoneos-arm64.deb",
+      "sha256": "068b4ac76e29a071b3bdb702f4a309df925efc65ee37da8d0a7e474c147322c3",
+      "size": 55374850,
+      "architecture": "iphoneos-arm64",
+      "min_os": "13.0",
+      "max_os": "16.7",
+      "ziyan_min": "0.0.92",
+      "notes": "error-report + offline-queue build (rootless)",
+      "published_at": "2026-09-11 23:30:10"
+    },
+    {
+      "version": "0.0.92-8-161-205-C-65.11-98+debug-10-38-17-158-1+debug",
+      "channel": "stable",
+      "file": "com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-158-1+debug_iphoneos-arm.deb",
+      "url": "/hotupdate/packages/0.0.92-8-161-205-C-65.11-98+debug-10-38-17-158-1+debug/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-158-1+debug_iphoneos-arm.deb",
+      "sha256": "51b35733d84cf803b2d88dc4ea915c499f14f6a883e5feaa193ea24100d9f7a7",
+      "size": 55366066,
+      "architecture": "iphoneos-arm",
+      "min_os": "13.0",
+      "max_os": "16.7",
+      "ziyan_min": "0.0.92",
+      "notes": "rootful error-report build",
+      "published_at": "2026-09-11 23:30:40"
+    },
+    {
+      "version": "0.0.92-8-161-205-C-65.11-98+debug-10-38-17-162-2+debug",
+      "channel": "stable",
+      "file": "com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-162-2+debug_iphoneos-arm64.deb",
+      "url": "/hotupdate/packages/0.0.92-8-161-205-C-65.11-98+debug-10-38-17-162-2+debug/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-162-2+debug_iphoneos-arm64.deb",
+      "sha256": "fda337129c121c2da45b15664b77e6bacabe51c4a2a0e03d43e8ebaa45eaa741",
+      "size": 55383432,
+      "architecture": "iphoneos-arm64",
+      "min_os": "13.0",
+      "max_os": "16.7",
+      "ziyan_min": "0.0.92",
+      "notes": "rootless error-report+offline-queue+hotupdate build",
+      "published_at": "2026-09-12 01:32:46"
+    },
+    {
+      "version": "0.0.92-8-161-205-C-65.11-98+debug-10-38-17-163-2+debug",
+      "channel": "stable",
+      "file": "com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-163-2+debug_iphoneos-arm64.deb",
+      "url": "/hotupdate/packages/0.0.92-8-161-205-C-65.11-98+debug-10-38-17-163-2+debug/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-163-2+debug_iphoneos-arm64.deb",
+      "sha256": "146a8df15882d2a22f6c9c89555ee94f983c6dc204fed961001f5d8d14d9cf5a",
+      "size": 55383514,
+      "architecture": "iphoneos-arm64",
+      "min_os": "13.0",
+      "max_os": "16.7",
+      "ziyan_min": "0.0.92",
+      "notes": "hotupdate drill build",
+      "published_at": "2026-09-12 02:14:09"
+    },
+    {
+      "version": "0.0.92-8-161-205-C-65.11-98+debug-10-38-17-164-2+debug",
+      "channel": "stable",
+      "file": "com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-164-2+debug_iphoneos-arm64.deb",
+      "url": "/hotupdate/packages/0.0.92-8-161-205-C-65.11-98+debug-10-38-17-164-2+debug/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-164-2+debug_iphoneos-arm64.deb",
+      "sha256": "a0ff0f93730472213c4aad2de85425a0eccf83844e291208b2706ad957e5ef82",
+      "size": 55383816,
+      "architecture": "iphoneos-arm64",
+      "min_os": "13.0",
+      "max_os": "17.0",
+      "ziyan_min": "0.0.92",
+      "notes": "republish max_os 17.0 for iOS16.7.x point releases (.53)",
+      "published_at": "2026-09-12 09:31:00"
+    },
+    {
+      "version": "0.0.92-8-161-205-C-65.11-98+debug-10-38-17-164-1+debug",
+      "channel": "stable",
+      "file": "com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-164-1+debug_iphoneos-arm.deb",
+      "url": "/hotupdate/packages/0.0.92-8-161-205-C-65.11-98+debug-10-38-17-164-1+debug/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-164-1+debug_iphoneos-arm.deb",
+      "sha256": "8446f9d1780fda93a8592123b28b10897fbeb02c896f20a8936963971540d447",
+      "size": 55374896,
+      "architecture": "iphoneos-arm",
+      "min_os": "13.0",
+      "max_os": "17.0",
+      "ziyan_min": "0.0.92",
+      "notes": "rootful 164 build",
+      "published_at": "2026-09-12 05:08:57"
+    }
+  ],
+  "channels": {
+    "stable": "0.0.92-8-161-205-C-65.11-98+debug-10-38-17-164-2+debug"
+  },
+  "updated_at": "2026-09-12 09:31:00"
+}

@@ -1,0 +1,186 @@
+{
+  "schemaVersion": 1,
+  "sourceRoot": "E:\\传奇世界",
+  "accessMode": "read_only",
+  "evidenceKind": "static_source_regex",
+  "manifest": {
+    "path": "e48_legend_manifest.json",
+    "sha256": "02933013d04c64f2a44b37277719224baa9c4be5ebe40a145f604436f2eac726",
+    "collectedAtUtc": "2026-09-09T03:03:54.6675667Z"
+  },
+  "limitations": [
+    "Counts are source-text matches from the fixed PowerShell collector, not runtime calls.",
+    "closeApp and runApp are legacy source names; the ZiYan catalog maps them to appKill and appRun.",
+    "Files excluded by the sensitive-path or sensitive-content policy are absent."
+  ],
+  "totals": {
+    "luaFiles": 21,
+    "luaFilesWithObservedApi": 13,
+    "apiCallCounts": {
+      "closeApp": 9,
+      "getColor": 19,
+      "mSleep": 199,
+      "runApp": 2,
+      "touchDown": 1,
+      "touchUp": 1
+    }
+  },
+  "catalogCrosswalk": {
+    "mSleep": "sys.mSleep",
+    "getColor": "screen.getColor",
+    "closeApp": "app.appKill (legacy alias)",
+    "runApp": "app.appRun (legacy alias)",
+    "touchDown": "touch.touchDown",
+    "touchUp": "touch.touchUp"
+  },
+  "files": [
+    {
+      "relativePath": "赤沙龙城/CSLCJH.lua",
+      "sha256": "c042938d9caba91e5d53d9982013f4e6bdf8a12fc81e9d72bcebf8485c2270a3",
+      "modules": ["ts", "TSLib"],
+      "apiCalls": {"closeApp": 1, "getColor": 5, "mSleep": 28, "runApp": 2},
+      "evidenceStatus": "source_hash_and_static_match_observed"
+    },
+    {
+      "relativePath": "赤沙龙城/TSLib.lua",
+      "sha256": "ae28c9dab4679abd64ac76a23f99ecc970a6786c8cfda75905cddb5e0a165d16",
+      "modules": [],
+      "apiCalls": {},
+      "evidenceStatus": "source_hash_observed_no_allowlisted_api_match"
+    },
+    {
+      "relativePath": "赤沙龙城加密/BBH.lua",
+      "sha256": "9d170e826af271cb30ebbf1e2b8fbc97d0c57b3fd7b81fbdebad3fb654e326d0",
+      "modules": [],
+      "apiCalls": {},
+      "evidenceStatus": "source_hash_observed_no_allowlisted_api_match"
+    },
+    {
+      "relativePath": "赤沙龙城加密/CSLCJH.lua",
+      "sha256": "a393acba77825fb2e444ef345f83e0853fafa8990cf33e74c820ec4baaf42393",
+      "modules": ["ts"],
+      "apiCalls": {"closeApp": 1, "mSleep": 17},
+      "evidenceStatus": "source_hash_and_static_match_observed"
+    },
+    {
+      "relativePath": "龙界争霸/LJZBQS.lua",
+      "sha256": "679a6cd8442d37cb3482c4ff820694b97cad75ccb460023889dd91ee32d03f59",
+      "modules": ["sz", "ts", "TSLib"],
+      "apiCalls": {"getColor": 2, "mSleep": 1},
+      "evidenceStatus": "source_hash_and_static_match_observed"
+    },
+    {
+      "relativePath": "怒剑传奇/NJCQJH.lua",
+      "sha256": "c3b06e1ecc237b680878ba42d0eef8beee784225ac80f9c415c1f5566e850d93",
+      "modules": ["ts", "TSLib"],
+      "apiCalls": {"closeApp": 1, "getColor": 4, "mSleep": 22},
+      "evidenceStatus": "source_hash_and_static_match_observed"
+    },
+    {
+      "relativePath": "圣戒信条/SJXTJH.lua",
+      "sha256": "6bcaa8eb8801250981cb79c067cce7e2797c96c1b0fdb458d097ea086afd91a7",
+      "modules": ["ts"],
+      "apiCalls": {"closeApp": 1, "getColor": 1, "mSleep": 20},
+      "evidenceStatus": "source_hash_and_static_match_observed"
+    },
+    {
+      "relativePath": "圣戒信条/TSLib.lua",
+      "sha256": "ae28c9dab4679abd64ac76a23f99ecc970a6786c8cfda75905cddb5e0a165d16",
+      "modules": [],
+      "apiCalls": {},
+      "evidenceStatus": "source_hash_observed_no_allowlisted_api_match"
+    },
+    {
+      "relativePath": "圣戒信条加密/BBH.lua",
+      "sha256": "3928de9805210b5cc2eb75d5f05f908f0b700459d9417eab65f449f87a9c97d3",
+      "modules": [],
+      "apiCalls": {},
+      "evidenceStatus": "source_hash_observed_no_allowlisted_api_match"
+    },
+    {
+      "relativePath": "圣戒信条加密/SJXTJH.lua",
+      "sha256": "567c850e32ce5fd67dfff64901bc8ef82730d7cbeaa53b61ba2c5dbb9ecb99e1",
+      "modules": ["ts"],
+      "apiCalls": {"closeApp": 1, "mSleep": 17},
+      "evidenceStatus": "source_hash_and_static_match_observed"
+    },
+    {
+      "relativePath": "系统工具/main.lua",
+      "sha256": "184ff3a890e2dcac587464507e1362199f086859f44ab065774beb3e56f6fc4e",
+      "modules": [],
+      "apiCalls": {"mSleep": 4, "touchDown": 1, "touchUp": 1},
+      "evidenceStatus": "source_hash_and_static_match_observed",
+      "entryFile": true
+    },
+    {
+      "relativePath": "系统工具/ZYXiTongGongJu.lua",
+      "sha256": "f274546569e125ae785cdae2863068a6535875c41c90ed4d0abfb4d5933822e8",
+      "modules": ["posix"],
+      "apiCalls": {"mSleep": 1},
+      "evidenceStatus": "source_hash_and_static_match_observed"
+    },
+    {
+      "relativePath": "新版血战加密/BBH.lua",
+      "sha256": "a82f4b4e61507c50beb86252439f4f6f23c2ace9f72b128097ca03322f5aad2f",
+      "modules": [],
+      "apiCalls": {},
+      "evidenceStatus": "source_hash_observed_no_allowlisted_api_match"
+    },
+    {
+      "relativePath": "新版血战加密/XBXZJH.lua",
+      "sha256": "e453ad0698cbe9d1a1a2b2fcc3955c853ce54010a5e6d11b0e211f6d1f761bdd",
+      "modules": ["ts"],
+      "apiCalls": {"closeApp": 1, "mSleep": 17},
+      "evidenceStatus": "source_hash_and_static_match_observed"
+    },
+    {
+      "relativePath": "血战加密/BBH.lua",
+      "sha256": "c646138cd87adccb736ed6b63feefec3530869669dca4c1122ba2ddbacbbcaf0",
+      "modules": [],
+      "apiCalls": {},
+      "evidenceStatus": "source_hash_observed_no_allowlisted_api_match"
+    },
+    {
+      "relativePath": "血战加密/XZTLJH.lua",
+      "sha256": "6b14e43a1d1f85b8d1c0f77350be074b6d12e49f11eec03b4d210e2e2af6b449",
+      "modules": ["ts"],
+      "apiCalls": {"closeApp": 1, "mSleep": 17},
+      "evidenceStatus": "source_hash_and_static_match_observed"
+    },
+    {
+      "relativePath": "血战屠龙/BBH.lua",
+      "sha256": "d65043ff255a5f90cbcaa21ef5affc2ed03592d2cc5f63f92e2c1b0c8890d26e",
+      "modules": [],
+      "apiCalls": {},
+      "evidenceStatus": "source_hash_observed_no_allowlisted_api_match"
+    },
+    {
+      "relativePath": "血战屠龙/ceshi.lua",
+      "sha256": "1f8a12fcfbafc2c8ef6e1734267bdbdc06b7930d9cce7eb3e99d7b3ed94a8b21",
+      "modules": ["socket", "TSLib"],
+      "apiCalls": {"mSleep": 2},
+      "evidenceStatus": "source_hash_and_static_match_observed"
+    },
+    {
+      "relativePath": "血战屠龙/TSLib.lua",
+      "sha256": "ae28c9dab4679abd64ac76a23f99ecc970a6786c8cfda75905cddb5e0a165d16",
+      "modules": [],
+      "apiCalls": {},
+      "evidenceStatus": "source_hash_observed_no_allowlisted_api_match"
+    },
+    {
+      "relativePath": "血战屠龙/XZJH.lua",
+      "sha256": "5a2d547aa43676bad079b560dce2b53a437cd4ecc8bd11689fdba74bb87294cf",
+      "modules": ["ts", "TSLib", "XZHS", "XZQS", "XZUI"],
+      "apiCalls": {"closeApp": 1, "getColor": 7, "mSleep": 34},
+      "evidenceStatus": "source_hash_and_static_match_observed"
+    },
+    {
+      "relativePath": "血战优化/XZTLJH.lua",
+      "sha256": "e354e4cfe62260a6571f261131a83a2234cab20818c8421fb7cc10a5e1eceea8",
+      "modules": ["ts", "TSLib"],
+      "apiCalls": {"closeApp": 1, "mSleep": 19},
+      "evidenceStatus": "source_hash_and_static_match_observed"
+    }
+  ]
+}

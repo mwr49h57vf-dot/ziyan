@@ -1,0 +1,6 @@
+interface:
+  display_name: "Vision AI"
+  short_description: "Describe or OCR local images"
+  default_prompt: "Use $vision-ai to analyze the image path the user named. If llm_config.py is missing, report the gap and do not download models."
+policy:
+  allow_implicit_invocation: true

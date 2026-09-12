@@ -1,0 +1,625 @@
+{
+  "schemaVersion": 1,
+  "generatedAtUtc": "2026-09-11T09:45:03.795936+00:00",
+  "candidateCount": 22,
+  "sourceCopiesImmutable": true,
+  "candidates": [
+    {
+      "sourceRelativePath": "2015528121953696.jpg",
+      "sourceSha256": "faf66c042308edfefabd4824d3c994d1af8364af55add1b3e9fb99bf871ab5ab",
+      "status": "MIGRATED_RESOURCE",
+      "migratedTarget": "tests/touchsprite_migration/source/2015528121953696.jpg",
+      "targetSha256": "faf66c042308edfefabd4824d3c994d1af8364af55add1b3e9fb99bf871ab5ab",
+      "loadfile": {
+        "mode": "loadfile_only",
+        "status": "not_applicable",
+        "detail": ""
+      },
+      "blockers": [],
+      "retainedBlockers": [],
+      "minimalRepro": "shasum -a 256 'tests/touchsprite_migration/source/2015528121953696.jpg'",
+      "evidence": [
+        "tests/touchsprite_migration/sample_mapping.json"
+      ],
+      "rollbackPoint": "source copy is immutable; no runtime change",
+      "verdict": "STATIC_RESOURCE_SHA_VERIFIED"
+    },
+    {
+      "sourceRelativePath": "赤沙龙城/CSLCJH.lua",
+      "sourceSha256": "c042938d9caba91e5d53d9982013f4e6bdf8a12fc81e9d72bcebf8485c2270a3",
+      "status": "MIGRATED_BOUNDED_REWRITE",
+      "migratedTarget": "tests/touchsprite_migration/rewrites/cslcjh_lua_d4f1acdbef.lua",
+      "targetSha256": "d9ccb5557ce5167edf8f148693b9edd2bd36e86602947dc242091819fd18e654",
+      "loadfile": {
+        "mode": "loadfile_only",
+        "status": "pass",
+        "detail": ""
+      },
+      "blockers": [
+        "dynamic_module_path_unresolved",
+        "unresolved_dependencies"
+      ],
+      "retainedBlockers": [
+        "dynamic_module_path_unresolved",
+        "unresolved_dependencies"
+      ],
+      "minimalRepro": "lua 'tests/touchsprite_migration/rewrites/cslcjh_lua_d4f1acdbef.lua'",
+      "evidence": [
+        "tests/touchsprite_migration/rewrites/cslcjh_lua_d4f1acdbef.lua",
+        "tests/touchsprite_migration/rewrites/manifest.json"
+      ],
+      "rollbackPoint": "remove tests/touchsprite_migration/rewrites/cslcjh_lua_d4f1acdbef.lua",
+      "verdict": "EXECUTABLE_BOUNDED_REWRITE"
+    },
+    {
+      "sourceRelativePath": "赤沙龙城/TSLib.lua",
+      "sourceSha256": "ae28c9dab4679abd64ac76a23f99ecc970a6786c8cfda75905cddb5e0a165d16",
+      "status": "MIGRATED_BOUNDED_REWRITE",
+      "migratedTarget": "tests/touchsprite_migration/rewrites/tslib_lua_9b7a605af2.lua",
+      "targetSha256": "e298e915d6a14df041fe8b2ea794c6bcba367187045b53a381b064e29a0909c1",
+      "loadfile": {
+        "mode": "loadfile_only",
+        "status": "pass",
+        "detail": ""
+      },
+      "blockers": [
+        "source_syntax_or_encryption_failure"
+      ],
+      "retainedBlockers": [
+        "source_syntax_or_encryption_failure"
+      ],
+      "minimalRepro": "lua 'tests/touchsprite_migration/rewrites/tslib_lua_9b7a605af2.lua'",
+      "evidence": [
+        "tests/touchsprite_migration/rewrites/tslib_lua_9b7a605af2.lua",
+        "tests/touchsprite_migration/rewrites/manifest.json"
+      ],
+      "rollbackPoint": "remove tests/touchsprite_migration/rewrites/tslib_lua_9b7a605af2.lua",
+      "verdict": "EXECUTABLE_BOUNDED_REWRITE"
+    },
+    {
+      "sourceRelativePath": "赤沙龙城加密/BBH.lua",
+      "sourceSha256": "9d170e826af271cb30ebbf1e2b8fbc97d0c57b3fd7b81fbdebad3fb654e326d0",
+      "status": "MIGRATED_BOUNDED_REWRITE",
+      "migratedTarget": "tests/touchsprite_migration/rewrites/bbh_lua_e4e7f27e65.lua",
+      "targetSha256": "8518939249dca829449159898a4f9d46b4c7e3530013d1d95093d5951092598b",
+      "loadfile": {
+        "mode": "loadfile_only",
+        "status": "pass",
+        "detail": ""
+      },
+      "blockers": [
+        "source_syntax_or_encryption_failure"
+      ],
+      "retainedBlockers": [
+        "source_syntax_or_encryption_failure"
+      ],
+      "minimalRepro": "lua 'tests/touchsprite_migration/rewrites/bbh_lua_e4e7f27e65.lua'",
+      "evidence": [
+        "tests/touchsprite_migration/rewrites/bbh_lua_e4e7f27e65.lua",
+        "tests/touchsprite_migration/rewrites/manifest.json"
+      ],
+      "rollbackPoint": "remove tests/touchsprite_migration/rewrites/bbh_lua_e4e7f27e65.lua",
+      "verdict": "EXECUTABLE_BOUNDED_REWRITE"
+    },
+    {
+      "sourceRelativePath": "赤沙龙城加密/CSLCJH.lua",
+      "sourceSha256": "a393acba77825fb2e444ef345f83e0853fafa8990cf33e74c820ec4baaf42393",
+      "status": "MIGRATED_BOUNDED_REWRITE",
+      "migratedTarget": "tests/touchsprite_migration/rewrites/cslcjh_lua_825fb9dc09.lua",
+      "targetSha256": "d5226bf47f2a5b7097f1b5a3fed7e52c64ba54c22b5da2a3f2891923ecb322e8",
+      "loadfile": {
+        "mode": "loadfile_only",
+        "status": "pass",
+        "detail": ""
+      },
+      "blockers": [
+        "direct_file_io_needs_sandboxed_mapping",
+        "dynamic_module_path_unresolved",
+        "host_shell_or_file_mutation",
+        "remote_ftp_dependency",
+        "unbounded_loop_requires_stop_token",
+        "unresolved_dependencies"
+      ],
+      "retainedBlockers": [
+        "direct_file_io_needs_sandboxed_mapping",
+        "dynamic_module_path_unresolved",
+        "host_shell_or_file_mutation",
+        "remote_ftp_dependency",
+        "unbounded_loop_requires_stop_token",
+        "unresolved_dependencies"
+      ],
+      "minimalRepro": "lua 'tests/touchsprite_migration/rewrites/cslcjh_lua_825fb9dc09.lua'",
+      "evidence": [
+        "tests/touchsprite_migration/rewrites/cslcjh_lua_825fb9dc09.lua",
+        "tests/touchsprite_migration/rewrites/manifest.json"
+      ],
+      "rollbackPoint": "remove tests/touchsprite_migration/rewrites/cslcjh_lua_825fb9dc09.lua",
+      "verdict": "EXECUTABLE_BOUNDED_REWRITE"
+    },
+    {
+      "sourceRelativePath": "龙界争霸/LJZBQS.lua",
+      "sourceSha256": "679a6cd8442d37cb3482c4ff820694b97cad75ccb460023889dd91ee32d03f59",
+      "status": "MIGRATED_BOUNDED_REWRITE",
+      "migratedTarget": "tests/touchsprite_migration/rewrites/ljzbqs_lua_51fbd0e8af.lua",
+      "targetSha256": "03a0503865518f49f8d9f7a3769580c95633fb49d093eedee6d8804f20d805c4",
+      "loadfile": {
+        "mode": "loadfile_only",
+        "status": "pass",
+        "detail": ""
+      },
+      "blockers": [
+        "ambiguous_dependencies",
+        "source_syntax_or_encryption_failure",
+        "unresolved_dependencies"
+      ],
+      "retainedBlockers": [
+        "ambiguous_dependencies",
+        "source_syntax_or_encryption_failure",
+        "unresolved_dependencies"
+      ],
+      "minimalRepro": "lua 'tests/touchsprite_migration/rewrites/ljzbqs_lua_51fbd0e8af.lua'",
+      "evidence": [
+        "tests/touchsprite_migration/rewrites/ljzbqs_lua_51fbd0e8af.lua",
+        "tests/touchsprite_migration/rewrites/manifest.json"
+      ],
+      "rollbackPoint": "remove tests/touchsprite_migration/rewrites/ljzbqs_lua_51fbd0e8af.lua",
+      "verdict": "EXECUTABLE_BOUNDED_REWRITE"
+    },
+    {
+      "sourceRelativePath": "怒剑传奇/NJCQJH.lua",
+      "sourceSha256": "c3b06e1ecc237b680878ba42d0eef8beee784225ac80f9c415c1f5566e850d93",
+      "status": "MIGRATED_BOUNDED_REWRITE",
+      "migratedTarget": "tests/touchsprite_migration/rewrites/njcqjh_lua_cfb7576d4a.lua",
+      "targetSha256": "3a5f7dcf2f58fdb4f85f1eaaaa9f09afa05fc77aa37d47a2bfc3fccde34d70ec",
+      "loadfile": {
+        "mode": "loadfile_only",
+        "status": "pass",
+        "detail": ""
+      },
+      "blockers": [
+        "ambiguous_dependencies",
+        "dynamic_module_path_unresolved",
+        "host_shell_or_file_mutation",
+        "unresolved_dependencies"
+      ],
+      "retainedBlockers": [
+        "ambiguous_dependencies",
+        "dynamic_module_path_unresolved",
+        "host_shell_or_file_mutation",
+        "unresolved_dependencies"
+      ],
+      "minimalRepro": "lua 'tests/touchsprite_migration/rewrites/njcqjh_lua_cfb7576d4a.lua'",
+      "evidence": [
+        "tests/touchsprite_migration/rewrites/njcqjh_lua_cfb7576d4a.lua",
+        "tests/touchsprite_migration/rewrites/manifest.json"
+      ],
+      "rollbackPoint": "remove tests/touchsprite_migration/rewrites/njcqjh_lua_cfb7576d4a.lua",
+      "verdict": "EXECUTABLE_BOUNDED_REWRITE"
+    },
+    {
+      "sourceRelativePath": "圣戒信条/SJXTJH.lua",
+      "sourceSha256": "6bcaa8eb8801250981cb79c067cce7e2797c96c1b0fdb458d097ea086afd91a7",
+      "status": "MIGRATED_BOUNDED_REWRITE",
+      "migratedTarget": "tests/touchsprite_migration/rewrites/sjxtjh_lua_bf167d9a8a.lua",
+      "targetSha256": "65e4d34e5f525f01b3b791ee034c236f6b4760d7212d9441d9215729066110c0",
+      "loadfile": {
+        "mode": "loadfile_only",
+        "status": "pass",
+        "detail": ""
+      },
+      "blockers": [
+        "dynamic_module_path_unresolved",
+        "source_syntax_or_encryption_failure",
+        "unresolved_dependencies"
+      ],
+      "retainedBlockers": [
+        "dynamic_module_path_unresolved",
+        "source_syntax_or_encryption_failure",
+        "unresolved_dependencies"
+      ],
+      "minimalRepro": "lua 'tests/touchsprite_migration/rewrites/sjxtjh_lua_bf167d9a8a.lua'",
+      "evidence": [
+        "tests/touchsprite_migration/rewrites/sjxtjh_lua_bf167d9a8a.lua",
+        "tests/touchsprite_migration/rewrites/manifest.json"
+      ],
+      "rollbackPoint": "remove tests/touchsprite_migration/rewrites/sjxtjh_lua_bf167d9a8a.lua",
+      "verdict": "EXECUTABLE_BOUNDED_REWRITE"
+    },
+    {
+      "sourceRelativePath": "圣戒信条/TSLib.lua",
+      "sourceSha256": "ae28c9dab4679abd64ac76a23f99ecc970a6786c8cfda75905cddb5e0a165d16",
+      "status": "MIGRATED_BOUNDED_REWRITE",
+      "migratedTarget": "tests/touchsprite_migration/rewrites/tslib_lua_44c5895cab.lua",
+      "targetSha256": "94de47bdccf4122b85b74ae1c8d4601b330b52985061618480531a2e2cd7fc7d",
+      "loadfile": {
+        "mode": "loadfile_only",
+        "status": "pass",
+        "detail": ""
+      },
+      "blockers": [
+        "source_syntax_or_encryption_failure"
+      ],
+      "retainedBlockers": [
+        "source_syntax_or_encryption_failure"
+      ],
+      "minimalRepro": "lua 'tests/touchsprite_migration/rewrites/tslib_lua_44c5895cab.lua'",
+      "evidence": [
+        "tests/touchsprite_migration/rewrites/tslib_lua_44c5895cab.lua",
+        "tests/touchsprite_migration/rewrites/manifest.json"
+      ],
+      "rollbackPoint": "remove tests/touchsprite_migration/rewrites/tslib_lua_44c5895cab.lua",
+      "verdict": "EXECUTABLE_BOUNDED_REWRITE"
+    },
+    {
+      "sourceRelativePath": "圣戒信条加密/BBH.lua",
+      "sourceSha256": "3928de9805210b5cc2eb75d5f05f908f0b700459d9417eab65f449f87a9c97d3",
+      "status": "MIGRATED_BOUNDED_REWRITE",
+      "migratedTarget": "tests/touchsprite_migration/rewrites/bbh_lua_b7edba4007.lua",
+      "targetSha256": "ac26d74d493754a995a94eb501ef64828d31c42e338bd84412ece2838331f970",
+      "loadfile": {
+        "mode": "loadfile_only",
+        "status": "pass",
+        "detail": ""
+      },
+      "blockers": [
+        "source_syntax_or_encryption_failure"
+      ],
+      "retainedBlockers": [
+        "source_syntax_or_encryption_failure"
+      ],
+      "minimalRepro": "lua 'tests/touchsprite_migration/rewrites/bbh_lua_b7edba4007.lua'",
+      "evidence": [
+        "tests/touchsprite_migration/rewrites/bbh_lua_b7edba4007.lua",
+        "tests/touchsprite_migration/rewrites/manifest.json"
+      ],
+      "rollbackPoint": "remove tests/touchsprite_migration/rewrites/bbh_lua_b7edba4007.lua",
+      "verdict": "EXECUTABLE_BOUNDED_REWRITE"
+    },
+    {
+      "sourceRelativePath": "圣戒信条加密/SJXTJH.lua",
+      "sourceSha256": "567c850e32ce5fd67dfff64901bc8ef82730d7cbeaa53b61ba2c5dbb9ecb99e1",
+      "status": "MIGRATED_BOUNDED_REWRITE",
+      "migratedTarget": "tests/touchsprite_migration/rewrites/sjxtjh_lua_ae33e2c9dc.lua",
+      "targetSha256": "64155613084ccf4a52af4fb9f21eb72dad606e5e4307f2e20f79206ba7bdf234",
+      "loadfile": {
+        "mode": "loadfile_only",
+        "status": "pass",
+        "detail": ""
+      },
+      "blockers": [
+        "direct_file_io_needs_sandboxed_mapping",
+        "dynamic_module_path_unresolved",
+        "host_shell_or_file_mutation",
+        "remote_ftp_dependency",
+        "unbounded_loop_requires_stop_token",
+        "unresolved_dependencies"
+      ],
+      "retainedBlockers": [
+        "direct_file_io_needs_sandboxed_mapping",
+        "dynamic_module_path_unresolved",
+        "host_shell_or_file_mutation",
+        "remote_ftp_dependency",
+        "unbounded_loop_requires_stop_token",
+        "unresolved_dependencies"
+      ],
+      "minimalRepro": "lua 'tests/touchsprite_migration/rewrites/sjxtjh_lua_ae33e2c9dc.lua'",
+      "evidence": [
+        "tests/touchsprite_migration/rewrites/sjxtjh_lua_ae33e2c9dc.lua",
+        "tests/touchsprite_migration/rewrites/manifest.json"
+      ],
+      "rollbackPoint": "remove tests/touchsprite_migration/rewrites/sjxtjh_lua_ae33e2c9dc.lua",
+      "verdict": "EXECUTABLE_BOUNDED_REWRITE"
+    },
+    {
+      "sourceRelativePath": "系统工具/main.lua",
+      "sourceSha256": "184ff3a890e2dcac587464507e1362199f086859f44ab065774beb3e56f6fc4e",
+      "status": "MIGRATED_EXECUTABLE",
+      "migratedTarget": "tests/touchsprite_migration/ziyan_business_sample.lua",
+      "targetSha256": "ed266e053d5c03da83bfe68c9c442ad85e9adfa24e65e9d85b743b6890802088",
+      "loadfile": {
+        "mode": "loadfile_only",
+        "status": "not_applicable",
+        "detail": ""
+      },
+      "blockers": [],
+      "retainedBlockers": [],
+      "minimalRepro": "lua 'tests/touchsprite_migration/ziyan_business_sample.lua'",
+      "evidence": [
+        "tmp_shots/E48_DEVICE101_20260909_211121/SUMMARY.txt",
+        "tmp_shots/E48_DEVICE112_20260909_204440/SUMMARY.txt",
+        "tmp_shots/E48_DEVICE166_20260909_213954/SUMMARY.txt",
+        "tmp_shots/E48_DEVICE166_20260909_214618/SUMMARY.txt",
+        "tmp_shots/E48_DEVICE53_20260910_002642/SUMMARY.txt",
+        "tmp_shots/E48_DEVICE53_20260910_121759/device_verdicts/cold_start_device.txt",
+        "tmp_shots/E48_DEVICE61_20260910_121258/SUMMARY.txt"
+      ],
+      "rollbackPoint": "remove tests/touchsprite_migration/ziyan_business_sample.lua",
+      "verdict": "DEVICE_PASS_E48_FIVE_DEVICE"
+    },
+    {
+      "sourceRelativePath": "系统工具/ZYXiTongGongJu.lua",
+      "sourceSha256": "f274546569e125ae785cdae2863068a6535875c41c90ed4d0abfb4d5933822e8",
+      "status": "MIGRATED_EXECUTABLE",
+      "migratedTarget": "tests/touchsprite_migration/ziyan_system_tool_sample.lua",
+      "targetSha256": "4fe97561dad5e6c3a14331695f51893d532be73a1ec6cfd5cb634c66cda2b296",
+      "loadfile": {
+        "mode": "loadfile_only",
+        "status": "not_applicable",
+        "detail": ""
+      },
+      "blockers": [],
+      "retainedBlockers": [],
+      "minimalRepro": "lua 'tests/touchsprite_migration/ziyan_system_tool_sample.lua'",
+      "evidence": [
+        "tmp_shots/MIGRATION_SYSTEM_TOOL_101_20260910_1221/VERDICT.txt"
+      ],
+      "rollbackPoint": "remove tests/touchsprite_migration/ziyan_system_tool_sample.lua",
+      "verdict": "DEVICE_PASS_101"
+    },
+    {
+      "sourceRelativePath": "新版血战加密/BBH.lua",
+      "sourceSha256": "a82f4b4e61507c50beb86252439f4f6f23c2ace9f72b128097ca03322f5aad2f",
+      "status": "MIGRATED_BOUNDED_REWRITE",
+      "migratedTarget": "tests/touchsprite_migration/rewrites/bbh_lua_9d5301e5a8.lua",
+      "targetSha256": "d0d7337c1c7b26293130ab53b32b87d929fec3bd30159c586e3ba4a33d9bfa05",
+      "loadfile": {
+        "mode": "loadfile_only",
+        "status": "pass",
+        "detail": ""
+      },
+      "blockers": [
+        "source_syntax_or_encryption_failure"
+      ],
+      "retainedBlockers": [
+        "source_syntax_or_encryption_failure"
+      ],
+      "minimalRepro": "lua 'tests/touchsprite_migration/rewrites/bbh_lua_9d5301e5a8.lua'",
+      "evidence": [
+        "tests/touchsprite_migration/rewrites/bbh_lua_9d5301e5a8.lua",
+        "tests/touchsprite_migration/rewrites/manifest.json"
+      ],
+      "rollbackPoint": "remove tests/touchsprite_migration/rewrites/bbh_lua_9d5301e5a8.lua",
+      "verdict": "EXECUTABLE_BOUNDED_REWRITE"
+    },
+    {
+      "sourceRelativePath": "新版血战加密/XBXZJH.lua",
+      "sourceSha256": "e453ad0698cbe9d1a1a2b2fcc3955c853ce54010a5e6d11b0e211f6d1f761bdd",
+      "status": "MIGRATED_BOUNDED_REWRITE",
+      "migratedTarget": "tests/touchsprite_migration/rewrites/xbxzjh_lua_f20b73c70c.lua",
+      "targetSha256": "be78ebea9c14ecdbc3270ad27a20438f77b1572ccb5d40533a4f41d2669a9fb4",
+      "loadfile": {
+        "mode": "loadfile_only",
+        "status": "pass",
+        "detail": ""
+      },
+      "blockers": [
+        "direct_file_io_needs_sandboxed_mapping",
+        "dynamic_module_path_unresolved",
+        "host_shell_or_file_mutation",
+        "remote_ftp_dependency",
+        "unbounded_loop_requires_stop_token",
+        "unresolved_dependencies"
+      ],
+      "retainedBlockers": [
+        "direct_file_io_needs_sandboxed_mapping",
+        "dynamic_module_path_unresolved",
+        "host_shell_or_file_mutation",
+        "remote_ftp_dependency",
+        "unbounded_loop_requires_stop_token",
+        "unresolved_dependencies"
+      ],
+      "minimalRepro": "lua 'tests/touchsprite_migration/rewrites/xbxzjh_lua_f20b73c70c.lua'",
+      "evidence": [
+        "tests/touchsprite_migration/rewrites/xbxzjh_lua_f20b73c70c.lua",
+        "tests/touchsprite_migration/rewrites/manifest.json"
+      ],
+      "rollbackPoint": "remove tests/touchsprite_migration/rewrites/xbxzjh_lua_f20b73c70c.lua",
+      "verdict": "EXECUTABLE_BOUNDED_REWRITE"
+    },
+    {
+      "sourceRelativePath": "血战加密/BBH.lua",
+      "sourceSha256": "c646138cd87adccb736ed6b63feefec3530869669dca4c1122ba2ddbacbbcaf0",
+      "status": "MIGRATED_BOUNDED_REWRITE",
+      "migratedTarget": "tests/touchsprite_migration/rewrites/bbh_lua_7d0860d3a0.lua",
+      "targetSha256": "a3575d85b429b07c96fedb0a8ea27da111508a706f8cf876e07e0559c3577499",
+      "loadfile": {
+        "mode": "loadfile_only",
+        "status": "pass",
+        "detail": ""
+      },
+      "blockers": [
+        "source_syntax_or_encryption_failure"
+      ],
+      "retainedBlockers": [
+        "source_syntax_or_encryption_failure"
+      ],
+      "minimalRepro": "lua 'tests/touchsprite_migration/rewrites/bbh_lua_7d0860d3a0.lua'",
+      "evidence": [
+        "tests/touchsprite_migration/rewrites/bbh_lua_7d0860d3a0.lua",
+        "tests/touchsprite_migration/rewrites/manifest.json"
+      ],
+      "rollbackPoint": "remove tests/touchsprite_migration/rewrites/bbh_lua_7d0860d3a0.lua",
+      "verdict": "EXECUTABLE_BOUNDED_REWRITE"
+    },
+    {
+      "sourceRelativePath": "血战加密/XZTLJH.lua",
+      "sourceSha256": "6b14e43a1d1f85b8d1c0f77350be074b6d12e49f11eec03b4d210e2e2af6b449",
+      "status": "MIGRATED_BOUNDED_REWRITE",
+      "migratedTarget": "tests/touchsprite_migration/rewrites/xztljh_lua_c9e028f85d.lua",
+      "targetSha256": "c9d2e05512e137dbb05890a6dc1f02a3042de281f68ec838165532a74024992b",
+      "loadfile": {
+        "mode": "loadfile_only",
+        "status": "pass",
+        "detail": ""
+      },
+      "blockers": [
+        "direct_file_io_needs_sandboxed_mapping",
+        "dynamic_module_path_unresolved",
+        "host_shell_or_file_mutation",
+        "remote_ftp_dependency",
+        "unbounded_loop_requires_stop_token",
+        "unresolved_dependencies"
+      ],
+      "retainedBlockers": [
+        "direct_file_io_needs_sandboxed_mapping",
+        "dynamic_module_path_unresolved",
+        "host_shell_or_file_mutation",
+        "remote_ftp_dependency",
+        "unbounded_loop_requires_stop_token",
+        "unresolved_dependencies"
+      ],
+      "minimalRepro": "lua 'tests/touchsprite_migration/rewrites/xztljh_lua_c9e028f85d.lua'",
+      "evidence": [
+        "tests/touchsprite_migration/rewrites/xztljh_lua_c9e028f85d.lua",
+        "tests/touchsprite_migration/rewrites/manifest.json"
+      ],
+      "rollbackPoint": "remove tests/touchsprite_migration/rewrites/xztljh_lua_c9e028f85d.lua",
+      "verdict": "EXECUTABLE_BOUNDED_REWRITE"
+    },
+    {
+      "sourceRelativePath": "血战屠龙/BBH.lua",
+      "sourceSha256": "d65043ff255a5f90cbcaa21ef5affc2ed03592d2cc5f63f92e2c1b0c8890d26e",
+      "status": "MIGRATED_BOUNDED_REWRITE",
+      "migratedTarget": "tests/touchsprite_migration/rewrites/bbh_lua_0980914017.lua",
+      "targetSha256": "639167a7c183f228f6a6433c16c7a1811bfc319df1f0306388b75948d98c5f01",
+      "loadfile": {
+        "mode": "loadfile_only",
+        "status": "pass",
+        "detail": ""
+      },
+      "blockers": [
+        "source_syntax_or_encryption_failure"
+      ],
+      "retainedBlockers": [
+        "source_syntax_or_encryption_failure"
+      ],
+      "minimalRepro": "lua 'tests/touchsprite_migration/rewrites/bbh_lua_0980914017.lua'",
+      "evidence": [
+        "tests/touchsprite_migration/rewrites/bbh_lua_0980914017.lua",
+        "tests/touchsprite_migration/rewrites/manifest.json"
+      ],
+      "rollbackPoint": "remove tests/touchsprite_migration/rewrites/bbh_lua_0980914017.lua",
+      "verdict": "EXECUTABLE_BOUNDED_REWRITE"
+    },
+    {
+      "sourceRelativePath": "血战屠龙/ceshi.lua",
+      "sourceSha256": "1f8a12fcfbafc2c8ef6e1734267bdbdc06b7930d9cce7eb3e99d7b3ed94a8b21",
+      "status": "MIGRATED_BOUNDED_REWRITE",
+      "migratedTarget": "tests/touchsprite_migration/rewrites/ceshi_lua_f3bd2631be.lua",
+      "targetSha256": "c9c2b81316799fe56680bedef3f2330bdf621195600e68c35e733ab45ff2d11d",
+      "loadfile": {
+        "mode": "loadfile_only",
+        "status": "pass",
+        "detail": ""
+      },
+      "blockers": [
+        "external_socket_dependency",
+        "source_syntax_or_encryption_failure",
+        "unbounded_loop_requires_stop_token",
+        "unresolved_dependencies"
+      ],
+      "retainedBlockers": [
+        "external_socket_dependency",
+        "source_syntax_or_encryption_failure",
+        "unbounded_loop_requires_stop_token",
+        "unresolved_dependencies"
+      ],
+      "minimalRepro": "lua 'tests/touchsprite_migration/rewrites/ceshi_lua_f3bd2631be.lua'",
+      "evidence": [
+        "tests/touchsprite_migration/rewrites/ceshi_lua_f3bd2631be.lua",
+        "tests/touchsprite_migration/rewrites/manifest.json"
+      ],
+      "rollbackPoint": "remove tests/touchsprite_migration/rewrites/ceshi_lua_f3bd2631be.lua",
+      "verdict": "EXECUTABLE_BOUNDED_REWRITE"
+    },
+    {
+      "sourceRelativePath": "血战屠龙/TSLib.lua",
+      "sourceSha256": "ae28c9dab4679abd64ac76a23f99ecc970a6786c8cfda75905cddb5e0a165d16",
+      "status": "MIGRATED_BOUNDED_REWRITE",
+      "migratedTarget": "tests/touchsprite_migration/rewrites/tslib_lua_e91ff590ca.lua",
+      "targetSha256": "b6ea83b7fd0c82bbd6f3ab3808a88d6356f76704f381f410f4c15530c2f9af75",
+      "loadfile": {
+        "mode": "loadfile_only",
+        "status": "pass",
+        "detail": ""
+      },
+      "blockers": [
+        "source_syntax_or_encryption_failure"
+      ],
+      "retainedBlockers": [
+        "source_syntax_or_encryption_failure"
+      ],
+      "minimalRepro": "lua 'tests/touchsprite_migration/rewrites/tslib_lua_e91ff590ca.lua'",
+      "evidence": [
+        "tests/touchsprite_migration/rewrites/tslib_lua_e91ff590ca.lua",
+        "tests/touchsprite_migration/rewrites/manifest.json"
+      ],
+      "rollbackPoint": "remove tests/touchsprite_migration/rewrites/tslib_lua_e91ff590ca.lua",
+      "verdict": "EXECUTABLE_BOUNDED_REWRITE"
+    },
+    {
+      "sourceRelativePath": "血战屠龙/XZJH.lua",
+      "sourceSha256": "5a2d547aa43676bad079b560dce2b53a437cd4ecc8bd11689fdba74bb87294cf",
+      "status": "MIGRATED_BOUNDED_REWRITE",
+      "migratedTarget": "tests/touchsprite_migration/rewrites/xzjh_lua_2e7d87fed6.lua",
+      "targetSha256": "504b22814bb3b968280426c72f5861afbfc7635abae3ac22000830b51388c14b",
+      "loadfile": {
+        "mode": "loadfile_only",
+        "status": "pass",
+        "detail": ""
+      },
+      "blockers": [
+        "direct_file_io_needs_sandboxed_mapping",
+        "host_shell_or_file_mutation",
+        "remote_ftp_dependency",
+        "source_syntax_or_encryption_failure",
+        "unbounded_loop_requires_stop_token",
+        "unresolved_dependencies"
+      ],
+      "retainedBlockers": [
+        "direct_file_io_needs_sandboxed_mapping",
+        "host_shell_or_file_mutation",
+        "remote_ftp_dependency",
+        "source_syntax_or_encryption_failure",
+        "unbounded_loop_requires_stop_token",
+        "unresolved_dependencies"
+      ],
+      "minimalRepro": "lua 'tests/touchsprite_migration/rewrites/xzjh_lua_2e7d87fed6.lua'",
+      "evidence": [
+        "tests/touchsprite_migration/rewrites/xzjh_lua_2e7d87fed6.lua",
+        "tests/touchsprite_migration/rewrites/manifest.json"
+      ],
+      "rollbackPoint": "remove tests/touchsprite_migration/rewrites/xzjh_lua_2e7d87fed6.lua",
+      "verdict": "EXECUTABLE_BOUNDED_REWRITE"
+    },
+    {
+      "sourceRelativePath": "血战优化/XZTLJH.lua",
+      "sourceSha256": "e354e4cfe62260a6571f261131a83a2234cab20818c8421fb7cc10a5e1eceea8",
+      "status": "MIGRATED_BOUNDED_REWRITE",
+      "migratedTarget": "tests/touchsprite_migration/rewrites/xztljh_lua_a7248004fb.lua",
+      "targetSha256": "3101a7b0d10dc59d3aa02357becd2b65b974b308ad2dbb0a934d0394c2588111",
+      "loadfile": {
+        "mode": "loadfile_only",
+        "status": "pass",
+        "detail": ""
+      },
+      "blockers": [
+        "ambiguous_dependencies",
+        "dynamic_module_path_unresolved",
+        "unresolved_dependencies"
+      ],
+      "retainedBlockers": [
+        "ambiguous_dependencies",
+        "dynamic_module_path_unresolved",
+        "unresolved_dependencies"
+      ],
+      "minimalRepro": "lua 'tests/touchsprite_migration/rewrites/xztljh_lua_a7248004fb.lua'",
+      "evidence": [
+        "tests/touchsprite_migration/rewrites/xztljh_lua_a7248004fb.lua",
+        "tests/touchsprite_migration/rewrites/manifest.json"
+      ],
+      "rollbackPoint": "remove tests/touchsprite_migration/rewrites/xztljh_lua_a7248004fb.lua",
+      "verdict": "EXECUTABLE_BOUNDED_REWRITE"
+    }
+  ]
+}

@@ -1,0 +1,125 @@
+-- Generated from api_spec/catalog.json; do not hand-edit.
+-- This records runtime binding evidence only; it never upgrades it to functional PASS.
+local Zy = require("modules.init")
+local cases = {
+  { case_id = "sys.mSleep", module = "sys", fn = "mSleep" },
+  { case_id = "sys.toast", module = "sys", fn = "toast" },
+  { case_id = "sys.notifyMessage", module = "sys", fn = "notifyMessage" },
+  { case_id = "sys.logDebug", module = "sys", fn = "logDebug" },
+  { case_id = "sys.scriptStop", module = "sys", fn = "scriptStop" },
+  { case_id = "sys.notifyVibrate", module = "sys", fn = "notifyVibrate" },
+  { case_id = "sys.notifyVoice", module = "sys", fn = "notifyVoice" },
+  { case_id = "sys.inputText", module = "sys", fn = "inputText" },
+  { case_id = "sys.openURL", module = "sys", fn = "openURL" },
+  { case_id = "sys.getDeviceID", module = "sys", fn = "getDeviceID" },
+  { case_id = "sys.copyText", module = "sys", fn = "copyText" },
+  { case_id = "sys.clipText", module = "sys", fn = "clipText" },
+  { case_id = "sys.deviceIsLock", module = "sys", fn = "deviceIsLock" },
+  { case_id = "sys.deviceUnlock", module = "sys", fn = "deviceUnlock" },
+  { case_id = "sys.userPath", module = "sys", fn = "userPath" },
+  { case_id = "sys.getVersion", module = "sys", fn = "getVersion" },
+  { case_id = "sys.pyCall", module = "sys", fn = "pyCall" },
+  { case_id = "sys.pyEval", module = "sys", fn = "pyEval" },
+  { case_id = "touch.touchDown", module = "touch", fn = "touchDown" },
+  { case_id = "touch.touchMove", module = "touch", fn = "touchMove" },
+  { case_id = "touch.touchUp", module = "touch", fn = "touchUp" },
+  { case_id = "touch.tap", module = "touch", fn = "tap" },
+  { case_id = "touch.swipe", module = "touch", fn = "swipe" },
+  { case_id = "touch.keyDown", module = "touch", fn = "keyDown" },
+  { case_id = "touch.keyUp", module = "touch", fn = "keyUp" },
+  { case_id = "touch.pressHomeKey", module = "touch", fn = "pressHomeKey" },
+  { case_id = "screen.init", module = "screen", fn = "init" },
+  { case_id = "screen.getColor", module = "screen", fn = "getColor" },
+  { case_id = "screen.getColorRGB", module = "screen", fn = "getColorRGB" },
+  { case_id = "screen.findColor", module = "screen", fn = "findColor" },
+  { case_id = "screen.findColorFuzzy", module = "screen", fn = "findColorFuzzy" },
+  { case_id = "screen.findColorInRegion", module = "screen", fn = "findColorInRegion" },
+  { case_id = "screen.findColorInRegionFuzzy", module = "screen", fn = "findColorInRegionFuzzy" },
+  { case_id = "screen.findMultiColorInRegionFuzzy", module = "screen", fn = "findMultiColorInRegionFuzzy" },
+  { case_id = "screen.findMultiColorInRegionFuzzyEx", module = "screen", fn = "findMultiColorInRegionFuzzyEx" },
+  { case_id = "screen.keepScreen", module = "screen", fn = "keepScreen" },
+  { case_id = "screen.rotateScreen", module = "screen", fn = "rotateScreen" },
+  { case_id = "screen.getScreenResolution", module = "screen", fn = "getScreenResolution" },
+  { case_id = "screen.dumpScreen", module = "screen", fn = "dumpScreen" },
+  { case_id = "screen.snapshot", module = "screen", fn = "snapshot" },
+  { case_id = "screen.snapshotRegion", module = "screen", fn = "snapshotRegion" },
+  { case_id = "image.findImage", module = "image", fn = "findImage" },
+  { case_id = "image.findImageFuzzy", module = "image", fn = "findImageFuzzy" },
+  { case_id = "image.findImageInRegion", module = "image", fn = "findImageInRegion" },
+  { case_id = "image.findImageInRegionFuzzy", module = "image", fn = "findImageInRegionFuzzy" },
+  { case_id = "image.imageWidth", module = "image", fn = "imageWidth" },
+  { case_id = "image.imageHeight", module = "image", fn = "imageHeight" },
+  { case_id = "image.imageFilter", module = "image", fn = "imageFilter" },
+  { case_id = "image.imageBinarization", module = "image", fn = "imageBinarization" },
+  { case_id = "image.imageResize", module = "image", fn = "imageResize" },
+  { case_id = "ocr.getText", module = "ocr", fn = "getText" },
+  { case_id = "ocr.strFind", module = "ocr", fn = "strFind" },
+  { case_id = "ocr.findStr", module = "ocr", fn = "findStr" },
+  { case_id = "ocr.findNumber", module = "ocr", fn = "findNumber" },
+  { case_id = "ocr.localOcrText", module = "ocr", fn = "localOcrText" },
+  { case_id = "ocr.cloudOcrText", module = "ocr", fn = "cloudOcrText" },
+  { case_id = "ocr.ZiYanCV.ocr_backends", module = "ocr", fn = "ZiYanCV.ocr_backends" },
+  { case_id = "ocr.ZiYanCV.capture_region", module = "ocr", fn = "ZiYanCV.capture_region" },
+  { case_id = "app.appRun", module = "app", fn = "appRun" },
+  { case_id = "app.appKill", module = "app", fn = "appKill" },
+  { case_id = "app.appRunning", module = "app", fn = "appRunning" },
+  { case_id = "app.frontAppBid", module = "app", fn = "frontAppBid" },
+  { case_id = "app.appBundlePath", module = "app", fn = "appBundlePath" },
+  { case_id = "app.appDataPath", module = "app", fn = "appDataPath" },
+  { case_id = "file.FileExists", module = "file", fn = "FileExists" },
+  { case_id = "file.FileCreate", module = "file", fn = "FileCreate" },
+  { case_id = "file.FileCopy", module = "file", fn = "FileCopy" },
+  { case_id = "file.FileDelete", module = "file", fn = "FileDelete" },
+  { case_id = "file.FileMove", module = "file", fn = "FileMove" },
+  { case_id = "file.FileList", module = "file", fn = "FileList" },
+  { case_id = "file.readFileString", module = "file", fn = "readFileString" },
+  { case_id = "file.writeFileString", module = "file", fn = "writeFileString" },
+  { case_id = "file.PlistRead", module = "file", fn = "PlistRead" },
+  { case_id = "file.PlistWrite", module = "file", fn = "PlistWrite" },
+  { case_id = "net.NetTime", module = "net", fn = "NetTime" },
+  { case_id = "net.NetIp", module = "net", fn = "NetIp" },
+  { case_id = "net.httpGet", module = "net", fn = "httpGet" },
+  { case_id = "net.FtpUpload", module = "net", fn = "FtpUpload" },
+  { case_id = "net.FtpDownload", module = "net", fn = "FtpDownload" },
+  { case_id = "net.FtpDelete", module = "net", fn = "FtpDelete" },
+  { case_id = "net.FtpRead", module = "net", fn = "FtpRead" },
+  { case_id = "net.FtpIsUpdate", module = "net", fn = "FtpIsUpdate" },
+  { case_id = "codec.jsonEncode", module = "codec", fn = "jsonEncode" },
+  { case_id = "codec.jsonDecode", module = "codec", fn = "jsonDecode" },
+  { case_id = "codec.aesEncrypt", module = "codec", fn = "aesEncrypt" },
+  { case_id = "codec.aesDecrypt", module = "codec", fn = "aesDecrypt" },
+  { case_id = "codec.md5String", module = "codec", fn = "md5String" },
+  { case_id = "codec.md5File", module = "codec", fn = "md5File" },
+  { case_id = "memory.MemoryAccess", module = "memory", fn = "MemoryAccess" },
+  { case_id = "memory.MemoryWrite", module = "memory", fn = "MemoryWrite" },
+  { case_id = "memory.MemoryKeys", module = "memory", fn = "MemoryKeys" },
+  { case_id = "memory.MemoryDump", module = "memory", fn = "MemoryDump" },
+  { case_id = "memory.MemoryFind", module = "memory", fn = "MemoryFind" },
+  { case_id = "memory.MemoryRoleName", module = "memory", fn = "MemoryRoleName" },
+  { case_id = "memory.MemoryScanNames", module = "memory", fn = "MemoryScanNames" },
+  { case_id = "control.ziyan_pause_point", module = "control", fn = "ziyan_pause_point" },
+  { case_id = "control.__ZIYAN_wait_while_paused", module = "control", fn = "__ZIYAN_wait_while_paused" },
+  { case_id = "orient.init", module = "orient", fn = "init" },
+  { case_id = "orient.ZiYanOrient.to_phys", module = "orient", fn = "ZiYanOrient.to_phys" },
+  { case_id = "orient.ZiYanOrient.to_logic", module = "orient", fn = "ZiYanOrient.to_logic" },
+  { case_id = "orient.ZiYanOrient.logical_size", module = "orient", fn = "ZiYanOrient.logical_size" },
+}
+local function resolve(path)
+  local value = _G
+  for part in path:gmatch("[^.]+") do
+    if type(value) ~= "table" then return nil end
+    value = value[part]
+  end
+  return value
+end
+local output = assert(io.open(os.getenv("ZIYAN_API_MATRIX_RESULT") or "/tmp/ziyan_api_101.txt", "w"))
+local present = 0
+for _, case in ipairs(cases) do
+  local valid = Zy.TestMatrix.validate({ case_id = case.case_id, module = case.module, ["function"] = case.fn })
+  local status = valid and resolve(case.fn) ~= nil and "RUNTIME_PRESENT" or "MISSING_RUNTIME"
+  if status == "RUNTIME_PRESENT" then present = present + 1 end
+  output:write(case.case_id, "|", status, "\n")
+end
+output:write("SUMMARY|total=", #cases, "|present=", present, "|missing=", #cases - present, "\n")
+output:close()
+print(string.format("API_101_BINDINGS total=%d present=%d missing=%d", #cases, present, #cases - present))

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Trace Reference"
+  short_description: "Load trace reference docs"
+  default_prompt: "Use $trace to load the matching reference: intro, quickstart, patterns, debugging, performance, security, migration, or cheatsheet."
+policy:
+  allow_implicit_invocation: true

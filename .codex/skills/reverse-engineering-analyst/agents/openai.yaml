@@ -1,0 +1,6 @@
+interface:
+  display_name: "Reverse Engineering Analyst"
+  short_description: "Analyze binaries and protocols"
+  default_prompt: "Use $reverse-engineering-analyst to analyze the binary, disassembly, or protocol the user provided. Analysis only."
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,10 @@
+Origin: ZiYan
+Label: ZiYan
+Suite: stable
+Codename: stable
+Architectures: iphoneos-arm iphoneos-arm64
+Components: main
+Description: ZiYan automation engine (LAN test repo, self-signed)
+Date: 2026-09-12 11:18:34
+SHA256-Packages-iphoneos-arm: f8c67af9a2ccd9e809fd269531d97a1610402717671525eb3a3c64fa3fd90fd4 1017
+SHA256-Packages-iphoneos-arm64: 3fac7be2b3f3bea38386e8bb1526934731229e41643dd006e5703c59f9bf08c4 2476

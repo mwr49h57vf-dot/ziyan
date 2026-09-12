@@ -1,0 +1,21 @@
+Package: com.ziyan.ziyan
+Version: 0.0.92-8-161-205-C-65.11-98+debug-10-38-17-158-1+debug
+Architecture: iphoneos-arm
+Maintainer: ZiYan
+Depends: firmware (>= 13.0), ellekit | mobilesubstrate
+Section: Utilities
+Filename: pool/0.0.92-8-161-205-C-65.11-98+debug-10-38-17-158-1+debug/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-158-1+debug_iphoneos-arm.deb
+Size: 55366066
+SHA256: 51b35733d84cf803b2d88dc4ea915c499f14f6a883e5feaa193ea24100d9f7a7
+Description: ZiYan automation (self-signed test repo)
+
+Package: com.ziyan.ziyan
+Version: 0.0.92-8-161-205-C-65.11-98+debug-10-38-17-164-1+debug
+Architecture: iphoneos-arm
+Maintainer: ZiYan
+Depends: firmware (>= 13.0), ellekit | mobilesubstrate
+Section: Utilities
+Filename: pool/0.0.92-8-161-205-C-65.11-98+debug-10-38-17-164-1+debug/com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-164-1+debug_iphoneos-arm.deb
+Size: 55374896
+SHA256: 8446f9d1780fda93a8592123b28b10897fbeb02c896f20a8936963971540d447
+Description: ZiYan automation (self-signed test repo)

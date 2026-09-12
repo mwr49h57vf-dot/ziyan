@@ -4,7 +4,7 @@ Suite: ./
 Codename: ./
 Architectures: iphoneos-arm iphoneos-arm64
 Components: main
-Date: Sun, 13 Sep 2026 00:00:00 GMT
+Date: Sat, 12 Sep 2026 17:21:57 GMT
 Description: ZiYan automation engine (legacy Cydia/Sileo root compatibility)
 MD5Sum:
  821caf73483f6faab24183c6c9c342b9             1158 Packages

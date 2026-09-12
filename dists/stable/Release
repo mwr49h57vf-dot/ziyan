@@ -1,0 +1,18 @@
+Origin: ZiYan
+Label: ZiYan
+Suite: stable
+Codename: stable
+Architectures: iphoneos-arm iphoneos-arm64
+Components: main
+Date: Sat, 12 Sep 2026 13:08:03 +0800
+Description: ZiYan automation engine (APT repository)
+MD5Sum:
+ 379df3558710d5276dcc8421252c6cc1              577 main/binary-iphoneos-arm/Packages
+ 8cd58ad87a8c3b68542e4f210dd789c6              412 main/binary-iphoneos-arm/Packages.gz
+ 4fdf471406c8f10243fb830df9b17d94              581 main/binary-iphoneos-arm64/Packages
+ ab16f2513d70ff7636a0049d0a3c4284              412 main/binary-iphoneos-arm64/Packages.gz
+SHA256:
+ e3c18ca43769ed3093d37bc4b6fffb5558872cec636f9daccb9b9d5b952a481d              577 main/binary-iphoneos-arm/Packages
+ 07bd481610b1f4b99bd366a00b853406dd95933b3b76f8ddcd343e9ffd5773fa              412 main/binary-iphoneos-arm/Packages.gz
+ ed71a3b53f00a65d7b4c8fc38757cb0140ee72e2e1f830d2c3b82e8dc53a0252              581 main/binary-iphoneos-arm64/Packages
+ efeb75ba560b1624899debe849ae95b8c93f45484a9b7520440a774c740870cd              412 main/binary-iphoneos-arm64/Packages.gz

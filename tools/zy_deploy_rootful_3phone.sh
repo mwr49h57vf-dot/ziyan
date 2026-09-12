@@ -43,8 +43,11 @@ SSH_KEY_OPTS=(-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o Con
               -o ServerAliveInterval=10 -o ServerAliveCountMax=6 -o BatchMode=yes)
 ssh_r() {
   local host="$1"; shift
-  if ssh "${SSH_KEY_OPTS[@]}" "root@192.168.31.$host" "$@"; then
-    return 0
+  # Select authentication before sending stdin. Retrying a remote failure
+  # would resend an already-consumed heredoc and can turn failure into success.
+  if ssh "${SSH_KEY_OPTS[@]}" "root@192.168.31.$host" true </dev/null; then
+    ssh "${SSH_KEY_OPTS[@]}" "root@192.168.31.$host" "$@"
+    return "$?"
   fi
   sshpass -p "$PASS" ssh "${SSH_OPTS[@]}" "root@192.168.31.$host" "$@"
 }
@@ -65,9 +68,17 @@ echo "DEB=$DEB"
 echo "SHA256=$LOCAL_SHA"
 echo "EXPECTED_VERSION=${EXPECTED_VERSION:-not_enforced}"
 
+FAILED_HOSTS=()
+INSTALLED_HOSTS=()
+record_failure() {
+  local host="$1" stage="$2" rc="$3"
+  FAILED_HOSTS+=(".$host:$stage:$rc")
+  echo "DEPLOY_RESULT host=.$host status=failed stage=$stage exit=$rc" >&2
+}
+
 for host in "${HOSTS[@]}"; do
   echo "== .$host: preflight + rollback snapshot =="
-  ssh_r "$host" "bash -s" <<REMOTE
+  if ssh_r "$host" "bash -s" <<REMOTE
 set -eu
 test -d /Library/MobileSubstrate/DynamicLibraries
 VER=\$(dpkg -s com.ziyan.ziyan 2>/dev/null | sed -n 's/^Version: //p' | head -1 || true)
@@ -83,11 +94,23 @@ done
 df -k /private/var | tail -1
 printf 'rollback=%s\\n' "\$ROLL"
 REMOTE
+  then
+    :
+  else
+    record_failure "$host" preflight "$?"
+    continue
+  fi
 
   echo "== .$host: upload + install =="
-  scp_r "$DEB" "$host" "$REMOTE_DEB"
-  scp_r "$FRAMECAP_ENT" "$host" /var/mobile/Media/ziyan_framecap_entitlements.plist
-  ssh_r "$host" "bash -s" <<REMOTE
+  if scp_r "$DEB" "$host" "$REMOTE_DEB"; then :; else
+    record_failure "$host" upload_package "$?"
+    continue
+  fi
+  if scp_r "$FRAMECAP_ENT" "$host" /var/mobile/Media/ziyan_framecap_entitlements.plist; then :; else
+    record_failure "$host" upload_entitlements "$?"
+    continue
+  fi
+  if ssh_r "$host" "bash -s" <<REMOTE
 set -eu
 dpkg -i "$REMOTE_DEB"
 # Theos 对 staging 产物的签名不能替代对设备最终 inode 的验证。
@@ -115,19 +138,31 @@ else
   exit 78
 fi
 REMOTE
+  then
+    INSTALLED_HOSTS+=("$host")
+  else
+    record_failure "$host" install "$?"
+  fi
 done
 
-echo "== wait for SpringBoard reload =="
-sleep 20
-for host in "${HOSTS[@]}"; do
+if [ "${#INSTALLED_HOSTS[@]}" -gt 0 ]; then
+  echo "== wait for SpringBoard reload =="
+  sleep 20
+fi
+for host in "${INSTALLED_HOSTS[@]}"; do
   echo "== .$host: post-install readback =="
-  if ! ssh_r "$host" "bash -s" <<'REMOTE'
+  if ssh_r "$host" "bash -s" <<'REMOTE'
 set +e
 V=/usr/lib/ziyan/var
-dpkg -s com.ziyan.ziyan 2>/dev/null | sed -n 's/^Version: /version=/p'
+PACKAGE_STATUS=$(dpkg-query -W -f='${Status}' com.ziyan.ziyan 2>/dev/null) || exit 14
+[ "$PACKAGE_STATUS" = 'install ok installed' ] || exit 14
+PACKAGE_VERSION=$(dpkg-query -W -f='${Version}' com.ziyan.ziyan 2>/dev/null) || exit 14
+[ -n "$PACKAGE_VERSION" ] || exit 14
+printf 'version=%s\n' "$PACKAGE_VERSION"
 SB_PID=$(ps -axo pid=,args= 2>/dev/null | grep '[S]pringBoard.app/SpringBoard' | head -1 | sed 's/^ *//' | cut -d' ' -f1)
 echo "springboard_pid=${SB_PID:-none}"
-md5sum /Library/MobileSubstrate/DynamicLibraries/ZiYanVol.dylib /Library/MobileSubstrate/DynamicLibraries/ZiYanAppTouch.dylib /usr/lib/ziyan/bin/ziyan_framecap 2>/dev/null
+[ -n "$SB_PID" ] || exit 16
+md5sum /Library/MobileSubstrate/DynamicLibraries/ZiYanVol.dylib /Library/MobileSubstrate/DynamicLibraries/ZiYanAppTouch.dylib /usr/lib/ziyan/bin/ziyan_framecap 2>/dev/null || exit 15
 
 # 测试机均无锁屏密码。显式 unlock_req 为避免空闲残留误解锁，要求一个真实
 # session 标记；部署后尚未启动业务时临时建立 test session，收到回执后立刻清理。
@@ -163,8 +198,13 @@ echo "unlock_status=$UNLOCK display_locked=${LOCK_STATE:-unknown} front=${FRONT:
 [ "$UNLOCK" = ok ] || exit 12
 REMOTE
   then
-    echo "WARN: .$host post-install/unlock failed" >&2
-    continue
+    echo "DEPLOY_RESULT host=.$host status=passed stage=postcheck exit=0"
+  else
+    record_failure "$host" postcheck "$?"
   fi
 done
+if [ "${#FAILED_HOSTS[@]}" -gt 0 ]; then
+  echo "DEPLOY_FAILED stamp=$STAMP failures=${FAILED_HOSTS[*]} installed=${INSTALLED_HOSTS[*]}" >&2
+  exit 1
+fi
 echo "DEPLOY_DONE stamp=$STAMP hosts=${HOSTS[*]}"

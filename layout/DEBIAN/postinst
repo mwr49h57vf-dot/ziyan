@@ -48,17 +48,82 @@ mkdir -p "$ROOT/bin" "$ROOT/lib" "$ROOT/engine" "$ROOT/var" \
 printf '%s\n' "$SCHEME" >"$ROOT/var/.ziyan_runtime_scheme" 2>/dev/null || true
 chmod 644 "$ROOT/var/.ziyan_runtime_scheme" 2>/dev/null || true
 
-# 旧布局迁移：Media/ZiYan/{config,log,tmp,res} → ZYCV/ 后删除顶层四目录
+# BEGIN SAFE MIGRATION
+# Keep the source until every copied byte has been compared. A committed
+# source is archived for rollback, never recursively deleted by postinst.
+migration_note() {
+  printf 'MIGRATION %s\n' "$*" >&2
+  printf 'MIGRATION %s\n' "$*" >> "$DIR/.ziyan-migration.log" || return 1
+}
+
+migration_copy_verified() {
+  local src="$1" dst="$2" entry base temporary
+  if [ -L "$src" ] || [ -L "$dst" ]; then
+    migration_note "conflict symlink source=$src target=$dst" || return 1
+    return 1
+  fi
+  if [ -d "$src" ]; then
+    if [ -e "$dst" ] && [ ! -d "$dst" ]; then
+      migration_note "conflict file_type source=$src target=$dst" || return 1
+      return 1
+    fi
+    mkdir -p "$dst" || return 1
+    for entry in "$src/"* "$src/".[!.]* "$src/"..?*; do
+      [ -e "$entry" ] || [ -L "$entry" ] || continue
+      base=${entry##*/}
+      migration_copy_verified "$entry" "$dst/$base" || return 1
+    done
+  elif [ -f "$src" ]; then
+    if [ -e "$dst" ]; then
+      if [ -f "$dst" ] && cmp -s "$src" "$dst"; then
+        return 0
+      fi
+      migration_note "conflict different_content source=$src target=$dst" || return 1
+      return 1
+    fi
+    mkdir -p "${dst%/*}" || return 1
+    temporary=$(mktemp "${dst%/*}/.ziyan-migrate.XXXXXX") || return 1
+    if ! cp -p "$src" "$temporary" || ! cmp -s "$src" "$temporary"; then
+      rm -f "$temporary"
+      migration_note "copy_failed source=$src target=$dst" || return 1
+      return 1
+    fi
+    # Link publishes without replacing a target that appeared concurrently.
+    if ! ln "$temporary" "$dst"; then
+      rm -f "$temporary"
+      migration_note "commit_failed source=$src target=$dst" || return 1
+      return 1
+    fi
+    rm -f "$temporary" || return 1
+    cmp -s "$src" "$dst" || return 1
+  else
+    migration_note "unsupported_source source=$src target=$dst" || return 1
+    return 1
+  fi
+}
+
+migration_commit() {
+  local src="$1" dst="$2" backup
+  [ -e "$src" ] || [ -L "$src" ] || return 0
+  case "$src" in "$DIR/"*) ;; *) return 1 ;; esac
+  migration_copy_verified "$src" "$dst" || return 1
+  # A unique directory is also a recovery boundary if the process stops
+  # after the rename. The original content remains in this backup.
+  mkdir -p "$DIR/.migration-backups" || return 1
+  backup=$(mktemp -d "$DIR/.migration-backups/committed.XXXXXX") || return 1
+  printf 'source=%s\ntarget=%s\n' "$src" "$dst" > "$backup/manifest.txt" || return 1
+  mv "$src" "$backup/source" || return 1
+  chmod -R a-w "$backup/source" || return 1
+  migration_note "committed source=$src target=$dst backup=$backup/source" || return 1
+}
+
 migrate_old() {
   local name="$1"
   local src="$DIR/$name"
   local dst="$ZYCV/$name"
-  if [ -d "$src" ]; then
-    mkdir -p "$dst"
-    cp -an "$src/." "$dst/" 2>/dev/null || true
-    rm -rf "$src"
-  fi
+  migration_commit "$src" "$dst"
 }
+# END SAFE MIGRATION
 migrate_old config
 migrate_old log
 migrate_old tmp
@@ -122,11 +187,7 @@ for f in "$DIR/"*; do
   base=$(basename "$f")
   case "$base" in
     _zy_*|_ziyan_*|login_*.lua|hello.lua|config.plist|defense_*|cleanup_flag)
-      if [ ! -f "$ZYCV/res/$base" ]; then
-        mv -f "$f" "$ZYCV/res/$base" 2>/dev/null || true
-      else
-        rm -f "$f" 2>/dev/null || true
-      fi
+      migration_commit "$f" "$ZYCV/res/$base"
       ;;
   esac
 done
@@ -136,11 +197,7 @@ for f in "$DIR/lua/"*; do
   base=$(basename "$f")
   case "$base" in
     _zy_*|_ziyan_*|login_*.lua|hello.lua)
-      if [ ! -f "$ZYCV/res/$base" ]; then
-        mv -f "$f" "$ZYCV/res/$base" 2>/dev/null || true
-      else
-        rm -f "$f" 2>/dev/null || true
-      fi
+      migration_commit "$f" "$ZYCV/res/$base"
       ;;
   esac
 done
@@ -182,6 +239,7 @@ function main()
 end
 EOF
 fi
+if [ ! -e "$ZYCV/res/_ziyan_usb_smoke.lua" ]; then
 cat > "$ZYCV/res/_ziyan_usb_smoke.lua" <<EOF
 function main()
   local OUT="${ROOT}/var/.ziyan_usb_smoke.txt"
@@ -195,6 +253,7 @@ function main()
   end
 end
 EOF
+fi
 # 装包后再扫一遍：根目录内部文件强制进 res
 for f in "$DIR/"*; do
   [ -f "$f" ] || continue
@@ -202,11 +261,7 @@ for f in "$DIR/"*; do
   case "$base" in
     ios7.lua|ios8p.lua) continue ;;
     _zy_*|_ziyan_*|login_*.lua|hello.lua|config.plist|defense_*|cleanup_flag)
-      if [ ! -f "$ZYCV/res/$base" ]; then
-        mv -f "$f" "$ZYCV/res/$base" 2>/dev/null || true
-      else
-        rm -f "$f" 2>/dev/null || true
-      fi
+      migration_commit "$f" "$ZYCV/res/$base"
       ;;
   esac
 done
@@ -215,7 +270,7 @@ chmod 777 "$ROOT/var" 2>/dev/null || true
 if [ -d "$DIR" ]; then
   for f in "$DIR"/.ziyan_*; do
     [ -e "$f" ] || continue
-    mv -f "$f" "$ROOT/var/" 2>/dev/null || true
+    migration_commit "$f" "$ROOT/var/${f##*/}"
   done
 fi
 chown -R mobile:mobile "$DIR" 2>/dev/null || true
@@ -277,16 +332,12 @@ rm -f \
   /var/mobile/Media/ZiYan/.ziyan_jb_icons_hidden 2>/dev/null || true
 echo 0 >"$ROOT/var/.ziyan_app_fg" 2>/dev/null || true
 # 防御状态文件统一到 ZYCV/res（旧顶层迁入）
-RES="/var/mobile/Media/ZiYan/ZYCV/res"
+RES="$ZYCV/res"
 mkdir -p "$RES"
 for f in defense_fingerprint.plist defense_fp_info.txt defense_status.txt \
   defense.log cleanup_flag defense_bypass_trig.txt defense_break.flag \
   defense_shutdown_trig defense_exit_toast.txt defense_fs_cloak.txt; do
-  if [ -f "/var/mobile/Media/ZiYan/$f" ] && [ ! -f "$RES/$f" ]; then
-    mv -f "/var/mobile/Media/ZiYan/$f" "$RES/$f" 2>/dev/null || true
-  elif [ -f "/var/mobile/Media/ZiYan/$f" ]; then
-    rm -f "/var/mobile/Media/ZiYan/$f" 2>/dev/null || true
-  fi
+  migration_commit "$DIR/$f" "$RES/$f"
 done
 for b in /usr/libexec/afc2d /var/jb/usr/libexec/afc2d /usr/libexec/afc2dSupport \
   /Library/MobileSubstrate/DynamicLibraries/afc2dService.dylib \

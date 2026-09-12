@@ -375,127 +375,14 @@ clean:: clean-user-bins
 # rootless：after-stage 必须写到「未加 /var/jb」的经典路径（$STAGING/usr/...）。
 # Theos/dm.pl 会再 remap 一次到 $STAGING/var/jb/...；若这里已写 /var/jb 会变成 var/jb/var/jb。
 # 绝对 symlink（/var/jb/...）与 plist 内 jb 前缀也勿在 staging 写入；postinst 在真机补齐。
+ZIYAN_BUILD_ROOT ?= $(CURDIR)/.theos
 stage-runtime:
-	@DEST="$(THEOS_STAGING_DIR)"; \
-	mkdir -p "$$DEST/usr/lib/ziyan/bin" \
-		"$$DEST/usr/lib/ziyan/lib/lua" \
-		"$$DEST/usr/lib/ziyan/engine" \
-		"$$DEST/usr/lib/ziyan/runtime" \
-		"$$DEST/usr/lib/ziyan/hook" \
-		"$$DEST/usr/lib/ziyan/var" \
-		"$$DEST/usr/lib/ziyan/modules" \
-		"$$DEST/usr/lib/ziyan/models" \
-		"$$DEST/Library/LaunchDaemons" \
-		"$$DEST/usr/lib/ziyan/share/media_seed"; \
-	rsync -a vendor/bin/ "$$DEST/usr/lib/ziyan/bin/"; \
-	rsync -a --exclude='lua' vendor/lib/ "$$DEST/usr/lib/ziyan/lib/"; \
-	rsync -a --delete lua/ "$$DEST/usr/lib/ziyan/lib/lua/"; \
-	mkdir -p "$$DEST/usr/lib/ziyan/lib/lua/agent"; \
-	rsync -a Agent/ "$$DEST/usr/lib/ziyan/lib/lua/agent/"; \
-	chmod 755 "$$DEST/usr/lib/ziyan/bin/lua5.3" \
-		"$$DEST/usr/lib/ziyan/bin/python3.7" 2>/dev/null || true; \
-	ln -sfn lua5.3 "$$DEST/usr/lib/ziyan/bin/lua"; \
-	ln -sfn python3.7 "$$DEST/usr/lib/ziyan/bin/python3"; \
-	ln -sfn libreadline.8.0.dylib "$$DEST/usr/lib/ziyan/lib/libreadline.8.dylib"; \
-	if [ -n "$(THEOS_PACKAGE_INSTALL_PREFIX)" ]; then \
-		ROOTLESS_LIB="$(THEOS_PACKAGE_INSTALL_PREFIX)/usr/lib/ziyan/lib"; \
-		ROOTLESS_SYS="$(THEOS_PACKAGE_INSTALL_PREFIX)/usr/lib"; \
-		install_name_tool -change /usr/lib/ziyan/lib/liblua5.3.dylib \
-			"$$ROOTLESS_LIB/liblua5.3.dylib" "$$DEST/usr/lib/ziyan/bin/lua5.3"; \
-		install_name_tool -change /usr/lib/ziyan/lib/libreadline.8.dylib \
-			"$$ROOTLESS_LIB/libreadline.8.dylib" "$$DEST/usr/lib/ziyan/bin/lua5.3"; \
-		install_name_tool -id "$$ROOTLESS_LIB/liblua5.3.dylib" \
-			"$$DEST/usr/lib/ziyan/lib/liblua5.3.dylib"; \
-		install_name_tool -id "$$ROOTLESS_LIB/libreadline.8.0.dylib" \
-			"$$DEST/usr/lib/ziyan/lib/libreadline.8.0.dylib"; \
-		install_name_tool -change /usr/lib/libncurses.6.dylib \
-			"$$ROOTLESS_SYS/libncurses.6.dylib" \
-			"$$DEST/usr/lib/ziyan/lib/libreadline.8.0.dylib"; \
-		ldid -S "$$DEST/usr/lib/ziyan/bin/lua5.3" \
-			"$$DEST/usr/lib/ziyan/lib/liblua5.3.dylib" \
-			"$$DEST/usr/lib/ziyan/lib/libreadline.8.0.dylib"; \
-	fi; \
-	cp -f vendor/runtime/engine/wnriakwyww "$$DEST/usr/lib/ziyan/engine/wnriakwyww"; \
-	cp -f vendor/runtime/engine/wnriakwyww.dylib "$$DEST/usr/lib/ziyan/engine/wnriakwyww.dylib"; \
-	chmod 755 "$$DEST/usr/lib/ziyan/engine/wnriakwyww" \
-		"$$DEST/usr/lib/ziyan/engine/wnriakwyww.dylib"; \
-	# legacy engine links /bin/wnriakwyww.dylib. Rootful keeps that via postinst;
-	# rootless cannot write /bin, so rewrite both the executable load command and
-	# dylib install name to /var/jb/bin, then re-sign the modified artifacts. \
-	if [ -n "$(THEOS_PACKAGE_INSTALL_PREFIX)" ]; then \
-		install_name_tool -change /bin/wnriakwyww.dylib "$(THEOS_PACKAGE_INSTALL_PREFIX)/bin/wnriakwyww.dylib" \
-			"$$DEST/usr/lib/ziyan/engine/wnriakwyww"; \
-		install_name_tool -id "$(THEOS_PACKAGE_INSTALL_PREFIX)/bin/wnriakwyww.dylib" \
-			"$$DEST/usr/lib/ziyan/engine/wnriakwyww.dylib"; \
-		ldid -S "$$DEST/usr/lib/ziyan/engine/wnriakwyww"; \
-		ldid -S "$$DEST/usr/lib/ziyan/engine/wnriakwyww.dylib"; \
-	fi; \
-	rsync -a --delete vendor/runtime/data/ "$$DEST/usr/lib/ziyan/runtime/"; \
-	mkdir -p "$$DEST/usr/lib/ziyan/runtime/scripts" \
-		"$$DEST/usr/lib/ziyan/runtime/var/log" \
-		"$$DEST/usr/lib/ziyan/runtime/var/tmp"; \
-	cp -f vendor/runtime/hook/ZiYanTEHook.dylib "$$DEST/usr/lib/ziyan/hook/"; \
-	cp -f vendor/runtime/hook/ZiYanTEHook.plist "$$DEST/usr/lib/ziyan/hook/"; \
-	rsync -a --delete vendor/modules/ "$$DEST/usr/lib/ziyan/modules/"; \
-	rsync -a layout/usr/lib/ziyan/models/ "$$DEST/usr/lib/ziyan/models/" 2>/dev/null || true; \
-	mkdir -p "$$DEST/usr/lib/ziyan/tessdata/lstm/tessdata"; \
-	rsync -a layout/usr/lib/ziyan/tessdata/ "$$DEST/usr/lib/ziyan/tessdata/" 2>/dev/null || true; \
-	cp -f layout/usr/lib/ziyan/tessdata/_fast/chi_sim.traineddata \
-		"$$DEST/usr/lib/ziyan/tessdata/lstm/tessdata/chi_sim.traineddata" 2>/dev/null || true; \
-	cp -f layout/usr/lib/ziyan/tessdata/_fast/eng.traineddata \
-		"$$DEST/usr/lib/ziyan/tessdata/lstm/tessdata/eng.traineddata" 2>/dev/null || true; \
-	cp -f vendor/runtime/launch/com.ziyan.engine.plist \
-		"$$DEST/Library/LaunchDaemons/com.ziyan.engine.plist"; \
-	cp -f vendor/runtime/launch/com.ziyan.fscloak.plist \
-		"$$DEST/Library/LaunchDaemons/com.ziyan.fscloak.plist"; \
-	cp -f vendor/runtime/bin/ziyan_fscloakd.sh \
-		"$$DEST/usr/lib/ziyan/bin/ziyan_fscloakd.sh"; \
-	chmod 755 "$$DEST/usr/lib/ziyan/bin/ziyan_fscloakd.sh"; \
-	chmod 755 "$$DEST/usr/lib/ziyan/bin/ziyan_zero_sb_unload.sh" 2>/dev/null || true; \
-	chmod 755 "$$DEST/usr/lib/ziyan/bin/ziyan_framerelay_toggle.sh" 2>/dev/null || true; \
-	cp -f vendor/runtime/launch/com.ziyan.scripthub.plist \
-		"$$DEST/Library/LaunchDaemons/com.ziyan.scripthub.plist"; \
-	cp -f vendor/runtime/bin/ziyan_scripthubd.sh \
-		"$$DEST/usr/lib/ziyan/bin/ziyan_scripthubd.sh"; \
-	chmod 755 "$$DEST/usr/lib/ziyan/bin/ziyan_scripthubd.sh"; \
-	cp -f vendor/runtime/launch/com.ziyan.zydaemon.plist \
-		"$$DEST/Library/LaunchDaemons/com.ziyan.zydaemon.plist"; \
-	: "framecap launch chain uses versioned layout, not stale vendor copies"; \
-	cp -f layout/usr/lib/ziyan/bin/ziyan_zydaemond.sh \
-		"$$DEST/usr/lib/ziyan/bin/ziyan_zydaemond.sh"; \
-	chmod 755 "$$DEST/usr/lib/ziyan/bin/ziyan_zydaemond.sh"; \
-		cp -f layout/usr/lib/ziyan/bin/ziyan_framecap_wrap.sh \
-			"$$DEST/usr/lib/ziyan/bin/ziyan_framecap_wrap.sh"; \
-		chmod 755 "$$DEST/usr/lib/ziyan/bin/ziyan_framecap_wrap.sh"; \
-		cp -f layout/usr/lib/ziyan/bin/ziyan_runtime_root.sh \
-			"$$DEST/usr/lib/ziyan/bin/ziyan_runtime_root.sh"; \
-		chmod 755 "$$DEST/usr/lib/ziyan/bin/ziyan_runtime_root.sh"; \
-		cp -f vendor/runtime/launch/com.ziyan.framecap.plist \
-		"$$DEST/Library/LaunchDaemons/com.ziyan.framecap.plist"; \
-	rsync -a layout/private/var/mobile/Media/ZiYan/ \
-		"$$DEST/usr/lib/ziyan/share/media_seed/" 2>/dev/null || true; \
-	rsync -a media_seed/ \
-		"$$DEST/usr/lib/ziyan/share/media_seed/" 2>/dev/null || true; \
-	# layout 不再直装 login_*；仅 media_seed + postinst cp -n
-	rm -f "$$DEST/private/var/mobile/Media/ZiYan/login_xztl.lua" \
-		"$$DEST/private/var/mobile/Media/ZiYan/login_lan.lua" \
-		"$$DEST/private/var/mobile/Media/ZiYan/login_usb.lua" 2>/dev/null || true; \
-	echo "[ZiYan] staged (pre-remap) → $$DEST/usr/lib/ziyan scheme=$(THEOS_PACKAGE_SCHEME)"
+	@python3 tools/zy_stage_runtime.py --staging "$(THEOS_STAGING_DIR)" \
+		--build-root "$(ZIYAN_BUILD_ROOT)" --prefix "$(THEOS_PACKAGE_INSTALL_PREFIX)"
 
 .PHONY: rewrite-rootless-tehook
+# Keep the existing target contract; the rewrite now shares the guarded stage process.
 rewrite-rootless-tehook: stage-runtime
-	@if [ -n "$(THEOS_PACKAGE_INSTALL_PREFIX)" ]; then \
-		DEST="$(THEOS_STAGING_DIR)"; \
-		for TEHOOK in \
-			"$$DEST/Library/MobileSubstrate/DynamicLibraries/ZiYanTEHook.dylib" \
-			"$$DEST$(THEOS_PACKAGE_INSTALL_PREFIX)/Library/MobileSubstrate/DynamicLibraries/ZiYanTEHook.dylib"; do \
-			[ -f "$$TEHOOK" ] || continue; \
-			install_name_tool -id "$(THEOS_PACKAGE_INSTALL_PREFIX)/Library/MobileSubstrate/DynamicLibraries/ZiYanTEHook.dylib" "$$TEHOOK"; \
-			install_name_tool -change /Library/Frameworks/CydiaSubstrate.framework/CydiaSubstrate \
-				@rpath/CydiaSubstrate.framework/CydiaSubstrate "$$TEHOOK"; \
-			ldid -S "$$TEHOOK"; \
-		done; \
-	fi
 
 after-stage:: rewrite-rootless-tehook
 

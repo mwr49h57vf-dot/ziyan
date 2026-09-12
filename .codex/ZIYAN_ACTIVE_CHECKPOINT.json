@@ -1,8 +1,8 @@
 {
   "schemaVersion": 2,
-  "updatedAt": 1789190448,
+  "updatedAt": 1789190469,
   "stage": "AUTH5-APT-PUBLIC-PAGES_PUSHED-SERVING_BLOCKED",
-  "head": "bd53eff2052fbd6c2c8007c31cddbdb01ede7c9b",
+  "head": "917f2ba7f36a9fedce751389f5528c697b942c31",
   "changedFiles": [],
   "lastSuccessfulCommand": "build_repo /tmp/apt-publish(164 pair) + sign_native.sh(.101真gpg Good) + verify_repo CHECKED=2 FAILS=NONE + 设备gpg抽查Good + gh-pages push 3432423(ls-remote确认) + Pages/DNS实测(301→NXDOMAIN/404) + .101设备LAN链(policy/download/SHA/dpkg-deb/签名源零警告) + doc commit bd53eff",
   "literalResult": "LOCAL全绿(Pages payload与LAN同文件); PUBLIC BLOCKED(Pages未serving+DNS NXDOMAIN, 分支文件已就位); GPG本地自签真凭据; Cydia/Sileo输入行待DNS+Pages开后可用",

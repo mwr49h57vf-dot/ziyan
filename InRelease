@@ -1,0 +1,32 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA256
+
+Origin: ZiYan
+Label: ZiYan
+Suite: stable
+Codename: stable
+Architectures: iphoneos-arm iphoneos-arm64
+Components: main
+Date: Sat, 12 Sep 2026 12:23:18 GMT
+Description: ZiYan automation engine (APT repository)
+MD5Sum:
+ 379df3558710d5276dcc8421252c6cc1              577 main/binary-iphoneos-arm/Packages
+ c39898286babaca2de4dd677fb43b512              412 main/binary-iphoneos-arm/Packages.gz
+ 4fdf471406c8f10243fb830df9b17d94              581 main/binary-iphoneos-arm64/Packages
+ d56fe2be7c0380702a351cf37c63a18b              412 main/binary-iphoneos-arm64/Packages.gz
+SHA256:
+ e3c18ca43769ed3093d37bc4b6fffb5558872cec636f9daccb9b9d5b952a481d              577 main/binary-iphoneos-arm/Packages
+ 4682e94c22dc2ec196cb311637839c1e05ec0207df2fb49f4ee87ee96d240463              412 main/binary-iphoneos-arm/Packages.gz
+ ed71a3b53f00a65d7b4c8fc38757cb0140ee72e2e1f830d2c3b82e8dc53a0252              581 main/binary-iphoneos-arm64/Packages
+ 93fc68bdd8b0665e0115e52acbde328e5714bb0187937bb00ae054f017d6c1d2              412 main/binary-iphoneos-arm64/Packages.gz
+-----BEGIN PGP SIGNATURE-----
+
+iQFEBAEBCAAuFiEE2r2Up0/geFDzKbyKxCUWXJcWV2oFAmqlRDYQHGFwdEB6aXlh
+bi5sb2NhbAAKCRDEJRZclxZXamg/CACdKPr5crATApB6b3XhMv8k70swtUn/0RxU
+zh/D1jEP17NIcPYpOHvYSiPHbMYzgbIaS+7gszLUOxbwoyti43fn2G/BH6NWEI1R
+odwoHO7EgOzTg2TYkdxQEMkeb4wz8+ui6etRN//B+8sluGs0C7Pq8hwO/Hi7iC1H
+UgRxJUdSgaoZYRgdEwUyVkGZkqxdEcdnqsYw1a03g0kuN0zCEtIb5FOOov4hlbi9
+GJSECKlKNQoKyy1Qq8DaTNlbrenbUKuYExj8F3aO8gLXu+KKVS6IRCa9D0Wl1kRT
+WLFphPohtOj67wItU+fbYmKDDifymxu6mMhlJ2/XeGm08Vwc84rB
+=TEiq
+-----END PGP SIGNATURE-----

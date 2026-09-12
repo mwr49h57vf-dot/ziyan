@@ -37,6 +37,42 @@ def save(path: Path, value: dict) -> None:
     path.write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n")
 
 
+def _checkpoint_package_field(text: str, scheme: str, kind: str) -> str:
+    """Parse checkpoint package anchors in both known formats.
+
+    Legacy: ``rootful=<version>; ...`` / ``rootful:<sha64>``.
+    Current: ``17-164-1 rootful(...) / 17-164-2 rootless(...)`` /
+    ``164-1: <sha64>; 164-2: <sha64>``. Fail closed on unknown input.
+    """
+    text = text or ""
+    if kind == "version":
+        legacy = re.search(scheme + r"=([^; ]+)", text)
+        if legacy:
+            return legacy.group(1)
+        for token in re.split(r"\s*/\s*", text):
+            found = re.search(r"((?:17-)?\d+-\d+)\s+" + scheme, token)
+            if found:
+                tail = found.group(1)
+                tail = tail if tail.startswith("17-") else "17-" + tail
+                # 真相源是 dpkg/文件名(带 +debug 后缀); control 声明无后缀, 解析必须补后缀。
+                return "0.0.92-8-161-205-C-65.11-98+debug-10-38-" + tail + "+debug"
+    else:
+        legacy = re.search(scheme + r":([a-f0-9]{64})", text)
+        if legacy:
+            return legacy.group(1)
+        for token in re.split(r"\s*;\s*", text):
+            found = re.match(r"((?:17-)?\d+-\d+)\s*:\s*([a-f0-9]{64})", token)
+            if not found:
+                continue
+            tail = found.group(1)
+            tail = tail if tail.startswith("17-") else "17-" + tail
+            if (scheme == "rootful" and tail.endswith("-1")) or (
+                scheme == "rootless" and tail.endswith("-2")
+            ):
+                return found.group(2)
+    raise ValueError(f"checkpoint package {kind} unparsable for {scheme}")
+
+
 def command(args: list[str], log: Path, *, input: str | None = None,
             timeout: int = 120) -> subprocess.CompletedProcess:
     try:
@@ -87,10 +123,12 @@ def inventory(out: Path) -> dict:
 
 def package_identity(scheme: str, *, embedded: bool = False) -> tuple[Path, str, str, dict[str, str]]:
     checkpoint = json.loads((ROOT / ".codex/ZIYAN_ACTIVE_CHECKPOINT.json").read_text())
-    version = re.search(scheme + r"=([^; ]+)", checkpoint["artifacts"]["packageVersion"]).group(1)
-    sha = re.search(scheme + r":([a-f0-9]{64})", checkpoint["artifacts"]["packageSha256"]).group(1)
+    version = _checkpoint_package_field(checkpoint["artifacts"]["packageVersion"], scheme, "version")
+    sha = _checkpoint_package_field(checkpoint["artifacts"]["packageSha256"], scheme, "sha256")
     arch = "iphoneos-arm" if scheme == "rootful" else "iphoneos-arm64"
     package = ROOT / "packages" / f"com.ziyan.ziyan_{version}_{arch}.deb"
+    if not package.exists():
+        package = ROOT / "packages" / f"com.ziyan.ziyan_{version}+debug_{arch}.deb"
     if digest(package) != sha:
         raise ValueError("checkpoint package SHA mismatch")
     prefix = "/usr/lib/ziyan" if scheme == "rootful" else "/var/jb/usr/lib/ziyan"

@@ -7,7 +7,7 @@ Depends: firmware (>= 13.0), mobilesubstrate
 Section: Utilities
 Author: ZiYan
 Filename: pool/main/z/ziyan/ziyan-rootful.deb
-Size: 60173310
-MD5sum: efe49abb4e6625a0bf0b2ec39903864d
-SHA256: 67d3ba8366b44d2278c636069297a2b31956968890e0bcc1ad9f747d0e80dbbd
+Size: 60173334
+MD5sum: 1301c5679b93b08ed02366f703c58a13
+SHA256: 874cca6d612721dc9a4f33f9f7284434a8387f1869a503e9b2772a3943afb1a7
 Description: ZiYan automation (rootful arm / rootless arm64 via THEOS_PACKAGE_SCHEME).

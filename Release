@@ -4,11 +4,11 @@ Suite: stable
 Codename: stable
 Architectures: iphoneos-arm iphoneos-arm64
 Components: main
-Date: Sun, 13 Sep 2026 11:09:48 +0000
+Date: Sun, 13 Sep 2026 11:35:17 +0000
 Description: ZiYan automation engine (APT repository)
 MD5Sum:
- 41a330bfc967efc51b81ad3188c7537e             1007 Packages
- 9a2cd979e6faa2630f5e1cf83621df18              512 Packages.gz
+ 9424bc21b29a763a3561b36f34c2ba66             1007 Packages
+ 4dcf91c307fac200083253cde97dedc9              510 Packages.gz
 SHA256:
- 4dce1ca3a086672f030a377d6ff79bd4c77f03c3da0589e4b7cafce3e4438830             1007 Packages
- e7d9907d46f46e46d9dc94c8653bf49185520967f1cd6cd0e6a4a7fc90d22f41              512 Packages.gz
+ e824096e6f9a5f9ff8fa557813d092bd30ca0f0c54ec8ec56676ace289b6d1af             1007 Packages
+ d89643a0b7566e911fc19c0181883b7acde24e0f35faeffdcd2e53056504fe69              510 Packages.gz

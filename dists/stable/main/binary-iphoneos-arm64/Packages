@@ -7,7 +7,7 @@ Depends: firmware (>= 15.0), ellekit
 Section: Utilities
 Author: ZiYan
 Filename: pool/main/z/ziyan/ziyan-rootless.deb
-Size: 60180352
-MD5sum: e4b4ffb2336b1d11f5c9953d96ddeb04
-SHA256: c99f1849e978023e404f655b27a16ad8361160db2fbc00b98e39fa5f08091055
+Size: 60180376
+MD5sum: 380d5a22e3084211e66a2fe0685b3384
+SHA256: 517cc8e193dd0f60c9cf7e62769fdc08d1f7b583b1cb225542ea998d016b9cef
 Description: ZiYan automation (rootful arm / rootless arm64 via THEOS_PACKAGE_SCHEME).

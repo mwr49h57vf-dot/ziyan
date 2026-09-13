@@ -7,9 +7,9 @@ Depends: firmware (>= 13.0), mobilesubstrate
 Section: Utilities
 Author: ZiYan
 Filename: pool/main/z/ziyan/ziyan-rootful.deb
-Size: 60173310
-MD5sum: efe49abb4e6625a0bf0b2ec39903864d
-SHA256: 67d3ba8366b44d2278c636069297a2b31956968890e0bcc1ad9f747d0e80dbbd
+Size: 60173334
+MD5sum: 1301c5679b93b08ed02366f703c58a13
+SHA256: 874cca6d612721dc9a4f33f9f7284434a8387f1869a503e9b2772a3943afb1a7
 Description: ZiYan automation (rootful arm / rootless arm64 via THEOS_PACKAGE_SCHEME).
 
 Package: com.ziyan.ziyan-rootless
@@ -21,7 +21,7 @@ Depends: firmware (>= 15.0), ellekit
 Section: Utilities
 Author: ZiYan
 Filename: pool/main/z/ziyan/ziyan-rootless.deb
-Size: 60180352
-MD5sum: e4b4ffb2336b1d11f5c9953d96ddeb04
-SHA256: c99f1849e978023e404f655b27a16ad8361160db2fbc00b98e39fa5f08091055
+Size: 60180376
+MD5sum: 380d5a22e3084211e66a2fe0685b3384
+SHA256: 517cc8e193dd0f60c9cf7e62769fdc08d1f7b583b1cb225542ea998d016b9cef
 Description: ZiYan automation (rootful arm / rootless arm64 via THEOS_PACKAGE_SCHEME).

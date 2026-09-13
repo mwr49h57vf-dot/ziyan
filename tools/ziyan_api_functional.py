@@ -391,7 +391,7 @@ rm -f "$D/scenarios.lua" "$D/entry.lua" "$D/cases.json" "$D/a.txt" "$D/b.txt" "$
                 for key in case["functional_devices"]["." + device]["coverage"]}}
             checks = [row for row in rows if row.get("event") == "result" and row.get("case_id") == case["case_id"]]
             if record.get("terminal") and record.get("runtime_payload_verified") and record["cleanup"] == "PASS":
-                for dimension in ("normal", "error"):
+                for dimension in ("normal", "error", "timeout", "abnormal_exit", "stop_cleanup"):
                     selected = [row for row in checks if row["dimension"] == dimension]
                     if not selected:
                         continue

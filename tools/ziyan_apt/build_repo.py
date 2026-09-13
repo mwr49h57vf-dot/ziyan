@@ -85,6 +85,12 @@ def md5_file(path):
     return h.hexdigest()
 
 
+def rfc822_date():
+    """RFC822 GMT 日期。必须与 locale 无关：time.strftime('%a/%b') 会随
+    LC_TIME 变化（非英语 locale 生成非法 Date，apt 报 Invalid 'Date' entry）。"""
+    return time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.gmtime())
+
+
 def build(repo, debs, suite="stable", component="main", gpg_key=None):
     pool = os.path.join(repo, "pool", "main", "z", "ziyan")
     os.makedirs(pool, exist_ok=True)
@@ -139,7 +145,7 @@ def build(repo, debs, suite="stable", component="main", gpg_key=None):
         packages_all[f"{component}/binary-{arch}/Packages"] = pkg_path
 
     # Release
-    now = time.strftime("%a, %d %b %Y %H:%M:%S +0800", time.localtime())
+    now = rfc822_date()
     rel_lines = [
         f"Origin: ZiYan",
         f"Label: ZiYan",
@@ -164,29 +170,70 @@ def build(repo, debs, suite="stable", component="main", gpg_key=None):
 
     inrelease = None
     detached = None
+    _signer = None
+    _clearsigner = None
     # 本地自签（pgpy，无需系统 gpg；明确记录为 LOCAL_SELF_SIGNED）
     try:
         import pgpy  # noqa
         from pgpy.constants import HashAlgorithm
+        import importlib.util
+        # server.py 的 package_contract 是同级模块，需把该目录放进 sys.path
         sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                         "..", "ziyan_log_server"))
-        import importlib.util
         spec = importlib.util.spec_from_file_location(
             "zy_log_server_sign",
             os.path.join(os.path.dirname(os.path.abspath(__file__)),
                          "..", "ziyan_log_server", "server.py"))
         mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(mod)
+
+        def _pgp_key():
+            key = getattr(mod, "_apt_key", None)
+            pgpy_mod = None
+            if key is not None:
+                pgpy_mod, k = key()
+                if k is not None:
+                    return pgpy_mod, k
+            return None, None
+
+        def _signer(data):
+            """返回 binary detached 签名原始字节（dists/Release.gpg）。"""
+            import base64 as _b64
+            b64 = mod._detached_sig_b64(data)
+            return _b64.b64decode(b64) if b64 else None
+
+        def _clearsigner(text):
+            """返回 cleartext-signed InRelease 文本。
+
+            apt 对 `deb <url> ./`（flat）条目要求 **InRelease**：实测只给二进制
+            detached Release.gpg 时，gpgv 手工可验签，但 apt 报
+            “Signed file isn't valid, got 'NODATA'”，索引被忽略。
+            """
+            pgpy_mod, key = _pgp_key()
+            if key is None:
+                return None
+            msg = pgpy_mod.PGPMessage.new(text, cleartext=True)
+            msg |= key.sign(msg)
+            return str(msg)
+
         release_path = os.path.join(repo, "dists", suite, "Release")
         with open(release_path, "rb") as fh:
             release_bytes = fh.read()
-        b64 = mod._detached_sig_b64(release_bytes)
-        if b64:
-            import base64
+        raw_sig = _signer(release_bytes)
+        if raw_sig:
             detached = os.path.join(repo, "dists", suite, "Release.gpg")
             with open(detached, "wb") as fh:
-                fh.write(base64.b64decode(b64))
+                fh.write(raw_sig)
             print("LOCAL_SELF_SIGNED Release.gpg (NOT an official release key)")
+        try:
+            dists_in = _clearsigner(release_bytes.decode("utf-8"))
+            if dists_in:
+                inrelease = os.path.join(repo, "dists", suite, "InRelease")
+                with open(inrelease, "w", encoding="utf-8") as fh:
+                    fh.write(dists_in)
+                print("LOCAL_SELF_SIGNED InRelease (cleartext, REQUIRED by apt flat repos)")
+        except Exception as exc:  # noqa
+            print(f"LOCAL_INRELEASE_FAILED: {exc}")
     except Exception as exc:  # noqa
         print(f"LOCAL_SIGN_FAILED: {exc}")
     if gpg_key:
@@ -199,8 +246,97 @@ def build(repo, debs, suite="stable", component="main", gpg_key=None):
             inrelease = os.path.join(repo, "dists", suite, "InRelease")
         except Exception as exc:  # noqa
             print(f"GPG_SIGN_FAILED: {exc}")
+    with open(os.path.join(repo, "dists", suite, "Release"), "r", encoding="utf-8") as fh:
+        dists_release_body = fh.read()
+    write_flat_root(repo, records, suite, component, dists_release_body,
+                    sign_flat=_signer, clearsign_flat=_clearsigner)
     write_root_index(repo, records, suite, component)
     return records, (inrelease or detached)
+
+
+def write_flat_root(repo, records, suite, component, release_body,
+                    sign_flat=None, clearsign_flat=None):
+    """写仓库根的扁平平铺索引（flat repo）：Packages(.gz) / Release / InRelease / Release.gpg。
+
+    Cydia 1.1.36 与 Sileo 在“添加软件源”时写入的是 **flat repo** 条目
+    `deb <url> ./`，其后只请求根下的 `InRelease`/`Release`/`Packages*`，
+    不会去请求 `dists/stable/...`。因此正式仓必须同时提供根扁平索引，
+    否则界面报「未找到软件源 / 似乎不是有效的软件源」（实测根 Packages 404）。
+
+    apt 对 flat 条目要求 **cleartext InRelease**：实测只提供二进制 detached
+    Release.gpg 时，gpgv 手工验签为 Good signature，但 apt 仍报
+    “Signed file isn't valid, got 'NODATA'” 并忽略索引。
+
+    dists 与根两套索引共用同一批 records，内容保证一致。
+    """
+    lines = []
+    for rec in sorted(records, key=lambda r: (r["Architecture"], r["Version"])):
+        for key in ("Package", "Version", "Architecture", "Maintainer", "Installed-Size",
+                    "Depends", "Section", "Author", "Filename", "Size", "MD5sum", "SHA256",
+                    "Description"):
+            val = rec.get(key, "")
+            if val:
+                lines.append(f"{key}: {val}")
+        lines.append("")
+    body = "\n".join(lines)
+    with open(os.path.join(repo, "Packages"), "w", encoding="utf-8") as fh:
+        fh.write(body)
+    with gzip.open(os.path.join(repo, "Packages.gz"), "wb") as fh:
+        fh.write(body.encode("utf-8"))
+
+    # 根 Release 沿用 dists 的头部字段，但哈希只覆盖根 Packages/.gz
+    rel_lines = []
+    for line in release_body.splitlines():
+        if line.startswith(("MD5Sum:", "SHA256:")):
+            break
+        rel_lines.append(line)
+    for label, fn in (("MD5Sum", md5_file), ("SHA256", sha256_file)):
+        rel_lines.append(f"{label}:")
+        for suffix in ("", ".gz"):
+            p = os.path.join(repo, "Packages" + suffix)
+            if os.path.exists(p):
+                rel_lines.append(f" {fn(p)} {os.path.getsize(p):>16} Packages{suffix}")
+    flat_release = "\n".join(rel_lines) + "\n"
+    with open(os.path.join(repo, "Release"), "w", encoding="utf-8") as fh:
+        fh.write(flat_release)
+
+    signed = False
+    if clearsign_flat is not None:
+        try:
+            text = clearsign_flat(flat_release)
+            if text:
+                with open(os.path.join(repo, "InRelease"), "w", encoding="utf-8") as fh:
+                    fh.write(text)
+                signed = True
+        except Exception as exc:  # noqa
+            print(f"FLAT_INRELEASE_FAILED: {exc}")
+    if sign_flat is not None:
+        try:
+            raw = sign_flat(flat_release.encode("utf-8"))
+            if raw:
+                with open(os.path.join(repo, "Release.gpg"), "wb") as fh:
+                    fh.write(raw)
+        except Exception as exc:  # noqa
+            print(f"FLAT_SIGN_FAILED: {exc}")
+    if not signed:
+        try:
+            import importlib.util
+            spec = importlib.util.spec_from_file_location(
+                "zy_log_server_sign",
+                os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                             "..", "ziyan_log_server", "server.py"))
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+            b64 = mod._detached_sig_b64(flat_release.encode("utf-8"))
+            if b64:
+                import base64
+                with open(os.path.join(repo, "Release.gpg"), "wb") as fh:
+                    fh.write(base64.b64decode(b64))
+        except Exception as exc:  # noqa
+            print(f"FLAT_SIGN_FAILED: {exc}")
+    print("FLAT_ROOT Packages/.gz/Release%s written (Cydia `deb <url> ./` probe)"
+          % (".gpg/InRelease" if signed else " (UNSIGNED)"))
+    return signed
 
 
 def write_root_index(repo, records, suite, component):

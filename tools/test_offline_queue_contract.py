@@ -19,8 +19,10 @@ import shutil
 import socketserver
 import subprocess
 import sys
+import tempfile
 import threading
 import time
+import traceback
 from collections import Counter
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -87,6 +89,25 @@ def prelude():
     )
 
 
+def assert_writable(path):
+    """写探针：证明这个目录真的归当前用户所有且可写。
+
+    这里单独成函数是为了能直接测它（见 tools/test_offline_queue_fixture_guard.py）。
+    只要写不进去就立刻失败，绝不继续跑出一堆无法解释的断言结果。
+    """
+    probe = os.path.join(path, ".write_probe")
+    try:
+        with open(probe, "w") as f:
+            f.write("ok")
+        os.remove(probe)
+    except OSError as e:
+        raise SystemExit(
+            "FAIL: fresh fixture dir is not writable by uid %d: %s (%s)\n"
+            "      该目录必须归当前用户所有，否则测试状态会被污染。"
+            % (os.getuid(), path, e)
+        )
+
+
 def fresh_tmp():
     """每次运行用全新隔离目录，且旧目录删不掉时必须报错而不是静默复用。
 
@@ -102,19 +123,33 @@ def fresh_tmp():
         raise SystemExit("FAIL: fixture dir already exists: " + base)
     os.makedirs(base + "/media/ZYCV/res")
     os.makedirs(base + "/media/ZYCV/config")
+    assert_writable(base)
     return base
 
 
-def main():
-    global TMP
-    TMP = fresh_tmp()
-    # 旧的固定路径若残留（例如被 root 占用），只提示，不影响本次运行
-    if os.path.isdir("/tmp/zy_oq_contract"):
-        leftover = os.path.join("/tmp/zy_oq_contract", "media/ZYCV/res/错误报告/.upload_spool")
-        if os.path.isdir(leftover):
-            print("NOTE: stale fixture /tmp/zy_oq_contract still present "
-                  "(owned by another user?) - not reused by this run.")
+def describe_owner(path):
+    """返回 'uid:gid'（拿不到就返回 unknown），用于把夹具污染的原因说清楚。"""
+    try:
+        st = os.stat(path)
+        return "%d:%d" % (st.st_uid, st.st_gid)
+    except OSError as e:
+        return "unknown (%s)" % e
 
+
+def cleanup_fixture(path):
+    """跑完删掉本次自己的夹具目录，避免 /tmp 里越堆越多。
+
+    删不掉时如实报出原因（而不是静默 ignore_errors=True），
+    因为「删不掉的残留」正是上一轮假 FAIL 的根源。
+    """
+    try:
+        shutil.rmtree(path)
+        return True, ""
+    except OSError as e:
+        return False, str(e)
+
+
+def run_checks():
     # 1) 服务器关闭时产生 3 条错误
     out = lua(prelude() + (
         'local ER = dofile("' + ROOT + '/lua/modules/ErrorReporter.lua"); ER.install()\n'
@@ -198,7 +233,157 @@ def main():
     check("存在重复投递（幂等前提）", any(v > 1 for v in counts.values()), dict(counts))
 
 
+
+def main():
+    global TMP
+    stale = os.path.isdir("/tmp/zy_oq_contract")
+    if stale:
+        owner = describe_owner("/tmp/zy_oq_contract")
+        print("NOTE: stale fixture /tmp/zy_oq_contract still present (owner uid:gid=%s)." % owner)
+        print("      This run does NOT reuse it: it uses a fresh unique directory instead.")
+        if owner.startswith(str(os.getuid()) + ":"):
+            print("      NOTE: it is owned by the current user, so it is removable:")
+            print("            rm -rf /tmp/zy_oq_contract")
+            print("      (kept on purpose so a real cause is visible instead of silently deleted)")
+        else:
+            print("      NOTE: it is NOT owned by uid %d and cannot be removed without sudo:"
+                  % os.getuid())
+            print("            sudo rm -rf /tmp/zy_oq_contract")
+            print("      Removing it is NOT required for this test to be trustworthy,")
+            print("      but it must be recorded as environment residue.")
+
+    TMP = fresh_tmp()
+    crashed = None
+    try:
+        run_checks()
+    except BaseException as e:  # 包括断言/超时/键盘中断：都要留下可读原因
+        crashed = e
+    finally:
+        cleaned, why = cleanup_fixture(TMP)
+        if cleaned:
+            print("CLEANUP removed fixture " + TMP)
+        else:
+            print("CLEANUP FAILED (fixture left behind): " + TMP + " :: " + why)
+            FAILURES.append("夹具清理失败")
+
+    if crashed is not None:
+        traceback.print_exception(type(crashed), crashed, crashed.__traceback__)
+        print("RESULT=ERROR " + type(crashed).__name__ + ": " + str(crashed))
+        sys.exit(2)
+
+
+# ---------------------------------------------------------------------------
+# 防护自测（--self-test）
+#
+# 本测试曾因夹具被 root 占用而静默复用旧 state.json(status=sent)，
+# 导致 7 项断言反向假 FAIL。修好后必须证明「防护本身有效」，
+# 否则防护失效时会再次安静地给出假结果。这里直接测那几个防护。
+# ---------------------------------------------------------------------------
+def self_test():
+    failures = []
+
+    def guard(name, cond, detail=""):
+        if cond:
+            print("PASS " + name)
+        else:
+            print("FAIL " + name + " :: " + str(detail))
+            failures.append(name)
+
+    made = []
+
+    # assert_writable：可写目录静默通过
+    d = tempfile.mkdtemp(prefix="zy_guard_ok_")
+    made.append((d, 0o755))
+    try:
+        assert_writable(d)
+        guard("可写目录通过写探针", True)
+    except SystemExit as e:
+        guard("可写目录通过写探针", False, e)
+
+    # assert_writable：只读目录必须响亮失败
+    ro = tempfile.mkdtemp(prefix="zy_guard_ro_")
+    made.append((ro, 0o755))
+    os.chmod(ro, 0o555)
+    try:
+        assert_writable(ro)
+        guard("只读目录被写探针拦下", False, "没有抛异常，防护失效")
+    except SystemExit as e:
+        guard("只读目录被写探针拦下", "not writable" in str(e), e)
+    finally:
+        os.chmod(ro, 0o755)
+
+    # fresh_tmp：目录已存在时必须拒绝复用（一次性污染不再可能）
+    poison = tempfile.mkdtemp(prefix="zy_guard_poison_")
+    made.append((poison, 0o755))
+    saved = TMP
+    try:
+        globals()["TMP"] = poison
+        base = "%s.%d.%d" % (poison, os.getpid(), int(time.time()))
+        os.makedirs(base)
+        try:
+            fresh_tmp()
+            guard("已存在目录被拒绝复用", False, "静默复用了旧目录")
+        except SystemExit as e:
+            guard("已存在目录被拒绝复用", "already exists" in str(e), e)
+    finally:
+        globals()["TMP"] = saved
+
+    # fresh_tmp：正常路径必须真的建出隔离目录
+    ok_root = tempfile.mkdtemp(prefix="zy_guard_new_")
+    made.append((ok_root, 0o755))
+    saved = TMP
+    try:
+        globals()["TMP"] = ok_root
+        new = fresh_tmp()
+        guard("正常路径建出隔离目录", os.path.isdir(new) and new.startswith(ok_root), new)
+        guard("隔离目录带 media/ZYCV 结构",
+              os.path.isdir(os.path.join(new, "media/ZYCV/res")), new)
+        cleaned, why = cleanup_fixture(new)
+        guard("cleanup_fixture 能删自己的目录", cleaned and not os.path.exists(new), why)
+    finally:
+        globals()["TMP"] = saved
+
+    # cleanup_fixture：删不掉时必须如实报错，不静默
+    stuck = tempfile.mkdtemp(prefix="zy_guard_stuck_")
+    made.append((stuck, 0o755))
+    inner = os.path.join(stuck, "x")
+    os.makedirs(inner)
+    os.chmod(inner, 0o555)
+    os.chmod(stuck, 0o555)
+    try:
+        cleaned, why = cleanup_fixture(stuck)
+        guard("删不掉时如实报错而非静默", (not cleaned) and bool(why), (cleaned, why))
+    finally:
+        os.chmod(stuck, 0o755)
+        os.chmod(inner, 0o755)
+
+    # describe_owner：能读出真实属主
+    owner = describe_owner(tempfile.gettempdir())
+    guard("describe_owner 返回 uid:gid", ":" in owner and not owner.startswith("unknown"), owner)
+
+    for path, mode in made:
+        try:
+            os.chmod(path, mode)
+            for root_dir, dirs, files in os.walk(path):
+                for name in dirs + files:
+                    try:
+                        os.chmod(os.path.join(root_dir, name), 0o755)
+                    except OSError:
+                        pass
+            shutil.rmtree(path, ignore_errors=True)
+        except OSError:
+            pass
+
+    if failures:
+        print("RESULT=FAIL n=" + str(len(failures)))
+        return 1
+    print("RESULT=PASS")
+    return 0
+
+
 if __name__ == "__main__":
+    if "--self-test" in sys.argv:
+        sys.exit(self_test())
     main()
     if FAILURES:
         print("RESULT=FAIL n=" + str(len(FAILURES)))

@@ -249,6 +249,28 @@ elseif family == "orient" then
     assert(r == cur, ("init(junk) returned %s, expected %d"):format(tostring(r), cur))
     assert(tonumber(_G.__ZIYAN_ORIENT) == cur, "global orient changed by invalid init")
   end)
+  -- 生命周期维度只包住既有 orient 断言：不改朝向、不清停止标志、不伪造进程退出。
+  local orient_check_count = #checks
+  for index = 1, orient_check_count do
+    local original = checks[index]
+    for _, dimension in ipairs({"timeout", "abnormal_exit", "stop_cleanup"}) do
+      case(original.id, dimension, function()
+        if device_stopped() then return "SKIPPED:device_stopped" end
+        local before = current_orient()
+        local started = os.clock()
+        local ok, err = pcall(original.fn)
+        assert(ok, err)
+        if dimension == "timeout" then
+          assert(os.clock() - started <= 5, "orient check exceeded bounded timeout")
+        elseif dimension == "abnormal_exit" then
+          assert(current_orient() == before, "protected orient check changed state")
+        else
+          assert(current_orient() == before and not device_stopped(),
+            "orient cleanup changed state or left device stopped")
+        end
+      end)
+    end
+  end
 end
 for _, check in ipairs(checks) do
   for attempt = 1, (check.dimension == "normal" and 3 or 1) do

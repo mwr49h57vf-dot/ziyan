@@ -5,6 +5,6 @@ Codename: stable
 Architectures: iphoneos-arm iphoneos-arm64
 Components: main
 Description: ZiYan automation engine (LAN test repo, self-signed)
-Date: 2026-09-12 16:59:49
+Date: 2026-09-13 18:59:29
 SHA256-Packages-iphoneos-arm: f8c67af9a2ccd9e809fd269531d97a1610402717671525eb3a3c64fa3fd90fd4 1017
 SHA256-Packages-iphoneos-arm64: 64d8460c5f9623046f5f03715b8c5a2f724efcf7318fdd0c127c2b17490f6845 2051

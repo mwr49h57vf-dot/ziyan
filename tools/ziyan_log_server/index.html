@@ -230,7 +230,7 @@ $("btnDownloadAll").onclick=function(){
   setMsg("listMsg","已触发下载全部 GET /api/logs/download.zip",false);
 };
 $("btnExportDesktop").onclick = async () => {
-  const q = buildQuery(false);
+  const q = qstr();
   setMsg("listMsg","导出到桌面中...",false);
   try {
     const r = await fetch("/api/logs/export_desktop?" + q);

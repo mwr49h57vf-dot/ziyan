@@ -1,0 +1,163 @@
+{
+  "mode": "live",
+  "baseUrl": "http://127.0.0.1:18091/",
+  "exportMsg": "已写入桌面: /Users/mac/Desktop/ziyan错误日志/20260913_184858（43 条）",
+  "exportDir": "/Users/mac/Desktop/ziyan错误日志/20260913_184858",
+  "exportCount": 43,
+  "apiEvidence": {
+    "看板刷新 /api/logs": {
+      "ok": true,
+      "button": "btnRefresh",
+      "uiText": "已刷新 total=43",
+      "requests": [
+        {
+          "url": "http://127.0.0.1:18091/api/logs?limit=2000",
+          "status": 200
+        }
+      ]
+    },
+    "查询 /api/logs": {
+      "ok": true,
+      "button": "btnQuery",
+      "uiText": "total=43 返回=43",
+      "requests": [
+        {
+          "url": "http://127.0.0.1:18091/api/logs?limit=50",
+          "status": 200
+        }
+      ]
+    },
+    "APT Release /apt/Release": {
+      "ok": true,
+      "button": "btnAptRelease",
+      "uiText": "HTTP 200",
+      "requests": [
+        {
+          "url": "http://127.0.0.1:18091/apt/Release",
+          "status": 200
+        }
+      ]
+    },
+    "热更新检查 /api/hotupdate/check": {
+      "ok": true,
+      "button": "btnCheck",
+      "uiText": "{\n  \"ok\": true,\n  \"update\": true,\n  \"architecture\": \"iphoneos-arm\",\n  \"min_os\": \"13.0\",\n  \"max_os\": \"17.0\",\n  \"ziyan_min\": \"0.0.92\",\n  \"version\": \"0.0.92-8-161-205-C-65.11-98+debug-10-38-17-164-1+debu",
+      "requests": [
+        {
+          "url": "http://127.0.0.1:18091/api/hotupdate/check?device_id=test-dev&os=15.8.8&arch=arm&ziyan=0.0.92&channel=stable",
+          "status": 200
+        }
+      ]
+    },
+    "拉取 manifest": {
+      "ok": true,
+      "button": "btnManifest",
+      "uiText": "{\n  \"versions\": [\n    {\n      \"version\": \"0.0.92-8-161-205-C-65.11-98+debug-10-38-17-158-2+debug\",\n      \"channel\": \"stable\",\n      \"file\": \"com.ziyan.ziyan_0.0.92-8-161-205-C-65.11-98+debug-10-38-17-",
+      "requests": [
+        {
+          "url": "http://127.0.0.1:18091/hotupdate/manifest.json",
+          "status": 200
+        }
+      ]
+    },
+    "下载全部 /api/logs/download.zip": {
+      "ok": true,
+      "button": "btnDownloadAll",
+      "uiText": "已触发下载全部 GET /api/logs/download.zip",
+      "file": "ziyan_logs.zip",
+      "bytes": 34174,
+      "downloadDir": "/var/folders/zs/ft699dtx4ql9d1z39qvxmplc0000gn/T/ziyan-admin-ui-qL85kA/downloads"
+    },
+    "按筛选下载 /api/logs/download.zip": {
+      "ok": true,
+      "button": "btnDownload",
+      "uiText": "已触发下载 GET /api/logs/download.zip?limit=50",
+      "file": "ziyan_logs.zip",
+      "bytes": 34174,
+      "downloadDir": "/var/folders/zs/ft699dtx4ql9d1z39qvxmplc0000gn/T/ziyan-admin-ui-qL85kA/downloads"
+    },
+    "公钥 /apt/ziyan-apt-key.asc": {
+      "ok": true,
+      "link": "a[href=\"/apt/ziyan-apt-key.asc\"]",
+      "pathname": "/apt/ziyan-apt-key.asc",
+      "bodyHead": "-----BEGIN PGP PUBLIC KEY BLOCK-----\n\nxsBNBGqkc+UBCACiBajT5Xmc9uzIThsHmMJvoF+1B2",
+      "requests": [
+        {
+          "url": "http://127.0.0.1:18091/apt/ziyan-apt-key.asc",
+          "status": 200
+        }
+      ]
+    },
+    "详情 /api/logs/<id>": {
+      "ok": true,
+      "requests": [
+        {
+          "url": "http://127.0.0.1:18091/api/logs/zye_1789281683_01_script_error",
+          "status": 200
+        }
+      ]
+    }
+  },
+  "downloadEvidence": {
+    "dir": "/var/folders/zs/ft699dtx4ql9d1z39qvxmplc0000gn/T/ziyan-admin-ui-qL85kA/downloads",
+    "mode": "Browser.setDownloadBehavior"
+  },
+  "missing": "尚未授权。设备上报凭证不能用于发布。",
+  "exceptions": [],
+  "consoleErrors": [],
+  "loadingFailures": [],
+  "responses": [
+    {
+      "url": "http://127.0.0.1:18091/",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:18091/api/logs?limit=2000",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:18091/favicon.ico",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:18091/api/logs/export_desktop?limit=50",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:18091/api/logs?limit=2000",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:18091/api/logs?limit=50",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:18091/apt/Release",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:18091/api/hotupdate/check?device_id=test-dev&os=15.8.8&arch=arm&ziyan=0.0.92&channel=stable",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:18091/hotupdate/manifest.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:18091/apt/ziyan-apt-key.asc",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:18091/",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:18091/api/logs?limit=2000",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:18091/api/logs/zye_1789281683_01_script_error",
+      "status": 200
+    }
+  ]
+}

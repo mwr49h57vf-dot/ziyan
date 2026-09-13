@@ -7,26 +7,27 @@ Suite: stable
 Codename: stable
 Architectures: iphoneos-arm iphoneos-arm64
 Components: main
-Date: Sun, 13 Sep 2026 02:18:58 +0800
+Date: Sun, 13 Sep 2026 09:59:37 +0000
 Description: ZiYan automation engine (APT repository)
 MD5Sum:
  47c36acfb2664b516b031db06ca875d4              464 main/binary-iphoneos-arm/Packages
- 54a07b854c150d58d1b2ef221792558f              368 main/binary-iphoneos-arm/Packages.gz
+ 089df664538bd78e05305ed52578dc8a              368 main/binary-iphoneos-arm/Packages.gz
  bde7688b56110f829d8f945c2351ef38              468 main/binary-iphoneos-arm64/Packages
- d0c18dcc9cbf654385f67897445c07e9              367 main/binary-iphoneos-arm64/Packages.gz
+ 46582030424b3421eea7365ca2041d91              367 main/binary-iphoneos-arm64/Packages.gz
 SHA256:
  51bf7ce875b07f81c1a748bd1cf1f300e92c3bf99c371101208911580f2c9aeb              464 main/binary-iphoneos-arm/Packages
- 6c8b48cd200a3140ddbe58a132d716b11155e9363941954613e2a2b7e2ce2d8f              368 main/binary-iphoneos-arm/Packages.gz
+ 8ddee99ac3768601a322f744830d5542a60f1e6640348bbd4fe10448a103370c              368 main/binary-iphoneos-arm/Packages.gz
  cad75cbdd0de643b01ccae28360e2054f92752075d65ecbbf3770e6ac6728918              468 main/binary-iphoneos-arm64/Packages
- 7bf3fc0abee2472e27771c501432ed0948e4d7f1ea1c8eebba9aad479a4a564a              367 main/binary-iphoneos-arm64/Packages.gz
+ 0c09d0e5ee194a06b28f8143f87ca356a6becae191298300e896662099a0e2c3              367 main/binary-iphoneos-arm64/Packages.gz
+
 -----BEGIN PGP SIGNATURE-----
 
-iQFEBAEBCAAuFiEE2r2Up0/geFDzKbyKxCUWXJcWV2oFAmqll6cQHGFwdEB6aXlh
-bi5sb2NhbAAKCRDEJRZclxZXau7WCACjYiDTFPWp0QYDC8bd/Di/t/3KqAwNR+Ti
-uy38RX6MqTqJnPU3OzK9zeLcImJJXxcYS8mAgFirneLdMThU6BPb5l2KjTx+Tq5R
-1mw/XNsXp/eA22ky863g50bB/aAdSqz6g1HnO4MWcIekfNWncz721bVVymSDX2eN
-AdFUsSsfB9RDovRmO9brBGTstj1fqf8mZ68ed6zDFLB/jpr3JjlBn11eJQvSvZX4
-FkYw5V3dEnC49hb83dir0EcpUq9qKiCz3+vLEAQlW81hW+UlFcm3g47+FkagJ+Wk
-G11uM9ZK9CbbfQoN3R2JGW8+fa93qo2rW9xSKg+HbXuesGBFRDnK
-=1awf
+wsBzBAEBCAAdBQJqpnQKFiEELF148za8jjBhrDZ1VZQfJ86WosQACgkQVZQfJ86W
+osT7xgf+N+2JNjndIqSuw+bDEYJ7Qx+HryxPW0zP7IvOMt1PFLQDoISB7vBbk0cF
++LSer37DmpapEDkyTVt5/Pcgjx1g8uXJ72pZTPlMKHNqvWUgbg2Ss8ToXkm1eeMZ
+Z6ighxpaqjdS/2edJRpZIs3fOvh7AlPq3wa7Lm4wRJ3q1Ny4Np1pZjulaSQRd8yV
+bnAP67mjvT8+ypICwpD3LYPW24hf/c0X9TJ96X0XzBPoeScwj3C8jBLHtB0RweLh
+cFyqU0ctNfdHpjwxZWEXcjIbjF18rTgEALuzo2YV6xehAe9Zs5NMJdsk0uJyh1pA
+nDi+NAUX+PakeC5rAziLWv5r8Iy9wg==
+=x2qM
 -----END PGP SIGNATURE-----

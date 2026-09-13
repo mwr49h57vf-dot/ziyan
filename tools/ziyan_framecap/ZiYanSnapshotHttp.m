@@ -15,6 +15,10 @@
 #import <fcntl.h>
 #import <netinet/in.h>
 #import <pthread.h>
+/* SDK 的 PTHREAD_MUTEX_INITIALIZER/PTHREAD_ONCE_INIT 展开依赖 pthread_impl.h 里的
+   _PTHREAD_MUTEX_SIG_init / _PTHREAD_ONCE_SIG_init；该头正常经 sched.h 间接引入，
+   但在 Theos 的编译环境里这条链不成立，导致 15e2b2e 起一直编不过。显式包含之。 */
+#include <pthread/pthread_impl.h>
 #import <poll.h>
 #import <mach/mach_time.h>
 #import <sys/socket.h>

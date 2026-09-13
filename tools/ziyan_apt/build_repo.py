@@ -199,7 +199,52 @@ def build(repo, debs, suite="stable", component="main", gpg_key=None):
             inrelease = os.path.join(repo, "dists", suite, "InRelease")
         except Exception as exc:  # noqa
             print(f"GPG_SIGN_FAILED: {exc}")
+    write_root_index(repo, records, suite, component)
     return records, (inrelease or detached)
+
+
+def write_root_index(repo, records, suite, component):
+    """写仓库根 index.html。
+
+    Cydia/Sileo 添加软件源时会先 GET 根 URL 判断该地址是否像一个软件源；
+    GitHub Pages 在没有 index.html 时对 `/` 返回 404，界面因此报
+    “未找到软件源 / 似乎不是有效的软件源”，即使 dists/stable/Release 完全正常。
+    这里生成一个纯静态页面，既消除该误判，也给人一个可读的源首页。
+    """
+    rows = "\n".join(
+        f"    <tr><td>{r['Package']}</td><td>{r['Version']}</td>"
+        f"<td>{r['Architecture']}</td></tr>"
+        for r in records
+    ) or "    <tr><td colspan=\"3\">(no packages)</td></tr>"
+    html = f"""<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ZiYan APT Repository</title>
+<style>
+body{{font:15px/1.6 -apple-system,system-ui,sans-serif;margin:2rem auto;max-width:44rem;padding:0 1rem;color:#222}}
+h1{{font-size:1.5rem}} code{{background:#f2f2f7;padding:.1rem .3rem;border-radius:4px}}
+table{{border-collapse:collapse;width:100%;margin-top:.5rem}}
+th,td{{border:1px solid #ddd;padding:.4rem .6rem;text-align:left;font-size:.9rem}}
+th{{background:#f7f7fa}}
+</style>
+</head>
+<body>
+<h1>ZiYan APT Repository</h1>
+<p>在 Cydia / Sileo 中添加软件源：<code>https://apt.ziyanapp.top/</code></p>
+<p>套件 <code>{suite}</code> · 组件 <code>{component}</code></p>
+<table>
+  <tr><th>Package</th><th>Version</th><th>Architecture</th></tr>
+{rows}
+</table>
+<p><a href="ziyan-apt-key.asc">ziyan-apt-key.asc</a></p>
+</body>
+</html>
+"""
+    with open(os.path.join(repo, "index.html"), "w", encoding="utf-8") as fh:
+        fh.write(html)
+    print("ROOT_INDEX index.html written (Cydia/Sileo root probe)")
 
 
 def main():

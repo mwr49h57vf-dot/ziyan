@@ -146,6 +146,36 @@ static UIImage *ZiYanGrayOtsuLikeTS(UIImage *img) {
   return out ?: img;
 }
 
+/// 小图放大到最短边 ≥ minSide，提升 Vision 命中率
+/// 0c5a4d3「统一OCR输入限制」删除了本函数，却遗留 ZiYanPrepareLikeTS 的调用点，
+/// 使 -Werror,-Wimplicit-function-declaration 直接中断构建（自 164 包之后一直编不过）。
+/// 此处按 95df63f 原文恢复；主路径的统一下限仍由 ZiYanOCRTargetSize 负责。
+static UIImage *ZiYanUpscaleImage(UIImage *img, CGFloat minSide) {
+  if (!img) {
+    return nil;
+  }
+  CGFloat w = img.size.width;
+  CGFloat h = img.size.height;
+  if (w < 1 || h < 1) {
+    return img;
+  }
+  CGFloat shortSide = MIN(w, h);
+  if (shortSide >= minSide) {
+    return img;
+  }
+  CGFloat factor = minSide / shortSide;
+  // 上限避免超大图
+  if (factor > 8.0) {
+    factor = 8.0;
+  }
+  CGSize sz = CGSizeMake(floor(w * factor), floor(h * factor));
+  UIGraphicsBeginImageContextWithOptions(sz, YES, 1.0);
+  [img drawInRect:CGRectMake(0, 0, sz.width, sz.height)];
+  UIImage *out = UIGraphicsGetImageFromCurrentImageContext();
+  UIGraphicsEndImageContext();
+  return out ?: img;
+}
+
 static UIImage *ZiYanPrepareLikeTS(UIImage *img) {
   img = ZiYanPrepForOCR(img);
   img = ZiYanUpscaleImage(img, 320);

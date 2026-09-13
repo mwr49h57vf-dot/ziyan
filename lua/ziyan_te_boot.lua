@@ -65,4 +65,23 @@ pcall(function()
   end
 end)
 
+-- 离线队列续传：进程启动时把上次没送出去的报告补传。
+-- OfflineQueue.lua 头注释早写明「重启后 flush 自动续传」，但此前全仓无任何调用点
+-- （grep 全仓只有定义与测试），于是报告只入队、不上传，服务器恢复后也不会自动续传，
+-- 与需求「服务器恢复 → 自动继续上传」不符。此处补上启动触发点。
+-- 约束：非阻塞、尽力而为、无待传时不付代价；失败只记内存，绝不打断启动。
+pcall(function()
+  local q = _G.OfflineQueue
+  if type(q) ~= "table" or type(q.flush) ~= "function"
+      or type(q.stats) ~= "function" then
+    return
+  end
+  local ok, s = pcall(q.stats)
+  if not ok or type(s) ~= "table" then return end
+  local pending = tonumber(s.pending) or 0
+  if pending <= 0 then return end
+  -- 启动路径上给较短超时：宁可这批下次再传，也不拖慢启动
+  pcall(q.flush, { timeout = 5, batch = 8 })
+end)
+
 return true

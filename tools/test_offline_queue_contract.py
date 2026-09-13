@@ -20,6 +20,7 @@ import socketserver
 import subprocess
 import sys
 import threading
+import time
 from collections import Counter
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -86,10 +87,33 @@ def prelude():
     )
 
 
+def fresh_tmp():
+    """每次运行用全新隔离目录，且旧目录删不掉时必须报错而不是静默复用。
+
+    此前 TMP 固定为 /tmp/zy_oq_contract，用 shutil.rmtree(ignore_errors=True) 清理。
+    若该目录被 root 占用（本机 sudo 需密码），rmtree 会静默失败，
+    于是上一次运行残留的 state.json(status=sent) 被本次复用：
+    「服务器关闭时全部入队」实测得到 pending=0 sent=3，7 项断言全部反向假 FAIL，
+    真实缺陷会被这种假结果掩盖。现在改为每次 makedirs 到唯一新目录；
+    万一仍复用（目录已存在且非空）则直接失败。
+    """
+    base = "%s.%d.%d" % (TMP, os.getpid(), int(time.time()))
+    if os.path.exists(base):
+        raise SystemExit("FAIL: fixture dir already exists: " + base)
+    os.makedirs(base + "/media/ZYCV/res")
+    os.makedirs(base + "/media/ZYCV/config")
+    return base
+
+
 def main():
-    shutil.rmtree(TMP, ignore_errors=True)
-    os.makedirs(TMP + "/media/ZYCV/res", exist_ok=True)
-    os.makedirs(TMP + "/media/ZYCV/config", exist_ok=True)
+    global TMP
+    TMP = fresh_tmp()
+    # 旧的固定路径若残留（例如被 root 占用），只提示，不影响本次运行
+    if os.path.isdir("/tmp/zy_oq_contract"):
+        leftover = os.path.join("/tmp/zy_oq_contract", "media/ZYCV/res/错误报告/.upload_spool")
+        if os.path.isdir(leftover):
+            print("NOTE: stale fixture /tmp/zy_oq_contract still present "
+                  "(owned by another user?) - not reused by this run.")
 
     # 1) 服务器关闭时产生 3 条错误
     out = lua(prelude() + (

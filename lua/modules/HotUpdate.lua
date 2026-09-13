@@ -224,6 +224,30 @@ function M.os_version()
   return v
 end
 
+-- 包名兼容层：APT 发布已拆分为 com.ziyan.ziyan-rootful / -rootless，
+-- 但历史设备装的是统一名 com.ziyan.ziyan。三者在不同设备上并存，
+-- 因此所有「查已装包 / 校验 deb 包名」的地方都必须走这里，不能写死单一名字。
+M.PACKAGE_NAMES = { "com.ziyan.ziyan", "com.ziyan.ziyan-rootful", "com.ziyan.ziyan-rootless" }
+
+--- 返回本机实际已装的 ZiYan 包名；未装则返回 nil。
+--- @return string|nil, string|nil  包名, 错误原因
+function M.installed_package()
+  for _, name in ipairs(M.PACKAGE_NAMES) do
+    local s = trim(shell("dpkg-query -W -f='${Status}' " .. name .. " 2>/dev/null"))
+    if s == "install ok installed" then return name end
+  end
+  return nil, "no_ziyan_package_installed"
+end
+
+--- 判断 deb 的包名是否属于 ZiYan 合法包名之一。
+function M.is_ziyan_package(name)
+  if type(name) ~= "string" then return false end
+  for _, n in ipairs(M.PACKAGE_NAMES) do
+    if name == n then return true end
+  end
+  return false
+end
+
 function M.arch()
   -- 与 postinst 同口径但兼容 SSH PATH 缺失：scheme 标记 → /var/jb → dpkg → uname
   local marker = read_text("/var/mobile/Library/Preferences/com.ziyan.ziyan.runtime_scheme")
@@ -233,7 +257,8 @@ function M.arch()
     if scheme == "rootful" then return "iphoneos-arm" end
   end
   if io.open("/var/jb/usr/lib/ziyan/var", "r") then return "iphoneos-arm64" end
-  local a = trim(shell("dpkg-query -W -f='${Architecture}' com.ziyan.ziyan 2>/dev/null"))
+  local _pkg = M.installed_package()
+  local a = _pkg and trim(shell("dpkg-query -W -f='${Architecture}' " .. _pkg .. " 2>/dev/null")) or ""
   if a == "iphoneos-arm64" then return "iphoneos-arm64" end
   if a == "iphoneos-arm" then return "iphoneos-arm" end
   local machine = trim(shell("uname -m 2>/dev/null"))
@@ -242,7 +267,8 @@ function M.arch()
 end
 
 function M.ziyan_version()
-  local v = trim(shell("dpkg-query -W -f='${Version}' com.ziyan.ziyan 2>/dev/null"))
+  local _pkg = M.installed_package()
+  local v = _pkg and trim(shell("dpkg-query -W -f='${Version}' " .. _pkg .. " 2>/dev/null")) or ""
   if #v == 0 then
     local body = read_text(var_dir() .. "/.ziyan_version")
     if body then v = trim(body) end
@@ -521,7 +547,10 @@ local function commit_state(version, previous)
   return write_text(M.state_root() .. "/state", version .. "\n" .. (previous or "") .. "\nok\n")
 end
 function M.installed_state()
-  local out, code = shell(dpkg_env_prefix() .. "dpkg-query -W -f='${Status}\t${Version}\t${Architecture}' com.ziyan.ziyan 2>/dev/null")
+  -- 包名兼容：统一名与拆分包名在不同设备上并存，按本机实际已装名查询
+  local pkg, perr = M.installed_package()
+  if not pkg then return nil, perr or "package_query_failed" end
+  local out, code = shell(dpkg_env_prefix() .. "dpkg-query -W -f='${Status}\t${Version}\t${Architecture}' " .. pkg .. " 2>/dev/null")
   if code ~= 0 or trim(out) == "" then return nil, "package_query_failed" end
   local status, version, arch = trim(out):match("^([^\t]+)\t([^\t]+)\t([^\t]+)$")
   if status ~= "install ok installed" then return nil, "package_not_configured:" .. tostring(status) end
@@ -544,7 +573,8 @@ local function archive_info(path, version)
     .. quote(path) .. " Version && dpkg-deb -f " .. quote(path) .. " Architecture")
   if code ~= 0 then return nil, "invalid_deb_control" end
   local package, actual, arch = out:match("^([^\n]+)\n([^\n]+)\n([^\n]+)")
-  if package ~= "com.ziyan.ziyan" or actual ~= version or arch ~= M.arch() then
+  -- 包名兼容：接受统一名与拆分包名；不相关包名仍判 mismatch
+  if not M.is_ziyan_package(package) or actual ~= version or arch ~= M.arch() then
     return nil, "deb_metadata_mismatch"
   end
   local _, payload_code = shell(dpkg_env_prefix() .. "dpkg-deb --fsys-tarfile " .. quote(path) .. " > /dev/null")

@@ -1,13 +1,13 @@
 Package: com.ziyan.ziyan-rootful
-Version: 0.0.92-8-161-205-C-65.11-98+debug-10-38-17-164
+Version: 0.0.92-8-161-205-C-65.11-98+debug-10-38-17-165-1+debug
 Architecture: iphoneos-arm
 Maintainer: ZiYan
-Installed-Size: 151776
+Installed-Size: 163312
 Depends: firmware (>= 13.0), mobilesubstrate
 Section: Utilities
 Author: ZiYan
 Filename: pool/main/z/ziyan/ziyan-rootful.deb
-Size: 55367482
-MD5sum: bab58be4b4f9815f5128820a54b3147e
-SHA256: d11b78b7345fc9ba5ec8bd568ae18dfbe336e5c7ad7a46000d73f6d827fa908c
-Description: ZiYan Rootful - for iOS 13-14 jailbreaks
+Size: 60173310
+MD5sum: efe49abb4e6625a0bf0b2ec39903864d
+SHA256: 67d3ba8366b44d2278c636069297a2b31956968890e0bcc1ad9f747d0e80dbbd
+Description: ZiYan automation (rootful arm / rootless arm64 via THEOS_PACKAGE_SCHEME).

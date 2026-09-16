@@ -1,1 +1,1 @@
-ziyan-manager selftest overwrite DA565BFB-441F-41B0-90D7-6A44698E57E3
+ziyan-manager selftest 4CB8B053-D793-40AD-B9B4-AAEDE1EEEFE2

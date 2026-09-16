@@ -1,1 +1,1 @@
-ziyan-manager selftest overwrite 7F85E8CC-C249-4D04-A0E2-C59750850F83
+probe

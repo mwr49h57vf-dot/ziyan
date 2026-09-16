@@ -1,1 +1,1 @@
-ziyan-manager selftest 4CB8B053-D793-40AD-B9B4-AAEDE1EEEFE2
+ziyan-manager selftest overwrite 370A6ABB-0F56-4893-8904-6F2F9F65CD8F

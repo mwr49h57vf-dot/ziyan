@@ -7,26 +7,26 @@ Suite: stable
 Codename: stable
 Architectures: iphoneos-arm iphoneos-arm64
 Components: main
-Date: Tue, 15 Sep 2026 14:18:31 +0000
+Date: Wed, 16 Sep 2026 09:03:28 +0000
 Description: ZiYan automation engine (APT repository)
 MD5Sum:
- 517c3cb7c3c453fb5674e608e32e41bc              485 main/binary-iphoneos-arm/Packages
- eb29a6100486b06f362dc1f7fbfb3e50              376 main/binary-iphoneos-arm/Packages.gz
- 3e1b4e6efd472d6a2639a48f29075176              489 main/binary-iphoneos-arm64/Packages
- 9b04d2bf20f58765961cc1e1e52fa3b3              375 main/binary-iphoneos-arm64/Packages.gz
+ c77eb2dc9b954d2f2cc4bea15ede4e9f              485 main/binary-iphoneos-arm/Packages
+ 74bb9290d3853dfc184ad10b0d240780              377 main/binary-iphoneos-arm/Packages.gz
+ 1db2ec2eec76ae7942e2198e9498ff61              489 main/binary-iphoneos-arm64/Packages
+ 999d7b0750f16c51b34e36cf835ed524              376 main/binary-iphoneos-arm64/Packages.gz
 SHA256:
- 94db6469e89c032b3828d1d7d2b6d5e88484d2da7a364c2fae7b17d5c5851912              485 main/binary-iphoneos-arm/Packages
- e0fc2cead67c01833ced1dfc344767d3c2184ce12f497d7acb8211f1a161a5c0              376 main/binary-iphoneos-arm/Packages.gz
- c6ddf47c75d15c9b4a991e4a3883c7320251a86414fcca35002aa1473f08f03c              489 main/binary-iphoneos-arm64/Packages
- 208368ed1cf49f2e0ccf468a4b76b35604f1dae641c781107bd328fbfec51566              375 main/binary-iphoneos-arm64/Packages.gz
+ cc1f8464a122e85135f9433fbd61afecaf2a4d1d1aa9e3e77cdd25678e7faf02              485 main/binary-iphoneos-arm/Packages
+ c8755a259316d2fab797f11802c6c56f9aa87fe8850b9594030da1748e6f770a              377 main/binary-iphoneos-arm/Packages.gz
+ 354791620f216b847dcf92b6ba49e84c9cad0beccb62473704b0408a77b6a063              489 main/binary-iphoneos-arm64/Packages
+ 6f517576a84130938163352d698cb68892b434c72c82318770be9e61078c96ba              376 main/binary-iphoneos-arm64/Packages.gz
 -----BEGIN PGP SIGNATURE-----
 
-iQFEBAEBCAAuFiEE2r2Up0/geFDzKbyKxCUWXJcWV2oFAmqpU9MQHGFwdEB6aXlh
-bi5sb2NhbAAKCRDEJRZclxZXan3lCACi37fFhYuZkXJXTbrEC9xm2G7PvtSqG1YF
-1+1GvJRywhwwaVQFdpqqV3JBmw/UudSSOSTwiVzn05ph2mmOvsClUpaEVMkMctEj
-bG0clrQBUXGYHXsnKKNlGV95SMerqDGm5TxGvajnBZjKzMDLuNAvqBZcoForRlUu
-ZmJo6xElVBGGrFyN6Q9lZcJlmox5bsgZg2oq51UWX0kdonCz475vPWZnKOA0lT5j
-aiyxnfPhxdeGC5boT///nhr5cH2ecxFkrelAdpIXN1XWP3rhxk1wbI4LQS2n4HXi
-p44chmlOCySvPgeOHD/yB2j7aNob7Kt/p2ZGABnJA/pJP4UeBQzB
-=+sHU
+iQFEBAEBCAAuFiEE2r2Up0/geFDzKbyKxCUWXJcWV2oFAmqqW2IQHGFwdEB6aXlh
+bi5sb2NhbAAKCRDEJRZclxZXas5bB/93pfgyQbaWm0M1MPzVVqybfvQLVCID1CwK
+wWh0iyHWo183n2HsR+LKT0uB537q2lddIzgnw1mLIQTr9+W+r8x8evnbAefS+FL7
+y0/Qq5dQQscAQa6YBJFQJWtbLQ5lrw+K55gm7uOuuCzsqATUCIF3CniEYlCNI7qY
+RvoZw8aP5tspZcGSD2462fIgl3ukm/Z+DJbB8jiG1iZ/n3KyRTJYyLnrWjlPoT4Z
+kCcr3JO0uy1pWJ6nDtvfdvu7xmHwbcmCeS7RlNlitnc4MhoWrqbPoICxG64HLQjs
+2V9TiGHFdgsHb0f6Yz6ToKamk0DDNI5kq6YyWTvV8dGZiwpXuEgp
+=XOi6
 -----END PGP SIGNATURE-----

@@ -1,1 +1,1 @@
-probe
+ziyan-manager selftest CEB86300-3428-4055-A240-241241F21C23

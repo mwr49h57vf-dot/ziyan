@@ -7,22 +7,23 @@ Suite: stable
 Codename: stable
 Architectures: iphoneos-arm iphoneos-arm64
 Components: main
-Date: Tue, 15 Sep 2026 14:18:31 +0000
+Date: Wed, 16 Sep 2026 09:03:28 +0000
 Description: ZiYan automation engine (APT repository)
 MD5Sum:
- 6fef397f688402c016ac0d746314b862              975 Packages
- 763963b09ecaece0262c6d5da1b120f7              498 Packages.gz
+ cc42359524ad85bb5224977ab284b71c              975 Packages
+ 917f3fa0e03418671301d38aa274037f              498 Packages.gz
 SHA256:
- fde36a71df4009c2a584500437c1e521ccfda18e832476a57d09add624599ca4              975 Packages
- ef33b73d0060e1d7f2427e983f774b69231518ea3105a134bee66ee2a360b6dd              498 Packages.gz
+ 68685529b14c363ac3bb11d972cd75dff74eee018bc5e61bb99fde52200598cc              975 Packages
+ 9a83de216752c230c25f87d8a9c44331f8e1800a431a9743163c0345ef3f7f80              498 Packages.gz
+
 -----BEGIN PGP SIGNATURE-----
 
-iQFEBAEBCAAuFiEE2r2Up0/geFDzKbyKxCUWXJcWV2oFAmqpU9QQHGFwdEB6aXlh
-bi5sb2NhbAAKCRDEJRZclxZXaq0YB/4wVYhWjkS4VPQ6OZVj4KGAEhCxJ6YkSgTF
-GrZS3tMTaFKqksSeBwj4qvHfX6AbqpR6ev95WWDUU6CqWTyyuAzuElqWOOY7XyxH
-RbOA8Ez12DGrX5mWcZIlQeNPEULatOGl6DXd3sw+Q6drw1Xx1FIbbEn30Jazi0BC
-5tyXQtBuKbcOigykhgeufxGALI938B5xeB3w/aA9r6l32MEtbcXqFttrIZhz6vef
-vli+ecd4+9jRXbYPJhmDC3LVETvWAYXJ6ynGvqg4gvpsmGvyiyTNGKhKoXJFrsiN
-HYWLvAeo4U8pYlczvzXm8pPXGJaojBGPjhQ/eYCMjt1Xp3a+gRHt
-=FM5E
+wsBzBAEBCAAdBQJqqlthFiEELF148za8jjBhrDZ1VZQfJ86WosQACgkQVZQfJ86W
+osQQzwf9FUKvi3X7WzpoOZqhbq8w8SFAr9zDaAgtOdM8Eo63Qc6mwmzTcc95Ck5g
+UzJTvNbgQ8MFfs/fB0R/H+S2zM5w2ackC7XEAOyZBXzfhfHfWuj1/KYz/uKudO7H
+9nXADE7nUA3yKK7MxNKU3GG/8pxbHg5gUhOUmsCoHZF07MM7UVJ+VGCuKB/y3ARE
+QHUEKxF61gxpaDWASpPYwZUaFTritFA7hqJPcYZ/GdTkW2DVrHuOcE3nOcP2fukK
+59Xndjz7eP3+5h9sJ/9eGS6y32sk7JZlNZyZLBZQJWNIDht47W94U59rudY/+Z0N
+xapxUffWVCBMERm/8/bGi+9gg2s1Tg==
+=8U86
 -----END PGP SIGNATURE-----

@@ -1,6 +1,6 @@
-version=0.0.92-8-161-205-C-65.11-98+debug-10-38-17-177-16+debug
-sha256=ba8c0fc4a9b378c8ae5fdc27db577ff4bd52b41347098943fb5fe5fbff3e56ac
-size=60270404
+version=0.0.92-manager-selftest
+sha256=c9a458b882dbeb571a0ec84e11d767a4e823587f5899712bea82b87cf3614714
+size=4104
 architecture=iphoneos-arm64
 min_os=13.0
 max_os=16.7

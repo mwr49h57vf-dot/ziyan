@@ -1,29 +1,29 @@
 Package: com.ziyan.ziyan-rootful
 Name: ZiYan
-Version: 0.0.92-8-161-205-C-65.11-98+debug-10-38-17-177-27+debug
+Version: 0.0.92-8-161-205-C-65.11-98+debug-10-38-17-177-77-13+debug
 Architecture: iphoneos-arm
 Maintainer: ZiYan
-Installed-Size: 107484
+Installed-Size: 107504
 Depends: firmware (>= 13.0), mobilesubstrate
 Section: Utilities
 Author: ZiYan
 Filename: pool/main/z/ziyan/ziyan-rootful.deb
-Size: 35803946
-MD5sum: 608a72e527b6c2618f6dc13cfc3ba3f5
-SHA256: ae531bfd639a0001f01df6796a544b3a040a1f64be211102ca662780354b6fb6
+Size: 35813256
+MD5sum: ec433fde7771a951ebeb30a7d7fb53e7
+SHA256: c898a883739ab2580972e76c69fc0608ce6371f65a6abe71b4ff02268953b020
 Description: ZiYan Rootful - for iOS 13-14 jailbreaks
 
 Package: com.ziyan.ziyan-rootless
 Name: ZiYan
-Version: 0.0.92-8-161-205-C-65.11-98+debug-10-38-17-177-28+debug
+Version: 0.0.92-8-161-205-C-65.11-98+debug-10-38-17-177-77-14+debug
 Architecture: iphoneos-arm64
 Maintainer: ZiYan
-Installed-Size: 107448
+Installed-Size: 107468
 Depends: firmware (>= 15.0), ellekit
 Section: Utilities
 Author: ZiYan
 Filename: pool/main/z/ziyan/ziyan-rootless.deb
-Size: 35809800
-MD5sum: 94945cb0f5976e0940914110fc6c65b9
-SHA256: 3e35fb48058d9a50d161df45eda7107402972bcbe68d8541cf36415b56603022
+Size: 35819150
+MD5sum: dfb5dfd795f3f1332bcb5b6dfce3e437
+SHA256: 9653d12d630853281aa4f29c6c413c62c3f043f647f8404e5622ebf43c715254
 Description: ZiYan Rootless - for iOS 15+ rootless jailbreaks

@@ -7,23 +7,23 @@ Suite: stable
 Codename: stable
 Architectures: iphoneos-arm iphoneos-arm64
 Components: main
-Date: Sat, 19 Sep 2026 07:59:47 +0000
+Date: Sat, 19 Sep 2026 10:35:52 +0000
 Description: ZiYan automation engine (APT repository)
 MD5Sum:
  b451f70743d58a0396e4582eefd63366              981 Packages
- 5815ff43944859aacaaa134b06b51747              495 Packages.gz
+ bf31710e1fd347b5e3b11e132d60f300              486 Packages.gz
 SHA256:
  9f366003d5929b99b802918cdd66e65f0bb8e0d161b7d46339c7e670899a2fdc              981 Packages
- a3ccff0a6794066a6a5cb621ae326ea288936fecebf749d475e09f5d11fb27e7              495 Packages.gz
+ 068731def6dc5675ec094cca99a5cc6247bff1009f3876e210284b40af4c5e62              486 Packages.gz
 
 -----BEGIN PGP SIGNATURE-----
 
-wsBzBAEBCAAdBQJqrkxLFiEE2r2Up0/geFDzKbyKxCUWXJcWV2oACgkQxCUWXJcW
-V2r78gf+IIsyDnh2Ti3G5ttz8aOxe/qh+FnYWulbNNlWnj/6lrEQGG3LDFYiZGre
-NI1XX63E8mui6Z1tmPlm14vHGQ34mhto2wnRSjCqlz266tE76jcH83pyU99149Du
-ICu8hP2kZCuL23WH5H28zOl89/rWneP9uXBSPHlkKg7QT1LQcco1vvT3hWOY7HJL
-G9B7sisj1crm4vXtV/bMfTSIX1dEanEfc1W6/gwwoWdDs+WN2rY5Ujjdzk3ecI9s
-sFpr2zaUuOMViL61qDXXW1Hau9cAmacjanE1fqxVGAv/KEYuxUJWcvNI9po8jCkj
-X3APYWdk1Fel5KYuyuc7HAzPztzzXA==
-=t4fl
+wsBzBAEBCAAdBQJqrmWeFiEE2r2Up0/geFDzKbyKxCUWXJcWV2oACgkQxCUWXJcW
+V2rviQf/eKlv6MWoeDEIQ2+DfH0/3eE1rxoKLOvAqLA/qqFBEH1zhCLDeyyxOpKE
+zdkQxgK6BHizSenfjKunZfEucIj+fRa0sgqQ5prxItQxEQ/HnHncOtKpp349rY7q
+Mgkj8wUGuOwhJtgNCvBKDu/FT6E0N78opOzyPOb6sld3EBGcNVVO3u57GGfoO6S5
+ORuYPO2QFi7CTmhqR4u2UBWNIeXWTZuxKXdrkRTMXWog8vuCsMaoY+xHP4GrtfDr
+0HSxSwpoCBy/e1/E3nxfoGPmqTonsfELHUrsNbyTh/jgUVCdG7PD3VsVo92W8tHV
+IVhQDBC1wbaTBn8EwYQy1fX63aCG0g==
+=SK8h
 -----END PGP SIGNATURE-----

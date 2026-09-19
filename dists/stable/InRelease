@@ -7,27 +7,27 @@ Suite: stable
 Codename: stable
 Architectures: iphoneos-arm iphoneos-arm64
 Components: main
-Date: Sat, 19 Sep 2026 07:59:47 +0000
+Date: Sat, 19 Sep 2026 10:35:52 +0000
 Description: ZiYan automation engine (APT repository)
 MD5Sum:
  14be183fa1ce3ced7e048205a6191b1a              488 main/binary-iphoneos-arm/Packages
- 248bd76a31eb8c8b445f48046be91079              378 main/binary-iphoneos-arm/Packages.gz
+ 2beca23d43e8765c55bc02501e5b675a              369 main/binary-iphoneos-arm/Packages.gz
  f661091f64b77c0eef5bbf128ca04fb8              492 main/binary-iphoneos-arm64/Packages
- d2e0ea31366ff0db4ce6e8a7ad206618              376 main/binary-iphoneos-arm64/Packages.gz
+ 7770931dfa0ee74a6a1be19facdbb906              367 main/binary-iphoneos-arm64/Packages.gz
 SHA256:
  8f5470efa9204e6c05e009124f64434a66c69529ede8aca3fd454570ce03244f              488 main/binary-iphoneos-arm/Packages
- 96278461d76a1c5fc74f52c9b4a8b119594f24ade96a864106dd09bd15ee0525              378 main/binary-iphoneos-arm/Packages.gz
+ f17321569effd87364e06ba39a714f1cd521d40b78aa3de221f36dcb4922b421              369 main/binary-iphoneos-arm/Packages.gz
  dd55b73522dc4c813aa8eb910767da5957ee70fb16d946900654e7fe10542da1              492 main/binary-iphoneos-arm64/Packages
- fab8453e653e208e0a608bdcfed57e97a9b8ef1c2c677db6ac9e0053e015721c              376 main/binary-iphoneos-arm64/Packages.gz
+ c831ce4aff03ac13844fdc46b53e5646cd184047cb56a7dac7034ff8520e18b8              367 main/binary-iphoneos-arm64/Packages.gz
 
 -----BEGIN PGP SIGNATURE-----
 
-wsBzBAEBCAAdBQJqrkD7FiEE2r2Up0/geFDzKbyKxCUWXJcWV2oACgkQxCUWXJcW
-V2pV+Af9G3o7l1GwDiu4lGLx2mYaxC4SNic27fORX7w8iwDT+hQAHOyrJqBW5Fk6
-UXoMWEfcxy3Ui4FYxsykVhyytKhmub9ZWo8ZFYb4yffAQL0ffthpZV/L4gACWnYe
-meY0C2zW/EFl/jNEGKzV7wUcgkOhjXkgsEQqaAJoCDy0ak1BXTPz6V1RzqN00WaR
-oT4DpkjWDNj1fA0Eobe5CvMExIWWkVRe7Qf427DicTxTkdiz/znGPB66GB0KJBwQ
-KCkKJ/17ZjpGSMuBLpx6d4skYw6f7anCLLrqDzutVWnT58t1foeBdAkh3Rypz89n
-4KqUjR7pcssm9sWna7Z5EYn0QX+1Ow==
-=Mdxx
+wsBzBAEBCAAdBQJqrmWeFiEE2r2Up0/geFDzKbyKxCUWXJcWV2oACgkQxCUWXJcW
+V2ou9QgAsfWtqrNYEIxYZ9liqdhZO2atKXOlng+dramiL34k2U1Ob0Fp0CZOIchi
+JMUfbwUYh9xgo1YZCmuRf33Tk5RpiWUE95zyqDDxnR2gw+aG8ZGvPx3xhhekcE0o
+RhMiljp54mnltRifxuM2xdjENXxKh+Si2kDkIM6MfdiSTCSpIu9N6EhWM222t1gB
+7EkG9AIM1lL8JDQEg2Zu2MfsLJqvDY2efdZvrnpCImAjkxaV4YB/SFMoMKDDMwn6
+ehayJ6AyA5YVNgwHkS3AjUty59xn5XyaVyV7K6Y1UNqE0wxSprhSkyFYz7vwwgay
+fe3TjsSKpZZm7GiEsQ5Hxo6PfH3USw==
+=MKXs
 -----END PGP SIGNATURE-----

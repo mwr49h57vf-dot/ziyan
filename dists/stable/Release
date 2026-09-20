@@ -4,15 +4,15 @@ Suite: stable
 Codename: stable
 Architectures: iphoneos-arm iphoneos-arm64
 Components: main
-Date: Sat, 19 Sep 2026 12:36:10 +0000
+Date: Sun, 20 Sep 2026 21:57:42 +0000
 Description: ZiYan automation engine (APT repository)
 MD5Sum:
- 34fbc121a17707efc4627c12c5487e99              488 main/binary-iphoneos-arm/Packages
- 6b09c6cfbeaddf532ef074fa424322d9              378 main/binary-iphoneos-arm/Packages.gz
- dde8126008d7c9f08811c548b2d119ae              492 main/binary-iphoneos-arm64/Packages
- b0e9fae784915845ae4e26d0eebc64ac              377 main/binary-iphoneos-arm64/Packages.gz
+ 342ff038dafa98b2f21dcf497d74e5b9              488 main/binary-iphoneos-arm/Packages
+ be8accdb24a1b41f1bd8db16e6658984              376 main/binary-iphoneos-arm/Packages.gz
+ 43d5496be798655b255fe1138b29c2fb              492 main/binary-iphoneos-arm64/Packages
+ 706578caeec9662f82f83ddf020976fc              377 main/binary-iphoneos-arm64/Packages.gz
 SHA256:
- 81521733fa3a5e422ed8aa036535ade00291594cd22886ee8e732039251c90cd              488 main/binary-iphoneos-arm/Packages
- d02b18198fd81856ba9a1ced2ada637398c2219fa94ce3d73110bf99ddc945b3              378 main/binary-iphoneos-arm/Packages.gz
- 8bede21a61de65056b2238309e3877db03c1bc6895dc595e6d0229fc09412d22              492 main/binary-iphoneos-arm64/Packages
- 25d462fff4bb3d88dcb0fb7da1ab69b3bbcc6b24460a6916c88a3438e30068d2              377 main/binary-iphoneos-arm64/Packages.gz
+ f2d148bfd8a0f67d40465124294723a9ec4d14af8daf218fb450bb988c66c9df              488 main/binary-iphoneos-arm/Packages
+ 4840a178b8bd70f0053f24cdcb4a745c16532d58807d8822c59cd0457d1f5dc5              376 main/binary-iphoneos-arm/Packages.gz
+ b296034bfe3fbdf1394eb87d75b4468e84c4851ca4137ce09d0e18d1c6f07236              492 main/binary-iphoneos-arm64/Packages
+ af64426764f66aec0993390d40f368f175abcb37782b471c0becdb7586ff9c07              377 main/binary-iphoneos-arm64/Packages.gz

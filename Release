@@ -9,6 +9,10 @@ Description: ZiYan automation engine (APT repository)
 MD5Sum:
  10c571761bb16c1c4cb9112a93307446              932 Packages
  d8e91403e77323994beb279d3a9d5ca3              494 Packages.gz
+ cefa2855f2159cc46e6a9cff56bff1de              482 Packages.zst
+ 08f0280ce6c7f6d266b5345725155b2e              552 Packages.xz
 SHA256:
  caa344b5602bc83a990d941b0554615f8efa0a57912c3d36b3449861b63cf3c0              932 Packages
  316a1da3765a327c0aece0516ab5eca595e8ff3334fc77b31717cec2c0eeeeae              494 Packages.gz
+ 20c62f9623c6ab343a4f7da0815068895dddf37732fdbc366c9306f16a0cba07              482 Packages.zst
+ d843cb28560a897d27580e71a581c8c20318874379e88921ed05aeecc2a4e800              552 Packages.xz

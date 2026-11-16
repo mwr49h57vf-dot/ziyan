@@ -9,10 +9,18 @@ Description: ZiYan automation engine (APT repository)
 MD5Sum:
  24ee43219963d4094aa8ce9ed5aecfe9              458 main/binary-iphoneos-arm/Packages
  b9158f8a8da7b8b48d91d9a752465d97              356 main/binary-iphoneos-arm/Packages.gz
+ 2cb181a7752be406bf2356e81d5abe71              350 main/binary-iphoneos-arm/Packages.zst
+ 0980fbb843867901a45b597be5c489c0              416 main/binary-iphoneos-arm/Packages.xz
  d8bde91f29e1f810d4fc4bdc8e27f821              473 main/binary-iphoneos-arm64/Packages
  8c9a84cc3923101e14ec15d171608423              363 main/binary-iphoneos-arm64/Packages.gz
+ fa4a3968609d710275e343656da8541b              352 main/binary-iphoneos-arm64/Packages.zst
+ 980b7137201653200519324b93ad7b3b              420 main/binary-iphoneos-arm64/Packages.xz
 SHA256:
  3d4347c456a5e614bca26fa9fb6ee553c6f08441f912dbffc74ffe1e907ca276              458 main/binary-iphoneos-arm/Packages
  eb077754d5659d03c706298b04850c18bf441dae8107d43ad3c8c63054375724              356 main/binary-iphoneos-arm/Packages.gz
+ 96c257c91cde290028583c448048a0f1c25d83d068877a830d2fa6dd0228a487              350 main/binary-iphoneos-arm/Packages.zst
+ fc856ecb33bc90ec389e12ca074c92daace61c00b1ee1ac140dfd91369e098b4              416 main/binary-iphoneos-arm/Packages.xz
  448e49c8306fa114aa3d6e5b0185db06043738fb69f7e52ae072795cf646e55f              473 main/binary-iphoneos-arm64/Packages
  b939a35fbed4302de618394017d6d3397b147d45ce5df12f6979e5408a088d8a              363 main/binary-iphoneos-arm64/Packages.gz
+ e4221a4b46a87d4b81fe21e86af1f0ace0b6a38478efd6a980bd872df588b6de              352 main/binary-iphoneos-arm64/Packages.zst
+ 58a3a9f9db6d18a920538cbf7ceef296355000ed3286574e0f50519db02199f8              420 main/binary-iphoneos-arm64/Packages.xz

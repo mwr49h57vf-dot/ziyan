@@ -12,18 +12,22 @@ Description: ZiYan automation engine (APT repository)
 MD5Sum:
  10c571761bb16c1c4cb9112a93307446              932 Packages
  d8e91403e77323994beb279d3a9d5ca3              494 Packages.gz
+ cefa2855f2159cc46e6a9cff56bff1de              482 Packages.zst
+ 08f0280ce6c7f6d266b5345725155b2e              552 Packages.xz
 SHA256:
  caa344b5602bc83a990d941b0554615f8efa0a57912c3d36b3449861b63cf3c0              932 Packages
  316a1da3765a327c0aece0516ab5eca595e8ff3334fc77b31717cec2c0eeeeae              494 Packages.gz
+ 20c62f9623c6ab343a4f7da0815068895dddf37732fdbc366c9306f16a0cba07              482 Packages.zst
+ d843cb28560a897d27580e71a581c8c20318874379e88921ed05aeecc2a4e800              552 Packages.xz
 
 -----BEGIN PGP SIGNATURE-----
 
-wsBzBAEBCAAdBQJq+pGqFiEE2r2Up0/geFDzKbyKxCUWXJcWV2oACgkQxCUWXJcW
-V2pMhwgAioL9D12Ly9MeN7HUAf5X9b/SbXsysTUn8g8zDp8FjwBMYiHdwEwxpfsz
-2HUuPedZvSSId2HMVT1iRhPtyfSR7sLZUsonuzwyEHFifciZ+B8pUfJGvzPS1zLs
-ibSaMzmGbmhsfYQ7I5mat9fd3YnXtyaPRmkmH26DpjXqUKfC+mhp06cw9gR/kPsw
-64BngvoysKME7ScZD7D/po6bIDfV2SPXsmpEUw58uC+wG9RXVVNqsJ4FS+iX+cSP
-NjCENlxqh/JQ03bIqtObR3kbsw7f6ZqGyS+0uBklVVSUYAs4pMpzS/XnOx09g2V8
-KKWK6Qir80BrOFxQxC7174Nf4sQ/HA==
-=hfGi
+wsBzBAEBCAAdBQJq+vYNFiEE2r2Up0/geFDzKbyKxCUWXJcWV2oACgkQxCUWXJcW
+V2qJ2ggAquV++nT1kpZPeF2eSBJKMUPdVOOX3TWVarJFBWW9g7WRsbYv/KpRKs60
+Oyki/quBFeub1MP8woPHH7rKZtnANoceHJSTZD2/gbg0RC6KaZQz1c6cqYKa6h/k
+BxjIe3kuWaQr0VwCvTe0eftnhQ9WA6eR6y5KsMBFQ75dDU/UKoNcsJwctzGjLaR2
+887CBbOGqVdw4GCmbzfZEqr56SqQo0E0ZkGAOp8G671BUhal8v1SxaAleOcPazNi
+1geLkcT1HhEqKg6RgFB4RA6bRzEUtRXvcpSdH//Tvlda031SiARMDoYcRIQDkeaJ
+GkmVz7nWBMJe186Y/pGts5xI7bIQfA==
+=b3Qd
 -----END PGP SIGNATURE-----

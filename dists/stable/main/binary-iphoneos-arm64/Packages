@@ -8,7 +8,7 @@ Depends: firmware (>= 15.0), ellekit, libncursesw6, liblzma5
 Section: Utilities
 Author: ZiYan
 Filename: pool/main/z/ziyan/ziyan-15-16-1.98-rootless.deb
-Size: 33132258
-MD5sum: e46202ff746c42d391517ef7a2c42d37
-SHA256: 8cfed4e5842287e8a1a144b7378ee93b3c443411f3dfe32cbf72f68ba77f89c4
+Size: 33136964
+MD5sum: 455419d9cb4a1402f2ee900b89884826
+SHA256: db3d1b7bdfdac3967f5b3c5b038e914396749a4614f3fd3cb9c2ac563b81c704
 Description: ZiYan Rootless - for iOS 15+ rootless jailbreaks

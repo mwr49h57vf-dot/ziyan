@@ -7,27 +7,27 @@ Suite: stable
 Codename: stable
 Architectures: iphoneos-arm iphoneos-arm64
 Components: main
-Date: Mon, 16 Nov 2026 05:16:25 +0000
+Date: Mon, 16 Nov 2026 23:36:48 +0000
 Description: ZiYan automation engine (APT repository)
 MD5Sum:
- 10c571761bb16c1c4cb9112a93307446              932 Packages
- d8e91403e77323994beb279d3a9d5ca3              494 Packages.gz
- cefa2855f2159cc46e6a9cff56bff1de              482 Packages.zst
- 08f0280ce6c7f6d266b5345725155b2e              552 Packages.xz
+ 238a18f2b8e17451a8dab79735f9ba88              932 Packages
+ 269b3c6f162dd2365f1751505a5499b1              498 Packages.gz
+ 0c46ee354aace5494dbd357232b44dec              556 Packages.xz
+ c2e09d63b873a914623c5a5e31acfade              484 Packages.zst
 SHA256:
- caa344b5602bc83a990d941b0554615f8efa0a57912c3d36b3449861b63cf3c0              932 Packages
- 316a1da3765a327c0aece0516ab5eca595e8ff3334fc77b31717cec2c0eeeeae              494 Packages.gz
- 20c62f9623c6ab343a4f7da0815068895dddf37732fdbc366c9306f16a0cba07              482 Packages.zst
- d843cb28560a897d27580e71a581c8c20318874379e88921ed05aeecc2a4e800              552 Packages.xz
+ 9b5c1f8b54819fd607d1de523924eb5a539087b102f38d6f205ca1b9346a95b1              932 Packages
+ 64b64c1af243d56ed7a29d57f40eb5bf50f37ebab1b88cb00f7884a12027a346              498 Packages.gz
+ 00d313f9bf35756c403aa8da1fa4a782ab03f0f5da410f30f4a6560c8c918d72              556 Packages.xz
+ 26d0a2e073ff29579f1bfab6e5edd65e6bd6e95855f4293b52c22b6e3ac03092              484 Packages.zst
 
 -----BEGIN PGP SIGNATURE-----
 
-wsBzBAEBCAAdBQJq+vYNFiEE2r2Up0/geFDzKbyKxCUWXJcWV2oACgkQxCUWXJcW
-V2qJ2ggAquV++nT1kpZPeF2eSBJKMUPdVOOX3TWVarJFBWW9g7WRsbYv/KpRKs60
-Oyki/quBFeub1MP8woPHH7rKZtnANoceHJSTZD2/gbg0RC6KaZQz1c6cqYKa6h/k
-BxjIe3kuWaQr0VwCvTe0eftnhQ9WA6eR6y5KsMBFQ75dDU/UKoNcsJwctzGjLaR2
-887CBbOGqVdw4GCmbzfZEqr56SqQo0E0ZkGAOp8G671BUhal8v1SxaAleOcPazNi
-1geLkcT1HhEqKg6RgFB4RA6bRzEUtRXvcpSdH//Tvlda031SiARMDoYcRIQDkeaJ
-GkmVz7nWBMJe186Y/pGts5xI7bIQfA==
-=b3Qd
+wsBzBAEBCAAdBQJq+5OQFiEE2r2Up0/geFDzKbyKxCUWXJcWV2oACgkQxCUWXJcW
+V2oy2Qf+NOgHPG2XZUs7+g/3NFnigH4lkY/Ih5HTmpTDQZbFiw+AZxiz2ac/zZi6
+Y3J1lko5NCVvgWTdQSWfFB1wt4KBJ2CFauH8S1TUzNO2O0As6ZGiJl/LJJZ2P5U8
+R2AGTKlPs/rhogLcujhAT1XpjSx12jArgJDOqpnOg8Ki9zCJ+1TXoaaPo82wKrxV
+Fm4v2P9tE2a9awhTLvrYexc/GsVi/bfZFbT2EcPV6JNiQAK/A7aVN6AGVaD6amCl
+DyB7AW2BvyHrIsvubObHNjg2kfnLoOA3AocKxksdKhyV+KBkyk/YGtxGPWkXzYFE
+vN04KVdMaqhpibxHqVP64YjSwXOZqw==
+=1Dwa
 -----END PGP SIGNATURE-----

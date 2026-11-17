@@ -8,7 +8,7 @@ Depends: firmware (>= 13.0), mobilesubstrate, ncurses, xz
 Section: Utilities
 Author: ZiYan
 Filename: pool/main/z/ziyan/ziyan-13-14-1.98-rootful.deb
-Size: 33267078
-MD5sum: 7ced8c0624238f6337b594288cf8c30a
-SHA256: 62e07f7d19809e76f08e767a8284c60fb72a5058792b20fe66e704ff6cba937f
+Size: 33262838
+MD5sum: 9379aef0f0cbbf8a006d852bd3ba31a5
+SHA256: 131300b278659f1ae903a27b42f1192e15213a43a79ab71cdc3aad9e64c15d5d
 Description: ZiYan Rootful - for iOS 13-14 jailbreaks
